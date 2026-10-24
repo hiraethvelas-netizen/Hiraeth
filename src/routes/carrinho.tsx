@@ -42,7 +42,7 @@ function Carrinho() {
       .insert({
         user_id: userData.user.id,
         total: cart.total,
-        customer_email: userData.user.email,
+        customer_email: userData.user.email ?? null,
         status: "pending",
       })
       .select("id")
