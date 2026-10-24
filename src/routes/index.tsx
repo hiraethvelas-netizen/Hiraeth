@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import banner from "@/assets/banner-portal.png";
 import fenix from "@/assets/fenix.png";
 import { SiteFooter, SiteHeader } from "@/components/SiteLayout";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -90,9 +91,15 @@ function Index() {
         ) : (
           <form
             className="mt-8 flex flex-col gap-3 sm:flex-row"
-            onSubmit={(e) => { e.preventDefault(); setSent(true); }}
+            onSubmit={async (e) => {
+              e.preventDefault();
+              const email = new FormData(e.currentTarget).get("email") as string;
+              const { error } = await supabase.from("newsletter_subscribers").insert({ email });
+              if (error && !error.message.includes("duplicate")) return;
+              setSent(true);
+            }}
           >
-            <input type="email" required placeholder="seu@email.com" className="flex-1 border bg-transparent px-4 py-3 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none" />
+            <input type="email" name="email" required placeholder="seu@email.com" className="flex-1 border bg-transparent px-4 py-3 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none" />
             <button type="submit" className="btn-gold justify-center">Quero receber</button>
           </form>
         )}
