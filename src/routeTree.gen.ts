@@ -23,7 +23,9 @@ import { Route as AuthenticatedBibliotecaRouteImport } from './routes/_authentic
 import { Route as AuthenticatedPedidosRouteImport } from './routes/_authenticated/pedidos'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminCategoriasRouteImport } from './routes/admin/categorias'
+import { Route as AdminFinanceiroRouteImport } from './routes/admin/financeiro'
 import { Route as AdminPedidosRouteImport } from './routes/admin/pedidos'
+import { Route as AdminPortaisRouteImport } from './routes/admin/portais'
 import { Route as AdminProdutosRouteImport } from './routes/admin/produtos'
 import { Route as PortalSlugRouteImport } from './routes/portal.$slug'
 import { Route as ProdutoSlugRouteImport } from './routes/produto.$slug'
@@ -97,9 +99,19 @@ const AdminCategoriasRoute = AdminCategoriasRouteImport.update({
   path: '/categorias',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminFinanceiroRoute = AdminFinanceiroRouteImport.update({
+  id: '/financeiro',
+  path: '/financeiro',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminPedidosRoute = AdminPedidosRouteImport.update({
   id: '/pedidos',
   path: '/pedidos',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminPortaisRoute = AdminPortaisRouteImport.update({
+  id: '/portais',
+  path: '/portais',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminProdutosRoute = AdminProdutosRouteImport.update({
@@ -131,7 +143,9 @@ export interface FileRoutesByFullPath {
   '/biblioteca': typeof AuthenticatedBibliotecaRoute
   '/pedidos': typeof AuthenticatedPedidosRoute
   '/admin/categorias': typeof AdminCategoriasRoute
+  '/admin/financeiro': typeof AdminFinanceiroRoute
   '/admin/pedidos': typeof AdminPedidosRoute
+  '/admin/portais': typeof AdminPortaisRoute
   '/admin/produtos': typeof AdminProdutosRoute
   '/portal/$slug': typeof PortalSlugRoute
   '/produto/$slug': typeof ProdutoSlugRoute
@@ -149,7 +163,9 @@ export interface FileRoutesByTo {
   '/biblioteca': typeof AuthenticatedBibliotecaRoute
   '/pedidos': typeof AuthenticatedPedidosRoute
   '/admin/categorias': typeof AdminCategoriasRoute
+  '/admin/financeiro': typeof AdminFinanceiroRoute
   '/admin/pedidos': typeof AdminPedidosRoute
+  '/admin/portais': typeof AdminPortaisRoute
   '/admin/produtos': typeof AdminProdutosRoute
   '/portal/$slug': typeof PortalSlugRoute
   '/produto/$slug': typeof ProdutoSlugRoute
@@ -170,7 +186,9 @@ export interface FileRoutesById {
   '/_authenticated/biblioteca': typeof AuthenticatedBibliotecaRoute
   '/_authenticated/pedidos': typeof AuthenticatedPedidosRoute
   '/admin/categorias': typeof AdminCategoriasRoute
+  '/admin/financeiro': typeof AdminFinanceiroRoute
   '/admin/pedidos': typeof AdminPedidosRoute
+  '/admin/portais': typeof AdminPortaisRoute
   '/admin/produtos': typeof AdminProdutosRoute
   '/portal/$slug': typeof PortalSlugRoute
   '/produto/$slug': typeof ProdutoSlugRoute
@@ -191,7 +209,9 @@ export interface FileRouteTypes {
     | '/biblioteca'
     | '/pedidos'
     | '/admin/categorias'
+    | '/admin/financeiro'
     | '/admin/pedidos'
+    | '/admin/portais'
     | '/admin/produtos'
     | '/portal/$slug'
     | '/produto/$slug'
@@ -209,7 +229,9 @@ export interface FileRouteTypes {
     | '/biblioteca'
     | '/pedidos'
     | '/admin/categorias'
+    | '/admin/financeiro'
     | '/admin/pedidos'
+    | '/admin/portais'
     | '/admin/produtos'
     | '/portal/$slug'
     | '/produto/$slug'
@@ -229,7 +251,9 @@ export interface FileRouteTypes {
     | '/_authenticated/biblioteca'
     | '/_authenticated/pedidos'
     | '/admin/categorias'
+    | '/admin/financeiro'
     | '/admin/pedidos'
+    | '/admin/portais'
     | '/admin/produtos'
     | '/portal/$slug'
     | '/produto/$slug'
@@ -351,11 +375,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminCategoriasRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/financeiro': {
+      id: '/admin/financeiro'
+      path: '/financeiro'
+      fullPath: '/admin/financeiro'
+      preLoaderRoute: typeof AdminFinanceiroRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/pedidos': {
       id: '/admin/pedidos'
       path: '/pedidos'
       fullPath: '/admin/pedidos'
       preLoaderRoute: typeof AdminPedidosRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/portais': {
+      id: '/admin/portais'
+      path: '/portais'
+      fullPath: '/admin/portais'
+      preLoaderRoute: typeof AdminPortaisRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/produtos': {
@@ -397,14 +435,18 @@ const AuthenticatedRouteRouteWithChildren =
 
 interface AdminRouteChildren {
   AdminCategoriasRoute: typeof AdminCategoriasRoute
+  AdminFinanceiroRoute: typeof AdminFinanceiroRoute
   AdminPedidosRoute: typeof AdminPedidosRoute
+  AdminPortaisRoute: typeof AdminPortaisRoute
   AdminProdutosRoute: typeof AdminProdutosRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminCategoriasRoute: AdminCategoriasRoute,
+  AdminFinanceiroRoute: AdminFinanceiroRoute,
   AdminPedidosRoute: AdminPedidosRoute,
+  AdminPortaisRoute: AdminPortaisRoute,
   AdminProdutosRoute: AdminProdutosRoute,
   AdminIndexRoute: AdminIndexRoute,
 }

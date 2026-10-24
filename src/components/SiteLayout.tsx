@@ -1,15 +1,22 @@
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
+import { useCart } from "@/lib/cart";
 
 export function SiteHeader() {
+  const cart = useCart();
   return (
     <header className="absolute inset-x-0 top-0 z-20 flex items-center justify-between px-6 py-5">
       <Link to="/" className="font-display text-2xl tracking-widest text-primary">
         HIRAETH
       </Link>
-      <nav className="flex gap-5 text-sm uppercase tracking-[0.2em] text-foreground/80">
+      <nav className="flex items-center gap-5 text-sm uppercase tracking-[0.2em] text-foreground/80">
+        <Link to="/loja" className="hover:text-primary">Loja</Link>
         <Link to="/sobre" className="hover:text-primary">Sobre</Link>
         <Link to="/cuidados" className="hover:text-primary">Cuidados</Link>
+        <Link to="/carrinho" className="hover:text-primary">
+          Carrinho{cart.count > 0 ? ` (${cart.count})` : ""}
+        </Link>
+        <Link to="/biblioteca" className="hover:text-primary">Entrar</Link>
       </nav>
     </header>
   );
