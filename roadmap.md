@@ -1,6 +1,13 @@
 # Roadmap Hiraeth — Prompt Mestre
 
-## Etapa 1 — Fundação (concluída)
+## Auditoria solicitada — seções 1 a 7.2
+- [ ] A: diagnóstico por requisito e consulta ao Prompt Mestre original
+- [ ] B: corrigir exposição de rascunhos e criação insegura de pedidos
+- [ ] B: persistência da biblioteca, links NFC e erros de operações
+- [ ] B: complementar editores existentes e dados reais sem reconstrução
+- [ ] C: testes, validação pública e relatório com bloqueios reais
+
+## Etapa 1 — Fundação (implementada; validação em auditoria)
 - [x] Lovable Cloud ativado
 - [x] Banco de dados: produtos, categorias, pedidos, perfis, roles, portais NFC, biblioteca, desejos, newsletter
 - [x] Login/cadastro com e-mail e senha (+ recuperação de senha)
