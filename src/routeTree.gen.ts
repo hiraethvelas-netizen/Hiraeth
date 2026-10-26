@@ -190,6 +190,7 @@ export interface FileRoutesByTo {
   '/pedidos': typeof AuthenticatedPedidosRoute
   '/admin/categorias': typeof AdminCategoriasRoute
   '/admin/financeiro': typeof AdminFinanceiroRoute
+  '/admin/essencias': typeof AdminEssenciasRoute
   '/admin/pedidos': typeof AdminPedidosRoute
   '/admin/portais': typeof AdminPortaisRoute
   '/admin/produtos': typeof AdminProdutosRoute
