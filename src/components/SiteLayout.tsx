@@ -74,8 +74,31 @@ aria-hidden="true"
       Hiraeth
     </Link>
 
-    {/* Tema e sacola de compras */}
+    {/* Configurações da conta, tema e sacola de compras */}
     <div className="ml-auto flex items-center gap-3">
+    <Link
+      to="/configuracoes"
+      className="flex items-center gap-1.5 text-sm text-foreground/85 transition-colors hover:text-primary"
+      aria-label="Configurações da conta"
+      title="Configurações da conta"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="21"
+        height="21"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden="true"
+      >
+        <circle cx="12" cy="12" r="3" />
+        <path d="m19.4 15 .1.1a1.7 1.7 0 0 1-2.4 2.4l-.1-.1a1.7 1.7 0 0 0-2.9 1.2v.2a1.7 1.7 0 0 1-3.4 0v-.2a1.7 1.7 0 0 0-2.9-1.2l-.1.1a1.7 1.7 0 0 1-2.4-2.4l.1-.1a1.7 1.7 0 0 0-1.2-2.9H4a1.7 1.7 0 0 1 0-3.4h.2a1.7 1.7 0 0 0 1.2-2.9l-.1-.1a1.7 1.7 0 0 1 2.4-2.4l.1.1a1.7 1.7 0 0 0 2.9-1.2V2a1.7 1.7 0 0 1 3.4 0v.2a1.7 1.7 0 0 0 2.9 1.2l.1-.1a1.7 1.7 0 0 1 2.4 2.4l-.1.1a1.7 1.7 0 0 0 1.2 2.9h.2a1.7 1.7 0 0 1 0 3.4h-.2a1.7 1.7 0 0 0-1.2 2.9Z" />
+      </svg>
+      <span className="hidden lg:inline">Configurações</span>
+    </Link>
     <ThemeToggle />
     <Link
       to="/carrinho"
