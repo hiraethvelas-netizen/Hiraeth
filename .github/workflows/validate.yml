@@ -1,0 +1,27 @@
+name: Validate Hiraeth
+
+on:
+  pull_request:
+    branches: [main, master]
+  push:
+    branches: [feature/home-banners-brand-palette]
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Install Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+      - name: Check lint
+        run: bun run lint
+      - name: Run tests
+        run: bun run test
+      - name: Build production bundle
+        run: bun run build
