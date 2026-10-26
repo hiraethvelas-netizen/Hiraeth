@@ -61,7 +61,7 @@ function AdminProdutos() {
 
   useEffect(() => { load(); }, [load]);
 
-  async async function startEdit(p: Product) {
+  async function startEdit(p: Product) {
     setEditing(p);
     setForm({
       name: p.name, description: p.description ?? "", category_id: p.category_id ?? "",
@@ -167,7 +167,7 @@ function AdminProdutos() {
           <label className="text-sm text-muted-foreground">Notas de saída<input value={newTop} onChange={e=>setNewTop(e.target.value)} placeholder="Cítricos, bergamota..." className={inputCls}/></label>
           <label className="text-sm text-muted-foreground">Notas de corpo<input value={newHeart} onChange={e=>setNewHeart(e.target.value)} placeholder="Jasmim, rosa..." className={inputCls}/></label>
           <label className="text-sm text-muted-foreground">Notas de fundo<input value={newBase} onChange={e=>setNewBase(e.target.value)} placeholder="Baunilha, âmbar..." className={inputCls}/></label>
-          <button type="button" className="btn-gold md:col-span-2" onClick={async()=>{if(!newAromaName.trim()){toast.error("Informe o nome do aroma.");return;}const {data,error}=await db.from("essences").insert({name:newAromaName.trim(),stock_ml:0,minimum_stock_ml:10,target_stock_ml:50,top_notes:newTop.split(",").map(s=>s.trim()).filter(Boolean),heart_notes:newHeart.split(",").map(s=>s.trim()).filter(Boolean),base_notes:newBase.split(",").map(s=>s.trim()).filter(Boolean),active:true}).select("*").single();if(error){toast.error("Não foi possível cadastrar o aroma: "+error.message);return;}setEssences(prev=>[...prev,data]);setProductAromas(prev=>[...prev,{essence_id:data.id,quantity_ml:Number(aromaQuantity)||0,name:data.name}]);setSelectedAroma(data.id);setNewAromaName("");setNewTop("");setNewHeart("");setNewBase("");toast.success("Aroma cadastrado no estoque. Informe a quantidade usada para vinculá-lo.");}}>Salvar aroma no estoque</button>
+          <button type="button" className="btn-gold md:col-span-2" onClick={async()=>{if(!newAromaName.trim()){toast.error("Informe o nome do aroma.");return;}const {data,error}=await db.from("essences").insert({name:newAromaName.trim(),stock_ml:0,minimum_stock_ml:10,target_stock_ml:50,top_notes:newTop.split(",").map(s=>s.trim()).filter(Boolean),heart_notes:newHeart.split(",").map(s=>s.trim()).filter(Boolean),base_notes:newBase.split(",").map(s=>s.trim()).filter(Boolean),active:true}).select("*").single();if(error){toast.error("Não foi possível cadastrar o aroma: "+error.message);return;}setEssences(prev=>[...prev,data]);setSelectedAroma(data.id);setNewAromaName("");setNewTop("");setNewHeart("");setNewBase("");toast.success("Aroma cadastrado no estoque. Informe a quantidade usada para vinculá-lo.");}}>Salvar aroma no estoque</button>
         </div></details>
         {productAromas.length>0&&<div className="space-y-2">{productAromas.map(a=><div key={a.essence_id} className="flex items-center justify-between border-b py-2 text-sm"><span>{a.name} <span className="text-muted-foreground">· {a.quantity_ml} ml por vela (interno)</span></span><button type="button" onClick={()=>setProductAromas(prev=>prev.filter(x=>x.essence_id!==a.essence_id))} className="text-destructive">Remover</button></div>)}</div>}
       </section>
