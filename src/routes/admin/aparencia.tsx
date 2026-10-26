@@ -206,19 +206,28 @@ function Aparencia() {
             />
           </label>
 
-          <label className="grid gap-2 text-sm">
-            Imagem
+          <label className="grid gap-2 text-sm md:col-span-2">
+            Imagem do atalho
+            <input
+              type="url"
+              value={/^https?:\/\//i.test(form.image_key) ? form.image_key : ""}
+              onChange={(e) => setForm({ ...form, image_key: e.target.value.trim() })}
+              className="border bg-transparent px-3 py-3"
+              placeholder="Cole aqui o link direto da imagem (https://...)"
+            />
+            <span className="text-xs leading-relaxed text-muted-foreground">
+              Use um link público direto para a imagem. Para manter uma imagem padrão, escolha uma opção abaixo.
+            </span>
             <select
-              value={form.image_key}
-              onChange={(e) =>
-                setForm({ ...form, image_key: e.target.value })
-              }
+              value={/^https?:\/\//i.test(form.image_key) ? "custom" : form.image_key}
+              onChange={(e) => setForm({ ...form, image_key: e.target.value === "custom" ? "" : e.target.value })}
               className="border bg-background px-3 py-3"
             >
-              <option value="forest">Floresta</option>
-              <option value="portal">Portal</option>
-              <option value="phoenix">Fênix</option>
-              <option value="banner">Banner do portal</option>
+              <option value="forest">Floresta (padrão)</option>
+              <option value="portal">Portal (padrão)</option>
+              <option value="phoenix">Fênix (padrão)</option>
+              <option value="banner">Banner do portal (padrão)</option>
+              <option value="custom">Usar link de imagem acima</option>
             </select>
           </label>
 
