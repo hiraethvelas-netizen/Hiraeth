@@ -17,6 +17,9 @@ function AdminDashboard() {
   const [lowProducts, setLowProducts] = useState<ProductStock[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [period, setPeriod] = useState<"week" | "month" | "all" | "custom">("month");
+  const [dateFrom, setDateFrom] = useState(() => { const d = new Date(); return new Date(d.getFullYear(), d.getMonth(), 1).toLocaleDateString("en-CA"); });
+  const [dateTo, setDateTo] = useState(() => new Date().toLocaleDateString("en-CA"));
 
   const load = useCallback(async () => {
     setLoading(true); setError(false);
@@ -48,13 +51,29 @@ function AdminDashboard() {
     { label: "Produtos cadastrados", value: String(stats.products), detail: `${stats.published} publicados`, to: "/admin/produtos" },
     { label: "Pedidos recebidos", value: String(stats.orders), detail: `${stats.pending} aguardando pagamento`, to: "/admin/pedidos" },
     { label: "Pedidos pagos", value: String(stats.paid), detail: "Inclui pedidos em preparação e entregues", to: "/admin/pedidos" },
-    { label: "Receita dos pedidos pagos", value: brl(stats.revenue), detail: "Estimativa baseada nos últimos 100 pedidos carregados", to: "/admin/pedidos" },
+    { label: "Receita dos pedidos pagos", value: brl(stats.revenue), detail: "No período selecionado", to: "/admin/pedidos" },
     { label: "Portais NFC", value: String(stats.portals), detail: "Universos cadastrados", to: "/admin/portais" },
     { label: "Newsletter", value: String(stats.subscribers), detail: "Pessoas inscritas", to: "/admin" },
   ] as const;
 
   return <div>
     <div className="flex flex-wrap items-end justify-between gap-4"><div><p className="text-xs uppercase tracking-[0.25em] text-primary">Visão geral da loja</p><h1 className="mt-2 text-4xl text-foreground">Dashboard</h1><p className="mt-2 text-sm text-muted-foreground">Acompanhe vendas, catálogo e tarefas que precisam de atenção.</p></div><button onClick={() => void load()} className="border px-4 py-2 text-sm text-foreground hover:border-primary">Atualizar dados ↻</button></div>
+    <section className="mt-5 border bg-card p-4 sm:p-5">
+      <div className="flex flex-wrap items-center gap-3">
+        <label htmlFor="dashboard-period" className="text-sm text-foreground">Filtrar indicadores por data</label>
+        <select id="dashboard-period" value={period} onChange={(e) => setPeriod(e.target.value as "week" | "month" | "all" | "custom")} className="min-w-44 border bg-background px-3 py-2 text-sm text-foreground">
+          <option value="week">Esta semana</option>
+          <option value="month">Este mês</option>
+          <option value="all">Todo o período</option>
+          <option value="custom">Personalizar datas</option>
+        </select>
+        {period === "custom" && <div className="flex flex-wrap items-center gap-2">
+          <label className="text-xs text-muted-foreground">De <input type="date" value={dateFrom} max={dateTo || undefined} onChange={(e) => setDateFrom(e.target.value)} className="ml-1 border bg-background px-2 py-2 text-sm text-foreground" /></label>
+          <label className="text-xs text-muted-foreground">Até <input type="date" value={dateTo} min={dateFrom || undefined} onChange={(e) => setDateTo(e.target.value)} className="ml-1 border bg-background px-2 py-2 text-sm text-foreground" /></label>
+        </div>}
+      </div>
+      <p className="mt-2 text-xs text-muted-foreground">O filtro altera a quantidade de pedidos, pedidos pagos e receita. Produtos, estoque, portais e newsletter continuam mostrando os totais atuais.</p>
+    </section>
     {loading ? <p className="mt-8 text-muted-foreground">Carregando indicadores...</p> : error ? <div className="mt-8 border bg-card p-5"><p className="text-foreground">Não foi possível carregar todos os indicadores.</p><button onClick={() => void load()} className="btn-gold mt-3">Tentar novamente</button></div> : <>
       <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">{cards.map((c) => <Link key={c.label} to={c.to} className="group border bg-card p-5 transition-all hover:border-primary hover:shadow-[var(--glow)]"><p className="text-xs uppercase tracking-widest text-muted-foreground">{c.label}</p><p className="mt-3 text-3xl text-primary">{c.value}</p><p className="mt-2 text-xs text-muted-foreground">{c.detail}</p><p className="mt-4 text-xs text-primary opacity-0 transition-opacity group-hover:opacity-100">Abrir seção →</p></Link>)}</div>
       <div className="mt-6 grid gap-6 xl:grid-cols-2">
