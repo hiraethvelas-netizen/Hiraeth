@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { brl } from "@/lib/format";
 
@@ -8,56 +8,64 @@ export const Route = createFileRoute("/admin/")({
   component: AdminDashboard,
 });
 
-function AdminDashboard() {
-  const [stats, setStats] = useState({ products: 0, orders: 0, pending: 0, revenue: 0, portals: 0, subscribers: 0 });
-  const [loading, setLoading] = useState(true);
+type Order = { id: string; total: number; status: string; customer_name: string | null; customer_email: string | null; created_at: string };
+type ProductStock = { id: string; name: string; stock: number; status: string; price: number; sale_price: number | null };
 
-  useEffect(() => {
-    async function load() {
-      const [prods, orders, portals, subs] = await Promise.all([
-        supabase.from("products").select("id", { count: "exact", head: true }),
-        supabase.from("orders").select("id, total, status"),
-        supabase.from("portals").select("id", { count: "exact", head: true }),
-        supabase.from("newsletter_subscribers").select("id", { count: "exact", head: true }),
-      ]);
-      const rows = orders.data ?? [];
-      setStats({
-        products: prods.count ?? 0,
-        orders: rows.length,
-        pending: rows.filter((o) => o.status === "pending").length,
-        revenue: rows.filter((o) => o.status === "paid").reduce((s, o) => s + Number(o.total), 0),
-        portals: portals.count ?? 0,
-        subscribers: subs.count ?? 0,
-      });
-      setLoading(false);
-    }
-    load();
+function AdminDashboard() {
+  const [stats, setStats] = useState({ products: 0, published: 0, orders: 0, pending: 0, paid: 0, revenue: 0, portals: 0, subscribers: 0, lowStock: 0, outOfStock: 0 });
+  const [recentOrders, setRecentOrders] = useState<Order[]>([]);
+  const [lowProducts, setLowProducts] = useState<ProductStock[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+
+  const load = useCallback(async () => {
+    setLoading(true); setError(false);
+    const [prods, orders, portals, subs] = await Promise.all([
+      supabase.from("products").select("id,name,stock,status,price,sale_price"),
+      supabase.from("orders").select("id,total,status,customer_name,customer_email,created_at").order("created_at", { ascending: false }).limit(100),
+      supabase.from("portals").select("id", { count: "exact", head: true }),
+      supabase.from("newsletter_subscribers").select("id", { count: "exact", head: true }),
+    ]);
+    if (prods.error || orders.error || portals.error || subs.error) { setError(true); setLoading(false); return; }
+    const ps = (prods.data ?? []) as ProductStock[];
+    const os = (orders.data ?? []) as Order[];
+    const paidOrders = os.filter((o) => ["paid", "shipped", "delivered", "completed"].includes(o.status));
+    setStats({
+      products: ps.length, published: ps.filter((p) => p.status === "published").length,
+      orders: os.length, pending: os.filter((o) => ["pending", "awaiting_payment"].includes(o.status)).length,
+      paid: paidOrders.length, revenue: paidOrders.reduce((s, o) => s + Number(o.total), 0),
+      portals: portals.count ?? 0, subscribers: subs.count ?? 0,
+      lowStock: ps.filter((p) => p.stock > 0 && p.stock <= 5).length,
+      outOfStock: ps.filter((p) => p.stock <= 0).length,
+    });
+    setRecentOrders(os.slice(0, 6));
+    setLowProducts(ps.filter((p) => p.stock <= 5).sort((a, b) => a.stock - b.stock).slice(0, 6));
+    setLoading(false);
   }, []);
 
+  useEffect(() => { void load(); }, [load]);
   const cards = [
-    { label: "Produtos", value: String(stats.products), to: "/admin/produtos" },
-    { label: "Pedidos", value: String(stats.orders), to: "/admin/pedidos" },
-    { label: "Aguardando pagamento", value: String(stats.pending), to: "/admin/pedidos" },
-    { label: "Receita confirmada", value: brl(stats.revenue), to: "/admin/financeiro" },
-    { label: "Portais NFC", value: String(stats.portals), to: "/admin/portais" },
-    { label: "Assinantes da newsletter", value: String(stats.subscribers), to: "/admin" },
+    { label: "Produtos cadastrados", value: String(stats.products), detail: `${stats.published} publicados`, to: "/admin/produtos" },
+    { label: "Pedidos recebidos", value: String(stats.orders), detail: `${stats.pending} aguardando pagamento`, to: "/admin/pedidos" },
+    { label: "Pedidos pagos", value: String(stats.paid), detail: "Inclui pedidos em preparação e entregues", to: "/admin/pedidos" },
+    { label: "Receita dos pedidos pagos", value: brl(stats.revenue), detail: "Estimativa baseada nos últimos 100 pedidos carregados", to: "/admin/pedidos" },
+    { label: "Portais NFC", value: String(stats.portals), detail: "Universos cadastrados", to: "/admin/portais" },
+    { label: "Newsletter", value: String(stats.subscribers), detail: "Pessoas inscritas", to: "/admin" },
   ] as const;
 
-  return (
-    <div>
-      <h1 className="text-4xl text-foreground">Dashboard</h1>
-      {loading ? (
-        <p className="mt-8 text-muted-foreground">Carregando...</p>
-      ) : (
-        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {cards.map((c) => (
-            <Link key={c.label} to={c.to} className="border bg-card p-6 transition-shadow hover:shadow-[var(--glow)]">
-              <p className="text-xs uppercase tracking-widest text-muted-foreground">{c.label}</p>
-              <p className="mt-2 text-3xl text-primary">{c.value}</p>
-            </Link>
-          ))}
-        </div>
-      )}
-    </div>
-  );
+  return <div>
+    <div className="flex flex-wrap items-end justify-between gap-4"><div><p className="text-xs uppercase tracking-[0.25em] text-primary">Visão geral da loja</p><h1 className="mt-2 text-4xl text-foreground">Dashboard</h1><p className="mt-2 text-sm text-muted-foreground">Acompanhe vendas, catálogo e tarefas que precisam de atenção.</p></div><button onClick={() => void load()} className="border px-4 py-2 text-sm text-foreground hover:border-primary">Atualizar dados ↻</button></div>
+    {loading ? <p className="mt-8 text-muted-foreground">Carregando indicadores...</p> : error ? <div className="mt-8 border bg-card p-5"><p className="text-foreground">Não foi possível carregar todos os indicadores.</p><button onClick={() => void load()} className="btn-gold mt-3">Tentar novamente</button></div> : <>
+      <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">{cards.map((c) => <Link key={c.label} to={c.to} className="group border bg-card p-5 transition-all hover:border-primary hover:shadow-[var(--glow)]"><p className="text-xs uppercase tracking-widest text-muted-foreground">{c.label}</p><p className="mt-3 text-3xl text-primary">{c.value}</p><p className="mt-2 text-xs text-muted-foreground">{c.detail}</p><p className="mt-4 text-xs text-primary opacity-0 transition-opacity group-hover:opacity-100">Abrir seção →</p></Link>)}</div>
+      <div className="mt-6 grid gap-6 xl:grid-cols-2">
+        <section className="border bg-card p-5"><div className="flex items-center justify-between gap-3"><div><h2 className="text-xl text-foreground">Estoque que precisa de atenção</h2><p className="mt-1 text-xs text-muted-foreground">Produtos com 5 unidades ou menos</p></div><Link to="/admin/produtos" className="text-sm text-primary">Ver produtos →</Link></div>
+          <div className="mt-4 space-y-3">{lowProducts.length ? lowProducts.map((p) => <div key={p.id} className="flex items-center justify-between gap-4 border-b pb-3"><span className="text-sm text-foreground">{p.name}</span><span className={p.stock === 0 ? "text-sm font-semibold text-destructive" : "text-sm text-primary"}>{p.stock === 0 ? "Esgotado" : `${p.stock} un.`}</span></div>) : <p className="text-sm text-muted-foreground">Nenhum produto com estoque baixo.</p>}</div>
+          <div className="mt-4 flex gap-4 text-xs"><span className="text-destructive">{stats.outOfStock} esgotados</span><span className="text-primary">{stats.lowStock} com estoque baixo</span></div>
+        </section>
+        <section className="border bg-card p-5"><div className="flex items-center justify-between gap-3"><div><h2 className="text-xl text-foreground">Pedidos recentes</h2><p className="mt-1 text-xs text-muted-foreground">Últimos pedidos recebidos</p></div><Link to="/admin/pedidos" className="text-sm text-primary">Ver todos →</Link></div>
+          <div className="mt-4 space-y-3">{recentOrders.length ? recentOrders.map((o) => <div key={o.id} className="flex items-center justify-between gap-4 border-b pb-3"><div className="min-w-0"><p className="truncate text-sm text-foreground">{o.customer_name || o.customer_email || `Pedido #${o.id.slice(0, 8)}`}</p><p className="text-xs text-muted-foreground">{new Date(o.created_at).toLocaleDateString("pt-BR")} · {o.status}</p></div><span className="whitespace-nowrap text-sm text-primary">{brl(Number(o.total))}</span></div>) : <p className="text-sm text-muted-foreground">Ainda não há pedidos cadastrados.</p>}</div>
+        </section>
+      </div>
+    </>}
+  </div>;
 }
