@@ -1,7 +1,6 @@
 
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
-import phoenix from "@/assets/opening-phoenix.png";
 import openingVideo from "@/assets/hira appVídeo sem título-26-10-2026, 13-46-2.mp4";
 import portalPoster from "@/assets/opening-portal.jpg";
 
@@ -23,12 +22,6 @@ export function CinematicOpening() {
       </video>
 
       <div className="opening-shade" aria-hidden="true" />
-
-      <img
-        src={phoenix}
-        alt="Fênix Hiraeth"
-        className="opening-seal"
-      />
 
       <div className="opening-copy">
         <p className="opening-welcome">
