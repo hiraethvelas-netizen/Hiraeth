@@ -5,6 +5,11 @@ import { SiteFooter, SiteHeader } from "@/components/SiteLayout";
 import { brl } from "@/lib/format";
 import type { Tables } from "@/integrations/supabase/types";
 
+import portalImage from "@/assets/opening-portal.jpg";
+import forestImage from "@/assets/opening-forest.jpg";
+import phoenixImage from "@/assets/opening-phoenix.png";
+import bannerImage from "@/assets/banner-portal.png";
+
 type Product = Tables<"products">;
 type Category = Tables<"categories">;
 
@@ -12,15 +17,49 @@ export const Route = createFileRoute("/loja")({
   head: () => ({
     meta: [
       { title: "Loja — Hiraeth" },
-      { name: "description", content: "Catálogo de velas literárias e camisetas Hiraeth." },
+      {
+        name: "description",
+        content: "Catálogo de velas literárias e camisetas Hiraeth.",
+      },
       { property: "og:title", content: "Loja — Hiraeth" },
-      { property: "og:description", content: "Velas literárias e camisetas inspiradas nos universos que moram em você." },
+      {
+        property: "og:description",
+        content:
+          "Velas literárias e camisetas inspiradas nos universos que moram em você.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
   }),
   component: Loja,
 });
+
+const shortcuts = [
+  {
+    title: "Conheça a Hiraeth",
+    image: forestImage,
+    to: "/sobre" as const,
+    description: "A história por trás da chama",
+  },
+  {
+    title: "Loja",
+    image: portalImage,
+    to: "/loja" as const,
+    description: "Encontre seu próximo universo",
+  },
+  {
+    title: "Favoritos",
+    image: phoenixImage,
+    to: "/loja" as const,
+    description: "Seus tesouros literários",
+  },
+  {
+    title: "Minha Biblioteca",
+    image: bannerImage,
+    to: "/biblioteca" as const,
+    description: "Seu espaço entre histórias",
+  },
+];
 
 function Loja() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -32,27 +71,40 @@ function Loja() {
   useEffect(() => {
     async function load() {
       const [{ data: prods }, { data: cats }] = await Promise.all([
-        supabase.from("products").select("*").eq("status", "published").order("created_at", { ascending: false }),
-        supabase.from("categories").select("*").eq("visible", true).order("position"),
+        supabase
+          .from("products")
+          .select("*")
+          .eq("status", "published")
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("categories")
+          .select("*")
+          .eq("visible", true)
+          .order("position"),
       ]);
+
       setProducts(prods ?? []);
       setCategories(cats ?? []);
       setLoading(false);
     }
+
     load();
   }, []);
 
   const filtered = useMemo(() => {
     return products.filter((p) => {
       if (categoryId && p.category_id !== categoryId) return false;
+
       if (query) {
         const q = query.toLowerCase();
+
         return (
           p.name.toLowerCase().includes(q) ||
           (p.description ?? "").toLowerCase().includes(q) ||
           (p.fragrance ?? "").toLowerCase().includes(q)
         );
       }
+
       return true;
     });
   }, [products, query, categoryId]);
@@ -60,9 +112,45 @@ function Loja() {
   return (
     <div className="min-h-screen">
       <SiteHeader />
-      <main className="mx-auto max-w-6xl px-6 pb-20 pt-32">
+
+      <main className="mx-auto max-w-6xl px-5 pb-20 pt-8 md:px-8 md:pt-12">
+        {/* Atalhos circulares */}
+        <nav
+          aria-label="Navegação principal"
+          className="mb-12 grid grid-cols-2 gap-x-4 gap-y-7 sm:grid-cols-4 sm:gap-6 md:mb-16 md:gap-8"
+        >
+          {shortcuts.map((item) => (
+            <Link
+              key={item.title}
+              to={item.to}
+              className="group flex flex-col items-center text-center"
+            >
+              <div className="relative aspect-square w-full max-w-[150px] overflow-hidden rounded-full border border-primary/40 bg-card shadow-md transition-all duration-500 group-hover:scale-[1.04] group-hover:border-primary group-hover:shadow-[var(--glow)] md:max-w-[180px]">
+                <img
+                  src={item.image}
+                  alt=""
+                  className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+                  loading="lazy"
+                />
+                <div className="absolute inset-0 bg-black/10 transition-colors duration-300 group-hover:bg-black/0" />
+              </div>
+
+              <span className="mt-3 font-display text-base text-foreground transition-colors group-hover:text-primary sm:text-lg">
+                {item.title}
+              </span>
+
+              <span className="mt-1 max-w-[180px] text-xs leading-relaxed text-muted-foreground sm:text-sm">
+                {item.description}
+              </span>
+            </Link>
+          ))}
+        </nav>
+
+        {/* Catálogo da loja */}
         <p className="eyebrow">O acervo</p>
-        <h1 className="mt-2 text-5xl text-foreground">Loja</h1>
+        <h1 className="mt-2 text-4xl text-foreground md:text-5xl">
+          Loja
+        </h1>
 
         <div className="mt-8 flex flex-col gap-4 md:flex-row md:items-center">
           <input
@@ -72,18 +160,30 @@ function Loja() {
             onChange={(e) => setQuery(e.target.value)}
             className="flex-1 border bg-transparent px-4 py-3 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
           />
+
           <div className="flex flex-wrap gap-2">
             <button
               onClick={() => setCategoryId(null)}
-              className={`border px-3 py-1.5 text-xs uppercase tracking-widest ${categoryId === null ? "border-primary text-primary" : "text-muted-foreground hover:text-primary"}`}
+              className={`border px-3 py-1.5 text-xs uppercase tracking-widest ${
+                categoryId === null
+                  ? "border-primary text-primary"
+                  : "text-muted-foreground hover:text-primary"
+              }`}
             >
               Todos
             </button>
+
             {categories.map((c) => (
               <button
                 key={c.id}
-                onClick={() => setCategoryId(c.id === categoryId ? null : c.id)}
-                className={`border px-3 py-1.5 text-xs uppercase tracking-widest ${categoryId === c.id ? "border-primary text-primary" : "text-muted-foreground hover:text-primary"}`}
+                onClick={() =>
+                  setCategoryId(c.id === categoryId ? null : c.id)
+                }
+                className={`border px-3 py-1.5 text-xs uppercase tracking-widest ${
+                  categoryId === c.id
+                    ? "border-primary text-primary"
+                    : "text-muted-foreground hover:text-primary"
+                }`}
               >
                 {c.name}
               </button>
@@ -92,10 +192,14 @@ function Loja() {
         </div>
 
         {loading ? (
-          <p className="mt-16 text-center text-muted-foreground">Abrindo o acervo...</p>
+          <p className="mt-16 text-center text-muted-foreground">
+            Abrindo o acervo...
+          </p>
         ) : filtered.length === 0 ? (
           <div className="mt-16 text-center">
-            <p className="font-display text-2xl italic text-primary">Nenhum item encontrado</p>
+            <p className="font-display text-2xl italic text-primary">
+              Nenhum item encontrado
+            </p>
             <p className="mt-2 text-muted-foreground">
               {products.length === 0
                 ? "O acervo ainda está sendo preparado. Volte em breve."
@@ -125,26 +229,45 @@ function Loja() {
                     </div>
                   )}
                 </div>
+
                 <div className="p-5">
                   <h2 className="text-2xl text-foreground">{p.name}</h2>
-                  {p.fragrance && <p className="mt-1 text-sm italic text-muted-foreground">{p.fragrance}</p>}
+
+                  {p.fragrance && (
+                    <p className="mt-1 text-sm italic text-muted-foreground">
+                      {p.fragrance}
+                    </p>
+                  )}
+
                   <div className="mt-3 flex items-baseline gap-2">
                     {p.sale_price != null ? (
                       <>
-                        <span className="text-lg text-primary">{brl(Number(p.sale_price))}</span>
-                        <span className="text-sm text-muted-foreground line-through">{brl(Number(p.price))}</span>
+                        <span className="text-lg text-primary">
+                          {brl(Number(p.sale_price))}
+                        </span>
+                        <span className="text-sm text-muted-foreground line-through">
+                          {brl(Number(p.price))}
+                        </span>
                       </>
                     ) : (
-                      <span className="text-lg text-primary">{brl(Number(p.price))}</span>
+                      <span className="text-lg text-primary">
+                        {brl(Number(p.price))}
+                      </span>
                     )}
                   </div>
-                  {p.stock <= 0 && <p className="mt-2 text-xs uppercase tracking-widest text-destructive">Esgotado</p>}
+
+                  {p.stock <= 0 && (
+                    <p className="mt-2 text-xs uppercase tracking-widest text-destructive">
+                      Esgotado
+                    </p>
+                  )}
                 </div>
               </Link>
             ))}
           </div>
         )}
       </main>
+
       <SiteFooter />
     </div>
   );
