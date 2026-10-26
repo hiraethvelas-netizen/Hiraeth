@@ -34,43 +34,38 @@ export const Route = createFileRoute("/loja")({
   component: Loja,
 });
 
-const shortcuts = [
-  {
-    title: "Conheça a Hiraeth",
-    image: forestImage,
-    to: "/sobre" as const,
-    description: "A história por trás da chama",
-  },
-  {
-    title: "Loja",
-    image: portalImage,
-    to: "/loja" as const,
-    description: "Encontre seu próximo universo",
-  },
-  {
-    title: "Favoritos",
-    image: phoenixImage,
-    to: "/loja" as const,
-    description: "Seus tesouros literários",
-  },
-  {
-    title: "Minha Biblioteca",
-    image: bannerImage,
-    to: "/biblioteca" as const,
-    description: "Seu espaço entre histórias",
-  },
-];
+
+type Shortcut = {
+  id: string;
+  title: string;
+  description: string | null;
+  href: string;
+  image_key: string;
+  position: number;
+  active: boolean;
+};
+
+const shortcutImages: Record<string, string> = {
+  forest: forestImage,
+  portal: portalImage,
+  phoenix: phoenixImage,
+  banner: bannerImage,
+};
 
 function Loja() {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+const [shortcuts, setShortcuts] = useState<Shortcut[]>([]);
+const [shortcutsLoading, setShortcutsLoading] = useState(true);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
   const [categoryId, setCategoryId] = useState<string | null>(null);
 
-  useEffect(() => {
-    async function load() {
-      const [{ data: prods }, { data: cats }] = await Promise.all([
+  
+useEffect(() => {
+  async function load() {
+    const [{ data: prods }, { data: cats }, { data: shortcutData, error: shortcutError }] =
+      await Promise.all([
         supabase
           .from("products")
           .select("*")
@@ -81,15 +76,30 @@ function Loja() {
           .select("*")
           .eq("visible", true)
           .order("position"),
+        (supabase as any)
+          .from("site_shortcuts")
+          .select("*")
+          .eq("active", true)
+          .order("position", { ascending: true }),
       ]);
 
-      setProducts(prods ?? []);
-      setCategories(cats ?? []);
-      setLoading(false);
+    setProducts(prods ?? []);
+    setCategories(cats ?? []);
+
+    if (shortcutError) {
+      console.error("Erro ao carregar atalhos:", shortcutError.message);
+      setShortcuts([]);
+    } else {
+      setShortcuts((shortcutData ?? []) as Shortcut[]);
     }
 
-    load();
-  }, []);
+    setShortcutsLoading(false);
+    setLoading(false);
+  }
+
+  load();
+}, []);
+
 
   const filtered = useMemo(() => {
     return products.filter((p) => {
