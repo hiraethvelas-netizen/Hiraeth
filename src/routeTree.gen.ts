@@ -25,6 +25,7 @@ import { Route as AuthenticatedPedidosRouteImport } from './routes/_authenticate
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminCategoriasRouteImport } from './routes/admin/categorias'
 import { Route as AdminFinanceiroRouteImport } from './routes/admin/financeiro'
+import { Route as AdminEssenciasRouteImport } from './routes/admin/essencias'
 import { Route as AdminPedidosRouteImport } from './routes/admin/pedidos'
 import { Route as AdminPortaisRouteImport } from './routes/admin/portais'
 import { Route as AdminProdutosRouteImport } from './routes/admin/produtos'
@@ -111,6 +112,11 @@ const AdminFinanceiroRoute = AdminFinanceiroRouteImport.update({
   path: '/financeiro',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminEssenciasRoute = AdminEssenciasRouteImport.update({
+  id: '/essencias',
+  path: '/essencias',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminPedidosRoute = AdminPedidosRouteImport.update({
   id: '/pedidos',
   path: '/pedidos',
@@ -156,6 +162,7 @@ export interface FileRoutesByFullPath {
   '/pedidos': typeof AuthenticatedPedidosRoute
   '/admin/categorias': typeof AdminCategoriasRoute
   '/admin/financeiro': typeof AdminFinanceiroRoute
+  '/admin/essencias': typeof AdminEssenciasRoute
   '/admin/pedidos': typeof AdminPedidosRoute
   '/admin/portais': typeof AdminPortaisRoute
   '/admin/produtos': typeof AdminProdutosRoute
@@ -222,6 +229,7 @@ export interface FileRouteTypes {
     | '/pedidos'
     | '/admin/categorias'
     | '/admin/financeiro'
+    | '/admin/essencias'
     | '/admin/pedidos'
     | '/admin/portais'
     | '/admin/produtos'
@@ -409,6 +417,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminFinanceiroRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/essencias': {
+      id: '/admin/essencias'
+      path: '/essencias'
+      fullPath: '/admin/essencias'
+      preLoaderRoute: typeof AdminEssenciasRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/pedidos': {
       id: '/admin/pedidos'
       path: '/pedidos'
@@ -461,6 +476,7 @@ const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
 interface AdminRouteChildren {
+  AdminEssenciasRoute: typeof AdminEssenciasRoute
   AdminCategoriasRoute: typeof AdminCategoriasRoute
   AdminFinanceiroRoute: typeof AdminFinanceiroRoute
   AdminPedidosRoute: typeof AdminPedidosRoute
@@ -471,6 +487,7 @@ interface AdminRouteChildren {
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminEssenciasRoute: AdminEssenciasRoute,
   AdminCategoriasRoute: AdminCategoriasRoute,
   AdminFinanceiroRoute: AdminFinanceiroRoute,
   AdminPedidosRoute: AdminPedidosRoute,
