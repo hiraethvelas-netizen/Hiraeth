@@ -57,7 +57,7 @@ function AccountSettings() {
   }, [navigate]);
 
   async function lookupCep() {
-    const cep = address.cep.replace(/\\D/g, "");
+    const cep = address.cep.replace(/\D/g, "");
     if (cep.length !== 8) {
       toast.error("Digite um CEP válido com 8 números.");
       return;
@@ -152,7 +152,7 @@ function AccountSettings() {
           <p className="mb-5 mt-2 text-sm leading-6 text-muted-foreground">Informe o CEP para preencher rua, bairro e cidade automaticamente. Depois, adicione o número e o complemento.</p>
           <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end">
             <label className={labelClass + " sm:max-w-xs sm:flex-1"}>CEP
-              <input value={address.cep} onChange={e => updateAddress("cep", e.target.value.replace(/[^0-9-]/g, "").slice(0, 9))} onBlur={() => { if (address.cep.replace(/\\D/g, "").length === 8) void lookupCep(); }} autoComplete="postal-code" inputMode="numeric" placeholder="00000-000" className={fieldClass} />
+              <input value={address.cep} onChange={e => updateAddress("cep", e.target.value.replace(/[^0-9-]/g, "").slice(0, 9))} onBlur={() => { if (address.cep.replace(/\D/g, "").length === 8) void lookupCep(); }} autoComplete="postal-code" inputMode="numeric" placeholder="00000-000" className={fieldClass} />
             </label>
             <button type="button" onClick={() => void lookupCep()} disabled={lookingUpCep} className="min-h-12 border border-primary px-5 py-3 text-sm text-foreground transition hover:bg-primary/10 disabled:opacity-50">{lookingUpCep ? "Buscando…" : "Buscar CEP"}</button>
           </div>
