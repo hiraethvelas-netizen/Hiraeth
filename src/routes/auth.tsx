@@ -31,6 +31,7 @@ function AuthPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [welcomeName, setWelcomeName] = useState<string | null>(null);
+  const [welcomeMode, setWelcomeMode] = useState<"signup" | "returning" | null>(null);
 
   const destination = redirect && redirect.startsWith("/") ? redirect : "/biblioteca";
 
@@ -42,9 +43,11 @@ function AuthPage() {
     try {
       if (mode === "login") {
         localStorage.setItem("hiraeth-remember-session", rememberSession ? "true" : "false");
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        navigate({ to: destination });
+        const savedName = data.user.user_metadata?.display_name;
+        setWelcomeName(typeof savedName === "string" && savedName.trim() ? savedName.trim().split(/\s+/)[0] : (data.user.email?.split("@")[0] || "viajante"));
+        setWelcomeMode("returning");
       } else if (mode === "signup") {
         const { data, error } = await supabase.auth.signUp({
           email,
@@ -56,6 +59,7 @@ function AuthPage() {
         });
         if (error) throw error;
         setWelcomeName(name.trim().split(/\s+/)[0] || "viajante");
+        setWelcomeMode("signup");
         if (!data.session) {
           setMessage("Sua conta foi criada. Confira seu e-mail para confirmar o acesso ao Círculo.");
         }
@@ -83,11 +87,11 @@ function AuthPage() {
             <div className="relative">
               <p className="eyebrow">O portal foi aberto</p>
               <div aria-hidden="true" className="mx-auto my-6 flex h-20 w-20 items-center justify-center rounded-full border border-primary/50 text-4xl text-primary">✦</div>
-              <h1 className="text-4xl text-foreground">Olá, {welcomeName}.</h1>
-              <p className="mt-4 text-lg italic text-primary">Seja bem-vinda ao Círculo do Fogo.</p>
-              <p className="mt-4 text-sm leading-7 text-muted-foreground">Sua história agora também faz parte da Hiraeth. Há novos mundos esperando para serem descobertos.</p>
+              <h1 className="text-3xl text-foreground">{welcomeMode === "returning" ? `Bem-vinda de volta, ${welcomeName}.` : `Olá, ${welcomeName}.`}</h1>
+              <p className="mt-4 text-lg italic text-primary">{welcomeMode === "returning" ? "Que bom ter você de volta ao Círculo do Fogo." : "Seja bem-vinda ao Círculo do Fogo."}</p>
+              <p className="mt-4 text-sm leading-7 text-muted-foreground">{welcomeMode === "returning" ? "Sua próxima história está esperando por você. Entre, explore e sinta-se em casa." : "Sua história agora também faz parte da Hiraeth. Há novos mundos esperando para serem descobertos."}</p>
               {message && <p className="mt-4 text-sm text-muted-foreground">{message}</p>}
-              <button type="button" onClick={() => navigate({ to: "/inicio" })} aria-label="Fechar boas-vindas e escolher próximo portal" className="mt-7 inline-flex w-full items-center justify-center gap-2 border border-primary/40 px-5 py-3 text-sm text-foreground transition-colors hover:bg-primary/10"><span aria-hidden="true">×</span> Fechar e escolher meu próximo portal</button>
+              <button type="button" onClick={() => navigate({ to: destination })} aria-label="Continuar para a Hiraeth" className="mt-7 inline-flex w-full items-center justify-center gap-2 border border-primary/40 px-5 py-3 text-sm text-foreground transition-colors hover:bg-primary/10">Entrar no meu círculo</button>
             </div>
           </section>
         ) : <>
@@ -116,6 +120,7 @@ function AuthPage() {
             className="w-full border bg-transparent px-4 py-3 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
           />
           {mode !== "forgot" && (
+            <>
             <div className="relative">
               <input
                 type={showPassword ? "text" : "password"}
@@ -132,6 +137,7 @@ function AuthPage() {
               </button>
             </div>
             {mode === "login" && <label className="flex items-center gap-2 text-sm text-muted-foreground"><input type="checkbox" checked={rememberSession} onChange={(e) => setRememberSession(e.target.checked)} className="accent-primary" />Permanecer conectado neste dispositivo</label>}
+            </>
           )}
           {error && <p className="text-sm text-destructive">{error}</p>}
           {message && <p className="text-sm text-primary">{message}</p>}
