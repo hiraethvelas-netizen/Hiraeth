@@ -30,15 +30,23 @@ function AdminProdutos() {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [editing, setEditing] = useState<Product | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [showForm, setShowForm] = useState(false);
 
   const load = useCallback(async () => {
-    const [{ data: prods }, { data: cats }] = await Promise.all([
+    setLoading(true);
+    const [{ data: prods, error: productsError }, { data: cats, error: categoriesError }] = await Promise.all([
       supabase.from("products").select("*").order("created_at", { ascending: false }),
       supabase.from("categories").select("*").order("position"),
     ]);
+    if (productsError || categoriesError) {
+      setLoadError("Não foi possível carregar produtos e categorias. Verifique a conexão e suas permissões.");
+      setLoading(false);
+      return;
+    }
+    setLoadError(null);
     setProducts(prods ?? []);
     setCategories(cats ?? []);
     setLoading(false);
@@ -114,6 +122,8 @@ function AdminProdutos() {
         <h1 className="text-4xl text-foreground">Produtos</h1>
         <button onClick={startNew} className="btn-gold">+ Novo produto</button>
       </div>
+
+      {loadError && <div className="mt-6 border bg-card p-4 text-foreground"><p>{loadError}</p><button onClick={load} className="btn-gold mt-3">Tentar novamente</button></div>}
 
       {showForm && (
         <form onSubmit={save} className="mt-6 space-y-4 border bg-card p-6">
