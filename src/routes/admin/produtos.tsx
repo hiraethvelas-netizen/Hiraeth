@@ -7,6 +7,7 @@ import type { Tables } from "@/integrations/supabase/types";
 
 type Product = Tables<"products">;
 type Category = Tables<"categories"> & { parent_id?: string | null };
+type Essence = { id: string; name: string; stock_ml: number; notes: string | null; top_notes: string[]; heart_notes: string[]; base_notes: string[]; active: boolean };
 
 export const Route = createFileRoute("/admin/produtos")({
   head: () => ({ meta: [{ title: "Produtos — Admin Hiraeth" }] }),
@@ -16,7 +17,7 @@ export const Route = createFileRoute("/admin/produtos")({
 const emptyForm = {
   name: "", description: "", category_id: "", price: "", sale_price: "",
   stock: "0", sku: "", fragrance: "", images: [] as string[], status: "draft",
-  weight_grams: "", dimensions: "",
+  dimensions: "",
 };
 
 function AdminProdutos() {
@@ -27,11 +28,11 @@ function AdminProdutos() {
   const [editing, setEditing] = useState<Product | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [showForm, setShowForm] = useState(false);
-  const [uploading, setUploading] = useState(false);
+  const [uploading, setUploading] = useState(false);\n  const db = supabase as any;\n  const [essences, setEssences] = useState<Essence[]>([]);\n  const [aromaSearch, setAromaSearch] = useState("");\n  const [selectedAroma, setSelectedAroma] = useState("");\n  const [aromaQuantity, setAromaQuantity] = useState("");\n  const [newAromaName, setNewAromaName] = useState("");\n  const [newTop, setNewTop] = useState("");\n  const [newHeart, setNewHeart] = useState("");\n  const [newBase, setNewBase] = useState("");\n  const [productAromas, setProductAromas] = useState<{essence_id:string;quantity_ml:number;name:string}[]>([]);
 
   const load = useCallback(async () => {
     setLoading(true);
-    const [{ data: prods, error: productsError }, { data: cats, error: categoriesError }] = await Promise.all([
+    const [{ data: prods, error: productsError }, { data: cats, error: categoriesError }, { data: aromaData }] = await Promise.all([
       supabase.from("products").select("*").order("created_at", { ascending: false }),
       supabase.from("categories").select("*").order("position"),
     ]);
@@ -42,13 +43,13 @@ function AdminProdutos() {
     }
     setLoadError(null);
     setProducts(prods ?? []);
-    setCategories((cats ?? []) as Category[]);
+    setCategories((cats ?? []) as Category[]);\n    setEssences((aromaData ?? []) as Essence[]);
     setLoading(false);
   }, []);
 
   useEffect(() => { load(); }, [load]);
 
-  function startEdit(p: Product) {
+  async function startEdit(p: Product) {
     setEditing(p);
     setForm({
       name: p.name, description: p.description ?? "", category_id: p.category_id ?? "",
@@ -98,7 +99,7 @@ function AdminProdutos() {
       ? await supabase.from("products").update(payload).eq("id", editing.id)
       : await supabase.from("products").insert(payload);
     if (error) toast.error(error.message.includes("unique") ? "Já existe um produto com esse nome/link." : `Erro ao salvar: ${error.message}`);
-    else { toast.success(editing ? "Produto atualizado." : "Produto criado."); setShowForm(false); load(); }
+    else {\n      const saved = editing ? editing.id : (await db.from("products").select("id").eq("slug", slugify(form.name)).maybeSingle()).data?.id;\n      if (saved) { await db.from("product_essences").delete().eq("product_id", saved); if (productAromas.length) await db.from("product_essences").insert(productAromas.map(a=>({product_id:saved,essence_id:a.essence_id,quantity_ml:a.quantity_ml}))); }\n      toast.success(editing ? "Produto atualizado." : "Produto criado."); setShowForm(false); load(); }
   }
 
   async function remove(id: string, name: string) {
@@ -131,12 +132,29 @@ function AdminProdutos() {
         <label className="text-sm text-muted-foreground">Preço (R$)<input required type="number" step="0.01" min="0" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} className={`mt-1 ${inputCls}`} /></label>
         <label className="text-sm text-muted-foreground">Preço promocional (R$)<input type="number" step="0.01" min="0" placeholder="Opcional" value={form.sale_price} onChange={(e) => setForm({ ...form, sale_price: e.target.value })} className={`mt-1 ${inputCls}`} /></label>
         <label className="text-sm text-muted-foreground">Quantidade em estoque<input required type="number" min="0" step="1" value={form.stock} onChange={(e) => setForm({ ...form, stock: e.target.value })} className={`mt-1 ${inputCls}`} /></label>
-        <label className="text-sm text-muted-foreground">Peso (gramas)<input type="number" min="0" step="1" placeholder="Ex.: 250" value={form.weight_grams} onChange={(e) => setForm({ ...form, weight_grams: e.target.value })} className={`mt-1 ${inputCls}`} /></label>
-        <label className="text-sm text-muted-foreground">Conteúdo / tamanho<input placeholder="Ex.: 250 g, 100 ml, tamanho P" value={form.dimensions} onChange={(e) => setForm({ ...form, dimensions: e.target.value })} className={`mt-1 ${inputCls}`} /></label>
+        
+        <label className="text-sm text-muted-foreground">Tamanho<input placeholder="Ex.: 250 g, 100 ml, tamanho P" value={form.dimensions} onChange={(e) => setForm({ ...form, dimensions: e.target.value })} className={`mt-1 ${inputCls}`} /></label>
         <label className="text-sm text-muted-foreground">SKU<input placeholder="Código interno (opcional)" value={form.sku} onChange={(e) => setForm({ ...form, sku: e.target.value })} className={`mt-1 ${inputCls}`} /></label>
-        <label className="text-sm text-muted-foreground">Fragrância<input placeholder="Quando aplicável" value={form.fragrance} onChange={(e) => setForm({ ...form, fragrance: e.target.value })} className={`mt-1 ${inputCls}`} /></label>
+        
         <label className="text-sm text-muted-foreground">Status<select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })} className={`mt-1 ${inputCls}`}><option value="draft">Rascunho</option><option value="published">Publicado</option><option value="archived">Arquivado</option></select></label>
       </div>
+      <section className="space-y-4 border border-primary/20 p-4">
+        <div><h3 className="text-lg text-foreground">Aromas e pirâmide olfativa</h3><p className="text-xs text-muted-foreground">Selecione aromas do estoque e informe o consumo em ml por vela. O consumo fica apenas no administrativo.</p></div>
+        <label className="block text-sm text-muted-foreground">Pesquisar aroma no estoque<input value={aromaSearch} onChange={e=>setAromaSearch(e.target.value)} placeholder="Digite o nome do aroma..." className={inputCls}/></label>
+        <div className="grid gap-3 md:grid-cols-[1fr_140px_auto]">
+          <label className="text-sm text-muted-foreground">Aroma<select value={selectedAroma} onChange={e=>setSelectedAroma(e.target.value)} className={inputCls}><option value="">Selecione um aroma</option>{essences.filter(a=>a.name.toLowerCase().includes(aromaSearch.toLowerCase())).map(a=><option key={a.id} value={a.id}>{a.name} — {Number(a.stock_ml).toLocaleString("pt-BR")} ml no estoque</option>)}</select></label>
+          <label className="text-sm text-muted-foreground">Quantidade (ml)<input type="number" min="0.001" step="0.001" value={aromaQuantity} onChange={e=>setAromaQuantity(e.target.value)} placeholder="Ex.: 8" className={inputCls}/></label>
+          <button type="button" className="btn-gold self-end" onClick={()=>{const a=essences.find(x=>x.id===selectedAroma);const q=Number(aromaQuantity);if(!a||q<=0){toast.error("Selecione um aroma e informe a quantidade em ml.");return;}setProductAromas(prev=>[...prev.filter(x=>x.essence_id!==a.id),{essence_id:a.id,quantity_ml:q,name:a.name}]);setSelectedAroma("");setAromaQuantity("");}}>Adicionar aroma</button>
+        </div>
+        <details className="border p-3"><summary className="cursor-pointer text-sm text-primary">+ Cadastrar um aroma novo</summary><div className="mt-3 grid gap-3 md:grid-cols-2">
+          <label className="text-sm text-muted-foreground">Nome do aroma<input value={newAromaName} onChange={e=>setNewAromaName(e.target.value)} placeholder="Ex.: Baunilha" className={inputCls}/></label>
+          <label className="text-sm text-muted-foreground">Notas de saída<input value={newTop} onChange={e=>setNewTop(e.target.value)} placeholder="Cítricos, bergamota..." className={inputCls}/></label>
+          <label className="text-sm text-muted-foreground">Notas de corpo<input value={newHeart} onChange={e=>setNewHeart(e.target.value)} placeholder="Jasmim, rosa..." className={inputCls}/></label>
+          <label className="text-sm text-muted-foreground">Notas de fundo<input value={newBase} onChange={e=>setNewBase(e.target.value)} placeholder="Baunilha, âmbar..." className={inputCls}/></label>
+          <button type="button" className="btn-gold md:col-span-2" onClick={async()=>{if(!newAromaName.trim()){toast.error("Informe o nome do aroma.");return;}const {data,error}=await db.from("essences").insert({name:newAromaName.trim(),stock_ml:0,minimum_stock_ml:10,target_stock_ml:50,top_notes:newTop.split(",").map(s=>s.trim()).filter(Boolean),heart_notes:newHeart.split(",").map(s=>s.trim()).filter(Boolean),base_notes:newBase.split(",").map(s=>s.trim()).filter(Boolean),active:true}).select("*").single();if(error){toast.error("Não foi possível cadastrar o aroma: "+error.message);return;}setEssences(prev=>[...prev,data]);setProductAromas(prev=>[...prev,{essence_id:data.id,quantity_ml:Number(aromaQuantity)||0,name:data.name}]);setSelectedAroma(data.id);setNewAromaName("");setNewTop("");setNewHeart("");setNewBase("");toast.success("Aroma cadastrado no estoque. Informe a quantidade usada para vinculá-lo.");}}>Salvar aroma no estoque</button>
+        </div></details>
+        {productAromas.length>0&&<div className="space-y-2">{productAromas.map(a=><div key={a.essence_id} className="flex items-center justify-between border-b py-2 text-sm"><span>{a.name} <span className="text-muted-foreground">· {a.quantity_ml} ml por vela (interno)</span></span><button type="button" onClick={()=>setProductAromas(prev=>prev.filter(x=>x.essence_id!==a.essence_id))} className="text-destructive">Remover</button></div>)}</div>}
+      </section>
       <label className="block text-sm text-muted-foreground">Descrição<textarea placeholder="Conte a história, materiais e detalhes do produto..." rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className={`mt-1 ${inputCls}`} /></label>
       <div className="space-y-3">
         <div><p className="text-sm text-foreground">Fotos do produto</p><p className="text-xs text-muted-foreground">Selecione imagens do celular ou computador. A primeira imagem será a capa. JPG, PNG, WEBP ou GIF; até 10 MB por foto.</p></div>
