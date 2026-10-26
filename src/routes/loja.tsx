@@ -129,31 +129,32 @@ useEffect(() => {
           aria-label="Navegação principal"
           className="mb-12 grid grid-cols-2 gap-x-4 gap-y-7 sm:grid-cols-4 sm:gap-6 md:mb-16 md:gap-8"
         >
-          {shortcuts.map((item) => (
-            <Link
-              key={item.title}
-              to={item.to}
-              className="group flex flex-col items-center text-center"
-            >
-              <div className="relative aspect-square w-full max-w-[150px] overflow-hidden rounded-full border border-primary/40 bg-card shadow-md transition-all duration-500 group-hover:scale-[1.04] group-hover:border-primary group-hover:shadow-[var(--glow)] md:max-w-[180px]">
-                <img
-                  src={item.image}
-                  alt=""
-                  className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
-                  loading="lazy"
-                />
-                <div className="absolute inset-0 bg-black/10 transition-colors duration-300 group-hover:bg-black/0" />
-              </div>
+          {!shortcutsLoading &&
+  shortcuts.map((item) => (
+    <Link
+      key={item.id}
+      to={item.href as any}
+      className="group flex flex-col items-center text-center"
+    >
+      <div className="relative aspect-square w-full max-w-[150px] overflow-hidden rounded-full border border-primary/40 bg-card shadow-md transition-all duration-500 group-hover:scale-[1.04] group-hover:border-primary group-hover:shadow-[var(--glow)] md:max-w-[180px]">
+        <img
+          src={shortcutImages[item.image_key] ?? portalImage}
+          alt=""
+          className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+          loading="lazy"
+        />
+        <div className="absolute inset-0 bg-black/10 transition-colors duration-300 group-hover:bg-black/0" />
+      </div>
 
-              <span className="mt-3 font-display text-base text-foreground transition-colors group-hover:text-primary sm:text-lg">
-                {item.title}
-              </span>
+      <span className="mt-3 font-display text-base text-foreground transition-colors group-hover:text-primary sm:text-lg">
+        {item.title}
+      </span>
 
-              <span className="mt-1 max-w-[180px] text-xs leading-relaxed text-muted-foreground sm:text-sm">
-                {item.description}
-              </span>
-            </Link>
-          ))}
+      <span className="mt-1 max-w-[180px] text-xs leading-relaxed text-muted-foreground sm:text-sm">
+        {item.description}
+      </span>
+    </Link>
+  ))}
         </nav>
 
         {/* Catálogo da loja */}
