@@ -25,6 +25,7 @@ function AuthPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberSession, setRememberSession] = useState(true);
   const [name, setName] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -40,6 +41,7 @@ function AuthPage() {
     setLoading(true);
     try {
       if (mode === "login") {
+        localStorage.setItem("hiraeth-remember-session", rememberSession ? "true" : "false");
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
         navigate({ to: destination });
@@ -129,7 +131,7 @@ function AuthPage() {
                 {showPassword ? "Ocultar" : "Mostrar"}
               </button>
             </div>
-            {mode === "login" && <label className="flex items-center gap-2 text-sm text-muted-foreground"><input type="checkbox" defaultChecked className="accent-primary" />Permanecer conectado neste dispositivo</label>}
+            {mode === "login" && <label className="flex items-center gap-2 text-sm text-muted-foreground"><input type="checkbox" checked={rememberSession} onChange={(e) => setRememberSession(e.target.checked)} className="accent-primary" />Permanecer conectado neste dispositivo</label>}
           )}
           {error && <p className="text-sm text-destructive">{error}</p>}
           {message && <p className="text-sm text-primary">{message}</p>}
