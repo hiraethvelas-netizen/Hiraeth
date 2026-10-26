@@ -121,6 +121,9 @@ function Biblioteca() {
           <Link to="/pedidos" className="text-sm text-muted-foreground underline hover:text-primary">
             Meus pedidos
           </Link>
+          <Link to="/configuracoes" className="text-sm text-muted-foreground underline hover:text-primary">
+            Configurações da conta
+          </Link>
         </div>
 
         {tab === "colecao" && (
