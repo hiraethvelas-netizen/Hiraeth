@@ -138,8 +138,8 @@ useEffect(() => {
     >
       <div className="relative aspect-square w-full max-w-[150px] overflow-hidden rounded-full border border-primary/40 bg-card shadow-md transition-all duration-500 group-hover:scale-[1.04] group-hover:border-primary group-hover:shadow-[var(--glow)] md:max-w-[180px]">
         <img
-          src={shortcutImages[item.image_key] ?? portalImage}
-          alt=""
+          src={/^https?:\/\//i.test(item.image_key) ? item.image_key : (shortcutImages[item.image_key] ?? portalImage)}
+          alt={item.title}
           className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
           loading="lazy"
         />
