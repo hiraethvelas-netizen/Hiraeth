@@ -28,13 +28,24 @@ function AdminProdutos() {
   const [editing, setEditing] = useState<Product | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [showForm, setShowForm] = useState(false);
-  const [uploading, setUploading] = useState(false);\n  const db = supabase as any;\n  const [essences, setEssences] = useState<Essence[]>([]);\n  const [aromaSearch, setAromaSearch] = useState("");\n  const [selectedAroma, setSelectedAroma] = useState("");\n  const [aromaQuantity, setAromaQuantity] = useState("");\n  const [newAromaName, setNewAromaName] = useState("");\n  const [newTop, setNewTop] = useState("");\n  const [newHeart, setNewHeart] = useState("");\n  const [newBase, setNewBase] = useState("");\n  const [productAromas, setProductAromas] = useState<{essence_id:string;quantity_ml:number;name:string}[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const db = supabase as any;
+  const [essences, setEssences] = useState<Essence[]>([]);
+  const [aromaSearch, setAromaSearch] = useState("");
+  const [selectedAroma, setSelectedAroma] = useState("");
+  const [aromaQuantity, setAromaQuantity] = useState("");
+  const [newAromaName, setNewAromaName] = useState("");
+  const [newTop, setNewTop] = useState("");
+  const [newHeart, setNewHeart] = useState("");
+  const [newBase, setNewBase] = useState("");
+  const [productAromas, setProductAromas] = useState<{essence_id:string;quantity_ml:number;name:string}[]>([]);
 
   const load = useCallback(async () => {
     setLoading(true);
     const [{ data: prods, error: productsError }, { data: cats, error: categoriesError }, { data: aromaData }] = await Promise.all([
       supabase.from("products").select("*").order("created_at", { ascending: false }),
       supabase.from("categories").select("*").order("position"),
+      db.from("essences").select("*").eq("active", true).order("name"),
     ]);
     if (productsError || categoriesError) {
       setLoadError("Não foi possível carregar produtos e categorias. Verifique a conexão e suas permissões.");
@@ -43,25 +54,28 @@ function AdminProdutos() {
     }
     setLoadError(null);
     setProducts(prods ?? []);
-    setCategories((cats ?? []) as Category[]);\n    setEssences((aromaData ?? []) as Essence[]);
+    setCategories((cats ?? []) as Category[]);
+    setEssences((aromaData ?? []) as Essence[]);
     setLoading(false);
   }, []);
 
   useEffect(() => { load(); }, [load]);
 
-  async function startEdit(p: Product) {
+  async async function startEdit(p: Product) {
     setEditing(p);
     setForm({
       name: p.name, description: p.description ?? "", category_id: p.category_id ?? "",
       price: String(p.price), sale_price: p.sale_price != null ? String(p.sale_price) : "",
       stock: String(p.stock), sku: p.sku ?? "", fragrance: p.fragrance ?? "",
-      images: p.images ?? [], status: p.status, weight_grams: p.weight_grams != null ? String(p.weight_grams) : "",
+      images: p.images ?? [], status: p.status,
       dimensions: p.dimensions ?? "",
     });
+    const { data } = await db.from("product_essences").select("essence_id,quantity_ml,essences(name)").eq("product_id", p.id);
+    setProductAromas((data ?? []).map((r:any) => ({essence_id:r.essence_id,quantity_ml:Number(r.quantity_ml),name:r.essences?.name ?? "Aroma"})));
     setShowForm(true);
   }
 
-  function startNew() { setEditing(null); setForm(emptyForm); setShowForm(true); }
+  function startNew() { setEditing(null); setForm(emptyForm); setProductAromas([]); setSelectedAroma(""); setAromaQuantity(""); setShowForm(true); }
 
   async function uploadImages(files: FileList | null) {
     if (!files?.length) return;
@@ -92,14 +106,16 @@ function AdminProdutos() {
       price: Number(form.price) || 0, sale_price: form.sale_price ? Number(form.sale_price) : null,
       stock: Math.max(0, Number(form.stock) || 0), sku: form.sku || null,
       fragrance: form.fragrance || null, images: form.images, status: form.status,
-      weight_grams: form.weight_grams ? Number(form.weight_grams) : null,
       dimensions: form.dimensions || null,
     };
     const { error } = editing
       ? await supabase.from("products").update(payload).eq("id", editing.id)
       : await supabase.from("products").insert(payload);
     if (error) toast.error(error.message.includes("unique") ? "Já existe um produto com esse nome/link." : `Erro ao salvar: ${error.message}`);
-    else {\n      const saved = editing ? editing.id : (await db.from("products").select("id").eq("slug", slugify(form.name)).maybeSingle()).data?.id;\n      if (saved) { await db.from("product_essences").delete().eq("product_id", saved); if (productAromas.length) await db.from("product_essences").insert(productAromas.map(a=>({product_id:saved,essence_id:a.essence_id,quantity_ml:a.quantity_ml}))); }\n      toast.success(editing ? "Produto atualizado." : "Produto criado."); setShowForm(false); load(); }
+    else {
+      const saved = editing ? editing.id : (await db.from("products").select("id").eq("slug", slugify(form.name)).maybeSingle()).data?.id;
+      if (saved) { await db.from("product_essences").delete().eq("product_id", saved); if (productAromas.length) await db.from("product_essences").insert(productAromas.map(a=>({product_id:saved,essence_id:a.essence_id,quantity_ml:a.quantity_ml}))); }
+      toast.success(editing ? "Produto atualizado." : "Produto criado."); setShowForm(false); load(); }
   }
 
   async function remove(id: string, name: string) {
