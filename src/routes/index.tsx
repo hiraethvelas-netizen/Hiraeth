@@ -29,6 +29,8 @@ export function ExistingHomepage() {
   useEffect(() => {
     (supabase as any).from("site_shortcuts").select("*").eq("active", true).order("position")
       .then(({ data }: { data: Shortcut[] | null }) => setShortcuts(data ?? []));
+    (supabase as any).from("site_banners").select("*").eq("active", true).order("position")
+      .then(({ data }: { data: HomeBanner[] | null }) => setBanners(data ?? []));
   }, []);
   const imageFor = (key: string) => /^https?:\/\//i.test(key) ? key : key === "phoenix" ? fenix : banner;
   return (
@@ -53,9 +55,14 @@ export function ExistingHomepage() {
         </section>
         <section className="mx-auto max-w-6xl px-5 py-8">
           <h2 className="font-display text-3xl text-foreground">Novidades do Círculo</h2>
-          <Link to="/loja" className="group mt-5 block overflow-hidden rounded-sm">
-            <img src={banner} alt="Explore os universos literários da Hiraeth" className="h-36 w-full object-cover transition-transform duration-500 group-hover:scale-[1.02] sm:h-48 md:h-56" loading="lazy" />
-          </Link>
+          <div className="mt-5 flex snap-x gap-4 overflow-x-auto pb-3">
+            {(banners.length ? banners : [{ id: "fallback", title: "Explore os universos literários da Hiraeth", image_url: banner, href: "/loja", position: 1, active: true }]).map((item) => (
+              <Link key={item.id} to={item.href as never} className="group block w-[82%] min-w-[82%] snap-start overflow-hidden rounded-sm sm:w-[60%] sm:min-w-[60%] md:w-[48%] md:min-w-[48%]">
+                <img src={item.image_url} alt={item.title || "Novidade Hiraeth"} className="h-36 w-full object-cover transition-transform duration-500 group-hover:scale-[1.02] sm:h-48 md:h-56" loading="lazy" />
+                {item.title && <span className="sr-only">{item.title}</span>}
+              </Link>
+            ))}
+          </div>
         </section>
         <section className="mx-auto grid max-w-5xl items-center gap-10 px-6 py-16 md:grid-cols-2">
           <img src={fenix} alt="Fênix Hiraeth" className="mx-auto w-64 md:w-80" loading="lazy" />
