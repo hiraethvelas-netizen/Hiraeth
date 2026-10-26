@@ -35,10 +35,10 @@ aria-hidden="true"
     {/* Logo centralizada */}
     <Link
       to="/"
-      className="justify-self-center font-display text-xl tracking-[0.18em] text-primary sm:text-2xl md:text-3xl"
+      className="justify-self-center font-display text-2xl italic font-medium tracking-[0.02em] text-foreground sm:text-3xl md:text-4xl"
       aria-label="Hiraeth - início"
     >
-      HIRAETH
+      Hiraeth
     </Link>
 
     {/* Sacola de compras */}
