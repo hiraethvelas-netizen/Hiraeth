@@ -98,24 +98,55 @@
 }
 @utility animate-portal { animation: portal-fade 1.6s ease-out both; }
 
-/* Scoped to the entrance; the store and NFC portal themes are unchanged. */
+
+/* Abertura cinematográfica Hiraeth */
 .hiraeth-opening {
   position: fixed;
   inset: 0;
+  height: 100vh;
   height: 100dvh;
   overflow: hidden;
   isolation: isolate;
-  background: var(--background);
+  background: #100e0c;
   color: var(--foreground);
   letter-spacing: 0;
 }
-.opening-scene, .opening-shade { position: absolute; inset: 0; }
-.opening-scene img { width: 100%; height: 100%; object-fit: cover; object-position: center; }
-.opening-forest { animation: opening-forest-journey 7s ease-in-out both; }
-.opening-castle { opacity: 0; animation: opening-reveal 8s cubic-bezier(.16,.65,.24,1) 2.4s both; }
-.opening-shade { background: var(--overlay); opacity: .36; animation: opening-shade 3s ease 5s both; }
+
+.opening-video {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  pointer-events: none;
+}
+
+.opening-scene,
+.opening-shade {
+  position: absolute;
+  inset: 0;
+}
+
+.opening-scene {
+  z-index: 0;
+}
+
+.opening-scene img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.opening-shade {
+  z-index: 1;
+  background: rgba(12, 9, 8, 0.48);
+}
+
 .opening-seal {
   position: absolute;
+  z-index: 2;
   top: max(24px, env(safe-area-inset-top));
   left: 50%;
   transform: translateX(-50%);
@@ -123,68 +154,138 @@
   height: 60px;
   object-fit: contain;
 }
+
 .opening-copy {
   position: absolute;
+  z-index: 2;
   inset-inline: 24px;
   bottom: max(9%, env(safe-area-inset-bottom));
   margin-inline: auto;
   max-width: 760px;
   text-align: center;
-  animation: opening-words 2s ease 5.6s both;
+  animation: opening-words 1s ease 0.4s both;
 }
-.opening-copy h1 { font-size: 64px; line-height: 1.06; text-wrap: balance; letter-spacing: 0; }
-.opening-welcome { font-family: var(--font-display); font-style: italic; font-size: 24px; margin-bottom: 14px; }
-.opening-description { font-size: 20px; line-height: 1.5; margin-top: 18px; }
+
+.opening-copy h1 {
+  font-family: var(--font-display);
+  font-size: 64px;
+  line-height: 1.06;
+  text-wrap: balance;
+  letter-spacing: 0;
+}
+
+.opening-welcome {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 24px;
+  margin-bottom: 14px;
+}
+
+.opening-description {
+  font-size: 20px;
+  line-height: 1.5;
+  margin-top: 18px;
+}
+
 .opening-enter {
   margin-top: 30px;
   min-height: 54px;
   height: auto;
   padding: 14px 38px;
   border-color: var(--primary);
-  background: var(--overlay);
+  background: rgba(12, 9, 8, 0.65);
   color: var(--foreground);
   font-family: var(--font-display);
   font-size: 22px;
   font-weight: 500;
   letter-spacing: 0;
   border-radius: var(--radius);
-  transition: background .3s, color .3s;
+  transition: background 0.3s, color 0.3s;
 }
-.opening-enter:hover { background: var(--primary); color: var(--primary-foreground); }
-@keyframes opening-forest-journey {
-  0% { transform: scale(1); opacity: 1; }
-  65% { opacity: 1; }
-  100% { transform: scale(1.14); opacity: 0; }
+
+.opening-enter:hover {
+  background: var(--primary);
+  color: var(--primary-foreground);
 }
-@keyframes opening-reveal {
-  0% { opacity: 0; transform: scale(1); }
-  40% { opacity: 1; }
-  100% { opacity: 1; transform: scale(1.08); }
-}
-@keyframes opening-shade { to { opacity: .82; } }
+
 @keyframes opening-words {
-  from { opacity: 0; transform: translateY(16px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
+
 @media (max-width: 640px) {
-  .opening-copy { inset-inline: 22px; bottom: max(8%, env(safe-area-inset-bottom)); }
-  .opening-copy h1 { font-size: 42px; }
-  .opening-welcome { font-size: 21px; }
-  .opening-description { font-size: 18px; max-width: 290px; margin-inline: auto; }
-  .opening-enter { font-size: 21px; margin-top: 24px; }
-  .opening-seal { width: 44px; height: 52px; }
+  .opening-copy {
+    inset-inline: 22px;
+    bottom: max(8%, env(safe-area-inset-bottom));
+  }
+
+  .opening-copy h1 {
+    font-size: 42px;
+  }
+
+  .opening-welcome {
+    font-size: 21px;
+  }
+
+  .opening-description {
+    font-size: 18px;
+    max-width: 290px;
+    margin-inline: auto;
+  }
+
+  .opening-enter {
+    font-size: 21px;
+    margin-top: 24px;
+  }
+
+  .opening-seal {
+    width: 44px;
+    height: 52px;
+  }
 }
+
 @media (max-height: 540px) {
-  .opening-seal { top: 14px; height: 38px; }
-  .opening-copy { bottom: 6%; }
-  .opening-copy h1 { font-size: 36px; }
-  .opening-welcome { font-size: 19px; margin-bottom: 8px; }
-  .opening-description { margin-top: 8px; font-size: 17px; }
-  .opening-enter { margin-top: 16px; min-height: 44px; padding-block: 8px; }
+  .opening-seal {
+    top: 14px;
+    height: 38px;
+  }
+
+  .opening-copy {
+    bottom: 6%;
+  }
+
+  .opening-copy h1 {
+    font-size: 36px;
+  }
+
+  .opening-welcome {
+    font-size: 19px;
+    margin-bottom: 8px;
+  }
+
+  .opening-description {
+    margin-top: 8px;
+    font-size: 17px;
+  }
+
+  .opening-enter {
+    margin-top: 16px;
+    min-height: 44px;
+    padding-block: 8px;
+  }
 }
+
 @media (prefers-reduced-motion: reduce) {
-  .hiraeth-opening *, .hiraeth-opening *::before { animation: none; transition: none; }
-  .opening-forest { display: none; }
-  .opening-castle { opacity: 1; }
-  .opening-shade { opacity: .82; }
+  .hiraeth-opening *,
+  .hiraeth-opening *::before {
+    animation: none;
+    transition: none;
+  }
 }
+
