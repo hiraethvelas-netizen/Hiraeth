@@ -7,7 +7,7 @@ import { useCart } from "@/lib/cart";
 import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
 
-type Product = Tables<"products">;
+type Product = Tables<"products">;\ntype AromaNote = { essence_id: string; quantity_ml: number; essences?: { name: string; top_notes: string[] | null; heart_notes: string[] | null; base_notes: string[] | null } | null };
 
 export const Route = createFileRoute("/produto/$slug")({
   head: () => ({
@@ -28,7 +28,7 @@ function ProdutoPage() {
   const [activeImage, setActiveImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [inWishlist, setInWishlist] = useState(false);
-  const [userId, setUserId] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);\n  const [aromaNotes, setAromaNotes] = useState<AromaNote[]>([]);
 
   useEffect(() => {
     async function load() {
@@ -135,7 +135,7 @@ function ProdutoPage() {
               )}
             </div>
 
-            {product.description && (
+            {aromaNotes.length > 0 && <section className="mt-6 border-l-2 border-primary pl-4"><h2 className="font-display text-xl text-foreground">Pirâmide olfativa</h2>{([["Saída", "top_notes"], ["Corpo", "heart_notes"], ["Fundo", "base_notes"]] as const).map(([label, key])=>{const notes=Array.from(new Set(aromaNotes.flatMap(a=>a.essences?.[key] ?? [])));return notes.length ? <div key={label} className="mt-3"><p className="text-xs uppercase tracking-widest text-primary">{label}</p><p className="mt-1 text-sm text-foreground/85">{notes.join(", ")}</p></div> : null;})}</section>}\n\n            {product.description && (
               <p className="mt-6 leading-relaxed text-foreground/85">{product.description}</p>
             )}
 
