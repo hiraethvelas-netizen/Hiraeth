@@ -15,6 +15,8 @@ const NAV = [
   { to: "/admin/pedidos", label: "Pedidos" },
   { to: "/admin/portais", label: "Portais NFC" },
   { to: "/admin/financeiro", label: "Financeiro" },
+  { to: "/admin/aparencia", label: "Aparência" },
+
 ] as const;
 
 function AdminLayout() {
