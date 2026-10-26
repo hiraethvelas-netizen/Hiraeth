@@ -34,10 +34,18 @@ function AdminPortais() {
   const [form, setForm] = useState(emptyForm);
   const [showForm, setShowForm] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState(false);
 
   const load = useCallback(async () => {
-    const { data } = await supabase.from("portals").select("*").order("created_at", { ascending: false });
-    setPortals(data ?? []);
+    setLoading(true);
+    const { data, error } = await supabase.from("portals").select("*").order("created_at", { ascending: false });
+    if (error) {
+      setLoadError(true);
+      toast.error("Não foi possível carregar os portais.");
+    } else {
+      setLoadError(false);
+      setPortals(data ?? []);
+    }
     setLoading(false);
   }, []);
 
@@ -50,10 +58,14 @@ function AdminPortais() {
   }
 
   async function copyLink(p: Portal) {
-    await navigator.clipboard.writeText(publicUrl(p));
-    setCopiedId(p.id);
-    toast.success("Link NFC copiado! Cole no aplicativo de gravação da tag.");
-    setTimeout(() => setCopiedId(null), 2500);
+    try {
+      await navigator.clipboard.writeText(publicUrl(p));
+      setCopiedId(p.id);
+      toast.success("Link NFC copiado! Cole no aplicativo de gravação da tag.");
+      setTimeout(() => setCopiedId(null), 2500);
+    } catch {
+      toast.error("Não foi possível copiar automaticamente. Abra o portal e copie o link manualmente.");
+    }
   }
 
   function startEdit(p: Portal) {
@@ -137,7 +149,11 @@ function AdminPortais() {
   }
 
   async function archive(p: Portal) {
-    await supabase.from("portals").update({ status: "archived" }).eq("id", p.id);
+    const { error } = await supabase.from("portals").update({ status: "archived" }).eq("id", p.id);
+    if (error) {
+      toast.error("Não foi possível arquivar o portal.");
+      return;
+    }
     toast.success("Portal arquivado.");
     load();
   }
@@ -191,6 +207,11 @@ function AdminPortais() {
 
       {loading ? (
         <p className="mt-8 text-muted-foreground">Carregando...</p>
+      ) : loadError ? (
+        <div className="mt-8 border border-destructive/40 p-5 text-muted-foreground">
+          <p>Não foi possível carregar os portais. Verifique sua conexão e tente novamente.</p>
+          <button onClick={load} className="btn-gold mt-4">Tentar novamente</button>
+        </div>
       ) : portals.length === 0 ? (
         <p className="mt-8 text-muted-foreground">Nenhum portal criado ainda.</p>
       ) : (
