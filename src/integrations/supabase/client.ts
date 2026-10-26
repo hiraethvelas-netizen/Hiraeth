@@ -13,9 +13,9 @@ function selectableAuthStorage() {
     catch { return sessionStorage; }
   };
   return {
-    getItem: async (key: string) => browserStorage(key).getItem(key),
-    setItem: async (key: string, value: string) => { browserStorage(key).setItem(key, value); },
-    removeItem: async (key: string) => { browserStorage(key).removeItem(key); },
+    getItem: async (key: string) => localStorage.getItem(REMEMBER_SESSION_KEY) === 'false' ? sessionStorage.getItem(key) : await brokered.getItem(key),
+    setItem: async (key: string, value: string) => { if (localStorage.getItem(REMEMBER_SESSION_KEY) === 'false') sessionStorage.setItem(key, value); else await brokered.setItem(key, value); },
+    removeItem: async (key: string) => { if (localStorage.getItem(REMEMBER_SESSION_KEY) === 'false') sessionStorage.removeItem(key); else await brokered.removeItem(key); },
   };
 }
 
