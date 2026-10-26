@@ -173,7 +173,8 @@
 
 .opening-shade {
   z-index: 1;
-  background: rgba(91, 29, 4, 0.42);
+  /* Sem filtro avermelhado: preservar as cores verdes originais do vídeo. */
+  background: transparent;
 }
 
 .opening-seal {
