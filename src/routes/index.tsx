@@ -4,6 +4,7 @@ import banner from "@/assets/banner-portal.png";
 import fenix from "@/assets/fenix.png";
 import { SiteFooter, SiteHeader } from "@/components/SiteLayout";
 import { supabase } from "@/integrations/supabase/client";
+import { CinematicOpening } from "@/components/CinematicOpening";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -40,6 +41,12 @@ function Intro({ onDone }: { onDone: () => void }) {
 }
 
 function Index() {
+  return <CinematicOpening />;
+}
+
+// Preserve the existing homepage content and newsletter flow without displaying
+// them inside the exclusive, non-scrolling entrance.
+export function ExistingHomepage() {
   const [intro, setIntro] = useState(true);
   const [sent, setSent] = useState(false);
 

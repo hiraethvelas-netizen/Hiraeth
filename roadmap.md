@@ -1,5 +1,12 @@
 # Roadmap Hiraeth — Prompt Mestre
 
+## Abertura exclusiva — pedido atual
+- [x] Entrada sem menu ou rolagem, fênix recortada e ação direta para a loja
+- [x] Sequência leve de floresta, portal e textos usando imagens animadas
+- [ ] Validar entrada no celular e computador, com movimento reduzido
+- [ ] Vídeo com movimento real de câmera — geração bloqueada por créditos (aproximadamente 6,09)
+- Auditoria anterior fora do escopo deste pedido; não alterar outras telas sem confirmação.
+
 ## Auditoria solicitada — seções 1 a 7.2
 - [ ] A: diagnóstico por requisito e consulta ao Prompt Mestre original
 - [ ] B: corrigir exposição de rascunhos e criação insegura de pedidos
