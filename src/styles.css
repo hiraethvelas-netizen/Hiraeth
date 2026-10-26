@@ -129,6 +129,10 @@
 
 /* Abertura cinematográfica Hiraeth */
 .hiraeth-opening {
+  /* A abertura cinematográfica mantém sempre a paleta original, independente do tema do site. */
+  --foreground: #f7efda;
+  --primary: #c6a65b;
+  --primary-foreground: #5b1d04;
   position: fixed;
   inset: 0;
   height: 100vh;
@@ -136,7 +140,7 @@
   overflow: hidden;
   isolation: isolate;
   background: #5b1d04;
-  color: var(--foreground);
+  color: #f7efda;
   letter-spacing: 0;
 }
 
