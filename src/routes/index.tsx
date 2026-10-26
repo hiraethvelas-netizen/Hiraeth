@@ -6,7 +6,8 @@ import { SiteFooter, SiteHeader } from "@/components/SiteLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { CinematicOpening } from "@/components/CinematicOpening";
 
-type Shortcut = { id: string; title: string; description: string | null; href: string; image_key: string; position: number; active: boolean };\ntype HomeBanner = { id: string; title: string | null; image_url: string; href: string; position: number; active: boolean };
+type Shortcut = { id: string; title: string; description: string | null; href: string; image_key: string; position: number; active: boolean };
+type HomeBanner = { id: string; title: string | null; image_url: string; href: string; position: number; active: boolean };
 
 export const Route = createFileRoute("/")({
   head: () => ({ meta: [
