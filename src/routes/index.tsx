@@ -32,7 +32,7 @@ export function ExistingHomepage() {
     (supabase as any).from("site_banners").select("*").eq("active", true).order("position")
       .then(({ data }: { data: HomeBanner[] | null }) => setBanners(data ?? []));
   }, []);
-  const imageFor = (key: string) => /^https?:\\/\\//i.test(key) ? key : key === "phoenix" ? fenix : banner;
+  const imageFor = (key: string) => key.startsWith("https://") || key.startsWith("http://") ? key : key === "phoenix" ? fenix : banner;
   return (
     <div className="min-h-screen bg-background">
       <SiteHeader />
