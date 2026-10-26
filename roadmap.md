@@ -3,7 +3,7 @@
 ## Abertura exclusiva — pedido atual
 - [x] Entrada sem menu ou rolagem, fênix recortada e ação direta para a loja
 - [x] Sequência leve de floresta, portal e textos usando imagens animadas
-- [ ] Validar entrada no celular e computador, com movimento reduzido
+- [x] Validar entrada no celular e computador, com movimento reduzido; botão confirmado em /loja
 - [ ] Vídeo com movimento real de câmera — geração bloqueada por créditos (aproximadamente 6,09)
 - Auditoria anterior fora do escopo deste pedido; não alterar outras telas sem confirmação.
 
