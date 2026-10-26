@@ -3,6 +3,22 @@ import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 import { brokeredPreviewStorage } from './previewAuthStorage';
 
+const REMEMBER_SESSION_KEY = 'hiraeth-remember-session';
+
+function selectableAuthStorage() {
+  const brokered = brokeredPreviewStorage();
+  if (typeof window === 'undefined' || !brokered) return brokered;
+  const browserStorage = (key: string): Storage => {
+    try { return localStorage.getItem(REMEMBER_SESSION_KEY) === 'false' ? sessionStorage : localStorage; }
+    catch { return sessionStorage; }
+  };
+  return {
+    getItem: async (key: string) => browserStorage(key).getItem(key),
+    setItem: async (key: string, value: string) => { browserStorage(key).setItem(key, value); },
+    removeItem: async (key: string) => { browserStorage(key).removeItem(key); },
+  };
+}
+
 function isNewSupabaseApiKey(value: string): boolean {
   return value.startsWith('sb_publishable_') || value.startsWith('sb_secret_');
 }
@@ -67,7 +83,7 @@ function createSupabaseClient() {
       fetch: createSupabaseFetch(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY),
     },
     auth: {
-      storage: brokeredPreviewStorage(),
+      storage: selectableAuthStorage(),
       persistSession: true,
       autoRefreshToken: true,
     },
