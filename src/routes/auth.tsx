@@ -28,6 +28,7 @@ function AuthPage() {
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [welcomeName, setWelcomeName] = useState<string | null>(null);
 
   const destination = redirect && redirect.startsWith("/") ? redirect : "/biblioteca";
 
@@ -51,10 +52,9 @@ function AuthPage() {
           },
         });
         if (error) throw error;
-        if (data.session) {
-          navigate({ to: destination });
-        } else {
-          setMessage("Conta criada! Confirme seu e-mail para entrar no Círculo.");
+        setWelcomeName(name.trim().split(/\s+/)[0] || "viajante");
+        if (!data.session) {
+          setMessage("Sua conta foi criada. Confira seu e-mail para confirmar o acesso ao Círculo.");
         }
       } else {
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
@@ -74,6 +74,20 @@ function AuthPage() {
     <div className="min-h-screen">
       <SiteHeader />
       <main className="mx-auto max-w-md px-6 pb-20 pt-32">
+        {welcomeName ? (
+          <section className="relative overflow-hidden border border-primary/40 bg-card px-7 py-10 text-center shadow-xl">
+            <div aria-hidden="true" className="pointer-events-none absolute inset-0 opacity-20" style={{ background: "radial-gradient(ellipse at center, hsl(var(--primary) / 0.35), transparent 68%)" }} />
+            <div className="relative">
+              <p className="eyebrow">O portal foi aberto</p>
+              <div aria-hidden="true" className="mx-auto my-6 flex h-20 w-20 items-center justify-center rounded-full border border-primary/50 text-4xl text-primary">✦</div>
+              <h1 className="text-4xl text-foreground">Olá, {welcomeName}.</h1>
+              <p className="mt-4 text-lg italic text-primary">Seja bem-vindo ao Círculo do Fogo.</p>
+              <p className="mt-4 text-sm leading-7 text-muted-foreground">Sua história agora também faz parte da Hiraeth. Há novos mundos esperando para serem descobertos.</p>
+              {message && <p className="mt-4 text-sm text-muted-foreground">{message}</p>}
+              <button type="button" onClick={() => navigate({ to: destination })} className="btn-gold mt-7 w-full justify-center">Entrar no Círculo</button>
+            </div>
+          </section>
+        ) : <>
         <p className="eyebrow">Círculo do Fogo</p>
         <h1 className="mt-2 text-4xl text-foreground">
           {mode === "login" ? "Entrar" : mode === "signup" ? "Criar conta" : "Recuperar senha"}
@@ -139,6 +153,7 @@ function AuthPage() {
             </button>
           )}
         </div>
+        </>}
       </main>
       <SiteFooter />
     </div>
