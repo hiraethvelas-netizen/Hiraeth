@@ -81,10 +81,10 @@ function AuthPage() {
               <p className="eyebrow">O portal foi aberto</p>
               <div aria-hidden="true" className="mx-auto my-6 flex h-20 w-20 items-center justify-center rounded-full border border-primary/50 text-4xl text-primary">✦</div>
               <h1 className="text-4xl text-foreground">Olá, {welcomeName}.</h1>
-              <p className="mt-4 text-lg italic text-primary">Seja bem-vindo ao Círculo do Fogo.</p>
+              <p className="mt-4 text-lg italic text-primary">Seja bem-vinda ao Círculo do Fogo.</p>
               <p className="mt-4 text-sm leading-7 text-muted-foreground">Sua história agora também faz parte da Hiraeth. Há novos mundos esperando para serem descobertos.</p>
               {message && <p className="mt-4 text-sm text-muted-foreground">{message}</p>}
-              <button type="button" onClick={() => navigate({ to: destination })} className="btn-gold mt-7 w-full justify-center">Entrar no Círculo</button>
+              <button type="button" onClick={() => navigate({ to: "/inicio" })} aria-label="Fechar boas-vindas e escolher próximo portal" className="mt-7 inline-flex w-full items-center justify-center gap-2 border border-primary/40 px-5 py-3 text-sm text-foreground transition-colors hover:bg-primary/10"><span aria-hidden="true">×</span> Fechar e escolher meu próximo portal</button>
             </div>
           </section>
         ) : <>
