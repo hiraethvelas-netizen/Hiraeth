@@ -24,14 +24,22 @@ export const Route = createFileRoute("/admin/pedidos")({
 function AdminPedidos() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [filter, setFilter] = useState("");
   const [query, setQuery] = useState("");
 
   const load = useCallback(async () => {
-    const { data } = await supabase
+    setLoading(true);
+    const { data, error } = await supabase
       .from("orders")
       .select("*, order_items(*)")
       .order("created_at", { ascending: false });
+    if (error) {
+      setLoadError("Não foi possível carregar os pedidos. Verifique sua conexão e as permissões de administrador.");
+      setLoading(false);
+      return;
+    }
+    setLoadError(null);
     setOrders((data as Order[]) ?? []);
     setLoading(false);
   }, []);
@@ -41,7 +49,11 @@ function AdminPedidos() {
   }, [load]);
 
   async function setStatus(id: string, status: string) {
-    await supabase.from("orders").update({ status, updated_at: new Date().toISOString() }).eq("id", id);
+    const { error } = await supabase.from("orders").update({ status, updated_at: new Date().toISOString() }).eq("id", id);
+    if (error) {
+      toast.error("Não foi possível atualizar o status. Confira as permissões e tente novamente.");
+      return;
+    }
     toast.success("Status atualizado.");
     load();
   }
