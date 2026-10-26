@@ -90,6 +90,11 @@ function AdminPedidos() {
 
       {loading ? (
         <p className="mt-8 text-muted-foreground">Carregando...</p>
+      ) : loadError ? (
+        <div className="mt-8 border bg-card p-5 text-foreground">
+          <p>{loadError}</p>
+          <button onClick={load} className="btn-gold mt-3">Tentar novamente</button>
+        </div>
       ) : filtered.length === 0 ? (
         <p className="mt-8 text-muted-foreground">Nenhum pedido encontrado.</p>
       ) : (
@@ -98,7 +103,8 @@ function AdminPedidos() {
             <article key={o.id} className="border bg-card p-5">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <p className="text-foreground">#{o.id.slice(0, 8)} · {o.customer_email ?? "—"}</p>
+                  <p className="text-foreground">#{o.id.slice(0, 8)} · {o.customer_name || "Cliente sem nome"}</p>
+                  <p className="text-sm text-muted-foreground">{o.customer_email ?? "E-mail não informado"}</p>
                   <p className="text-sm text-muted-foreground">{new Date(o.created_at).toLocaleString("pt-BR")}</p>
                 </div>
                 <div className="flex items-center gap-3">
