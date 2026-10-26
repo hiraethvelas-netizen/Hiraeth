@@ -22,6 +22,7 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SobreRouteImport } from './routes/sobre'
 import { Route as AuthenticatedBibliotecaRouteImport } from './routes/_authenticated/biblioteca'
 import { Route as AuthenticatedPedidosRouteImport } from './routes/_authenticated/pedidos'
+import { Route as AuthenticatedConfiguracoesRouteImport } from './routes/_authenticated/configuracoes'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminCategoriasRouteImport } from './routes/admin/categorias'
 import { Route as AdminFinanceiroRouteImport } from './routes/admin/financeiro'
@@ -97,6 +98,11 @@ const AuthenticatedPedidosRoute = AuthenticatedPedidosRouteImport.update({
   path: '/pedidos',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedConfiguracoesRoute = AuthenticatedConfiguracoesRouteImport.update({
+  id: '/configuracoes',
+  path: '/configuracoes',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -160,6 +166,7 @@ export interface FileRoutesByFullPath {
   '/sobre': typeof SobreRoute
   '/biblioteca': typeof AuthenticatedBibliotecaRoute
   '/pedidos': typeof AuthenticatedPedidosRoute
+  '/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/admin/categorias': typeof AdminCategoriasRoute
   '/admin/financeiro': typeof AdminFinanceiroRoute
   '/admin/essencias': typeof AdminEssenciasRoute
@@ -204,6 +211,7 @@ export interface FileRoutesById {
   '/sobre': typeof SobreRoute
   '/_authenticated/biblioteca': typeof AuthenticatedBibliotecaRoute
   '/_authenticated/pedidos': typeof AuthenticatedPedidosRoute
+  '/_authenticated/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/admin/categorias': typeof AdminCategoriasRoute
   '/admin/financeiro': typeof AdminFinanceiroRoute
   '/admin/pedidos': typeof AdminPedidosRoute
@@ -465,11 +473,13 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedBibliotecaRoute: typeof AuthenticatedBibliotecaRoute
   AuthenticatedPedidosRoute: typeof AuthenticatedPedidosRoute
+  AuthenticatedConfiguracoesRoute: typeof AuthenticatedConfiguracoesRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedBibliotecaRoute: AuthenticatedBibliotecaRoute,
   AuthenticatedPedidosRoute: AuthenticatedPedidosRoute,
+  AuthenticatedConfiguracoesRoute: AuthenticatedConfiguracoesRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
