@@ -5,10 +5,6 @@ import { SiteFooter, SiteHeader } from "@/components/SiteLayout";
 import { brl } from "@/lib/format";
 import type { Tables } from "@/integrations/supabase/types";
 
-import portalImage from "@/assets/opening-portal.jpg";
-import forestImage from "@/assets/opening-forest.jpg";
-import phoenixImage from "@/assets/opening-phoenix.png";
-import bannerImage from "@/assets/banner-portal.png";
 
 type Product = Tables<"products">;
 type Category = Tables<"categories">;
@@ -34,23 +30,6 @@ export const Route = createFileRoute("/loja")({
   component: Loja,
 });
 
-
-type Shortcut = {
-  id: string;
-  title: string;
-  description: string | null;
-  href: string;
-  image_key: string;
-  position: number;
-  active: boolean;
-};
-
-const shortcutImages: Record<string, string> = {
-  forest: forestImage,
-  portal: portalImage,
-  phoenix: phoenixImage,
-  banner: bannerImage,
-};
 
 function Loja() {
   const [products, setProducts] = useState<Product[]>([]);
