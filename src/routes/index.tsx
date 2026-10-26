@@ -25,7 +25,8 @@ function Index() { return <CinematicOpening />; }
 // Mantida para a etapa seguinte da experiência pós-portal.
 export function ExistingHomepage() {
   const [sent, setSent] = useState(false);
-  const [shortcuts, setShortcuts] = useState<Shortcut[]>([]);\n  const [banners, setBanners] = useState<HomeBanner[]>([]);
+  const [shortcuts, setShortcuts] = useState<Shortcut[]>([]);
+  const [banners, setBanners] = useState<HomeBanner[]>([]);
   useEffect(() => {
     (supabase as any).from("site_shortcuts").select("*").eq("active", true).order("position")
       .then(({ data }: { data: Shortcut[] | null }) => setShortcuts(data ?? []));
