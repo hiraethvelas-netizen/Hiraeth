@@ -1,13 +1,46 @@
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
+import { useEffect, useState } from "react";
 import { useCart } from "@/lib/cart";
+
+function ThemeToggle() {
+  const [dark, setDark] = useState(false);
+
+  useEffect(() => {
+    const saved = window.localStorage.getItem("hiraeth-theme");
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const initialDark = saved ? saved === "dark" : prefersDark;
+    document.documentElement.classList.toggle("dark", initialDark);
+    setDark(initialDark);
+  }, []);
+
+  function toggleTheme() {
+    const nextDark = !dark;
+    document.documentElement.classList.toggle("dark", nextDark);
+    window.localStorage.setItem("hiraeth-theme", nextDark ? "dark" : "light");
+    setDark(nextDark);
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={toggleTheme}
+      className="flex items-center gap-1.5 rounded-full border border-primary/30 px-2.5 py-2 text-xs text-foreground transition-colors hover:bg-primary/10 sm:px-3"
+      aria-label={dark ? "Ativar modo claro" : "Ativar modo escuro"}
+      title={dark ? "Ativar modo claro" : "Ativar modo escuro"}
+    >
+      <span aria-hidden="true">{dark ? "☼" : "☾"}</span>
+      <span className="hidden sm:inline">{dark ? "Modo claro" : "Modo escuro"}</span>
+    </button>
+  );
+}
 
 export function SiteHeader() {
 const cart = useCart();
 
 return (
 <header className="relative z-20 w-full border-b border-primary/20 bg-background/95 px-5 py-4 md:px-10">
-<div className="mx-auto grid max-w-7xl grid-cols-3 items-center">
+<div className="mx-auto grid max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-3">
 {/* Minha conta */}
 <Link
 to="/biblioteca"
@@ -35,13 +68,15 @@ aria-hidden="true"
     {/* Logo centralizada */}
     <Link
       to="/"
-      className="justify-self-center font-display text-xl tracking-[0.18em] text-primary sm:text-2xl md:text-3xl"
+      className="justify-self-center font-display text-2xl italic font-medium tracking-[0.02em] text-foreground sm:text-3xl md:text-4xl"
       aria-label="Hiraeth - início"
     >
-      HIRAETH
+      Hiraeth
     </Link>
 
-    {/* Sacola de compras */}
+    {/* Tema e sacola de compras */}
+    <div className="ml-auto flex items-center gap-3">
+    <ThemeToggle />
     <Link
       to="/carrinho"
       className="relative ml-auto flex items-center gap-2 text-sm text-foreground/85 transition-colors hover:text-primary"
@@ -69,6 +104,7 @@ aria-hidden="true"
         </span>
       )}
     </Link>
+    </div>
   </div>
 </header>
 

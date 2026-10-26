@@ -5,8 +5,8 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --font-display: "Cormorant Garamond", Georgia, serif;
-  --font-body: "EB Garamond", Georgia, serif;
+  --font-display: "Hello Paris", "Cormorant Garamond", Georgia, serif;
+  --font-body: "Beaumaris", "EB Garamond", Georgia, serif;
   --radius-sm: calc(var(--radius) - 2px);
   --radius-md: var(--radius);
   --radius-lg: var(--radius);
@@ -33,28 +33,56 @@
 }
 
 :root {
+  color-scheme: light;
   --radius: 0.25rem;
-  --background: oklch(0.2 0.025 145);
-  --foreground: oklch(0.93 0.025 85);
-  --card: oklch(0.25 0.03 145);
-  --card-foreground: oklch(0.93 0.025 85);
-  --popover: oklch(0.25 0.03 145);
-  --popover-foreground: oklch(0.93 0.025 85);
-  --primary: oklch(0.78 0.12 80);
-  --primary-foreground: oklch(0.18 0.025 145);
-  --secondary: oklch(0.3 0.03 145);
-  --secondary-foreground: oklch(0.93 0.025 85);
-  --muted: oklch(0.28 0.025 145);
-  --muted-foreground: oklch(0.72 0.03 85);
-  --accent: oklch(0.78 0.12 80);
-  --accent-foreground: oklch(0.18 0.025 145);
-  --destructive: oklch(0.6 0.2 27);
-  --destructive-foreground: oklch(0.98 0 0);
-  --border: oklch(0.78 0.12 80 / 25%);
-  --input: oklch(0.78 0.12 80 / 35%);
-  --ring: oklch(0.78 0.12 80);
-  --overlay: oklch(0.15 0.02 145 / 65%);
-  --glow: 0 0 40px oklch(0.78 0.12 80 / 35%);
+  /* Modo claro: baunilha, marrom e verde-oliva Hiraeth. */
+  --background: #f7efda;
+  --foreground: #5b1d04;
+  --card: #fbf6e9;
+  --card-foreground: #5b1d04;
+  --popover: #fbf6e9;
+  --popover-foreground: #5b1d04;
+  --primary: #878e47;
+  --primary-foreground: #f7efda;
+  --secondary: #e9dfc5;
+  --secondary-foreground: #5b1d04;
+  --muted: #eee5cf;
+  --muted-foreground: #70503d;
+  --accent: #878e47;
+  --accent-foreground: #f7efda;
+  --destructive: #8c3020;
+  --destructive-foreground: #f7efda;
+  --border: #878e474d;
+  --input: #878e4770;
+  --ring: #878e47;
+  --overlay: #2c160db3;
+  --glow: 0 0 28px #878e4730;
+}
+
+:root.dark {
+  color-scheme: dark;
+  /* Modo escuro: verde profundo e dourado envelhecido. */
+  --background: #18251d;
+  --foreground: #f3e7c7;
+  --card: #223127;
+  --card-foreground: #f3e7c7;
+  --popover: #223127;
+  --popover-foreground: #f3e7c7;
+  --primary: #c6a65b;
+  --primary-foreground: #18251d;
+  --secondary: #2d4032;
+  --secondary-foreground: #f3e7c7;
+  --muted: #26372b;
+  --muted-foreground: #c4b995;
+  --accent: #c6a65b;
+  --accent-foreground: #18251d;
+  --destructive: #b85b4b;
+  --destructive-foreground: #fff4df;
+  --border: #c6a65b55;
+  --input: #c6a65b70;
+  --ring: #c6a65b;
+  --overlay: #08120bd9;
+  --glow: 0 0 28px #c6a65b30;
 }
 
 @layer base {
@@ -107,7 +135,7 @@
   height: 100dvh;
   overflow: hidden;
   isolation: isolate;
-  background: #100e0c;
+  background: #5b1d04;
   color: var(--foreground);
   letter-spacing: 0;
 }
@@ -141,7 +169,7 @@
 
 .opening-shade {
   z-index: 1;
-  background: rgba(12, 9, 8, 0.48);
+  background: rgba(91, 29, 4, 0.42);
 }
 
 .opening-seal {
@@ -193,7 +221,7 @@
   height: auto;
   padding: 14px 38px;
   border-color: var(--primary);
-  background: rgba(12, 9, 8, 0.65);
+  background: rgba(91, 29, 4, 0.58);
   color: var(--foreground);
   font-family: var(--font-display);
   font-size: 22px;
