@@ -171,6 +171,7 @@ export function ExistingHomepage() {
       <SiteHeader />
       <main>
         {isAdmin && <div className="mx-auto flex max-w-6xl justify-end gap-3 px-5 pt-3">
+          <Link to="/admin" className="border border-primary/60 px-3 py-2 text-xs text-primary hover:bg-primary/10">Abrir dashboard</Link>
           <button type="button" onClick={toggle} aria-pressed={editMode} className="border border-primary px-3 py-2 text-xs text-primary hover:bg-primary/10">{editMode ? "Sair do modo edição" : "Ativar modo edição"}</button>
           <InlineEditor
             label="conteúdo da página inicial"
