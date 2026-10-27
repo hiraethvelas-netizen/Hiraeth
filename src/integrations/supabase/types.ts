@@ -397,12 +397,15 @@ export type Database = {
           cover_url?: string | null
           created_at?: string
           id?: string
+          intro_cta_text?: string
           intro_duration_ms?: number
           intro_enabled?: boolean
           intro_subtitle?: string | null
           intro_title?: string | null
+          intro_video_url?: string | null
           name?: string
           slug?: string
+          store_category_url?: string | null
           spotify_description?: string | null
           spotify_playlist_url?: string | null
           spotify_title?: string | null
