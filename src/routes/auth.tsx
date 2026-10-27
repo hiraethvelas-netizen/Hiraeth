@@ -33,7 +33,8 @@ function AuthPage() {
   const [welcomeName, setWelcomeName] = useState<string | null>(null);
   const [welcomeMode, setWelcomeMode] = useState<"signup" | "returning" | null>(null);
 
-  const destination = redirect && redirect.startsWith("/") ? redirect : "/biblioteca";
+  const requested = redirect && redirect.startsWith("/") ? redirect : "/biblioteca";
+  const destination = requested === "/admin" ? "/inicio" : requested;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

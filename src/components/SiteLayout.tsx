@@ -3,6 +3,14 @@ import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 import { useCart } from "@/lib/cart";
 import fenixImage from "@/assets/fenix.png";
+import { supabase } from "@/integrations/supabase/client";
+import { useAdminEdit } from "@/lib/admin-edit";
+
+function EditModeToggle() {
+  const { isAdmin, editMode, toggle } = useAdminEdit();
+  if (!isAdmin) return null;
+  return <button type="button" onClick={toggle} aria-pressed={editMode} className="rounded-full border border-primary px-3 py-2 text-xs text-primary hover:bg-primary/10">{editMode ? "Sair da edição" : "Modo edição"}</button>;
+}
 
 function ThemeToggle() {
   const [dark, setDark] = useState(false);
@@ -62,7 +70,7 @@ export function SiteHeader() {
               Configurações
             </Link>
             <div className="my-1 border-t border-primary/20" />
-            <Link to="/auth" search={{ redirect: "/admin" }} className="flex items-center gap-2.5 rounded px-3 py-2.5 text-sm font-medium text-primary transition-colors hover:bg-primary/10">
+            <Link to="/auth" search={{ redirect: "/inicio" }} className="flex items-center gap-2.5 rounded px-3 py-2.5 text-sm font-medium text-primary transition-colors hover:bg-primary/10">
               <img src={fenixImage} alt="" aria-hidden="true" className="h-5 w-5 object-contain" />
               <span>Administrativo</span>
             </Link>
@@ -74,6 +82,7 @@ export function SiteHeader() {
         </Link>
 
         <div className="ml-auto flex items-center gap-3">
+          <EditModeToggle />
           <ThemeToggle />
           <Link
             to="/carrinho"
