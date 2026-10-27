@@ -33,7 +33,7 @@ function AuthPage() {
   const [welcomeName, setWelcomeName] = useState<string | null>(null);
   const [welcomeMode, setWelcomeMode] = useState<"signup" | "returning" | "admin" | null>(null);
 
-  const requested = redirect && redirect.startsWith("/") ? redirect : "/biblioteca";
+  const requested = redirect && redirect.startsWith("/") ? redirect : "/inicio";
   const isAdminLogin = requested === "/admin";
   const destination = isAdminLogin ? "/inicio" : requested;
 
