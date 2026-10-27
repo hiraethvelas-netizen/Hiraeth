@@ -16,6 +16,7 @@ export const Route = createFileRoute("/admin/sobre")({ component: AdminSobre });
 function AdminSobre() {
   const [form, setForm] = useState<Profile>(defaults);
   const [blocks, setBlocks] = useState<AboutBlock[]>([]);
+  const [bannerSettings, setBannerSettings] = useState({ enabled: false, image_url: "", href: "/loja", title: "" });
   const [message, setMessage] = useState("Carregando...");
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -25,7 +26,9 @@ function AdminSobre() {
         (supabase as any).from("site_profile").select("*").eq("id", true).maybeSingle(),
         (supabase as any).from("site_content").select("value").eq("key", "about_page_blocks").maybeSingle(),
       ]);
+      const { data: bannerData } = await (supabase as any).from("site_content").select("value").eq("key", "about_page_settings").maybeSingle();
       const next = profileData ? { ...defaults, ...profileData } : defaults;
+      setBannerSettings({ enabled: false, image_url: "", href: "/loja", title: "", ...(bannerData?.value ?? {}) });
       setForm(next);
       const stored = contentData?.value?.blocks;
       setBlocks(Array.isArray(stored) && stored.length ? stored : seedBlocks(next));
@@ -59,6 +62,8 @@ function AdminSobre() {
       if (profileError) throw profileError;
       const { error: blocksError } = await (supabase as any).from("site_content").upsert({ key: "about_page_blocks", value: { blocks }, updated_at: new Date().toISOString() }, { onConflict: "key" });
       if (blocksError) throw blocksError;
+      const { error: bannerError } = await (supabase as any).from("site_content").upsert({ key: "about_page_settings", value: bannerSettings, updated_at: new Date().toISOString() }, { onConflict: "key" });
+      if (bannerError) throw bannerError;
       setMessage("Alterações salvas. A página pública Conheça a Hiraeth será atualizada ao recarregar.");
     } catch (err) {
       setMessage("Não foi possível salvar: " + (err instanceof Error ? err.message : "erro desconhecido"));
@@ -91,6 +96,17 @@ function AdminSobre() {
         </div>
       </section>)}
       <button type="button" onClick={() => setBlocks(current => [...current, { id: makeId(), title: "", text: "", layout: "text", images: [], links: [] }])} className="border border-primary px-4 py-3 text-sm text-primary">+ Adicionar seção</button>
+      <section className="space-y-4 border bg-card p-5">
+        <h2 className="text-xl">Banner opcional da página Sobre</h2>
+        <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={bannerSettings.enabled} onChange={e => setBannerSettings({ ...bannerSettings, enabled: e.target.checked })} /> Exibir banner na página pública</label>
+        <div className="grid gap-4 md:grid-cols-2">
+          <label className="grid gap-2 text-sm">Título acessível do banner<input value={bannerSettings.title} onChange={e => setBannerSettings({ ...bannerSettings, title: e.target.value })} className="border bg-transparent px-3 py-3" placeholder="Conheça o universo Hiraeth" /></label>
+          <label className="grid gap-2 text-sm">Link ao clicar<input value={bannerSettings.href} onChange={e => setBannerSettings({ ...bannerSettings, href: e.target.value })} className="border bg-transparent px-3 py-3" placeholder="/loja ou https://..." /></label>
+          <label className="grid gap-2 text-sm md:col-span-2">URL da imagem do banner<input value={bannerSettings.image_url} onChange={e => setBannerSettings({ ...bannerSettings, image_url: e.target.value })} className="border bg-transparent px-3 py-3" placeholder="Cole a URL pública da imagem" /></label>
+        </div>
+        {bannerSettings.image_url && <img src={bannerSettings.image_url} alt="Prévia do banner" className="max-h-56 w-full object-cover" />}
+        <p className="text-xs text-muted-foreground">Desmarque “Exibir banner” para removê-lo sem apagar a imagem. Use uma URL pública de imagem.</p>
+      </section>
       <section className="space-y-4 border bg-card p-5"><h2 className="text-xl">Contatos do rodapé</h2><p className="text-xs text-muted-foreground">Esses campos continuam controlando os canais de contato exibidos no rodapé.</p><div className="grid gap-4 md:grid-cols-2">{field("Link do Instagram", "instagram_url", "https://instagram.com/sua_marca")}{field("Número do WhatsApp com código do país", "whatsapp_number", "5547999999999")}{field("Link do WhatsApp (opcional)", "whatsapp_url", "https://wa.me/5547999999999")}{field("E-mail de contato", "contact_email", "contato@hiraeth.com.br")}</div></section>
       <button disabled={saving} className="bg-primary px-6 py-3 text-primary-foreground disabled:opacity-50">{saving ? "Salvando..." : "Salvar alterações"}</button>
     </form>
