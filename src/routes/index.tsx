@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import type { ReactNode } from "react";
 import banner from "@/assets/banner-portal.png";
 import fenix from "@/assets/fenix.png";
 import { SiteFooter, SiteHeader } from "@/components/SiteLayout";
@@ -98,7 +99,7 @@ export function ExistingHomepage() {
   }, []);
 
   const headingFont = content.fontStyle === "serif" ? "font-serif" : content.fontStyle === "sans" ? "font-sans" : "font-display";
-  const sections: Record<string, React.ReactNode> = {
+  const sections: Record<string, ReactNode> = {
     portals: content.showPortals && (
       <section key="portals" className="mx-auto max-w-6xl px-5 pb-8 pt-10 text-center md:pt-14">
         <p className="eyebrow">{content.portalsEyebrow}</p>
