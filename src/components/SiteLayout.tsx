@@ -124,7 +124,7 @@ export function SiteFooter() {
       setTiktokUrl(String(footerData?.value?.tiktok_url ?? ""));
     })();
   }, []);
-  const whatsapp = profile?.whatsapp_url || (profile?.whatsapp_number ? `https://wa.me/${profile.whatsapp_number.replace(/\\D/g, "")}` : "");
+  const whatsapp = profile?.whatsapp_url || (profile?.whatsapp_number ? `https://wa.me/${profile.whatsapp_number.replace(/\D/g, "")}` : "");
   async function saveContacts(values: Record<string, unknown>) {
     const payload = {
       instagram_url: String(values.instagram_url ?? ""),

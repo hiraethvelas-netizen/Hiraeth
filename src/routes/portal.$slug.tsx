@@ -95,12 +95,6 @@ function PortalPage() {
               {portal.intro_cta_text || "Atravesse o Portal"}
             </button>
           </div>
-          <button
-            onClick={() => setIntro(false)}
-            className="absolute bottom-6 right-6 border px-4 py-2 text-xs uppercase tracking-[0.3em] text-muted-foreground hover:text-primary"
-          >
-            Pular abertura
-          </button>
         </div>
       )}
 

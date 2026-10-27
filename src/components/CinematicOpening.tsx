@@ -2,7 +2,6 @@
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import openingVideo from "@/assets/hira appVídeo sem título-26-10-2026, 13-46-2.mp4";
-import portalPoster from "@/assets/opening-portal.jpg";
 
 export function CinematicOpening() {
   return (
@@ -14,7 +13,6 @@ export function CinematicOpening() {
         playsInline
         loop
         preload="auto"
-        poster={portalPoster}
         aria-hidden="true"
         tabIndex={-1}
       >
