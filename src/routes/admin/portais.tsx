@@ -16,8 +16,11 @@ const emptyForm = {
   name: "",
   universe: "",
   cover_url: "",
-  intro_title: "",
+  intro_title: "Seja bem-vindo ao mundo de magia",
   intro_subtitle: "",
+  intro_video_url: "",
+  intro_cta_text: "Atravesse o Portal",
+  store_category_url: "/loja",
   intro_enabled: true,
   intro_duration_ms: 3000,
   spotify_playlist_url: "",
@@ -76,6 +79,9 @@ function AdminPortais() {
       cover_url: p.cover_url ?? "",
       intro_title: p.intro_title ?? "",
       intro_subtitle: p.intro_subtitle ?? "",
+      intro_video_url: p.intro_video_url ?? "",
+      intro_cta_text: p.intro_cta_text ?? "Atravesse o Portal",
+      store_category_url: p.store_category_url ?? "/loja",
       intro_enabled: p.intro_enabled,
       intro_duration_ms: p.intro_duration_ms,
       spotify_playlist_url: p.spotify_playlist_url ?? "",
@@ -101,6 +107,9 @@ function AdminPortais() {
       cover_url: form.cover_url || null,
       intro_title: form.intro_title || null,
       intro_subtitle: form.intro_subtitle || null,
+      intro_video_url: form.intro_video_url || null,
+      intro_cta_text: form.intro_cta_text.trim() || "Atravesse o Portal",
+      store_category_url: form.store_category_url.trim() || "/loja",
       intro_enabled: form.intro_enabled,
       intro_duration_ms: Number(form.intro_duration_ms) || 3000,
       spotify_playlist_url: form.spotify_playlist_url || null,
@@ -131,6 +140,9 @@ function AdminPortais() {
       cover_url: p.cover_url,
       intro_title: p.intro_title,
       intro_subtitle: p.intro_subtitle,
+      intro_video_url: p.intro_video_url,
+      intro_cta_text: p.intro_cta_text,
+      store_category_url: p.store_category_url,
       intro_enabled: p.intro_enabled,
       intro_duration_ms: p.intro_duration_ms,
       spotify_playlist_url: p.spotify_playlist_url,
@@ -181,7 +193,10 @@ function AdminPortais() {
               <option value="archived">Arquivado</option>
             </select>
             <input placeholder="Título da abertura" value={form.intro_title} onChange={(e) => setForm({ ...form, intro_title: e.target.value })} className={inputCls} />
-            <input placeholder="Subtítulo da abertura" value={form.intro_subtitle} onChange={(e) => setForm({ ...form, intro_subtitle: e.target.value })} className={inputCls} />
+            <input placeholder="Texto complementar da abertura" value={form.intro_subtitle} onChange={(e) => setForm({ ...form, intro_subtitle: e.target.value })} className={inputCls} />
+            <input placeholder="URL do vídeo de abertura (MP4)" value={form.intro_video_url} onChange={(e) => setForm({ ...form, intro_video_url: e.target.value })} className={inputCls} />
+            <input placeholder="Texto do botão de entrada" value={form.intro_cta_text} onChange={(e) => setForm({ ...form, intro_cta_text: e.target.value })} className={inputCls} />
+            <input placeholder="Link da categoria/coleção na loja" value={form.store_category_url} onChange={(e) => setForm({ ...form, store_category_url: e.target.value })} className={inputCls} />
             <label className="flex items-center gap-2 text-sm text-muted-foreground">
               <input type="checkbox" checked={form.intro_enabled} onChange={(e) => setForm({ ...form, intro_enabled: e.target.checked })} />
               Abertura animada ativa
