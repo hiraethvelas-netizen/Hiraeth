@@ -35,7 +35,7 @@ export function CinematicOpening() {
         </p>
 
         <Button asChild variant="outline" className="opening-enter">
-          <Link to="/inicio">Atravessar o Portal</Link>
+          <Link to="/loja">Atravessar o Portal</Link>
         </Button>
       </div>
     </main>
