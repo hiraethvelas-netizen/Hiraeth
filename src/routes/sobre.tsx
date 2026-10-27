@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { PageShell } from "@/components/SiteLayout";
 import { supabase } from "@/integrations/supabase/client";
+import { InlineEditor } from "@/components/InlineEditor";
 
 type Profile = { about_story: string; about_mari: string; about_image_url: string; story_image_url: string; instagram_url: string; whatsapp_number: string; whatsapp_url: string; contact_email: string };
 const defaults: Profile = { about_story: "A Hiraeth nasceu do amor pelos livros, pelas histórias e pelos universos que continuam vivendo dentro de nós.", about_mari: "Eu sou Mari, a Guardiã da Chama. Crio cada detalhe da Hiraeth com carinho, nostalgia e a vontade de transformar histórias em experiências.", about_image_url: "", story_image_url: "", instagram_url: "", whatsapp_number: "", whatsapp_url: "", contact_email: "" };
@@ -13,12 +14,33 @@ export const Route = createFileRoute("/sobre")({
 function Sobre() {
   const [profile, setProfile] = useState<Profile>(defaults);
   useEffect(() => { void (async () => { const { data } = await (supabase as any).from("site_profile").select("*").eq("id", true).maybeSingle(); if (data) setProfile({ ...defaults, ...data }); })(); }, []);
+  async function save(values: Record<string, unknown>) {
+    const payload = {
+      about_story: String(values.about_story ?? profile.about_story),
+      about_mari: String(values.about_mari ?? profile.about_mari),
+      story_image_url: String(values.story_image_url ?? profile.story_image_url),
+      about_image_url: String(values.about_image_url ?? profile.about_image_url),
+    };
+    const { error } = await (supabase as any).from("site_profile").upsert({ id: true, ...profile, ...payload }, { onConflict: "id" });
+    if (error) throw error;
+    setProfile(current => ({ ...current, ...payload }));
+  }
   return <PageShell eyebrow="Guardiã da chama" title="Sobre a Hiraeth">
     <div className="space-y-8">
+      <InlineEditor label="história da Hiraeth" fields={[
+        { name: "story_image_url", label: "Imagem da história", type: "image" },
+        { name: "about_story", label: "Texto da história", type: "textarea" },
+      ]} values={{ story_image_url: profile.story_image_url, about_story: profile.about_story }} onSave={save} />
       {profile.story_image_url && <img src={profile.story_image_url} alt="Memórias do início da Hiraeth" className="max-h-[28rem] w-full object-cover" />}
       <section className="space-y-4 whitespace-pre-line"><h2 className="font-display text-3xl text-foreground">A história da Hiraeth</h2><p>{profile.about_story}</p></section>
       <section className="grid items-start gap-6 md:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
-        {profile.about_image_url && <img src={profile.about_image_url} alt="Mari, Guardiã da Chama da Hiraeth" className="w-full object-cover" />}
+        <div className="space-y-4">
+          <InlineEditor label="apresentação da Mari" fields={[
+            { name: "about_image_url", label: "Foto da Mari", type: "image" },
+            { name: "about_mari", label: "Texto de apresentação", type: "textarea" },
+          ]} values={{ about_image_url: profile.about_image_url, about_mari: profile.about_mari }} onSave={save} />
+          {profile.about_image_url && <img src={profile.about_image_url} alt="Mari, Guardiã da Chama da Hiraeth" className="w-full object-cover" />}
+        </div>
         <div className="space-y-4 whitespace-pre-line"><p className="eyebrow">Guardiã da chama</p><h2 className="font-display text-3xl text-foreground">Prazer, eu sou a Mari</h2><p>{profile.about_mari}</p></div>
       </section>
       <p className="border-t pt-6 italic text-primary">Onde a Chama Acesa te Espera</p>

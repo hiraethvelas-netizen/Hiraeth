@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useCart } from "@/lib/cart";
 import fenixImage from "@/assets/fenix.png";
 import { supabase } from "@/integrations/supabase/client";
+import { InlineEditor } from "@/components/InlineEditor";
 
 function ThemeToggle() {
   const [dark, setDark] = useState(false);
@@ -103,6 +104,17 @@ export function SiteFooter() {
     })();
   }, []);
   const whatsapp = profile?.whatsapp_url || (profile?.whatsapp_number ? `https://wa.me/${profile.whatsapp_number.replace(/\\D/g, "")}` : "");
+  async function saveContacts(values: Record<string, unknown>) {
+    const payload = {
+      instagram_url: String(values.instagram_url ?? ""),
+      whatsapp_number: String(values.whatsapp_number ?? ""),
+      whatsapp_url: String(values.whatsapp_url ?? ""),
+      contact_email: String(values.contact_email ?? ""),
+    };
+    const { error } = await (supabase as any).from("site_profile").upsert({ id: true, ...payload }, { onConflict: "id" });
+    if (error) throw error;
+    setProfile(payload);
+  }
   return (
     <footer className="border-t px-6 py-10 text-center text-sm text-muted-foreground">
       <p className="font-display text-lg italic text-primary">Onde a Chama Acesa te Espera</p>
@@ -111,6 +123,12 @@ export function SiteFooter() {
         {whatsapp && <a href={whatsapp} target="_blank" rel="noreferrer" className="underline hover:text-primary">WhatsApp</a>}
         {profile?.contact_email && <a href={`mailto:${profile.contact_email}`} className="underline hover:text-primary">{profile.contact_email}</a>}
       </nav>
+      <div className="mt-4"><InlineEditor label="contatos do rodapé" fields={[
+        { name: "instagram_url", label: "Link do Instagram", type: "text" },
+        { name: "whatsapp_number", label: "WhatsApp com DDI e DDD", type: "text" },
+        { name: "whatsapp_url", label: "Link direto do WhatsApp (opcional)", type: "text" },
+        { name: "contact_email", label: "E-mail de contato", type: "text" },
+      ]} values={{ instagram_url: profile?.instagram_url ?? "", whatsapp_number: profile?.whatsapp_number ?? "", whatsapp_url: profile?.whatsapp_url ?? "", contact_email: profile?.contact_email ?? "" }} onSave={saveContacts} /></div>
       <p className="mt-5">© {new Date().getFullYear()} Hiraeth ·{" "}
         <Link to="/privacidade" className="underline hover:text-primary">Privacidade</Link>
       </p>

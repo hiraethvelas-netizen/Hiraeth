@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { SiteFooter, SiteHeader } from "@/components/SiteLayout";
 import { brl } from "@/lib/format";
 import { toast } from "sonner";
+import { InlineEditor } from "@/components/InlineEditor";
 import type { Tables } from "@/integrations/supabase/types";
 
 type LibraryItem = Tables<"library_items"> & { products: Tables<"products"> | null };
@@ -45,6 +46,21 @@ function Biblioteca() {
   useEffect(() => {
     load();
   }, [load]);
+
+  async function saveProduct(product: Tables<"products">, values: Record<string, unknown>) {
+    const payload = {
+      name: String(values.name ?? product.name),
+      description: String(values.description ?? "") || null,
+      price: Number(values.price ?? product.price),
+      sale_price: values.sale_price === "" || values.sale_price == null ? null : Number(values.sale_price),
+      fragrance: String(values.fragrance ?? "") || null,
+      images: Array.isArray(values.images) ? values.images as string[] : product.images,
+    };
+    const { error } = await supabase.from("products").update(payload).eq("id", product.id);
+    if (error) throw error;
+    setLibrary(current => current.map(item => item.product_id === product.id && item.products ? { ...item, products: { ...item.products, ...payload } } : item));
+    setWishlist(current => current.map(item => item.product_id === product.id && item.products ? { ...item, products: { ...item.products, ...payload } } : item));
+  }
 
   async function addManual(e: React.FormEvent) {
     e.preventDefault();
@@ -193,6 +209,19 @@ function Biblioteca() {
                         <div className="flex h-full items-center justify-center font-display italic text-muted-foreground">✦</div>
                       )}
                     </div>
+                    {item.products && <InlineEditor
+                      label={`produto ${item.products.name}`}
+                      fields={[
+                        { name: "name", label: "Nome", type: "text" },
+                        { name: "description", label: "Descrição", type: "textarea" },
+                        { name: "price", label: "Preço", type: "text" },
+                        { name: "sale_price", label: "Preço promocional", type: "text" },
+                        { name: "fragrance", label: "Fragrância", type: "text" },
+                        { name: "images", label: "Imagens", type: "images" },
+                      ]}
+                      values={{ name: item.products.name, description: item.products.description ?? "", price: String(item.products.price), sale_price: item.products.sale_price == null ? "" : String(item.products.sale_price), fragrance: item.products.fragrance ?? "", images: item.products.images ?? [] }}
+                      onSave={(values) => saveProduct(item.products!, values)}
+                    />}
                     <h3 className="mt-3 text-xl text-foreground">
                       {item.products ? (
                         <Link to="/produto/$slug" params={{ slug: item.products.slug }} className="hover:text-primary">
@@ -259,6 +288,19 @@ function Biblioteca() {
                       ) : (
                         <p className="text-xl text-muted-foreground">Produto indisponível</p>
                       )}
+                      {item.products && <InlineEditor
+                      label={`produto ${item.products.name}`}
+                      fields={[
+                        { name: "name", label: "Nome", type: "text" },
+                        { name: "description", label: "Descrição", type: "textarea" },
+                        { name: "price", label: "Preço", type: "text" },
+                        { name: "sale_price", label: "Preço promocional", type: "text" },
+                        { name: "fragrance", label: "Fragrância", type: "text" },
+                        { name: "images", label: "Imagens", type: "images" },
+                      ]}
+                      values={{ name: item.products.name, description: item.products.description ?? "", price: String(item.products.price), sale_price: item.products.sale_price == null ? "" : String(item.products.sale_price), fragrance: item.products.fragrance ?? "", images: item.products.images ?? [] }}
+                      onSave={(values) => saveProduct(item.products!, values)}
+                    />}
                       {item.products && (
                         <p className="text-sm text-muted-foreground">
                           {item.products.stock > 0 ? `${brl(Number(item.products.sale_price ?? item.products.price))} · disponível` : "Indisponível no momento"}

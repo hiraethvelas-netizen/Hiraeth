@@ -143,10 +143,21 @@ export function ExistingHomepage() {
         <h2 className={`text-3xl text-foreground md:text-4xl ${headingFont}`}>{content.bannersTitle}</h2>
         <div className="mt-6 flex snap-x gap-5 overflow-x-auto pb-4">
           {(banners.length ? banners : [{ id: "fallback", title: "Explore os universos literários da Hiraeth", image_url: banner, href: "/loja", position: 1, active: true }]).map((item) => (
-            <Link key={item.id} to={item.href as never} className="group block w-full min-w-full snap-start overflow-hidden rounded-sm">
-              <img src={item.image_url} alt={item.title || "Novidade Hiraeth"} className="h-56 w-full object-cover transition-transform duration-500 group-hover:scale-[1.02] sm:h-72 md:h-[28rem] lg:h-[32rem]" loading="lazy" />
-              {item.title && <span className="sr-only">{item.title}</span>}
-            </Link>
+            <div key={item.id} className="w-full min-w-full snap-start">
+              <Link to={item.href as never} className="group block overflow-hidden rounded-sm">
+                <img src={item.image_url} alt={item.title || "Novidade Hiraeth"} className="h-56 w-full object-cover transition-transform duration-500 group-hover:scale-[1.02] sm:h-72 md:h-[28rem] lg:h-[32rem]" loading="lazy" />
+                {item.title && <span className="sr-only">{item.title}</span>}
+              </Link>
+              {item.id !== "fallback" && <InlineEditor label={`novidade ${item.title || ""}`} fields={[
+                { name: "title", label: "Título", type: "text" },
+                { name: "image_url", label: "Imagem do banner", type: "image" },
+                { name: "href", label: "Link de destino", type: "text" },
+              ]} values={{ title: item.title ?? "", image_url: item.image_url, href: item.href }} onSave={async (values) => {
+                const { error } = await (supabase as any).from("site_banners").update({ title: String(values.title ?? "") || null, image_url: String(values.image_url ?? item.image_url), href: String(values.href ?? item.href) }).eq("id", item.id);
+                if (error) throw error;
+                setBanners(current => current.map(b => b.id === item.id ? { ...b, title: String(values.title ?? "") || null, image_url: String(values.image_url ?? item.image_url), href: String(values.href ?? item.href) } : b));
+              }} className="mt-3" />}
+            </div>
           ))}
         </div>
       </section>
