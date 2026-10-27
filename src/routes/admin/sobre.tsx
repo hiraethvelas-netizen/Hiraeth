@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { uploadSiteImage } from "@/lib/admin-edit";
 
 type Profile = { about_story: string; about_mari: string; about_image_url: string; story_image_url: string; instagram_url: string; whatsapp_number: string; whatsapp_url: string; contact_email: string };
 const defaults: Profile = { about_story: "A Hiraeth nasceu do amor pelos livros, pelas histórias e pelos universos que continuam vivendo dentro de nós.", about_mari: "Eu sou Mari, a Guardiã da Chama. Crio cada detalhe da Hiraeth com carinho, nostalgia e a vontade de transformar histórias em experiências.", about_image_url: "", story_image_url: "", instagram_url: "", whatsapp_number: "", whatsapp_url: "", contact_email: "" };
@@ -17,11 +18,7 @@ function AdminSobre() {
     if (!file) return current;
     if (!["image/jpeg", "image/png", "image/webp", "image/gif"].includes(file.type)) throw new Error("Use JPG, PNG, WebP ou GIF.");
     if (file.size > 10 * 1024 * 1024) throw new Error("Cada imagem deve ter até 10 MB.");
-    const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
-    const path = `profile/${prefix}-${crypto.randomUUID()}.${ext}`;
-    const { error } = await supabase.storage.from("site-banners").upload(path, file, { contentType: file.type });
-    if (error) throw error;
-    return supabase.storage.from("site-banners").getPublicUrl(path).data.publicUrl;
+    return uploadSiteImage(file, `profile/${prefix}`);
   }
   async function save(e: React.FormEvent) {
     e.preventDefault(); setSaving(true); setMessage("");
