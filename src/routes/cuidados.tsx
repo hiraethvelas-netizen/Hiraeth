@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
 import { PageShell } from "@/components/SiteLayout";
 import { InlineEditor } from "@/components/InlineEditor";
 import { useSiteContent } from "@/lib/admin-edit";
@@ -21,6 +22,7 @@ export const Route = createFileRoute("/cuidados")({
 function H({ children }: { children: string }) { return <h2 className="pt-4 text-3xl text-primary">{children}</h2>; }
 function Cuidados() {
  const [content, save] = useSiteContent<CareContent>("care-page", defaults);
+ const [modalOpen, setModalOpen] = useState(false);
  const fields = [
   {name:"title",label:"Título da página",type:"text"},{name:"intro",label:"Introdução",type:"textarea"},
   {name:"firstTitle",label:"Título: primeira queima",type:"text"},{name:"firstText",label:"Texto: primeira queima",type:"textarea"},
@@ -47,7 +49,7 @@ function Cuidados() {
    {content.mediaImage && <img src={content.mediaImage} alt="Orientações de cuidado com as velas" className="max-h-[28rem] w-full object-cover" />}
    {content.videoUrl && <div className="space-y-2"><a href={content.videoUrl} target="_blank" rel="noreferrer" className="text-primary underline">Assistir ao vídeo de cuidados</a>{(content.videoUrl.includes("youtube.com") || content.videoUrl.includes("youtu.be") || content.videoUrl.includes("vimeo.com")) && <div className="aspect-video overflow-hidden"><iframe title="Vídeo de cuidados com as velas" src={content.videoUrl.replace("watch?v=", "embed/").replace("youtu.be/", "www.youtube.com/embed/")} className="h-full w-full" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen /></div>}</div>}
    {content.mediaLinkLabel && content.mediaLinkUrl && <p><a href={content.mediaLinkUrl} target={content.mediaLinkUrl.startsWith("http") ? "_blank" : undefined} rel={content.mediaLinkUrl.startsWith("http") ? "noreferrer" : undefined} className="inline-flex border border-primary px-4 py-2 text-primary">{content.mediaLinkLabel}</a></p>}
-   {content.modalTitle && content.modalText && <details className="border border-primary/30 p-4"><summary className="cursor-pointer text-primary">{content.modalButton || "Saiba mais"}</summary><div className="pt-3"><h2 className="text-2xl text-primary">{content.modalTitle}</h2><p className="mt-2 whitespace-pre-line">{content.modalText}</p></div></details>}
+   {content.modalTitle && content.modalText && <><button type="button" onClick={() => setModalOpen(true)} className="border border-primary px-4 py-2 text-primary">{content.modalButton || "Saiba mais"}</button>{modalOpen && <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4" role="dialog" aria-modal="true" aria-label={content.modalTitle} onClick={() => setModalOpen(false)}><div className="w-full max-w-xl border border-primary/30 bg-background p-6 text-foreground shadow-xl" onClick={e => e.stopPropagation()}><div className="flex items-start justify-between gap-4"><h2 className="text-2xl text-primary">{content.modalTitle}</h2><button type="button" onClick={() => setModalOpen(false)} aria-label="Fechar janela" className="border px-3 py-1">Fechar</button></div><p className="mt-4 whitespace-pre-line leading-7">{content.modalText}</p></div></div>}</>}
    {[["firstTitle","firstText"],["wickTitle","wickText"],["burnTitle","burnText"],["safetyTitle","safetyText"],["extinguishTitle","extinguishText"],["storageTitle","storageText"]].map(([titleKey,textKey]) => <section key={titleKey}><H>{content[titleKey as keyof CareContent] as string}</H>{textKey==="safetyText" ? <ul className="list-disc space-y-2 pl-6 marker:text-primary">{(content.safetyText || "").split("\n").filter(Boolean).map((line,i)=><li key={i}>{line}</li>)}</ul> : <p className="whitespace-pre-line">{content[textKey as keyof CareContent] as string}</p>}</section>)}
   </div>
  </PageShell>;
