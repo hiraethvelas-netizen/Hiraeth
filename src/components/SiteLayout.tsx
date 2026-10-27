@@ -37,75 +37,60 @@ function ThemeToggle() {
 }
 
 export function SiteHeader() {
-const cart = useCart();
+  const cart = useCart();
 
-return (
-<header className="relative z-20 w-full border-b border-primary/20 bg-background/95 px-5 py-4 md:px-10">
-<div className="mx-auto grid max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-3">
-{/* Menu de conta e acesso administrativo */}
-<details className="relative w-fit">
-  <summary
-    className="flex cursor-pointer list-none items-center gap-2 text-sm text-foreground/85 transition-colors hover:text-primary [&::-webkit-details-marker]:hidden"
-    aria-label="Abrir menu da conta"
-    title="Conta"
-  >
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="22"
-      height="22"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <circle cx="12" cy="8" r="4" />
-      <path d="M5 21v-2a7 7 0 0 1 14 0v2" />
-    </svg>
-    <span className="hidden sm:inline">Minha conta</span>
-  </summary>
-  <div className="absolute left-0 top-full z-50 mt-3 w-56 overflow-hidden rounded-md border border-primary/25 bg-background p-1.5 shadow-lg">
-    <Link
-      to="/biblioteca"
-      className="block rounded px-3 py-2.5 text-sm text-foreground/85 transition-colors hover:bg-primary/10 hover:text-primary"
-    >
-      Minha conta
-    </Link>
-    <ThemeToggle />
-    <Link
-      to="/carrinho"
-      className="relative ml-auto flex items-center gap-2 text-sm text-foreground/85 transition-colors hover:text-primary"
-      aria-label={`Sacola de compras${cart.count > 0 ? `, ${cart.count} itens` : ""}`}
-    >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="23"
-        height="23"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        aria-hidden="true"
-      >
-        <path d="M5 8h14l1 13H4L5 8Z" />
-        <path d="M9 8V6a3 3 0 0 1 6 0v2" />
-      </svg>
-      <span className="hidden sm:inline">Sacola</span>
-      {cart.count > 0 && (
-        <span className="ml-[-4px] text-xs text-primary">
-          {cart.count}
-        </span>
-      )}
-    </Link>
-    </div>
-  </div>
-</header>
+  return (
+    <header className="relative z-20 w-full border-b border-primary/20 bg-background/95 px-5 py-4 md:px-10">
+      <div className="mx-auto grid max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-3">
+        <details className="relative w-fit">
+          <summary
+            className="flex cursor-pointer list-none items-center gap-2 text-sm text-foreground/85 transition-colors hover:text-primary [&::-webkit-details-marker]:hidden"
+            aria-label="Abrir menu da conta"
+            title="Conta"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <circle cx="12" cy="8" r="4" />
+              <path d="M5 21v-2a7 7 0 0 1 14 0v2" />
+            </svg>
+            <span className="hidden sm:inline">Minha conta</span>
+          </summary>
+          <div className="absolute left-0 top-full z-50 mt-3 w-56 overflow-hidden rounded-md border border-primary/25 bg-background p-1.5 shadow-lg">
+            <Link to="/biblioteca" className="block rounded px-3 py-2.5 text-sm text-foreground/85 transition-colors hover:bg-primary/10 hover:text-primary">
+              Minha conta
+            </Link>
+            <Link to="/configuracoes" className="block rounded px-3 py-2.5 text-sm text-foreground/85 transition-colors hover:bg-primary/10 hover:text-primary">
+              Configurações
+            </Link>
+            <div className="my-1 border-t border-primary/20" />
+            <Link to="/auth" search={{ redirect: "/admin" }} className="flex items-center gap-2.5 rounded px-3 py-2.5 text-sm font-medium text-primary transition-colors hover:bg-primary/10">
+              <img src={fenixImage} alt="" aria-hidden="true" className="h-5 w-5 object-contain" />
+              <span>Administrativo</span>
+            </Link>
+          </div>
+        </details>
 
-);
+        <Link to="/" className="justify-self-center font-display text-2xl italic font-medium tracking-[0.02em] text-foreground sm:text-3xl md:text-4xl" aria-label="Hiraeth - início">
+          Hiraeth
+        </Link>
+
+        <div className="ml-auto flex items-center gap-3">
+          <ThemeToggle />
+          <Link
+            to="/carrinho"
+            className="relative flex items-center gap-2 text-sm text-foreground/85 transition-colors hover:text-primary"
+            aria-label={`Sacola de compras${cart.count > 0 ? `, ${cart.count} itens` : ""}`}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M5 8h14l1 13H4L5 8Z" />
+              <path d="M9 8V6a3 3 0 0 1 6 0v2" />
+            </svg>
+            <span className="hidden sm:inline">Sacola</span>
+            {cart.count > 0 && <span className="ml-[-4px] text-xs text-primary">{cart.count}</span>}
+          </Link>
+        </div>
+      </div>
+    </header>
+  );
 }
 
 export function SiteFooter() {
