@@ -17,18 +17,22 @@ export const Route = createFileRoute("/sobre")({
 });
 function Sobre() {
   const [blocks, setBlocks] = useState<AboutBlock[]>([]);
+  const [bannerSettings, setBannerSettings] = useState<{ enabled: boolean; image_url: string; href: string; title: string }>({ enabled: false, image_url: "", href: "/loja", title: "" });
   useEffect(() => {
     void (async () => {
       const { data } = await (supabase as any).from("site_profile").select("*").eq("id", true).maybeSingle();
       const profile = data ? { ...defaults, ...data } : defaults;
       const { data: content } = await (supabase as any).from("site_content").select("value").eq("key", "about_page_blocks").maybeSingle();
+      const { data: bannerData } = await (supabase as any).from("site_content").select("value").eq("key", "about_page_settings").maybeSingle();
       const saved = content?.value?.blocks;
       setBlocks(Array.isArray(saved) && saved.length ? saved : seedBlocks(profile));
+      setBannerSettings({ enabled: false, image_url: "", href: "/loja", title: "", ...(bannerData?.value ?? {}) });
     })();
   }, []);
   const shownBlocks = blocks.length ? blocks : seedBlocks(defaults);
   return <PageShell eyebrow="Guardiã da chama" title="Conheça a Hiraeth">
     <div className="space-y-12">
+      {bannerSettings.enabled && bannerSettings.image_url && <a href={bannerSettings.href || "/loja"} target={/^https?:\\/\\//i.test(bannerSettings.href) ? "_blank" : undefined} rel={/^https?:\\/\\//i.test(bannerSettings.href) ? "noreferrer" : undefined} className="block overflow-hidden"><img src={bannerSettings.image_url} alt={bannerSettings.title || "Banner Hiraeth"} className="max-h-[28rem] w-full object-cover" /></a>}
       {shownBlocks.map((block, index) => <section key={block.id || index} className="space-y-5">
         <div className={block.layout === "image-left" || block.layout === "image-right" ? "grid items-center gap-8 md:grid-cols-2" : "space-y-5"}>
           {block.layout === "image-left" && block.images?.length > 0 && <div className="space-y-3">{block.images.map((url, i) => <img key={url + i} src={url} alt={block.title || "Hiraeth"} className="max-h-[34rem] w-full object-cover" />)}</div>}
