@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import banner from "@/assets/banner-portal.png";
+import fenix from "@/assets/fenix.png";
 import { SiteFooter, SiteHeader } from "@/components/SiteLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { CinematicOpening } from "@/components/CinematicOpening";
@@ -87,6 +88,7 @@ const HOME_FIELDS = [
 ] as const;
 
 export function ExistingHomepage() {
+  const [sent, setSent] = useState(false);
   const [shortcuts, setShortcuts] = useState<Shortcut[]>([]);
   const [banners, setBanners] = useState<HomeBanner[]>([]);
   const { isAdmin, editMode } = useAdminEdit();
@@ -148,9 +150,9 @@ export function ExistingHomepage() {
         <h2 className={`text-3xl text-foreground md:text-4xl ${headingFont}`}>{content.bannersTitle}</h2>
         <div className="mt-6 flex snap-x gap-5 overflow-x-auto pb-4">
           {(banners.length ? banners : [{ id: "fallback", title: "Explore os universos literários da Hiraeth", image_url: banner, href: "/loja", position: 1, active: true }]).map((item) => (
-            <div key={item.id} className="w-full min-w-full snap-start">
+            <div key={item.id} className="w-[82%] min-w-[82%] snap-start overflow-hidden rounded-sm sm:w-[60%] sm:min-w-[60%] md:w-[48%] md:min-w-[48%]">
               <Link to={item.href as never} className="group block overflow-hidden rounded-sm">
-                <img src={item.image_url} alt={item.title || "Novidade Hiraeth"} className="h-56 w-full object-cover transition-transform duration-500 group-hover:scale-[1.02] sm:h-72 md:h-[28rem] lg:h-[32rem]" loading="lazy" />
+                <img src={item.image_url} alt={item.title || "Novidade Hiraeth"} className="h-36 w-full object-cover transition-transform duration-500 group-hover:scale-[1.02] sm:h-48 md:h-56" loading="lazy" />
                 {item.title && <span className="sr-only">{item.title}</span>}
               </Link>
               {item.id !== "fallback" && <InlineEditor label={`novidade ${item.title || ""}`} fields={[
@@ -167,6 +169,17 @@ export function ExistingHomepage() {
         </div>
       </section>
     ),
+    phoenix: (
+      <section key="phoenix" className="mx-auto grid max-w-5xl items-center gap-10 px-6 py-16 md:grid-cols-2">
+        <img src={fenix} alt="Fênix Hiraeth" className="mx-auto w-64 md:w-80" loading="lazy" />
+        <div>
+          <p className="eyebrow">A história da Hiraeth</p>
+          <h2 className={`mt-2 text-4xl text-foreground ${headingFont}`}>Guardiã da chama</h2>
+          <p className="mt-5 leading-relaxed text-foreground/85">Hiraeth é a saudade de um lugar ao qual talvez nunca tenhamos ido. Cada vela guarda um universo — um livro, um filme, uma série — para ser reaceso sempre que você quiser voltar.</p>
+          <Link to="/sobre" className="btn-gold mt-8">Ler nossa história</Link>
+        </div>
+      </section>
+    ),
     care: content.showCare && (
       <section key="care" className="border-y bg-card px-6 py-16 text-center">
         <p className="eyebrow">{content.careEyebrow}</p>
@@ -176,10 +189,27 @@ export function ExistingHomepage() {
         <Link to="/cuidados" className="btn-gold mt-8">{content.careButton}</Link>
       </section>
     ),
+    newsletter: (
+      <section key="newsletter" className="mx-auto max-w-xl px-6 py-16 text-center">
+        <p className="eyebrow">Newsletter</p>
+        <h2 className={`mt-2 text-4xl text-foreground ${headingFont}`}>Cartas do Círculo</h2>
+        <p className="mt-5 text-foreground/85">Receba novidades, edições limitadas e portais recém-abertos.</p>
+        {sent ? <p className="eyebrow mt-8 text-xl">Sua carta está a caminho.</p> : <form className="mt-8 flex flex-col gap-3 sm:flex-row" onSubmit={async (e) => {
+          e.preventDefault();
+          const email = new FormData(e.currentTarget).get("email") as string;
+          const { error } = await supabase.from("newsletter_subscribers").insert({ email });
+          if (error && !error.message.includes("duplicate")) return;
+          setSent(true);
+        }}>
+          <input type="email" name="email" required placeholder="seu@email.com" className="flex-1 border bg-transparent px-4 py-3 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none" />
+          <button type="submit" className="btn-gold justify-center">Quero receber</button>
+        </form>}
+      </section>
+    ),
   };
 
   const order = content.sectionOrder.split(",").filter((key) => key in sections);
-  const orderedKeys = [...order, ...["portals", "banners", "care"].filter((key) => !order.includes(key))];
+  const orderedKeys = [...order, ...["portals", "banners", "phoenix", "care", "newsletter"].filter((key) => !order.includes(key))];
   const mergedContent = { ...DEFAULT_HOME_CONTENT, ...content } as HomeContent;
 
   return (
