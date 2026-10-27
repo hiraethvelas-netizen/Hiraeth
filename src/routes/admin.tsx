@@ -1,5 +1,6 @@
 import { createFileRoute, Link, Outlet, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { Moon, Sun } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/admin")({
@@ -24,6 +25,21 @@ const NAV = [
 function AdminLayout() {
   const navigate = useNavigate();
   const [allowed, setAllowed] = useState<boolean | null>(null);
+  const [darkMode, setDarkMode] = useState(() => typeof document !== "undefined" && document.documentElement.classList.contains("dark"));
+
+  useEffect(() => {
+    const savedTheme = window.localStorage.getItem("hiraeth-admin-theme");
+    const shouldUseDark = savedTheme ? savedTheme === "dark" : document.documentElement.classList.contains("dark");
+    document.documentElement.classList.toggle("dark", shouldUseDark);
+    setDarkMode(shouldUseDark);
+  }, []);
+
+  function toggleTheme() {
+    const nextDarkMode = !darkMode;
+    document.documentElement.classList.toggle("dark", nextDarkMode);
+    window.localStorage.setItem("hiraeth-admin-theme", nextDarkMode ? "dark" : "light");
+    setDarkMode(nextDarkMode);
+  }
 
   useEffect(() => {
     async function check() {
@@ -71,6 +87,10 @@ function AdminLayout() {
         <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-4">
           <Link to="/" className="font-display text-xl tracking-widest text-primary">HIRAETH</Link>
           <span className="text-xs uppercase tracking-widest text-muted-foreground">Administração</span>
+          <button type="button" onClick={toggleTheme} aria-label={darkMode ? "Ativar modo claro" : "Ativar modo escuro"} title={darkMode ? "Ativar modo claro" : "Ativar modo escuro"} className="inline-flex items-center gap-2 border px-3 py-2 text-sm text-foreground transition-colors hover:border-primary">
+            {darkMode ? <Sun size={16} aria-hidden="true" /> : <Moon size={16} aria-hidden="true" />}
+            {darkMode ? "Modo claro" : "Modo escuro"}
+          </button>
           <nav className="ml-auto flex flex-wrap gap-4 text-sm">
             {NAV.map((n) => (
               <Link
