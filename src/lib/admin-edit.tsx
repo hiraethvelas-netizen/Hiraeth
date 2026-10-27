@@ -14,19 +14,39 @@ function set(next: Partial<State>) {
 }
 
 async function refreshRole() {
-  const { data } = await supabase.auth.getUser();
-  if (!data.user) return set({ isAdmin: false, editMode: false });
-  const { data: ok } = await supabase.rpc("has_role", { _user_id: data.user.id, _role: "admin" });
-  const isAdmin = !!ok;
-  set({ isAdmin, editMode: isAdmin && window.localStorage.getItem("hiraeth-edit-mode") === "on" });
+  // Fail closed while checking; never leave the edit control visible during auth changes.
+  set({ isAdmin: false, editMode: false });
+  try {
+    const { data, error } = await supabase.auth.getUser();
+    if (error || !data.user) {
+      window.localStorage.setItem("hiraeth-edit-mode", "off");
+      return;
+    }
+    const { data: ok, error: roleError } = await supabase.rpc("has_role", {
+      _user_id: data.user.id,
+      _role: "admin",
+    });
+    const isAdmin = !roleError && ok === true;
+    if (!isAdmin) window.localStorage.setItem("hiraeth-edit-mode", "off");
+    set({ isAdmin, editMode: isAdmin && window.localStorage.getItem("hiraeth-edit-mode") === "on" });
+  } catch {
+    window.localStorage.setItem("hiraeth-edit-mode", "off");
+    set({ isAdmin: false, editMode: false });
+  }
 }
 
 function start() {
   if (started || typeof window === "undefined") return;
   started = true;
   void refreshRole();
-  supabase.auth.onAuthStateChange((event) => {
-    if (event === "SIGNED_IN" || event === "SIGNED_OUT" || event === "USER_UPDATED") void refreshRole();
+  const { data: subscription } = supabase.auth.onAuthStateChange((event) => {
+    if (event === "INITIAL_SESSION" || event === "SIGNED_IN" || event === "SIGNED_OUT" || event === "USER_UPDATED") {
+      // Run after the auth callback completes to avoid nesting Supabase auth calls.
+      queueMicrotask(() => { void refreshRole(); });
+    }
+  });
+  window.addEventListener("storage", (event) => {
+    if (event.key === "hiraeth-edit-mode") void refreshRole();
   });
 }
 
