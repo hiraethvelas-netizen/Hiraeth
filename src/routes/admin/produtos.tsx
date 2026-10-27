@@ -75,7 +75,7 @@ function AdminProdutos() {
     setShowForm(true);
   }
 
-  function startNew() { setEditing(null); setForm(emptyForm); setProductAromas([]); setSelectedAroma(""); setAromaQuantity(""); setShowForm(true); }
+  function startNew() { setEditing(null); setForm(emptyForm); setProductAromas([]); setSelectedAroma(""); setAromaQuantity(""); setAromaSearch(""); setNewAromaName(""); setNewTop(""); setNewHeart(""); setNewBase(""); setShowForm(true); }
 
   async function uploadImages(files: FileList | null) {
     if (!files?.length) return;
@@ -155,7 +155,7 @@ function AdminProdutos() {
         <label className="text-sm text-muted-foreground">Família olfativa<input list="fragrance-families" placeholder="Ex.: Floral ambarado" value={form.fragrance} onChange={(e) => setForm({ ...form, fragrance: e.target.value })} className={`mt-1 ${inputCls}`} /><datalist id="fragrance-families"><option value="Floral" /><option value="Floral ambarado" /><option value="Amadeirado" /><option value="Amadeirado aromático" /><option value="Oriental / ambarado" /><option value="Cítrico" /><option value="Frutado" /><option value="Gourmand" /><option value="Fresco" /><option value="Floral frutado" /><option value="Chipre" /><option value="Aromático" /></datalist></label>\n        <label className="text-sm text-muted-foreground">Status<select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })} className={`mt-1 ${inputCls}`}><option value="draft">Rascunho</option><option value="published">Publicado</option><option value="archived">Arquivado</option></select></label>
       </div>
       <section className="space-y-4 border border-primary/20 p-4">
-        <div><h3 className="text-lg text-foreground">Aromas e pirâmide olfativa</h3><p className="text-xs text-muted-foreground">Selecione aromas do estoque e informe o consumo em ml por vela. O consumo fica apenas no administrativo.</p></div>
+        <div><h3 className="text-lg text-foreground">Receita da vela — essências e pirâmide olfativa</h3><p className="text-xs text-muted-foreground">Pesquise essências já cadastradas ou cadastre uma nova aqui. Informe quantos ml de cada aroma entram em uma vela; as quantidades são internas e não aparecem para clientes.</p></div>
         <label className="block text-sm text-muted-foreground">Pesquisar aroma no estoque<input value={aromaSearch} onChange={e=>setAromaSearch(e.target.value)} placeholder="Digite o nome do aroma..." className={inputCls}/></label>
         <div className="grid gap-3 md:grid-cols-[1fr_140px_auto]">
           <label className="text-sm text-muted-foreground">Aroma<select value={selectedAroma} onChange={e=>setSelectedAroma(e.target.value)} className={inputCls}><option value="">Selecione um aroma</option>{essences.filter(a=>a.name.toLowerCase().includes(aromaSearch.toLowerCase())).map(a=><option key={a.id} value={a.id}>{a.name} — {Number(a.stock_ml).toLocaleString("pt-BR")} ml no estoque</option>)}</select></label>
