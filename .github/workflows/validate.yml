@@ -4,7 +4,7 @@ on:
   pull_request:
     branches: [main, master]
   push:
-    branches: [feature/home-banners-brand-palette]
+    branches: [main, feature/home-banners-brand-palette]
   workflow_dispatch:
 
 jobs:
