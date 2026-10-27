@@ -37,6 +37,8 @@ type HomeContent = Record<string, unknown> & {
   careDescription: string;
   careButton: string;
   careImage: string;
+  featuredBannerImage: string;
+  featuredBannerHref: string;
   showPortals: boolean;
   showBanners: boolean;
   showCare: boolean;
@@ -53,6 +55,8 @@ const DEFAULT_HOME_CONTENT: HomeContent = {
   careDescription: "Pequenos rituais que fazem sua vela queimar por igual, com segurança e por mais tempo.",
   careButton: "Ver cuidados",
   careImage: "",
+  featuredBannerImage: "",
+  featuredBannerHref: "/loja",
   showPortals: true,
   showBanners: true,
   showCare: true,
@@ -64,6 +68,8 @@ const HOME_FIELDS = [
   { name: "portalsEyebrow", label: "Texto pequeno do topo", type: "text" },
   { name: "portalsTitle", label: "Título principal", type: "text" },
   { name: "bannersTitle", label: "Título da seção de novidades", type: "text" },
+  { name: "featuredBannerImage", label: "Imagem do banner principal de novidades", type: "image", help: "Envie a imagem que deve ocupar toda a largura no celular." },
+  { name: "featuredBannerHref", label: "Link do banner principal", type: "text" },
   { name: "careEyebrow", label: "Texto pequeno da seção de cuidados", type: "text" },
   { name: "careTitle", label: "Título da seção de cuidados", type: "text" },
   { name: "careDescription", label: "Descrição dos cuidados", type: "textarea" },
@@ -145,16 +151,16 @@ export function ExistingHomepage() {
       </section>
     ),
     banners: content.showBanners && (
-      <section key="banners" className="mx-auto max-w-6xl px-5 py-8 md:py-12">
-        <h2 className={`text-3xl text-foreground md:text-4xl ${headingFont}`}>{content.bannersTitle}</h2>
-        <div className="mt-6 flex snap-x gap-5 overflow-x-auto pb-4">
-          {(banners.length ? banners : [{ id: "fallback", title: "Explore os universos literários da Hiraeth", image_url: banner, href: "/loja", position: 1, active: true }]).map((item) => (
-            <div key={item.id} className="w-[82%] min-w-[82%] snap-start overflow-hidden rounded-sm sm:w-[60%] sm:min-w-[60%] md:w-[48%] md:min-w-[48%]">
+      <section key="banners" className="w-full py-8 md:py-12">
+        <div className="mx-auto max-w-6xl px-5"><h2 className={`text-3xl text-foreground md:text-4xl ${headingFont}`}>{content.bannersTitle}</h2></div>
+        <div className="mt-6 flex snap-x gap-0 overflow-x-auto pb-4 sm:gap-5 sm:px-5">
+          {(banners.length ? banners : [{ id: "fallback", title: "Explore os universos literários da Hiraeth", image_url: content.featuredBannerImage || banner, href: content.featuredBannerHref || "/loja", position: 1, active: true }]).map((item) => (
+            <div key={item.id} className={item.id === "fallback" ? "w-full min-w-full snap-start overflow-hidden sm:w-[60%] sm:min-w-[60%] md:w-[48%] md:min-w-[48%]" : "w-full min-w-full snap-start overflow-hidden rounded-sm sm:w-[60%] sm:min-w-[60%] md:w-[48%] md:min-w-[48%]"}>
               <Link to={item.href as never} className="group block overflow-hidden rounded-sm">
-                <img src={item.image_url} alt={item.title || "Novidade Hiraeth"} className="h-36 w-full object-cover transition-transform duration-500 group-hover:scale-[1.02] sm:h-48 md:h-56" loading="lazy" />
+                <img src={item.image_url} alt={item.title || "Novidade Hiraeth"} className="h-auto max-h-[70vh] min-h-[18rem] w-full object-cover transition-transform duration-500 group-hover:scale-[1.01] sm:h-64 md:h-80" loading="lazy" />
                 {item.title && <span className="sr-only">{item.title}</span>}
               </Link>
-              {item.id !== "fallback" && <InlineEditor label={`novidade ${item.title || ""}`} fields={[
+              {item.id === "fallback" ? <InlineEditor label="banner principal de novidades" fields={[{ name: "featuredBannerImage", label: "Imagem do banner", type: "image" }, { name: "featuredBannerHref", label: "Link de destino", type: "text" }]} values={{ featuredBannerImage: content.featuredBannerImage || "", featuredBannerHref: content.featuredBannerHref || "/loja" }} onSave={async values => saveContent({ ...mergedContent, featuredBannerImage: String(values.featuredBannerImage || ""), featuredBannerHref: String(values.featuredBannerHref || "/loja") } as HomeContent)} className="mx-auto max-w-6xl px-5 mt-3" /> : <InlineEditor label={`novidade ${item.title || ""}`} fields={[
                 { name: "title", label: "Título", type: "text" },
                 { name: "image_url", label: "Imagem do banner", type: "image" },
                 { name: "href", label: "Link de destino", type: "text" },
