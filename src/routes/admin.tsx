@@ -18,6 +18,7 @@ const NAV = [
   { to: "/admin/portais", label: "Portais NFC" },
   { to: "/admin/financeiro", label: "Financeiro" },
   { to: "/admin/aparencia", label: "Aparência" },
+  { to: "/admin/sobre", label: "Sobre e contatos" },
   { to: "/admin/banners", label: "Banners da inicial" },
 
 ] as const;
