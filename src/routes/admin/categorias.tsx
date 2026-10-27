@@ -63,6 +63,16 @@ function AdminCategorias() {
     if (error) toast.error("Não foi possível remover. Verifique se há produtos associados."); else { toast.success("Item removido."); load(); }
   }
 
+  async function copyCategoryLink(c: Category) {
+    const url = `${window.location.origin}/loja?categoria=${encodeURIComponent(c.slug)}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success(`Link da categoria "${c.name}" copiado!`);
+    } catch {
+      window.prompt("Copie o link da categoria:", url);
+    }
+  }
+
   const inputCls = "border bg-transparent px-3 py-2 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none";
   const parents = categories.filter((c) => !c.parent_id);
   const renderRow = (c: Category, index: number, siblings: Category[]) => <li key={c.id} className={`flex flex-wrap items-center gap-3 border-b py-3 ${c.parent_id ? "pl-7" : ""}`}>
@@ -70,6 +80,7 @@ function AdminCategorias() {
     <span className="text-xs uppercase tracking-widest text-muted-foreground">{c.visible ? "Visível" : "Oculta"}</span>
     <button onClick={() => move(c, -1)} disabled={index === 0} className="text-muted-foreground hover:text-primary disabled:opacity-30">↑</button>
     <button onClick={() => move(c, 1)} disabled={index === siblings.length - 1} className="text-muted-foreground hover:text-primary disabled:opacity-30">↓</button>
+    <button onClick={() => copyCategoryLink(c)} className="border border-primary px-3 py-1 text-xs text-primary hover:bg-primary hover:text-primary-foreground">Copiar link</button>
     <button onClick={() => toggleVisible(c)} className="text-sm text-muted-foreground hover:text-primary">{c.visible ? "Ocultar" : "Exibir"}</button>
     <button onClick={() => remove(c)} className="text-sm text-muted-foreground hover:text-destructive">Remover</button>
   </li>;
