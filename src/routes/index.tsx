@@ -118,7 +118,12 @@ export function ExistingHomepage() {
         <p className="eyebrow">{content.portalsEyebrow}</p>
         <h1 className={`mt-2 text-4xl text-foreground md:text-5xl ${headingFont}`}>{content.portalsTitle}</h1>
         <div className="mx-auto mt-8 grid max-w-4xl grid-cols-2 gap-5 sm:grid-cols-3 md:grid-cols-4">
-          {shortcuts.map((item) => (
+          {(shortcuts.length ? shortcuts : [
+            { id: "default-about", title: "Conheça a Hiraeth", description: "A guardiã da chama", href: "/sobre", image_key: "hiraeth", position: 1, active: true },
+            { id: "default-store", title: "Nossa Loja", description: "Velas e camisetas literárias", href: "/loja", image_key: "candle", position: 2, active: true },
+            { id: "default-library", title: "Seu próximo portal", description: "Volte ao Círculo do Fogo", href: "/inicio", image_key: "portal", position: 3, active: true },
+            { id: "default-care", title: "Cuidados", description: "Cuidados com suas velas", href: "/cuidados", image_key: "book", position: 4, active: true },
+          ] as Shortcut[]).map((item) => (
             <div key={item.id} className="flex flex-col items-center gap-2 text-center">
               <span className="block aspect-square w-full max-w-40 overflow-hidden rounded-full border border-primary/40 bg-card p-1 transition-transform group-hover:scale-105">
                 <ShortcutIcon imageKey={item.image_key} title={item.title} />
@@ -126,15 +131,15 @@ export function ExistingHomepage() {
               <span className={`text-xl text-foreground ${headingFont}`}>{item.title}</span>
               {item.description && <span className="max-w-40 text-sm text-muted-foreground">{item.description}</span>}
               <Link to={item.href as never} className="text-xs text-primary underline-offset-4 hover:underline">Explorar</Link>
-              <InlineEditor label={`atalho ${item.title}`} fields={[
+              {!item.id.startsWith("default-") && <InlineEditor label={`atalho ${item.title}`} fields={[
                 { name: "title", label: "Título", type: "text" },
                 { name: "description", label: "Descrição", type: "text" },
                 { name: "href", label: "Link de destino", type: "text" },
                 { name: "image_key", label: "Imagem da bolinha", type: "image", help: "JPG, PNG ou WebP, até 5 MB." },
-              ]} values={{ title: item.title, description: item.description ?? "", href: item.href, image_key: item.image_key }} onSave={(next) => saveShortcut(item.id, next)} />
+              ]} values={{ title: item.title, description: item.description ?? "", href: item.href, image_key: item.image_key }} onSave={(next) => saveShortcut(item.id, next)} />}
             </div>
           ))}
-          {shortcuts.length === 0 && <Link to="/loja" className="mx-auto flex flex-col items-center gap-3"><span className="flex aspect-square w-36 items-center justify-center rounded-full border border-primary/40 bg-card p-5 text-center font-display text-xl text-foreground">Acessar a Loja</span></Link>}
+
         </div>
       </section>
     ),
