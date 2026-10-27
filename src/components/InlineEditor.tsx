@@ -25,7 +25,7 @@ export function InlineEditor({ label, fields, values, onSave, className = "" }: 
     if (!files?.length) return;
     setBusy(true);
     try {
-      const urls = [];
+      const urls: string[] = [];
       for (const f of Array.from(files)) urls.push(await uploadSiteImage(f, "inline"));
       setForm((p) => ({ ...p, [name]: multiple ? [...((p[name] as string[]) ?? []), ...urls] : urls[0] }));
     } catch (e) { toast.error(e instanceof Error ? e.message : "Falha no envio"); }
