@@ -1,27 +1,29 @@
-# Diagnóstico: prévia pedindo atualização e falhando
+# Opção "Administrativo" na área de perfil
 
-## Causa principal (confirmada pelos registros)
-O arquivo `src/routes/produto.$slug.tsx` tem dois trechos com o texto literal `\n` (barra + n) no lugar de uma quebra de linha real:
-- Linha 10: `type Product = Tables<"products">;\ntype AromaNote = {...}`
-- Linha 31: `useState<string | null>(null);\n  const [aromaNotes, ...]`
+## Como está hoje (verificado em `src/components/SiteLayout.tsx`)
+- Esquerda (linhas 46-67): ícone de perfil + "Minha conta", leva direto para `/biblioteca` (sem login, ele redireciona para `/auth`).
+- Direita (linhas 80-111): ícone de engrenagem "Configurações" e, ao lado, o círculo com a fênix "Acesso administrativo" (`/auth?redirect=/admin`). Esse par fênix + engrenagem é o atalho que está feio.
+- O fluxo já funciona: `/auth` lê `redirect` e, após login, vai para `/admin`; `/admin` verifica permissão e manda para login se necessário (`src/routes/admin.tsx` linha 48). Nada disso precisa mudar.
 
-Isso causa erros de leitura do código ("Invalid Unicode escape sequence", TS1127/TS1435). O construtor de rotas falha em seguida ("Crawling result not available"), a prévia não compila e fica pedindo atualização.
+## Alteração visual mínima proposta
+1. Remover do cabeçalho o círculo da fênix (linhas 103-111).
+2. Transformar "Minha conta" num pequeno menu que abre ao tocar no ícone de perfil, com:
+   - Minha conta (biblioteca) - como hoje
+   - Configurações
+   - Linha fina separadora
+   - Fênix pequena + "Administrativo", que leva ao login e depois ao painel
+3. Engrenagem de Configurações: proposta é movê-la para dentro desse menu, deixando o topo mais limpo. Se preferir manter a engrenagem visível no topo, só a fênix sai.
+4. Estilo: fundo creme/verde do tema, borda dourada fina, fonte do site; funciona por toque no celular e fecha ao tocar fora.
 
-## O que NÃO é a causa
-- **Commit 02c5f6c**: altera só `src/components/SiteLayout.tsx` (2 linhas). Não toca na página do produto.
-- **Import de `src/assets/fenix.png`**: o arquivo existe (40 KB) e o import na linha 5 está correto.
-- **Link com `search={{ redirect: "/admin" }}`** (SiteLayout linhas 103-105): válido, porque `src/routes/auth.tsx` (linhas 6-10) declara `validateSearch` com `redirect`.
-- **Sincronização GitHub-Lovable**: o commit 02c5f6c já é o mais recente aqui, então o código chegou. Não consigo ver o status da conexão; os erros vêm do conteúdo do código.
+## Fora do escopo
+Nenhuma mudança em login, painel, permissões, loja ou na tela de abertura.
 
-## Pontos secundários (não bloqueiam agora)
-- `src/routes/src/routes/admin.aparencia.tsx`: arquivo duplicado numa pasta aninhada por engano, que pode gerar uma rota estranha.
-- `src/assets/hira app...mp4` (10,7 MB): grande demais para o Lovable editar e pesa no build.
+## Detalhes técnicos
+- Usar o `DropdownMenu` existente em `@/components/ui/dropdown-menu` com itens `Link` (`/biblioteca`, `/configuracoes`, `/auth` com `search={{ redirect: "/admin" }}`).
+- Reutilizar `fenixImage` (já importado) no item Administrativo.
+- Arquivo único alterado: `src/components/SiteLayout.tsx`.
 
-## Correção proposta (após sua autorização)
-1. Trocar os dois `\n` literais por quebras de linha reais em `produto.$slug.tsx` (linhas 10 e 31).
-2. Conferir que o build fique limpo e abrir a página de um produto e a abertura para confirmar.
-3. Opcional, só com sua confirmação: remover o arquivo duplicado em `src/routes/src/`.
-
-## Estimativa de créditos (aproximada)
-- Correção + validação do build: cerca de 1 a 2 créditos.
-- Com teste visual no navegador: cerca de 2 a 3 créditos.
+## Estimativa (aproximada)
+- Edição: cerca de 1 crédito.
+- Validação (compilação + teste no navegador abrindo o menu e clicando em Administrativo até o login): cerca de 1 a 2 créditos.
+- Total: cerca de 2 a 3 créditos.
