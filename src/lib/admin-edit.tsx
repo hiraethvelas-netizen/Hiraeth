@@ -84,8 +84,6 @@ export function useSiteContent<T extends Record<string, unknown>>(key: string, d
   return [value, save] as const;
 }
 
-const TEN_YEARS = 60 * 60 * 24 * 365 * 10;
-
 /** Uploads an admin image to the private site-banners bucket and returns a long-lived URL. */
 export async function uploadSiteImage(file: File, prefix: string) {
   if (!["image/jpeg", "image/png", "image/webp", "image/gif"].includes(file.type)) throw new Error("Use JPG, PNG, WebP ou GIF.");
@@ -95,7 +93,9 @@ export async function uploadSiteImage(file: File, prefix: string) {
   const bucket = supabase.storage.from("site-banners");
   const { error } = await bucket.upload(path, file, { contentType: file.type });
   if (error) throw error;
-  const { data, error: signError } = await bucket.createSignedUrl(path, TEN_YEARS);
-  if (signError || !data) throw signError ?? new Error("Falha ao gerar link da imagem.");
-  return data.signedUrl;
+  // The site-banners bucket is public by policy. A public URL avoids signed-link expiry
+  // and makes saved images continue working on the published storefront.
+  const { data } = bucket.getPublicUrl(path);
+  if (!data?.publicUrl) throw new Error("Falha ao gerar link público da imagem.");
+  return data.publicUrl;
 }
