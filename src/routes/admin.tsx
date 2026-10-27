@@ -2,6 +2,7 @@ import { createFileRoute, Link, Outlet, useNavigate } from "@tanstack/react-rout
 import { useEffect, useState } from "react";
 import { Moon, Sun } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAdminEdit } from "@/lib/admin-edit";
 
 export const Route = createFileRoute("/admin")({
   ssr: false,
@@ -26,6 +27,7 @@ const NAV = [
 function AdminLayout() {
   const navigate = useNavigate();
   const [allowed, setAllowed] = useState<boolean | null>(null);
+  const { editMode, toggle } = useAdminEdit();
   const [darkMode, setDarkMode] = useState(() => typeof document !== "undefined" && document.documentElement.classList.contains("dark"));
 
   useEffect(() => {
@@ -88,6 +90,10 @@ function AdminLayout() {
         <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-4">
           <Link to="/" className="font-display text-xl tracking-widest text-primary">HIRAETH</Link>
           <span className="text-xs uppercase tracking-widest text-muted-foreground">Administração</span>
+          <button type="button" onClick={toggle} aria-pressed={editMode} className="inline-flex items-center gap-2 border border-primary px-3 py-2 text-sm text-primary transition-colors hover:bg-primary/10">
+            {editMode ? "Sair do modo edição" : "Ativar modo edição da loja"}
+          </button>
+          <Link to="/inicio" className="inline-flex items-center gap-2 border px-3 py-2 text-sm text-foreground transition-colors hover:border-primary">Visualizar loja</Link>
           <button type="button" onClick={toggleTheme} aria-label={darkMode ? "Ativar modo claro" : "Ativar modo escuro"} title={darkMode ? "Ativar modo claro" : "Ativar modo escuro"} className="inline-flex items-center gap-2 border px-3 py-2 text-sm text-foreground transition-colors hover:border-primary">
             {darkMode ? <Sun size={16} aria-hidden="true" /> : <Moon size={16} aria-hidden="true" />}
             {darkMode ? "Modo claro" : "Modo escuro"}
