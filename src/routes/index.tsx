@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { CinematicOpening } from "@/components/CinematicOpening";
 import { ShortcutIcon } from "@/components/ShortcutIcon";
 import { InlineEditor } from "@/components/InlineEditor";
-import { useSiteContent } from "@/lib/admin-edit";
+import { useAdminEdit, useSiteContent } from "@/lib/admin-edit";
 
 type Shortcut = { id: string; title: string; description: string | null; href: string; image_key: string; position: number; active: boolean };
 type HomeBanner = { id: string; title: string | null; image_url: string; href: string; position: number; active: boolean };
@@ -89,6 +89,7 @@ const HOME_FIELDS = [
 export function ExistingHomepage() {
   const [shortcuts, setShortcuts] = useState<Shortcut[]>([]);
   const [banners, setBanners] = useState<HomeBanner[]>([]);
+  const { isAdmin, editMode, toggle } = useAdminEdit();
   const [content, saveContent] = useSiteContent<HomeContent>("homepage", DEFAULT_HOME_CONTENT);
   useEffect(() => {
     (supabase as any).from("site_shortcuts").select("*").eq("active", true).order("position")
@@ -96,6 +97,19 @@ export function ExistingHomepage() {
     (supabase as any).from("site_banners").select("*").eq("active", true).order("position")
       .then(({ data }: { data: HomeBanner[] | null }) => setBanners(data ?? []));
   }, []);
+
+  async function saveShortcut(id: string, values: Record<string, unknown>) {
+    const { error } = await (supabase as any).from("site_shortcuts").update({
+      title: String(values.title ?? ""),
+      description: String(values.description ?? "").trim() || null,
+      href: String(values.href ?? "/loja"),
+      image_key: String(values.image_key ?? "portal"),
+    }).eq("id", id);
+    if (error) throw error;
+    const { data, error: loadError } = await (supabase as any).from("site_shortcuts").select("*").eq("active", true).order("position");
+    if (loadError) throw loadError;
+    setShortcuts(data ?? []);
+  }
 
   const headingFont = content.fontStyle === "serif" ? "font-serif" : content.fontStyle === "sans" ? "font-sans" : "font-display";
   const sections: Record<string, ReactNode> = {
@@ -105,13 +119,20 @@ export function ExistingHomepage() {
         <h1 className={`mt-2 text-4xl text-foreground md:text-5xl ${headingFont}`}>{content.portalsTitle}</h1>
         <div className="mx-auto mt-8 grid max-w-4xl grid-cols-2 gap-5 sm:grid-cols-3 md:grid-cols-4">
           {shortcuts.map((item) => (
-            <Link key={item.id} to={item.href as never} className="group flex flex-col items-center gap-3 text-center">
+            <div key={item.id} className="flex flex-col items-center gap-2 text-center">
               <span className="block aspect-square w-full max-w-40 overflow-hidden rounded-full border border-primary/40 bg-card p-1 transition-transform group-hover:scale-105">
                 <ShortcutIcon imageKey={item.image_key} title={item.title} />
               </span>
               <span className={`text-xl text-foreground ${headingFont}`}>{item.title}</span>
               {item.description && <span className="max-w-40 text-sm text-muted-foreground">{item.description}</span>}
-            </Link>
+              <Link to={item.href as never} className="text-xs text-primary underline-offset-4 hover:underline">Explorar</Link>
+              <InlineEditor label={`atalho ${item.title}`} fields={[
+                { name: "title", label: "Título", type: "text" },
+                { name: "description", label: "Descrição", type: "text" },
+                { name: "href", label: "Link de destino", type: "text" },
+                { name: "image_key", label: "Imagem da bolinha", type: "image", help: "JPG, PNG ou WebP, até 5 MB." },
+              ]} values={{ title: item.title, description: item.description ?? "", href: item.href, image_key: item.image_key }} onSave={(next) => saveShortcut(item.id, next)} />
+            </div>
           ))}
           {shortcuts.length === 0 && <Link to="/loja" className="mx-auto flex flex-col items-center gap-3"><span className="flex aspect-square w-36 items-center justify-center rounded-full border border-primary/40 bg-card p-5 text-center font-display text-xl text-foreground">Acessar a Loja</span></Link>}
         </div>
@@ -149,14 +170,15 @@ export function ExistingHomepage() {
     <div className="min-h-screen bg-background">
       <SiteHeader />
       <main>
-        <div className="mx-auto flex max-w-6xl justify-end px-5 pt-3">
+        {isAdmin && <div className="mx-auto flex max-w-6xl justify-end gap-3 px-5 pt-3">
+          <button type="button" onClick={toggle} aria-pressed={editMode} className="border border-primary px-3 py-2 text-xs text-primary hover:bg-primary/10">{editMode ? "Sair do modo edição" : "Ativar modo edição"}</button>
           <InlineEditor
             label="conteúdo da página inicial"
             fields={[...HOME_FIELDS]}
             values={mergedContent}
             onSave={async (next) => saveContent({ ...mergedContent, ...next } as HomeContent)}
           />
-        </div>
+        </div>}
         {orderedKeys.map((key) => sections[key])}
       </main>
       <SiteFooter />
