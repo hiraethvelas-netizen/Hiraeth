@@ -105,7 +105,7 @@ useEffect(() => {
         {pageSettings.showBanner && pageSettings.bannerImage && <img src={pageSettings.bannerImage} alt="Banner da loja Hiraeth" className="mb-8 max-h-[28rem] w-full object-cover" />}
         <p className="eyebrow">{pageSettings.eyebrow}</p>
         <h1 className="mt-2 text-4xl text-foreground md:text-5xl">{pageSettings.title}</h1>
-        {pageSettings.intro && <p className="mt-3 max-w-2xl text-muted-foreground">{pageSettings.intro}</p>
+        {pageSettings.intro && <p className="mt-3 max-w-2xl text-muted-foreground">{pageSettings.intro}</p>}
 
         <div className="mt-8 flex flex-col gap-4 md:flex-row md:items-center">
           <input
