@@ -552,8 +552,60 @@ export type Database = {
         }
         Relationships: []
       }
+      site_banners: {
+        Row: {
+          active: boolean
+          created_at: string
+          href: string
+          id: string
+          image_url: string
+          position: number
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          href?: string
+          id?: string
+          image_url: string
+          position?: number
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          href?: string
+          id?: string
+          image_url?: string
+          position?: number
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      site_content: {
+        Row: {
+          key: string
+          updated_at: string
+          value: Json
+        }
+        Insert: {
+          key: string
+          updated_at?: string
+          value?: Json
+        }
+        Update: {
+          key?: string
+          updated_at?: string
+          value?: Json
+        }
+        Relationships: []
+      }
       site_profile: {
         Row: {
+          about_gallery: string[]
           about_image_url: string
           about_mari: string
           about_story: string
@@ -566,6 +618,7 @@ export type Database = {
           whatsapp_url: string
         }
         Insert: {
+          about_gallery?: string[]
           about_image_url?: string
           about_mari?: string
           about_story?: string
@@ -578,6 +631,7 @@ export type Database = {
           whatsapp_url?: string
         }
         Update: {
+          about_gallery?: string[]
           about_image_url?: string
           about_mari?: string
           about_story?: string
