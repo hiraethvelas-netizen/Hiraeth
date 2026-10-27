@@ -7,6 +7,7 @@ import { PortalFragmentsEditor } from "@/components/admin/PortalFragmentsEditor"
 import type { Tables } from "@/integrations/supabase/types";
 
 type Portal = Tables<"portals">;
+type Category = Tables<"categories">;
 
 export const Route = createFileRoute("/admin/portais")({
   head: () => ({ meta: [{ title: "Portais NFC — Admin Hiraeth" }] }),
@@ -33,6 +34,7 @@ const emptyForm = {
 
 function AdminPortais() {
   const [portals, setPortals] = useState<Portal[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<Portal | null>(null);
   const [form, setForm] = useState(emptyForm);
@@ -42,7 +44,11 @@ function AdminPortais() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const { data, error } = await supabase.from("portals").select("*").order("created_at", { ascending: false });
+    const [{ data, error }, { data: categoryData }] = await Promise.all([
+      supabase.from("portals").select("*").order("created_at", { ascending: false }),
+      supabase.from("categories").select("*").eq("visible", true).order("position"),
+    ]);
+    setCategories((categoryData ?? []) as Category[]);
     if (error) {
       setLoadError(true);
       toast.error("Não foi possível carregar os portais.");
@@ -197,7 +203,31 @@ function AdminPortais() {
             <input placeholder="Texto complementar da abertura" value={form.intro_subtitle} onChange={(e) => setForm({ ...form, intro_subtitle: e.target.value })} className={inputCls} />
             <input placeholder="URL do vídeo de abertura (MP4)" value={form.intro_video_url} onChange={(e) => setForm({ ...form, intro_video_url: e.target.value })} className={inputCls} />
             <input placeholder="Texto do botão de entrada" value={form.intro_cta_text} onChange={(e) => setForm({ ...form, intro_cta_text: e.target.value })} className={inputCls} />
-            <input placeholder="Link da categoria/coleção na loja" value={form.store_category_url} onChange={(e) => setForm({ ...form, store_category_url: e.target.value })} className={inputCls} />
+            <label className="text-sm text-muted-foreground">
+              Catálogo de produtos deste tema
+              <select
+                value={categories.find((category) => form.store_category_url === `/loja?categoria=${category.slug}`)?.slug ?? ""}
+                onChange={(e) => {
+                  const category = categories.find((item) => item.slug === e.target.value);
+                  if (category) setForm({ ...form, store_category_url: `/loja?categoria=${category.slug}` });
+                }}
+                className={`mt-1 ${inputCls}`}
+              >
+                <option value="">Escolha uma categoria da loja (opcional)</option>
+                {categories.map((category) => (
+                  <option key={category.id} value={category.slug}>
+                    {category.parent_id ? "↳ " : ""}{category.name}
+                  </option>
+                ))}
+              </select>
+              <span className="mt-1 block text-xs">Escolha a categoria ou subcategoria que reúne os produtos deste universo. Você também pode colar um link manualmente abaixo.</span>
+            </label>
+            <input
+              placeholder="Link do catálogo/categoria na loja"
+              value={form.store_category_url}
+              onChange={(e) => setForm({ ...form, store_category_url: e.target.value })}
+              className={inputCls}
+            />
             <label className="flex items-center gap-2 text-sm text-muted-foreground">
               <input type="checkbox" checked={form.intro_enabled} onChange={(e) => setForm({ ...form, intro_enabled: e.target.checked })} />
               Abertura animada ativa
