@@ -552,6 +552,45 @@ export type Database = {
         }
         Relationships: []
       }
+      site_profile: {
+        Row: {
+          about_image_url: string
+          about_mari: string
+          about_story: string
+          contact_email: string
+          id: boolean
+          instagram_url: string
+          story_image_url: string
+          updated_at: string
+          whatsapp_number: string
+          whatsapp_url: string
+        }
+        Insert: {
+          about_image_url?: string
+          about_mari?: string
+          about_story?: string
+          contact_email?: string
+          id?: boolean
+          instagram_url?: string
+          story_image_url?: string
+          updated_at?: string
+          whatsapp_number?: string
+          whatsapp_url?: string
+        }
+        Update: {
+          about_image_url?: string
+          about_mari?: string
+          about_story?: string
+          contact_email?: string
+          id?: boolean
+          instagram_url?: string
+          story_image_url?: string
+          updated_at?: string
+          whatsapp_number?: string
+          whatsapp_url?: string
+        }
+        Relationships: []
+      }
       site_shortcuts: {
         Row: {
           active: boolean
