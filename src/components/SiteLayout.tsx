@@ -63,7 +63,7 @@ export function SiteHeader() {
               Configurações
             </Link>
             <div className="my-1 border-t border-primary/20" />
-            <Link to="/auth" search={{ redirect: "/inicio" }} className="flex items-center gap-2.5 rounded px-3 py-2.5 text-sm font-medium text-primary transition-colors hover:bg-primary/10">
+            <Link to="/auth" search={{ redirect: "/admin" }} className="flex items-center gap-2.5 rounded px-3 py-2.5 text-sm font-medium text-primary transition-colors hover:bg-primary/10">
               <img src={fenixImage} alt="" aria-hidden="true" className="h-5 w-5 object-contain" />
               <span>Administrativo</span>
             </Link>
