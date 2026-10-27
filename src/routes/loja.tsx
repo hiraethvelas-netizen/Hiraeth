@@ -180,7 +180,20 @@ useEffect(() => {
                   )}
                 </div>
 
-                <div className="p-5">\n                  <InlineEditor label={`produto ${p.name}`} fields={[\n                    { name: "name", label: "Nome", type: "text" },\n                    { name: "description", label: "Descrição", type: "textarea" },\n                    { name: "price", label: "Preço", type: "text" },\n                    { name: "sale_price", label: "Preço promocional", type: "text" },\n                    { name: "fragrance", label: "Fragrância", type: "text" },\n                    { name: "images", label: "Imagens do produto", type: "images" },\n                  ]} values={{ name: p.name, description: p.description ?? "", price: String(p.price), sale_price: p.sale_price == null ? "" : String(p.sale_price), fragrance: p.fragrance ?? "", images: p.images ?? [] }} onSave={(values) => saveProduct(p, values)} />
+                <div className="p-5">
+                  <InlineEditor
+                    label={`produto ${p.name}`}
+                    fields={[
+                      { name: "name", label: "Nome", type: "text" },
+                      { name: "description", label: "Descrição", type: "textarea" },
+                      { name: "price", label: "Preço", type: "text" },
+                      { name: "sale_price", label: "Preço promocional", type: "text" },
+                      { name: "fragrance", label: "Fragrância", type: "text" },
+                      { name: "images", label: "Imagens do produto", type: "images" },
+                    ]}
+                    values={{ name: p.name, description: p.description ?? "", price: String(p.price), sale_price: p.sale_price == null ? "" : String(p.sale_price), fragrance: p.fragrance ?? "", images: p.images ?? [] }}
+                    onSave={(values) => saveProduct(p, values)}
+                  />
                   <h2 className="text-2xl text-foreground">{p.name}</h2>
 
                   {p.fragrance && (
