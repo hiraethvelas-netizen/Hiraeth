@@ -34,7 +34,6 @@ import { Route as AdminPortaisRouteImport } from './routes/admin/portais'
 import { Route as AdminProdutosRouteImport } from './routes/admin/produtos'
 import { Route as PortalSlugRouteImport } from './routes/portal.$slug'
 import { Route as ProdutoSlugRouteImport } from './routes/produto.$slug'
-import { Route as SrcRoutesAdminAparenciaRouteImport } from './routes/src/routes/admin.aparencia'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -161,11 +160,6 @@ const ProdutoSlugRoute = ProdutoSlugRouteImport.update({
   path: '/produto/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SrcRoutesAdminAparenciaRoute = SrcRoutesAdminAparenciaRouteImport.update({
-  id: '/src/routes/admin/aparencia',
-  path: '/src/routes/admin/aparencia',
-  getParentRoute: () => rootRouteImport,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -192,7 +186,6 @@ export interface FileRoutesByFullPath {
   '/portal/$slug': typeof PortalSlugRoute
   '/produto/$slug': typeof ProdutoSlugRoute
   '/admin/': typeof AdminIndexRoute
-  '/src/routes/admin/aparencia': typeof SrcRoutesAdminAparenciaRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -218,7 +211,6 @@ export interface FileRoutesByTo {
   '/portal/$slug': typeof PortalSlugRoute
   '/produto/$slug': typeof ProdutoSlugRoute
   '/admin': typeof AdminIndexRoute
-  '/src/routes/admin/aparencia': typeof SrcRoutesAdminAparenciaRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -247,7 +239,6 @@ export interface FileRoutesById {
   '/portal/$slug': typeof PortalSlugRoute
   '/produto/$slug': typeof ProdutoSlugRoute
   '/admin/': typeof AdminIndexRoute
-  '/src/routes/admin/aparencia': typeof SrcRoutesAdminAparenciaRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -276,7 +267,6 @@ export interface FileRouteTypes {
     | '/portal/$slug'
     | '/produto/$slug'
     | '/admin/'
-    | '/src/routes/admin/aparencia'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -302,7 +292,6 @@ export interface FileRouteTypes {
     | '/portal/$slug'
     | '/produto/$slug'
     | '/admin'
-    | '/src/routes/admin/aparencia'
   id:
     | '__root__'
     | '/'
@@ -330,7 +319,6 @@ export interface FileRouteTypes {
     | '/portal/$slug'
     | '/produto/$slug'
     | '/admin/'
-    | '/src/routes/admin/aparencia'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -347,7 +335,6 @@ export interface RootRouteChildren {
   SobreRoute: typeof SobreRoute
   PortalSlugRoute: typeof PortalSlugRoute
   ProdutoSlugRoute: typeof ProdutoSlugRoute
-  SrcRoutesAdminAparenciaRoute: typeof SrcRoutesAdminAparenciaRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -527,13 +514,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProdutoSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/src/routes/admin/aparencia': {
-      id: '/src/routes/admin/aparencia'
-      path: '/src/routes/admin/aparencia'
-      fullPath: '/src/routes/admin/aparencia'
-      preLoaderRoute: typeof SrcRoutesAdminAparenciaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
   }
 }
 
@@ -592,7 +572,6 @@ const rootRouteChildren: RootRouteChildren = {
   SobreRoute: SobreRoute,
   PortalSlugRoute: PortalSlugRoute,
   ProdutoSlugRoute: ProdutoSlugRoute,
-  SrcRoutesAdminAparenciaRoute: SrcRoutesAdminAparenciaRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
