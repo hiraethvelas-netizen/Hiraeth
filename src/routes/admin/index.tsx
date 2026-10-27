@@ -12,7 +12,7 @@ type Order = { id: string; total: number; status: string; customer_name: string 
 type ProductStock = { id: string; name: string; stock: number; status: string; price: number; sale_price: number | null };
 
 function AdminDashboard() {
-  const [stats, setStats] = useState({ products: 0, published: 0, orders: 0, pending: 0, paid: 0, revenue: 0, portals: 0, subscribers: 0, lowStock: 0, outOfStock: 0 });
+  const [stats, setStats] = useState({ products: 0, published: 0, orders: 0, pending: 0, paid: 0, revenue: 0, portals: 0, lowStock: 0, outOfStock: 0 });
   const [recentOrders, setRecentOrders] = useState<Order[]>([]);
   const [lowProducts, setLowProducts] = useState<ProductStock[]>([]);
   const [loading, setLoading] = useState(true);
@@ -23,13 +23,12 @@ function AdminDashboard() {
 
   const load = useCallback(async () => {
     setLoading(true); setError(false);
-    const [prods, orders, portals, subs] = await Promise.all([
+    const [prods, orders, portals] = await Promise.all([
       supabase.from("products").select("id,name,stock,status,price,sale_price"),
       supabase.from("orders").select("id,total,status,customer_name,customer_email,created_at").order("created_at", { ascending: false }),
       supabase.from("portals").select("id", { count: "exact", head: true }),
-      supabase.from("newsletter_subscribers").select("id", { count: "exact", head: true }),
     ]);
-    if (prods.error || orders.error || portals.error || subs.error) { setError(true); setLoading(false); return; }
+    if (prods.error || orders.error || portals.error) { setError(true); setLoading(false); return; }
     const ps = (prods.data ?? []) as ProductStock[];
     const os = (orders.data ?? []) as Order[];
     const now = new Date();
@@ -56,7 +55,7 @@ function AdminDashboard() {
       products: ps.length, published: ps.filter((p) => p.status === "published").length,
       orders: filteredOrders.length, pending: filteredOrders.filter((o) => ["pending", "awaiting_payment"].includes(o.status)).length,
       paid: paidOrders.length, revenue: paidOrders.reduce((s, o) => s + Number(o.total), 0),
-      portals: portals.count ?? 0, subscribers: subs.count ?? 0,
+      portals: portals.count ?? 0,
       lowStock: ps.filter((p) => p.stock > 0 && p.stock <= 5).length,
       outOfStock: ps.filter((p) => p.stock <= 0).length,
     });
@@ -72,7 +71,6 @@ function AdminDashboard() {
     { label: "Pedidos pagos", value: String(stats.paid), detail: "Inclui pedidos em preparação e entregues", to: "/admin/pedidos" },
     { label: "Receita dos pedidos pagos", value: brl(stats.revenue), detail: "No período selecionado", to: "/admin/pedidos" },
     { label: "Portais NFC", value: String(stats.portals), detail: "Universos cadastrados", to: "/admin/portais" },
-    { label: "Newsletter", value: String(stats.subscribers), detail: "Pessoas inscritas", to: "/admin" },
   ] as const;
 
   return <div>
@@ -91,7 +89,7 @@ function AdminDashboard() {
           <label className="text-xs text-muted-foreground">Até <input type="date" value={dateTo} min={dateFrom || undefined} onChange={(e) => setDateTo(e.target.value)} className="ml-1 border bg-background px-2 py-2 text-sm text-foreground" /></label>
         </div>}
       </div>
-      <p className="mt-2 text-xs text-muted-foreground">O filtro altera a quantidade de pedidos, pedidos pagos e receita. Produtos, estoque, portais e newsletter continuam mostrando os totais atuais.</p>
+      <p className="mt-2 text-xs text-muted-foreground">O filtro altera a quantidade de pedidos, pedidos pagos e receita. Produtos, estoque e portais continuam mostrando os totais atuais.</p>
     </section>
     {loading ? <p className="mt-8 text-muted-foreground">Carregando indicadores...</p> : error ? <div className="mt-8 border bg-card p-5"><p className="text-foreground">Não foi possível carregar todos os indicadores.</p><button onClick={() => void load()} className="btn-gold mt-3">Tentar novamente</button></div> : <>
       <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">{cards.map((c) => <Link key={c.label} to={c.to} className="group border bg-card p-5 transition-all hover:border-primary hover:shadow-[var(--glow)]"><p className="text-xs uppercase tracking-widest text-muted-foreground">{c.label}</p><p className="mt-3 text-3xl text-primary">{c.value}</p><p className="mt-2 text-xs text-muted-foreground">{c.detail}</p><p className="mt-4 text-xs text-primary opacity-0 transition-opacity group-hover:opacity-100">Abrir seção →</p></Link>)}</div>
