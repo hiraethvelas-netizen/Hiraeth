@@ -84,10 +84,10 @@ export function useSiteContent<T extends Record<string, unknown>>(key: string, d
   return [value, save] as const;
 }
 
-/** Uploads an admin image to the private site-banners bucket and returns a long-lived URL. */
+/** Uploads an admin image to the public site-banners bucket and returns its stable public URL. */
 export async function uploadSiteImage(file: File, prefix: string) {
-  if (!["image/jpeg", "image/png", "image/webp", "image/gif"].includes(file.type)) throw new Error("Use JPG, PNG, WebP ou GIF.");
-  if (file.size > 10 * 1024 * 1024) throw new Error("Cada imagem deve ter até 10 MB.");
+  if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) throw new Error("Formato não permitido pelo armazenamento. Use JPG, PNG ou WebP.");
+  if (file.size > 5 * 1024 * 1024) throw new Error("A imagem deve ter até 5 MB. Reduza o tamanho do arquivo e tente novamente.");
   const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
   const path = `${prefix}/${crypto.randomUUID()}.${ext}`;
   const bucket = supabase.storage.from("site-banners");
