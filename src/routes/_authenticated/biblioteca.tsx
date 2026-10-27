@@ -5,6 +5,7 @@ import { SiteFooter, SiteHeader } from "@/components/SiteLayout";
 import { brl } from "@/lib/format";
 import { toast } from "sonner";
 import { InlineEditor } from "@/components/InlineEditor";
+import { useSiteContent } from "@/lib/admin-edit";
 import type { Tables } from "@/integrations/supabase/types";
 
 type LibraryItem = Tables<"library_items"> & { products: Tables<"products"> | null };
@@ -16,6 +17,7 @@ export const Route = createFileRoute("/_authenticated/biblioteca")({
 });
 
 function Biblioteca() {
+  const [pageSettings, savePageSettings] = useSiteContent("library-page-settings", { eyebrow: "Sua estante pessoal", title: "Minha Biblioteca", description: "Reúna sua coleção, acompanhe suas velas e guarde os próximos universos que deseja conhecer.", collectionLabel: "Minha coleção", wishlistLabel: "Meus desejos" });
   const [tab, setTab] = useState<"colecao" | "desejos">("colecao");
   const [library, setLibrary] = useState<LibraryItem[]>([]);
   const [wishlist, setWishlist] = useState<WishlistItem[]>([]);
@@ -117,21 +119,25 @@ function Biblioteca() {
     <div className="min-h-screen">
       <SiteHeader />
       <main className="mx-auto max-w-5xl px-6 pb-20 pt-32">
-        <p className="eyebrow">Sua estante pessoal</p>
-        <h1 className="mt-2 text-5xl text-foreground">Minha Biblioteca</h1>
+        <div className="mb-4 space-y-3">
+          <InlineEditor label="página Minha Biblioteca e Favoritos" fields={[{ name: "eyebrow", label: "Texto pequeno acima do título", type: "text" }, { name: "title", label: "Título da página", type: "text" }, { name: "description", label: "Texto de apresentação", type: "textarea" }, { name: "collectionLabel", label: "Nome da aba da coleção", type: "text" }, { name: "wishlistLabel", label: "Nome da aba de favoritos/desejos", type: "text" }]} values={pageSettings} onSave={async (next) => savePageSettings({ ...pageSettings, ...next } as typeof pageSettings)} />
+        </div>
+        <p className="eyebrow">{pageSettings.eyebrow}</p>
+        <h1 className="mt-2 text-5xl text-foreground">{pageSettings.title}</h1>
+        {pageSettings.description && <p className="mt-3 max-w-2xl text-muted-foreground">{pageSettings.description}</p>
 
         <div className="mt-8 flex flex-wrap items-center gap-3">
           <button
             onClick={() => setTab("colecao")}
             className={`border px-4 py-2 text-xs uppercase tracking-widest ${tab === "colecao" ? "border-primary text-primary" : "text-muted-foreground"}`}
           >
-            Minha coleção ({library.length})
+            {pageSettings.collectionLabel} ({library.length})
           </button>
           <button
             onClick={() => setTab("desejos")}
             className={`border px-4 py-2 text-xs uppercase tracking-widest ${tab === "desejos" ? "border-primary text-primary" : "text-muted-foreground"}`}
           >
-            Meus desejos ({wishlist.length})
+            {pageSettings.wishlistLabel} ({wishlist.length})
           </button>
           <span className="flex-1" />
           <Link to="/pedidos" className="text-sm text-muted-foreground underline hover:text-primary">
