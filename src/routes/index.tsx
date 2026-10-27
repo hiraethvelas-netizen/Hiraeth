@@ -89,7 +89,7 @@ const HOME_FIELDS = [
 export function ExistingHomepage() {
   const [shortcuts, setShortcuts] = useState<Shortcut[]>([]);
   const [banners, setBanners] = useState<HomeBanner[]>([]);
-  const { isAdmin, editMode, toggle } = useAdminEdit();
+  const { isAdmin, editMode } = useAdminEdit();
   const [content, saveContent] = useSiteContent<HomeContent>("homepage", DEFAULT_HOME_CONTENT);
   useEffect(() => {
     (supabase as any).from("site_shortcuts").select("*").eq("active", true).order("position")
