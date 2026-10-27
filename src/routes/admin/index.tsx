@@ -63,7 +63,7 @@ function AdminDashboard() {
     setRecentOrders(filteredOrders.slice(0, 6));
     setLowProducts(ps.filter((p) => p.stock <= 5).sort((a, b) => a.stock - b.stock).slice(0, 6));
     setLoading(false);
-  }, []);
+  }, [period, dateFrom, dateTo]);
 
   useEffect(() => { void load(); }, [load]);
   const cards = [
