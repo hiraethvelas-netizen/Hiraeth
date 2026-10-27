@@ -47,11 +47,7 @@ function PortalPage() {
           .eq("visible", true)
           .order("position");
         setFragments(frags ?? []);
-        if (data.intro_enabled) {
-          setTimeout(() => setIntro(false), data.intro_duration_ms);
-        } else {
-          setIntro(false);
-        }
+        setIntro(Boolean(data.intro_enabled));
       }
       setLoading(false);
     }
@@ -74,19 +70,36 @@ function PortalPage() {
     <div className="min-h-screen">
       {intro && portal.intro_enabled && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-background">
-          {portal.cover_url && (
+          {portal.intro_video_url ? (
+            <video
+              className="absolute inset-0 h-full w-full object-cover"
+              src={portal.intro_video_url}
+              poster={portal.cover_url ?? undefined}
+              autoPlay
+              muted
+              playsInline
+              loop
+              aria-label={portal.intro_title ?? portal.name}
+            />
+          ) : portal.cover_url ? (
             <img src={portal.cover_url} alt="" className="animate-portal absolute inset-0 h-full w-full object-cover" />
-          )}
+          ) : null}
           <div className="absolute inset-0 bg-overlay" />
-          <div className="animate-portal relative px-6 text-center">
+          <div className="animate-portal relative flex flex-col items-center px-6 text-center">
             <h1 className="text-5xl text-foreground md:text-7xl">{portal.intro_title ?? portal.name}</h1>
             {portal.intro_subtitle && <p className="eyebrow mt-4 text-xl">{portal.intro_subtitle}</p>}
+            <button
+              onClick={() => setIntro(false)}
+              className="btn-gold mt-10"
+            >
+              {portal.intro_cta_text || "Atravesse o Portal"}
+            </button>
           </div>
           <button
             onClick={() => setIntro(false)}
             className="absolute bottom-6 right-6 border px-4 py-2 text-xs uppercase tracking-[0.3em] text-muted-foreground hover:text-primary"
           >
-            Pular
+            Pular abertura
           </button>
         </div>
       )}
@@ -99,6 +112,12 @@ function PortalPage() {
         <div className="relative px-6 text-center">
           {portal.universe && <p className="eyebrow text-xl">{portal.universe}</p>}
           <h1 className="mt-3 text-5xl md:text-7xl">{portal.name}</h1>
+          {portal.intro_subtitle && <p className="mx-auto mt-4 max-w-2xl text-lg text-foreground/85">{portal.intro_subtitle}</p>}
+          {portal.store_category_url && (
+            <a href={portal.store_category_url} className="btn-gold mt-8 inline-flex">
+              Conheça as velas deste universo
+            </a>
+          )}
         </div>
       </header>
 

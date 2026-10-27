@@ -124,7 +124,7 @@ function Biblioteca() {
         </div>
         <p className="eyebrow">{pageSettings.eyebrow}</p>
         <h1 className="mt-2 text-5xl text-foreground">{pageSettings.title}</h1>
-        {pageSettings.description && <p className="mt-3 max-w-2xl text-muted-foreground">{pageSettings.description}</p>
+        {pageSettings.description && <p className="mt-3 max-w-2xl text-muted-foreground">{pageSettings.description}</p>}
 
         <div className="mt-8 flex flex-wrap items-center gap-3">
           <button
