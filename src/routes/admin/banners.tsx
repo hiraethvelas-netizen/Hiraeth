@@ -49,7 +49,7 @@ function BannersAdmin() {
         const { data } = supabase.storage.from("site-banners").getPublicUrl(path);
         imageUrl = data.publicUrl;
       }
-      if (!imageUrl) throw new Error("Adicione uma imagem ou cole o link público da imagem.");
+      if (!imageUrl) throw new Error("Escolha uma imagem do celular ou computador.");
       const payload = { title: form.title.trim() || null, image_url: imageUrl, href: form.href.trim(), position: Number(form.position), active: form.active, updated_at: new Date().toISOString() };
       const result = editing
         ? await (supabase as any).from("site_banners").update(payload).eq("id", editing)
@@ -76,14 +76,14 @@ function BannersAdmin() {
   }
 
   return <div className="space-y-8">
-    <header><p className="text-xs uppercase tracking-[0.25em] text-primary">Página inicial</p><h1 className="mt-2 font-display text-4xl text-foreground">Banners do Círculo</h1><p className="mt-3 max-w-2xl text-muted-foreground">Gerencie os banners horizontais de “Novidades do Círculo”. A imagem pode ser enviada do seu aparelho (JPG, PNG ou WebP, até 5 MB). O título é opcional.</p></header>
+    <header><p className="text-xs uppercase tracking-[0.25em] text-primary">Página inicial</p><h1 className="mt-2 font-display text-4xl text-foreground">Banners do Círculo</h1><p className="mt-3 max-w-2xl text-muted-foreground">Gerencie os banners horizontais de “Novidades do Círculo”. Escolha a imagem diretamente do celular ou computador; não é necessário colar links. JPG, PNG ou WebP, até 5 MB. O título é opcional.</p></header>
     {message && <p role="status" className="border border-primary/30 p-4 text-sm">{message}</p>}
     <section className="border p-5 md:p-7">
       <h2 className="font-display text-2xl">{editing ? "Editar banner" : "Adicionar banner"}</h2>
       <form onSubmit={save} className="mt-6 grid gap-5 md:grid-cols-2">
         <label className="grid gap-2 text-sm">Título (opcional)<input value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} className="border bg-transparent px-3 py-3" placeholder="Ex.: Um novo portal te espera" /></label>
         <label className="grid gap-2 text-sm">Link de destino<input required value={form.href} onChange={e => setForm({ ...form, href: e.target.value })} className="border bg-transparent px-3 py-3" placeholder="/loja ou /produto/nome" /></label>
-        <label className="grid gap-2 text-sm md:col-span-2">Imagem do banner<input type="file" accept="image/png,image/jpeg,image/webp" onChange={e => setFile(e.target.files?.[0] ?? null)} className="block w-full border bg-transparent px-3 py-3 file:mr-4 file:border-0 file:bg-primary file:px-3 file:py-2 file:text-primary-foreground" /><span className="text-xs text-muted-foreground">Ou, se a imagem já estiver hospedada, cole abaixo o link público direto.</span><input type="url" value={form.image_url} onChange={e => setForm({ ...form, image_url: e.target.value })} className="border bg-transparent px-3 py-3" placeholder="https://..." />{file && <span className="text-xs text-muted-foreground">Arquivo selecionado: {file.name}</span>}</label>
+        <label className="grid gap-2 text-sm md:col-span-2">Imagem do banner<input type="file" accept="image/png,image/jpeg,image/webp" onChange={e => setFile(e.target.files?.[0] ?? null)} className="block w-full border bg-transparent px-3 py-3 file:mr-4 file:border-0 file:bg-primary file:px-3 file:py-2 file:text-primary-foreground" /><span className="text-xs text-muted-foreground">Escolha uma imagem do celular ou computador (JPG, PNG ou WebP, até 5 MB). Ao editar, se não selecionar outra imagem, a atual será mantida.</span>{file && <span className="text-xs text-muted-foreground">Arquivo selecionado: {file.name}</span>}</label>
         <label className="grid gap-2 text-sm">Ordem de exibição<input required type="number" min="1" value={form.position} onChange={e => setForm({ ...form, position: Number(e.target.value) })} className="border bg-transparent px-3 py-3" /></label>
         <label className="flex items-center gap-3 text-sm"><input type="checkbox" checked={form.active} onChange={e => setForm({ ...form, active: e.target.checked })} />Exibir na página inicial</label>
         {(file || form.image_url) && <div className="md:col-span-2"><p className="mb-2 text-xs text-muted-foreground">Prévia</p><img src={file ? URL.createObjectURL(file) : form.image_url} alt="Prévia do banner" className="max-h-48 w-full rounded-sm object-cover" /></div>}
