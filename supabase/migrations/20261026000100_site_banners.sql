@@ -24,7 +24,10 @@ with check (public.has_role(auth.uid(), 'admin'));
 
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values ('site-banners', 'site-banners', true, 5242880, array['image/jpeg','image/png','image/webp'])
-on conflict (id) do nothing;
+on conflict (id) do update set
+  public = excluded.public,
+  file_size_limit = excluded.file_size_limit,
+  allowed_mime_types = excluded.allowed_mime_types;
 
 create policy "Public can view homepage banner images"
 on storage.objects for select
