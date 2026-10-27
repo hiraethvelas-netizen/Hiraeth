@@ -33,6 +33,7 @@ function Aparencia() {
   const [message, setMessage] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyShortcut);
+  const [imageFile, setImageFile] = useState<File | null>(null);
 
   async function loadItems() {
     setLoading(true);
@@ -55,6 +56,7 @@ function Aparencia() {
 
   function startEdit(item: Shortcut) {
     setEditingId(item.id);
+    setImageFile(null);
     setForm({
       title: item.title,
       description: item.description ?? "",
@@ -68,6 +70,7 @@ function Aparencia() {
 
   function startNew() {
     setEditingId(null);
+    setImageFile(null);
     setForm({ ...emptyShortcut, position: items.length + 1 });
     setMessage("");
   }
@@ -77,11 +80,32 @@ function Aparencia() {
     setSaving(true);
     setMessage("");
 
+    let imageKey = form.image_key;
+    try {
+      if (imageFile) {
+        if (!["image/jpeg", "image/png", "image/webp", "image/gif"].includes(imageFile.type)) {
+          throw new Error("Escolha uma imagem JPG, PNG, WebP ou GIF.");
+        }
+        if (imageFile.size > 10 * 1024 * 1024) {
+          throw new Error("A imagem precisa ter no máximo 10 MB.");
+        }
+        const ext = imageFile.name.split(".").pop()?.toLowerCase() || "jpg";
+        const path = `shortcuts/${crypto.randomUUID()}.${ext}`;
+        const { error: uploadError } = await supabase.storage.from("site-banners").upload(path, imageFile, { upsert: false, contentType: imageFile.type });
+        if (uploadError) throw uploadError;
+        imageKey = supabase.storage.from("site-banners").getPublicUrl(path).data.publicUrl;
+      }
+    } catch (err) {
+      setMessage("Não foi possível enviar a imagem: " + (err instanceof Error ? err.message : "erro desconhecido"));
+      setSaving(false);
+      return;
+    }
+
     const payload = {
       title: form.title.trim(),
       description: form.description.trim() || null,
       href: form.href.trim(),
-      image_key: form.image_key,
+      image_key: imageKey,
       position: Number(form.position),
       active: form.active,
     };
@@ -100,6 +124,7 @@ function Aparencia() {
     } else {
       setMessage("Atalho salvo com sucesso!");
       setEditingId(null);
+      setImageFile(null);
       setForm({ ...emptyShortcut, position: items.length + 2 });
       await loadItems();
     }
@@ -209,26 +234,32 @@ function Aparencia() {
           <label className="grid gap-2 text-sm md:col-span-2">
             Imagem do atalho
             <input
-              type="url"
-              value={/^https?:\/\//i.test(form.image_key) ? form.image_key : ""}
-              onChange={(e) => setForm({ ...form, image_key: e.target.value.trim() })}
-              className="border bg-transparent px-3 py-3"
-              placeholder="Cole aqui o link direto da imagem (https://...)"
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              onChange={(e) => setImageFile(e.target.files?.[0] ?? null)}
+              className="block w-full border bg-transparent px-3 py-3 file:mr-4 file:border-0 file:bg-primary file:px-3 file:py-2 file:text-primary-foreground"
             />
             <span className="text-xs leading-relaxed text-muted-foreground">
-              Use um link público direto para a imagem. Para manter uma imagem padrão, escolha uma opção abaixo.
+              Escolha uma imagem do celular ou computador (JPG, PNG, WebP ou GIF, até 10 MB). Ao salvar, ela será enviada automaticamente. Se não escolher outra, a imagem atual será mantida.
             </span>
             <select
-              value={/^https?:\/\//i.test(form.image_key) ? "custom" : form.image_key}
-              onChange={(e) => setForm({ ...form, image_key: e.target.value === "custom" ? "" : e.target.value })}
+              value={/^https?:\/\//i.test(form.image_key) ? "uploaded" : form.image_key}
+              onChange={(e) => setForm({ ...form, image_key: e.target.value })}
               className="border bg-background px-3 py-3"
             >
               <option value="forest">Floresta (padrão)</option>
               <option value="portal">Portal (padrão)</option>
               <option value="phoenix">Fênix (padrão)</option>
               <option value="banner">Banner do portal (padrão)</option>
-              <option value="custom">Usar link de imagem acima</option>
+              {/^https?:\/\//i.test(form.image_key) && <option value="uploaded">Imagem personalizada atual</option>}
             </select>
+            {(imageFile || /^https?:\/\//i.test(form.image_key)) && (
+              <img
+                src={imageFile ? URL.createObjectURL(imageFile) : form.image_key}
+                alt="Prévia da imagem do atalho"
+                className="mt-2 h-32 w-32 rounded-full border object-cover"
+              />
+            )}
           </label>
 
           <label className="grid gap-2 text-sm">
