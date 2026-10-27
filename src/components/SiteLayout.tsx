@@ -94,19 +94,27 @@ export function SiteHeader() {
 }
 
 export function SiteFooter() {
-return (
-<footer className="border-t px-6 py-10 text-center text-sm text-muted-foreground">
-<p className="font-display text-lg italic text-primary">
-Onde a Chama Acesa te Espera
-</p>
-<p className="mt-3">
-© {new Date().getFullYear()} Hiraeth ·{" "}
-<Link to="/privacidade" className="underline hover:text-primary">
-Privacidade
-</Link>
-</p>
-</footer>
-);
+  const [profile, setProfile] = useState<{ instagram_url: string; whatsapp_number: string; whatsapp_url: string; contact_email: string } | null>(null);
+  useEffect(() => {
+    void (async () => {
+      const { data } = await (supabase as any).from("site_profile").select("instagram_url,whatsapp_number,whatsapp_url,contact_email").eq("id", true).maybeSingle();
+      if (data) setProfile(data);
+    })();
+  }, []);
+  const whatsapp = profile?.whatsapp_url || (profile?.whatsapp_number ? `https://wa.me/${profile.whatsapp_number.replace(/\\D/g, "")}` : "");
+  return (
+    <footer className="border-t px-6 py-10 text-center text-sm text-muted-foreground">
+      <p className="font-display text-lg italic text-primary">Onde a Chama Acesa te Espera</p>
+      <nav aria-label="Contatos da Hiraeth" className="mt-5 flex flex-wrap justify-center gap-x-6 gap-y-3">
+        {profile?.instagram_url && <a href={profile.instagram_url} target="_blank" rel="noreferrer" className="underline hover:text-primary">Instagram</a>}
+        {whatsapp && <a href={whatsapp} target="_blank" rel="noreferrer" className="underline hover:text-primary">WhatsApp</a>}
+        {profile?.contact_email && <a href={`mailto:${profile.contact_email}`} className="underline hover:text-primary">{profile.contact_email}</a>}
+      </nav>
+      <p className="mt-5">© {new Date().getFullYear()} Hiraeth ·{" "}
+        <Link to="/privacidade" className="underline hover:text-primary">Privacidade</Link>
+      </p>
+    </footer>
+  );
 }
 
 export function PageShell({
