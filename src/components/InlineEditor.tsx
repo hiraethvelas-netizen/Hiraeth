@@ -32,11 +32,23 @@ export function InlineEditor({ label, fields, values, onSave, className = "" }: 
     setBusy(false);
   }
 
-  async function submit(e: React.FormEvent) {
-    e.preventDefault(); setBusy(true);
-    try { await onSave(form); toast.success("Alterações salvas."); setOpen(false); }
-    catch (err) { toast.error("Não foi possível salvar: " + (err instanceof Error ? err.message : "erro")); }
-    setBusy(false);
+  async function saveChanges() {
+    if (busy) return;
+    setBusy(true);
+    try {
+      await onSave(form);
+      toast.success("Alterações salvas.");
+      setOpen(false);
+    } catch (err) {
+      toast.error("Não foi possível salvar: " + (err instanceof Error ? err.message : "erro"));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function submit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    void saveChanges();
   }
 
   return (
@@ -92,7 +104,7 @@ export function InlineEditor({ label, fields, values, onSave, className = "" }: 
               );
             })}
             <div className="flex gap-3">
-              <button disabled={busy} className="bg-primary px-5 py-2.5 text-primary-foreground disabled:opacity-50">{busy ? "Salvando..." : "Salvar"}</button>
+              <button type="submit" onClick={(e) => { e.preventDefault(); void saveChanges(); }} disabled={busy} className="bg-primary px-5 py-2.5 text-primary-foreground disabled:opacity-50">{busy ? "Salvando..." : "Salvar"}</button>
               <button type="button" onClick={() => setOpen(false)} className="border px-5 py-2.5">Cancelar</button>
             </div>
           </form>
