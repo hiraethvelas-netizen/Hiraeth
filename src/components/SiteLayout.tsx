@@ -42,72 +42,36 @@ const cart = useCart();
 return (
 <header className="relative z-20 w-full border-b border-primary/20 bg-background/95 px-5 py-4 md:px-10">
 <div className="mx-auto grid max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-3">
-{/* Minha conta */}
-<Link
-to="/biblioteca"
-className="flex w-fit items-center gap-2 text-sm text-foreground/85 transition-colors hover:text-primary"
-aria-label="Minha conta"
->
-<svg
-xmlns="http://www.w3.org/2000/svg"
-width="22"
-height="22"
-viewBox="0 0 24 24"
-fill="none"
-stroke="currentColor"
-strokeWidth="1.5"
-strokeLinecap="round"
-strokeLinejoin="round"
-aria-hidden="true"
->
-<circle cx="12" cy="8" r="4" />
-<path d="M5 21v-2a7 7 0 0 1 14 0v2" />
-</svg>
-<span className="hidden sm:inline">Minha conta</span>
-</Link>
-
-    {/* Logo centralizada */}
-    <Link
-      to="/"
-      className="justify-self-center font-display text-2xl italic font-medium tracking-[0.02em] text-foreground sm:text-3xl md:text-4xl"
-      aria-label="Hiraeth - início"
+{/* Menu de conta e acesso administrativo */}
+<details className="relative w-fit">
+  <summary
+    className="flex cursor-pointer list-none items-center gap-2 text-sm text-foreground/85 transition-colors hover:text-primary [&::-webkit-details-marker]:hidden"
+    aria-label="Abrir menu da conta"
+    title="Conta"
+  >
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="22"
+      height="22"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
     >
-      Hiraeth
-    </Link>
-
-    {/* Configurações da conta, tema e sacola de compras */}
-    <div className="ml-auto flex items-center gap-3">
+      <circle cx="12" cy="8" r="4" />
+      <path d="M5 21v-2a7 7 0 0 1 14 0v2" />
+    </svg>
+    <span className="hidden sm:inline">Minha conta</span>
+  </summary>
+  <div className="absolute left-0 top-full z-50 mt-3 w-56 overflow-hidden rounded-md border border-primary/25 bg-background p-1.5 shadow-lg">
     <Link
-      to="/configuracoes"
-      className="flex items-center gap-1.5 text-sm text-foreground/85 transition-colors hover:text-primary"
-      aria-label="Configurações da conta"
-      title="Configurações da conta"
+      to="/biblioteca"
+      className="block rounded px-3 py-2.5 text-sm text-foreground/85 transition-colors hover:bg-primary/10 hover:text-primary"
     >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="21"
-        height="21"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        aria-hidden="true"
-      >
-        <circle cx="12" cy="12" r="3" />
-        <path d="m19.4 15 .1.1a1.7 1.7 0 0 1-2.4 2.4l-.1-.1a1.7 1.7 0 0 0-2.9 1.2v.2a1.7 1.7 0 0 1-3.4 0v-.2a1.7 1.7 0 0 0-2.9-1.2l-.1.1a1.7 1.7 0 0 1-2.4-2.4l.1-.1a1.7 1.7 0 0 0-1.2-2.9H4a1.7 1.7 0 0 1 0-3.4h.2a1.7 1.7 0 0 0 1.2-2.9l-.1-.1a1.7 1.7 0 0 1 2.4-2.4l.1.1a1.7 1.7 0 0 0 2.9-1.2V2a1.7 1.7 0 0 1 3.4 0v.2a1.7 1.7 0 0 0 2.9 1.2l.1-.1a1.7 1.7 0 0 1 2.4 2.4l-.1.1a1.7 1.7 0 0 0 1.2 2.9h.2a1.7 1.7 0 0 1 0 3.4h-.2a1.7 1.7 0 0 0-1.2 2.9Z" />
-      </svg>
-      <span className="hidden lg:inline">Configurações</span>
-    </Link>
-    <Link
-      to="/auth"
-      search={{ redirect: "/admin" }}
-      aria-label="Acesso administrativo"
-      title="Acesso administrativo"
-      className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-primary/30 text-primary/80 transition-colors hover:border-primary hover:bg-primary/10 hover:text-primary"
-    >
-      <img src={fenixImage} alt="" aria-hidden="true" className="h-4 w-4 object-contain" />
+      Minha conta
     </Link>
     <ThemeToggle />
     <Link
