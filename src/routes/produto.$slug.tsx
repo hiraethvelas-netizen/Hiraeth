@@ -7,7 +7,8 @@ import { useCart } from "@/lib/cart";
 import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
 
-type Product = Tables<"products">;\ntype AromaNote = { essence_id: string; quantity_ml: number; essences?: { name: string; top_notes: string[] | null; heart_notes: string[] | null; base_notes: string[] | null } | null };
+type Product = Tables<"products">;
+type AromaNote = { essence_id: string; quantity_ml: number; essences?: { name: string; top_notes: string[] | null; heart_notes: string[] | null; base_notes: string[] | null } | null };
 
 export const Route = createFileRoute("/produto/$slug")({
   head: () => ({
@@ -28,7 +29,8 @@ function ProdutoPage() {
   const [activeImage, setActiveImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [inWishlist, setInWishlist] = useState(false);
-  const [userId, setUserId] = useState<string | null>(null);\n  const [aromaNotes, setAromaNotes] = useState<AromaNote[]>([]);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [aromaNotes, setAromaNotes] = useState<AromaNote[]>([]);
 
   useEffect(() => {
     async function load() {
