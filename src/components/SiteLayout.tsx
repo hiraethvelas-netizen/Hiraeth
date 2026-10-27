@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 import { useCart } from "@/lib/cart";
+import fenixImage from "@/assets/fenix.png";
 
 function ThemeToggle() {
   const [dark, setDark] = useState(false);
@@ -106,7 +107,7 @@ aria-hidden="true"
       title="Acesso administrativo"
       className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-primary/30 text-primary/80 transition-colors hover:border-primary hover:bg-primary/10 hover:text-primary"
     >
-      <img src="/assets/fenix.png" alt="" aria-hidden="true" className="h-4 w-4 object-contain" />
+      <img src={fenixImage} alt="" aria-hidden="true" className="h-4 w-4 object-contain" />
     </Link>
     <ThemeToggle />
     <Link
