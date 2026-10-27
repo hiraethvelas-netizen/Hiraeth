@@ -1,39 +1,49 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { PageShell } from "@/components/SiteLayout";
+import { supabase } from "@/integrations/supabase/client";
 import { InlineEditor } from "@/components/InlineEditor";
-import { useSiteContent } from "@/lib/admin-edit";
 
-type AboutContent = { title: string; storyTitle: string; story: string; storyImage: string; ownerTitle: string; ownerText: string; ownerImage: string };
-const defaults: AboutContent = {
- title: "Sobre a Hiraeth",
- storyTitle: "A história da Hiraeth",
- story: "A Hiraeth nasceu do amor pelos livros, pelas histórias e pelos universos que continuam vivendo dentro de nós.",
- storyImage: "", ownerTitle: "Prazer, eu sou a Mari",
- ownerText: "Eu sou Mari, a Guardiã da Chama. Crio cada detalhe da Hiraeth com carinho, nostalgia e a vontade de transformar histórias em experiências.",
- ownerImage: ""
-};
+type Profile = { about_story: string; about_mari: string; about_image_url: string; story_image_url: string; instagram_url: string; whatsapp_number: string; whatsapp_url: string; contact_email: string };
+const defaults: Profile = { about_story: "A Hiraeth nasceu do amor pelos livros, pelas histórias e pelos universos que continuam vivendo dentro de nós.", about_mari: "Eu sou Mari, a Guardiã da Chama. Crio cada detalhe da Hiraeth com carinho, nostalgia e a vontade de transformar histórias em experiências.", about_image_url: "", story_image_url: "", instagram_url: "", whatsapp_number: "", whatsapp_url: "", contact_email: "" };
+
 export const Route = createFileRoute("/sobre")({
- head: () => ({ meta: [{ title: "Sobre a Hiraeth — Guardiã da chama" }, { name: "description", content: "A história da Hiraeth e de Mari, Guardiã da Chama." }] }),
- component: Sobre,
+  head: () => ({ meta: [{ title: "Sobre a Hiraeth — Guardiã da chama" }, { name: "description", content: "A história da Hiraeth e de Mari, Guardiã da Chama." }, { property: "og:title", content: "Sobre a Hiraeth" }, { property: "og:description", content: "Onde a Chama Acesa te Espera: a história da Hiraeth." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }] }),
+  component: Sobre,
 });
 function Sobre() {
- const [content, save] = useSiteContent<AboutContent>("about-page", defaults);
- const fields = [
-  {name:"title",label:"Título da página",type:"text"},{name:"storyTitle",label:"Título da história",type:"text"},
-  {name:"story",label:"Texto sobre a Hiraeth",type:"textarea"},{name:"storyImage",label:"Imagem da história",type:"image"},
-  {name:"ownerTitle",label:"Título da apresentação",type:"text"},{name:"ownerText",label:"Texto de apresentação",type:"textarea"},
-  {name:"ownerImage",label:"Imagem da Mari",type:"image"}
- ] as const;
- return <PageShell eyebrow="Guardiã da chama" title={content.title}>
-  <div className="space-y-8">
-   <InlineEditor label="Conheça a Hiraeth" fields={[...fields]} values={content} onSave={async (next) => save({...content,...next} as AboutContent)} />
-   {content.storyImage && <img src={content.storyImage} alt="Memórias do início da Hiraeth" className="max-h-[28rem] w-full object-cover" />}
-   <section className="space-y-4 whitespace-pre-line"><h2 className="font-display text-3xl text-foreground">{content.storyTitle}</h2><p>{content.story}</p></section>
-   <section className="grid items-start gap-6 md:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
-    {content.ownerImage && <img src={content.ownerImage} alt="Mari, Guardiã da Chama da Hiraeth" className="w-full object-cover" />}
-    <div className="space-y-4 whitespace-pre-line"><p className="eyebrow">Guardiã da chama</p><h2 className="font-display text-3xl text-foreground">{content.ownerTitle}</h2><p>{content.ownerText}</p></div>
-   </section>
-   <p className="border-t pt-6 italic text-primary">Onde a Chama Acesa te Espera</p>
-  </div>
- </PageShell>;
+  const [profile, setProfile] = useState<Profile>(defaults);
+  useEffect(() => { void (async () => { const { data } = await (supabase as any).from("site_profile").select("*").eq("id", true).maybeSingle(); if (data) setProfile({ ...defaults, ...data }); })(); }, []);
+  async function save(values: Record<string, unknown>) {
+    const payload = {
+      about_story: String(values.about_story ?? profile.about_story),
+      about_mari: String(values.about_mari ?? profile.about_mari),
+      story_image_url: String(values.story_image_url ?? profile.story_image_url),
+      about_image_url: String(values.about_image_url ?? profile.about_image_url),
+    };
+    const { error } = await (supabase as any).from("site_profile").upsert({ id: true, ...profile, ...payload }, { onConflict: "id" });
+    if (error) throw error;
+    setProfile(current => ({ ...current, ...payload }));
+  }
+  return <PageShell eyebrow="Guardiã da chama" title="Sobre a Hiraeth">
+    <div className="space-y-8">
+      <InlineEditor label="história da Hiraeth" fields={[
+        { name: "story_image_url", label: "Imagem da história", type: "image" },
+        { name: "about_story", label: "Texto da história", type: "textarea" },
+      ]} values={{ story_image_url: profile.story_image_url, about_story: profile.about_story }} onSave={save} />
+      {profile.story_image_url && <img src={profile.story_image_url} alt="Memórias do início da Hiraeth" className="max-h-[28rem] w-full object-cover" />}
+      <section className="space-y-4 whitespace-pre-line"><h2 className="font-display text-3xl text-foreground">A história da Hiraeth</h2><p>{profile.about_story}</p></section>
+      <section className="grid items-start gap-6 md:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
+        <div className="space-y-4">
+          <InlineEditor label="apresentação da Mari" fields={[
+            { name: "about_image_url", label: "Foto da Mari", type: "image" },
+            { name: "about_mari", label: "Texto de apresentação", type: "textarea" },
+          ]} values={{ about_image_url: profile.about_image_url, about_mari: profile.about_mari }} onSave={save} />
+          {profile.about_image_url && <img src={profile.about_image_url} alt="Mari, Guardiã da Chama da Hiraeth" className="w-full object-cover" />}
+        </div>
+        <div className="space-y-4 whitespace-pre-line"><p className="eyebrow">Guardiã da chama</p><h2 className="font-display text-3xl text-foreground">Prazer, eu sou a Mari</h2><p>{profile.about_mari}</p></div>
+      </section>
+      <p className="border-t pt-6 italic text-primary">Onde a Chama Acesa te Espera</p>
+    </div>
+  </PageShell>;
 }
