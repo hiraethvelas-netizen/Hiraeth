@@ -132,8 +132,9 @@ export function SiteFooter() {
       whatsapp_url: String(values.whatsapp_url ?? ""),
       contact_email: String(values.contact_email ?? ""),
     };
-    const { error } = await (supabase as any).from("site_profile").upsert({ id: true, ...payload }, { onConflict: "id" });
-    if (error) throw error;
+    const { data, error } = await (supabase as any).from("site_profile").update({ ...payload, updated_at: new Date().toISOString() }).eq("id", true).select("id").maybeSingle();
+    if (error) throw new Error(`Falha ao salvar contatos no banco (${error.code ?? "sem código"}): ${error.message}. Verifique se a sessão está autenticada como administradora.`);
+    if (!data) throw new Error("Nenhum perfil foi atualizado. Entre novamente na área administrativa e tente salvar.");
     setProfile(payload);
   }
   async function saveTikTok(values: Record<string, unknown>) {
