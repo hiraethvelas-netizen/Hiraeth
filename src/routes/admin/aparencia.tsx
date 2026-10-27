@@ -83,11 +83,11 @@ function Aparencia() {
     let imageKey = form.image_key;
     try {
       if (imageFile) {
-        if (!["image/jpeg", "image/png", "image/webp", "image/gif"].includes(imageFile.type)) {
-          throw new Error("Escolha uma imagem JPG, PNG, WebP ou GIF.");
+        if (!["image/jpeg", "image/png", "image/webp"].includes(imageFile.type)) {
+          throw new Error("O armazenamento aceita imagens JPG, PNG ou WebP.");
         }
-        if (imageFile.size > 10 * 1024 * 1024) {
-          throw new Error("A imagem precisa ter no máximo 10 MB.");
+        if (imageFile.size > 5 * 1024 * 1024) {
+          throw new Error("A imagem precisa ter no máximo 5 MB. Reduza o tamanho e tente novamente.");
         }
         const ext = imageFile.name.split(".").pop()?.toLowerCase() || "jpg";
         const path = `shortcuts/${crypto.randomUUID()}.${ext}`;
@@ -235,12 +235,12 @@ function Aparencia() {
             Imagem do atalho
             <input
               type="file"
-              accept="image/jpeg,image/png,image/webp,image/gif"
+              accept="image/jpeg,image/png,image/webp"
               onChange={(e) => setImageFile(e.target.files?.[0] ?? null)}
               className="block w-full border bg-transparent px-3 py-3 file:mr-4 file:border-0 file:bg-primary file:px-3 file:py-2 file:text-primary-foreground"
             />
             <span className="text-xs leading-relaxed text-muted-foreground">
-              Escolha uma imagem do celular ou computador (JPG, PNG, WebP ou GIF, até 10 MB). Ao salvar, ela será enviada automaticamente. Se não escolher outra, a imagem atual será mantida.
+              Escolha uma imagem do celular ou computador (JPG, PNG ou WebP, até 5 MB). Ao salvar, ela será enviada automaticamente. Se não escolher outra, a imagem atual será mantida.
             </span>
             <select
               value={/^https?:\/\//i.test(form.image_key) ? "uploaded" : form.image_key}
