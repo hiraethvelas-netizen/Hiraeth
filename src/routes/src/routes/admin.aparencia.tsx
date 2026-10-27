@@ -30,7 +30,7 @@ const imageOptions = [
   { value: "banner", label: "Banner" },
 ];
 
-export const Route = createFileRoute("/admin/aparencia")({
+export const Route = createFileRoute("/src/routes/admin/aparencia")({
   ssr: false,
   head: () => ({ meta: [{ title: "Aparência — Admin Hiraeth" }] }),
   component: AdminAparencia,
