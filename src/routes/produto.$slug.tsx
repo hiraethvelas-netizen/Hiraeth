@@ -137,7 +137,9 @@ function ProdutoPage() {
               )}
             </div>
 
-            {aromaNotes.length > 0 && <section className="mt-6 border-l-2 border-primary pl-4"><h2 className="font-display text-xl text-foreground">Pirâmide olfativa</h2>{([["Saída", "top_notes"], ["Corpo", "heart_notes"], ["Fundo", "base_notes"]] as const).map(([label, key])=>{const notes=Array.from(new Set(aromaNotes.flatMap(a=>a.essences?.[key] ?? [])));return notes.length ? <div key={label} className="mt-3"><p className="text-xs uppercase tracking-widest text-primary">{label}</p><p className="mt-1 text-sm text-foreground/85">{notes.join(", ")}</p></div> : null;})}</section>}\n\n            {product.description && (
+            {aromaNotes.length > 0 && <section className="mt-6 border-l-2 border-primary pl-4"><h2 className="font-display text-xl text-foreground">Pirâmide olfativa</h2>{([["Saída", "top_notes"], ["Corpo", "heart_notes"], ["Fundo", "base_notes"]] as const).map(([label, key])=>{const notes=Array.from(new Set(aromaNotes.flatMap(a=>a.essences?.[key] ?? [])));return notes.length ? <div key={label} className="mt-3"><p className="text-xs uppercase tracking-widest text-primary">{label}</p><p className="mt-1 text-sm text-foreground/85">{notes.join(", ")}</p></div> : null;})}</section>}
+
+            {product.description && (
               <p className="mt-6 leading-relaxed text-foreground/85">{product.description}</p>
             )}
 
