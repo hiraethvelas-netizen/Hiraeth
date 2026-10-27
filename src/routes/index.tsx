@@ -88,7 +88,6 @@ const HOME_FIELDS = [
 ] as const;
 
 export function ExistingHomepage() {
-  const [sent, setSent] = useState(false);
   const [shortcuts, setShortcuts] = useState<Shortcut[]>([]);
   const [banners, setBanners] = useState<HomeBanner[]>([]);
   const { isAdmin, editMode } = useAdminEdit();
@@ -121,7 +120,7 @@ export function ExistingHomepage() {
         <h1 className={`mt-2 text-4xl text-foreground md:text-5xl ${headingFont}`}>{content.portalsTitle}</h1>
         <div className="mx-auto mt-8 grid max-w-4xl grid-cols-2 gap-5 sm:grid-cols-3 md:grid-cols-4">
           {(shortcuts.length ? shortcuts : [
-            { id: "default-about", title: "Conheça a Hiraeth", description: "A guardiã da chama", href: "/sobre", image_key: "hiraeth", position: 1, active: true },
+            { id: "default-about", title: "Conheça a Hiraeth", description: "Conheça nossa história", href: "/sobre", image_key: "hiraeth", position: 1, active: true },
             { id: "default-store", title: "Nossa Loja", description: "Velas e camisetas literárias", href: "/loja", image_key: "candle", position: 2, active: true },
             { id: "default-library", title: "Seu próximo portal", description: "Volte ao Círculo do Fogo", href: "/inicio", image_key: "portal", position: 3, active: true },
             { id: "default-care", title: "Cuidados", description: "Cuidados com suas velas", href: "/cuidados", image_key: "book", position: 4, active: true },
@@ -169,17 +168,6 @@ export function ExistingHomepage() {
         </div>
       </section>
     ),
-    phoenix: (
-      <section key="phoenix" className="mx-auto grid max-w-5xl items-center gap-10 px-6 py-16 md:grid-cols-2">
-        <img src={fenix} alt="Fênix Hiraeth" className="mx-auto w-64 md:w-80" loading="lazy" />
-        <div>
-          <p className="eyebrow">A história da Hiraeth</p>
-          <h2 className={`mt-2 text-4xl text-foreground ${headingFont}`}>Guardiã da chama</h2>
-          <p className="mt-5 leading-relaxed text-foreground/85">Hiraeth é a saudade de um lugar ao qual talvez nunca tenhamos ido. Cada vela guarda um universo — um livro, um filme, uma série — para ser reaceso sempre que você quiser voltar.</p>
-          <Link to="/sobre" className="btn-gold mt-8">Ler nossa história</Link>
-        </div>
-      </section>
-    ),
     care: content.showCare && (
       <section key="care" className="border-y bg-card px-6 py-16 text-center">
         <p className="eyebrow">{content.careEyebrow}</p>
@@ -189,27 +177,11 @@ export function ExistingHomepage() {
         <Link to="/cuidados" className="btn-gold mt-8">{content.careButton}</Link>
       </section>
     ),
-    newsletter: (
-      <section key="newsletter" className="mx-auto max-w-xl px-6 py-16 text-center">
-        <p className="eyebrow">Newsletter</p>
-        <h2 className={`mt-2 text-4xl text-foreground ${headingFont}`}>Cartas do Círculo</h2>
-        <p className="mt-5 text-foreground/85">Receba novidades, edições limitadas e portais recém-abertos.</p>
-        {sent ? <p className="eyebrow mt-8 text-xl">Sua carta está a caminho.</p> : <form className="mt-8 flex flex-col gap-3 sm:flex-row" onSubmit={async (e) => {
-          e.preventDefault();
-          const email = new FormData(e.currentTarget).get("email") as string;
-          const { error } = await supabase.from("newsletter_subscribers").insert({ email });
-          if (error && !error.message.includes("duplicate")) return;
-          setSent(true);
-        }}>
-          <input type="email" name="email" required placeholder="seu@email.com" className="flex-1 border bg-transparent px-4 py-3 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none" />
-          <button type="submit" className="btn-gold justify-center">Quero receber</button>
-        </form>}
-      </section>
-    ),
+
   };
 
   const order = content.sectionOrder.split(",").filter((key) => key in sections);
-  const orderedKeys = [...order, ...["portals", "banners", "phoenix", "care", "newsletter"].filter((key) => !order.includes(key))];
+  const orderedKeys = [...order, ...["portals", "banners", "care"].filter((key) => !order.includes(key))];
   const mergedContent = { ...DEFAULT_HOME_CONTENT, ...content } as HomeContent;
 
   return (
