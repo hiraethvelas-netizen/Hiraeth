@@ -7,7 +7,7 @@ type Profile = { about_story: string; about_mari: string; about_image_url: strin
 type AboutLink = { label: string; url: string };
 type AboutBlock = { id: string; title: string; text: string; layout: "text" | "image-left" | "image-right" | "gallery"; images: string[]; links: AboutLink[] };
 const defaults: Profile = { about_story: "A Hiraeth nasceu do amor pelos livros, pelas histórias e pelos universos que continuam vivendo dentro de nós.", about_mari: "Eu sou Mari, a Guardiã da Chama. Crio cada detalhe da Hiraeth com carinho, nostalgia e a vontade de transformar histórias em experiências.", about_image_url: "", story_image_url: "" };
-const seedBlocks = (p: Profile): AboutBlock[] => [{ id: "historia-hiraeth", title: "Sobre a Hiraeth", text: `${p.about_story}\\n\\n${p.about_mari}`, layout: "image-right", images: [p.story_image_url, p.about_image_url].filter(Boolean), links: [] }];
+const seedBlocks = (p: Profile): AboutBlock[] => [{ id: "historia-hiraeth", title: "Sobre a Hiraeth", text: `${p.about_story}\n\n${p.about_mari}`, layout: "image-right", images: [p.story_image_url, p.about_image_url].filter(Boolean), links: [] }];
 export const Route = createFileRoute("/sobre")({
   head: () => ({ meta: [{ title: "Sobre a Hiraeth — Guardiã da chama" }, { name: "description", content: "A história da Hiraeth e de Mari, Guardiã da Chama." }, { property: "og:title", content: "Sobre a Hiraeth" }, { property: "og:description", content: "Onde a Chama Acesa te Espera: a história da Hiraeth." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }] }),
   component: Sobre,
@@ -28,9 +28,9 @@ function Sobre() {
         const guardIndex = merged.findIndex(block => block.id === "guardiã-da-chama" || block.id === "guardia-da-chama" || /guardi[aã].*chama|prazer.*mari|sobre.*mari/i.test(block.title));
         if (guardIndex >= 0 && guardIndex !== mainIndex) {
           const guard = merged[guardIndex];
-          const targetIndex = mainIndex >= 0 ? mainIndex : 0;
+          const targetIndex = mainIndex >= 0 ? mainIndex : Math.max(0, merged.findIndex((_, index) => index !== guardIndex));
           const target = merged[targetIndex];
-          merged[targetIndex] = { ...target, title: "Sobre a Hiraeth", text: [target.text, guard.text].filter(Boolean).join("\\n\\n"), images: [...(target.images ?? []), ...(guard.images ?? [])], links: [...(target.links ?? []), ...(guard.links ?? [])] };
+          merged[targetIndex] = { ...target, title: "Sobre a Hiraeth", text: [target.text, guard.text].filter(Boolean).join("\n\n"), images: [...(target.images ?? []), ...(guard.images ?? [])], links: [...(target.links ?? []), ...(guard.links ?? [])] };
           merged.splice(guardIndex, 1);
         }
         setBlocks(merged);
