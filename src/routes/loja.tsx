@@ -68,6 +68,13 @@ useEffect(() => {
     setProducts(prods ?? []);
     setCategories(cats ?? []);
 
+    // Permite abrir a loja diretamente em uma categoria usando /loja?categoria=slug.
+    const categorySlug = new URLSearchParams(window.location.search).get("categoria");
+    if (categorySlug) {
+      const selectedCategory = (cats ?? []).find((category) => category.slug === categorySlug);
+      if (selectedCategory) setCategoryId(selectedCategory.id);
+    }
+
     setLoading(false);
   }
 
@@ -131,9 +138,14 @@ useEffect(() => {
             {categories.map((c) => (
               <button
                 key={c.id}
-                onClick={() =>
-                  setCategoryId(c.id === categoryId ? null : c.id)
-                }
+                onClick={() => {
+                  const nextId = c.id === categoryId ? null : c.id;
+                  setCategoryId(nextId);
+                  const url = new URL(window.location.href);
+                  if (nextId) url.searchParams.set("categoria", c.slug);
+                  else url.searchParams.delete("categoria");
+                  window.history.replaceState({}, "", url.toString());
+                }}
                 className={`border px-3 py-1.5 text-xs uppercase tracking-widest ${
                   categoryId === c.id
                     ? "border-primary text-primary"
