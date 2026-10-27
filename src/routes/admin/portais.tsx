@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { slugify } from "@/lib/format";
 import { toast } from "sonner";
+import { PortalFragmentsEditor } from "@/components/admin/PortalFragmentsEditor";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Portal = Tables<"portals">;
@@ -218,6 +219,10 @@ function AdminPortais() {
             <button type="button" onClick={() => setShowForm(false)} className="border px-4 py-2 text-sm text-muted-foreground hover:text-primary">Cancelar</button>
           </div>
         </form>
+      )}
+
+      {editing && !showForm && (
+        <PortalFragmentsEditor portalId={editing.id} />
       )}
 
       {loading ? (
