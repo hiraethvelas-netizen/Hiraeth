@@ -73,7 +73,7 @@ export function SiteHeader() {
           </div>
         </details>
 
-        <Link to="/" className="justify-self-center font-display text-2xl italic font-medium tracking-[0.02em] text-foreground sm:text-3xl md:text-4xl" aria-label="Hiraeth - início">
+        <Link to="/inicio" className="justify-self-center font-display text-2xl italic font-medium tracking-[0.02em] text-foreground sm:text-3xl md:text-4xl" aria-label="Hiraeth - início">
           Hiraeth
         </Link>
 
