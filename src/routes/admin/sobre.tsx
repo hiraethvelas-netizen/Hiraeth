@@ -8,10 +8,7 @@ type AboutLink = { label: string; url: string };
 type AboutBlock = { id: string; title: string; text: string; layout: "text" | "image-left" | "image-right" | "gallery"; images: string[]; links: AboutLink[] };
 const defaults: Profile = { about_story: "A Hiraeth nasceu do amor pelos livros, pelas histórias e pelos universos que continuam vivendo dentro de nós.", about_mari: "Eu sou Mari, a Guardiã da Chama. Crio cada detalhe da Hiraeth com carinho, nostalgia e a vontade de transformar histórias em experiências.", about_image_url: "", story_image_url: "", instagram_url: "", whatsapp_number: "", whatsapp_url: "", contact_email: "" };
 const makeId = () => "bloco-" + Math.random().toString(36).slice(2, 10);
-const seedBlocks = (p: Profile): AboutBlock[] => [
-  { id: "historia-hiraeth", title: "A história da Hiraeth", text: p.about_story, layout: "image-right", images: p.story_image_url ? [p.story_image_url] : [], links: [] },
-  { id: "guardiã-da-chama", title: "Prazer, eu sou a Mari", text: p.about_mari, layout: "image-left", images: p.about_image_url ? [p.about_image_url] : [], links: [] },
-];
+const seedBlocks = (p: Profile): AboutBlock[] => [{ id: "historia-hiraeth", title: "Sobre a Hiraeth", text: `${p.about_story}\n\n${p.about_mari}`, layout: "image-right", images: [p.story_image_url, p.about_image_url].filter(Boolean), links: [] }];
 export const Route = createFileRoute("/admin/sobre")({ component: AdminSobre });
 function AdminSobre() {
   const [form, setForm] = useState<Profile>(defaults);
@@ -31,7 +28,19 @@ function AdminSobre() {
       setBannerSettings({ enabled: false, image_url: "", href: "/loja", title: "", ...(bannerData?.value ?? {}) });
       setForm(next);
       const stored = contentData?.value?.blocks;
-      setBlocks(Array.isArray(stored) && stored.length ? stored : seedBlocks(next));
+      if (Array.isArray(stored) && stored.length) {
+        const merged = [...stored] as AboutBlock[];
+        const mainIndex = merged.findIndex(block => /hist[oó]ria.*hiraeth|sobre.*hiraeth/i.test(block.title) || block.id === "historia-hiraeth");
+        const guardIndex = merged.findIndex(block => block.id === "guardiã-da-chama" || block.id === "guardia-da-chama" || /guardi[aã].*chama|prazer.*mari|sobre.*mari/i.test(block.title));
+        if (guardIndex >= 0 && guardIndex !== mainIndex) {
+          const guard = merged[guardIndex];
+          const targetIndex = mainIndex >= 0 ? mainIndex : 0;
+          const target = merged[targetIndex];
+          merged[targetIndex] = { ...target, title: "Sobre a Hiraeth", text: [target.text, guard.text].filter(Boolean).join("\\n\\n"), images: [...(target.images ?? []), ...(guard.images ?? [])], links: [...(target.links ?? []), ...(guard.links ?? [])] };
+          merged.splice(guardIndex, 1);
+        }
+        setBlocks(merged);
+      } else setBlocks(seedBlocks(next));
       setMessage(profileError || contentError ? "Não foi possível carregar tudo. Confira a conexão com o banco." : "");
       setLoading(false);
     })();
