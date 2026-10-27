@@ -45,8 +45,8 @@ function AuthPage() {
         localStorage.setItem("hiraeth-remember-session", rememberSession ? "true" : "false");
         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        const savedName = data.user.user_metadata?.display_name;
-        setWelcomeName(typeof savedName === "string" && savedName.trim() ? savedName.trim().split(/\s+/)[0] : (data.user.email?.split("@")[0] || "viajante"));
+        const savedName = data.user.user_metadata?.["display_name"];
+        setWelcomeName(typeof savedName === "string" && savedName.trim() ? savedName.trim().split(/\s+/)[0] ?? "viajante" : (data.user.email?.split("@")[0] ?? "viajante"));
         setWelcomeMode("returning");
       } else if (mode === "signup") {
         const { data, error } = await supabase.auth.signUp({

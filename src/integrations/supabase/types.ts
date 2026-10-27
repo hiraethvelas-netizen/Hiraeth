@@ -21,6 +21,7 @@ export type Database = {
           id: string
           image_url: string | null
           name: string
+          parent_id: string | null
           position: number
           slug: string
           visible: boolean
@@ -31,6 +32,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           name: string
+          parent_id?: string | null
           position?: number
           slug: string
           visible?: boolean
@@ -41,9 +43,115 @@ export type Database = {
           id?: string
           image_url?: string | null
           name?: string
+          parent_id?: string | null
           position?: number
           slug?: string
           visible?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "categories_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      essence_stock_movements: {
+        Row: {
+          balance_after_ml: number
+          created_at: string
+          essence_id: string
+          id: string
+          movement_type: string
+          note: string | null
+          order_id: string | null
+          order_item_id: string | null
+          quantity_ml: number
+        }
+        Insert: {
+          balance_after_ml: number
+          created_at?: string
+          essence_id: string
+          id?: string
+          movement_type: string
+          note?: string | null
+          order_id?: string | null
+          order_item_id?: string | null
+          quantity_ml: number
+        }
+        Update: {
+          balance_after_ml?: number
+          created_at?: string
+          essence_id?: string
+          id?: string
+          movement_type?: string
+          note?: string | null
+          order_id?: string | null
+          order_item_id?: string | null
+          quantity_ml?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "essence_stock_movements_essence_id_fkey"
+            columns: ["essence_id"]
+            isOneToOne: false
+            referencedRelation: "essences"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "essence_stock_movements_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "essence_stock_movements_order_item_id_fkey"
+            columns: ["order_item_id"]
+            isOneToOne: false
+            referencedRelation: "order_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      essences: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          minimum_stock_ml: number
+          name: string
+          notes: string | null
+          stock_ml: number
+          supplier: string | null
+          target_stock_ml: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          minimum_stock_ml?: number
+          name: string
+          notes?: string | null
+          stock_ml?: number
+          supplier?: string | null
+          target_stock_ml?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          minimum_stock_ml?: number
+          name?: string
+          notes?: string | null
+          stock_ml?: number
+          supplier?: string | null
+          target_stock_ml?: number
+          updated_at?: string
         }
         Relationships: []
       }
@@ -306,6 +414,45 @@ export type Database = {
         }
         Relationships: []
       }
+      product_essences: {
+        Row: {
+          created_at: string
+          essence_id: string
+          id: string
+          product_id: string
+          quantity_ml: number
+        }
+        Insert: {
+          created_at?: string
+          essence_id: string
+          id?: string
+          product_id: string
+          quantity_ml: number
+        }
+        Update: {
+          created_at?: string
+          essence_id?: string
+          id?: string
+          product_id?: string
+          quantity_ml?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_essences_essence_id_fkey"
+            columns: ["essence_id"]
+            isOneToOne: false
+            referencedRelation: "essences"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_essences_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       products: {
         Row: {
           category_id: string | null
@@ -402,6 +549,39 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id?: string
+        }
+        Relationships: []
+      }
+      site_shortcuts: {
+        Row: {
+          active: boolean
+          description: string
+          href: string
+          id: string
+          image_key: string
+          position: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          description?: string
+          href: string
+          id: string
+          image_key: string
+          position?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          description?: string
+          href?: string
+          id?: string
+          image_key?: string
+          position?: number
+          title?: string
+          updated_at?: string
         }
         Relationships: []
       }

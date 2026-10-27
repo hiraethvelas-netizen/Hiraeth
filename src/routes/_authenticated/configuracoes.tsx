@@ -42,10 +42,10 @@ function AccountSettings() {
         return;
       }
       const user = data.user;
-      setName(user.user_metadata?.display_name ?? user.user_metadata?.full_name ?? "");
+      setName(user.user_metadata?.["display_name"] ?? user.user_metadata?.["full_name"] ?? "");
       setEmail(user.email ?? "");
-      setPhone(user.user_metadata?.phone ?? "");
-      const savedAddress = user.user_metadata?.address;
+      setPhone(user.user_metadata?.["phone"] ?? "");
+      const savedAddress = user.user_metadata?.["address"];
       if (savedAddress && typeof savedAddress === "object") {
         setAddress({ ...emptyAddress, ...savedAddress });
       } else if (typeof savedAddress === "string" && savedAddress.trim()) {
