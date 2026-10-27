@@ -5,6 +5,7 @@ import { SiteFooter, SiteHeader } from "@/components/SiteLayout";
 import { brl } from "@/lib/format";
 import type { Tables } from "@/integrations/supabase/types";
 import { InlineEditor } from "@/components/InlineEditor";
+import { useSiteContent } from "@/lib/admin-edit";
 
 
 type Product = Tables<"products">;
@@ -33,6 +34,7 @@ export const Route = createFileRoute("/loja")({
 
 
 function Loja() {
+  const [pageSettings, savePageSettings] = useSiteContent("store-page-settings", { eyebrow: "O acervo", title: "Loja", intro: "Velas literárias e camisetas inspiradas nos universos que moram em você.", bannerImage: "", showBanner: false });
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
 const [loading, setLoading] = useState(true);
@@ -97,10 +99,13 @@ useEffect(() => {
 
       <main className="mx-auto max-w-6xl px-5 pb-20 pt-8 md:px-8 md:pt-12">
         {/* Catálogo da loja */}
-        <p className="eyebrow">O acervo</p>
-        <h1 className="mt-2 text-4xl text-foreground md:text-5xl">
-          Loja
-        </h1>
+        <div className="mb-5 space-y-3">
+          <InlineEditor label="apresentação da loja" fields={[{ name: "eyebrow", label: "Texto pequeno acima do título", type: "text" }, { name: "title", label: "Título da página", type: "text" }, { name: "intro", label: "Texto de apresentação", type: "textarea" }, { name: "bannerImage", label: "Banner opcional", type: "image" }, { name: "showBanner", label: "Exibir banner", type: "checkbox" }]} values={pageSettings} onSave={async (next) => savePageSettings({ ...pageSettings, ...next } as typeof pageSettings)} />
+        </div>
+        {pageSettings.showBanner && pageSettings.bannerImage && <img src={pageSettings.bannerImage} alt="Banner da loja Hiraeth" className="mb-8 max-h-[28rem] w-full object-cover" />}
+        <p className="eyebrow">{pageSettings.eyebrow}</p>
+        <h1 className="mt-2 text-4xl text-foreground md:text-5xl">{pageSettings.title}</h1>
+        {pageSettings.intro && <p className="mt-3 max-w-2xl text-muted-foreground">{pageSettings.intro}</p>
 
         <div className="mt-8 flex flex-col gap-4 md:flex-row md:items-center">
           <input
