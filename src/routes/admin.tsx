@@ -20,6 +20,10 @@ const NAV = [
   { to: "/admin/aparencia", label: "Aparência" },
   { to: "/admin/sobre", label: "Sobre e contatos" },
   { to: "/admin/banners", label: "Banners da inicial" },
+  { to: "/sobre", label: "Editar Conheça a Hiraeth" },
+  { to: "/loja", label: "Editar página da loja" },
+  { to: "/biblioteca", label: "Editar Biblioteca e favoritos" },
+  { to: "/cuidados", label: "Editar cuidados com a vela" },
 
 ] as const;
 
