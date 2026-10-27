@@ -5,6 +5,7 @@ import { useCart } from "@/lib/cart";
 import fenixImage from "@/assets/fenix.png";
 import { supabase } from "@/integrations/supabase/client";
 import { InlineEditor } from "@/components/InlineEditor";
+import { useAdminEdit } from "@/lib/admin-edit";
 
 function ThemeToggle() {
   const [dark, setDark] = useState(false);
@@ -40,6 +41,7 @@ function ThemeToggle() {
 
 export function SiteHeader() {
   const cart = useCart();
+  const { isAdmin, editMode, toggle } = useAdminEdit();
 
   return (
     <header className="relative z-20 w-full border-b border-primary/20 bg-background/95 px-5 py-4 md:px-10">
@@ -75,7 +77,23 @@ export function SiteHeader() {
           Hiraeth
         </Link>
 
-        <div className="ml-auto flex items-center gap-3">
+        <div className="ml-auto flex items-center gap-2 sm:gap-3">
+          {isAdmin && (
+            <>
+              <button
+                type="button"
+                onClick={toggle}
+                aria-pressed={editMode}
+                className="rounded-full border border-primary px-2.5 py-2 text-xs text-primary transition-colors hover:bg-primary/10 sm:px-3"
+                title={editMode ? "Desativar edição do site" : "Ativar edição do site"}
+              >
+                {editMode ? "Sair da edição" : "Editar site"}
+              </button>
+              <Link to="/admin" className="hidden border border-primary/30 px-3 py-2 text-xs text-foreground transition-colors hover:border-primary sm:inline-flex">
+                Administração
+              </Link>
+            </>
+          )}
           <ThemeToggle />
           <Link
             to="/carrinho"
