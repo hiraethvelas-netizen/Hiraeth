@@ -99,6 +99,15 @@ aria-hidden="true"
       </svg>
       <span className="hidden lg:inline">Configurações</span>
     </Link>
+    <Link
+      to="/auth"
+      search={{ redirect: "/admin" }}
+      aria-label="Acesso administrativo"
+      title="Acesso administrativo"
+      className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-primary/30 text-primary/80 transition-colors hover:border-primary hover:bg-primary/10 hover:text-primary"
+    >
+      <img src="/assets/fenix.png" alt="" aria-hidden="true" className="h-4 w-4 object-contain" />
+    </Link>
     <ThemeToggle />
     <Link
       to="/carrinho"
