@@ -5,6 +5,7 @@ import fenix from "@/assets/fenix.png";
 import { SiteFooter, SiteHeader } from "@/components/SiteLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { CinematicOpening } from "@/components/CinematicOpening";
+import { ShortcutIcon } from "@/components/ShortcutIcon";
 
 type Shortcut = { id: string; title: string; description: string | null; href: string; image_key: string; position: number; active: boolean };
 type HomeBanner = { id: string; title: string | null; image_url: string; href: string; position: number; active: boolean };
@@ -44,7 +45,7 @@ export function ExistingHomepage() {
             {shortcuts.map((item) => (
               <Link key={item.id} to={item.href as never} className="group flex flex-col items-center gap-3 text-center">
                 <span className="block aspect-square w-full max-w-40 overflow-hidden rounded-full border border-primary/40 bg-card p-1 transition-transform group-hover:scale-105">
-                  <img src={imageFor(item.image_key)} alt={item.title} className="h-full w-full rounded-full object-cover" loading="lazy" />
+                  <ShortcutIcon imageKey={item.image_key} title={item.title} />
                 </span>
                 <span className="font-display text-xl text-foreground">{item.title}</span>
                 {item.description && <span className="max-w-40 text-sm text-muted-foreground">{item.description}</span>}
