@@ -50,6 +50,12 @@ function Sobre() {
     <div className="space-y-12">
       {bannerSettings.enabled && bannerSettings.image_url && <a href={bannerSettings.href || "/loja"} target={/^https?:\\/\\//i.test(bannerSettings.href) ? "_blank" : undefined} rel={/^https?:\\/\\//i.test(bannerSettings.href) ? "noreferrer" : undefined} className="block overflow-hidden"><img src={bannerSettings.image_url} alt={bannerSettings.title || "Banner Hiraeth"} className="max-h-[28rem] w-full object-cover" /></a>}
       {shownBlocks.map((block, index) => <section key={block.id || index} className="space-y-5">
+        <InlineEditor label={`bloco ${block.title || "da história"}`} fields={[{ name: "title", label: "Título do bloco", type: "text" }, { name: "text", label: "Texto do bloco", type: "textarea" }, { name: "layout", label: "Layout", type: "select", options: [{ value: "text", label: "Texto e links" }, { value: "image-left", label: "Imagem à esquerda" }, { value: "image-right", label: "Imagem à direita" }, { value: "gallery", label: "Galeria" }] }]} values={{ title: block.title, text: block.text, layout: block.layout }} onSave={async (next) => {
+          const updated = shownBlocks.map((item, i) => i === index ? { ...item, title: String(next.title ?? ""), text: String(next.text ?? ""), layout: String(next.layout ?? item.layout) as AboutBlock["layout"] } : item);
+          const { error } = await (supabase as any).from("site_content").upsert({ key: "about_page_blocks", value: { blocks: updated }, updated_at: new Date().toISOString() }, { onConflict: "key" });
+          if (error) throw error;
+          setBlocks(updated);
+        }} />
         <div className={block.layout === "image-left" || block.layout === "image-right" ? "grid items-center gap-8 md:grid-cols-2" : "space-y-5"}>
           {block.layout === "image-left" && block.images?.length > 0 && <div className="space-y-3">{block.images.map((url, i) => <img key={url + i} src={url} alt={block.title || "Hiraeth"} className="max-h-[34rem] w-full object-cover" />)}</div>}
           <div className="space-y-4">
