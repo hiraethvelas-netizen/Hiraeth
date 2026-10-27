@@ -25,23 +25,42 @@ function AdminDashboard() {
     setLoading(true); setError(false);
     const [prods, orders, portals, subs] = await Promise.all([
       supabase.from("products").select("id,name,stock,status,price,sale_price"),
-      supabase.from("orders").select("id,total,status,customer_name,customer_email,created_at").order("created_at", { ascending: false }).limit(100),
+      supabase.from("orders").select("id,total,status,customer_name,customer_email,created_at").order("created_at", { ascending: false }),
       supabase.from("portals").select("id", { count: "exact", head: true }),
       supabase.from("newsletter_subscribers").select("id", { count: "exact", head: true }),
     ]);
     if (prods.error || orders.error || portals.error || subs.error) { setError(true); setLoading(false); return; }
     const ps = (prods.data ?? []) as ProductStock[];
     const os = (orders.data ?? []) as Order[];
-    const paidOrders = os.filter((o) => ["paid", "shipped", "delivered", "completed"].includes(o.status));
+    const now = new Date();
+    let from: Date | null = null;
+    let to: Date | null = null;
+    if (period === "week") {
+      from = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const day = (from.getDay() + 6) % 7;
+      from.setDate(from.getDate() - day);
+      to = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+    } else if (period === "month") {
+      from = new Date(now.getFullYear(), now.getMonth(), 1);
+      to = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+    } else if (period === "custom") {
+      from = dateFrom ? new Date(`${dateFrom}T00:00:00`) : null;
+      to = dateTo ? new Date(`${dateTo}T23:59:59.999`) : null;
+    }
+    const filteredOrders = os.filter((o) => {
+      const created = new Date(o.created_at);
+      return (!from || created >= from) && (!to || created <= to);
+    });
+    const paidOrders = filteredOrders.filter((o) => ["paid", "shipped", "delivered", "completed"].includes(o.status));
     setStats({
       products: ps.length, published: ps.filter((p) => p.status === "published").length,
-      orders: os.length, pending: os.filter((o) => ["pending", "awaiting_payment"].includes(o.status)).length,
+      orders: filteredOrders.length, pending: filteredOrders.filter((o) => ["pending", "awaiting_payment"].includes(o.status)).length,
       paid: paidOrders.length, revenue: paidOrders.reduce((s, o) => s + Number(o.total), 0),
       portals: portals.count ?? 0, subscribers: subs.count ?? 0,
       lowStock: ps.filter((p) => p.stock > 0 && p.stock <= 5).length,
       outOfStock: ps.filter((p) => p.stock <= 0).length,
     });
-    setRecentOrders(os.slice(0, 6));
+    setRecentOrders(filteredOrders.slice(0, 6));
     setLowProducts(ps.filter((p) => p.stock <= 5).sort((a, b) => a.stock - b.stock).slice(0, 6));
     setLoading(false);
   }, []);
