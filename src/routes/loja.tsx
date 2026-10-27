@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { SiteFooter, SiteHeader } from "@/components/SiteLayout";
 import { brl } from "@/lib/format";
 import type { Tables } from "@/integrations/supabase/types";
+import { InlineEditor } from "@/components/InlineEditor";
 
 
 type Product = Tables<"products">;
@@ -37,6 +38,13 @@ function Loja() {
 const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
   const [categoryId, setCategoryId] = useState<string | null>(null);
+
+  async function saveProduct(product: Product, values: Record<string, unknown>) {
+    const payload = { name: String(values.name ?? product.name), description: String(values.description ?? "") || null, price: Number(values.price ?? product.price), sale_price: values.sale_price === "" || values.sale_price == null ? null : Number(values.sale_price), fragrance: String(values.fragrance ?? "") || null, images: Array.isArray(values.images) ? values.images as string[] : product.images };
+    const { error } = await supabase.from("products").update(payload).eq("id", product.id);
+    if (error) throw error;
+    setProducts(current => current.map(item => item.id === product.id ? { ...item, ...payload } : item));
+  }
 
   
 useEffect(() => {
@@ -172,7 +180,7 @@ useEffect(() => {
                   )}
                 </div>
 
-                <div className="p-5">
+                <div className="p-5">\n                  <InlineEditor label={`produto ${p.name}`} fields={[\n                    { name: "name", label: "Nome", type: "text" },\n                    { name: "description", label: "Descrição", type: "textarea" },\n                    { name: "price", label: "Preço", type: "text" },\n                    { name: "sale_price", label: "Preço promocional", type: "text" },\n                    { name: "fragrance", label: "Fragrância", type: "text" },\n                    { name: "images", label: "Imagens do produto", type: "images" },\n                  ]} values={{ name: p.name, description: p.description ?? "", price: String(p.price), sale_price: p.sale_price == null ? "" : String(p.sale_price), fragrance: p.fragrance ?? "", images: p.images ?? [] }} onSave={(values) => saveProduct(p, values)} />
                   <h2 className="text-2xl text-foreground">{p.name}</h2>
 
                   {p.fragrance && (
