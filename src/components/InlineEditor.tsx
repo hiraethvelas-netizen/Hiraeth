@@ -74,7 +74,7 @@ export function InlineEditor({ label, fields, values, onSave, className = "" }: 
                 </label>
               );
               const multiple = f.type === "images";
-              const list = multiple ? ((v as string[]) ?? []) : (v ? [v as string] : []);
+              const list: string[] = multiple ? ((v as string[]) ?? []) : (v ? [v as string] : []);
               return (
                 <div key={f.name} className="grid gap-1.5 text-sm">{f.label}
                   <input type="file" multiple={multiple} accept="image/jpeg,image/png,image/webp,image/gif" onChange={(e) => addImages(f.name, e.target.files, multiple)} className="border px-3 py-2" />
