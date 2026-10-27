@@ -31,10 +31,11 @@ function AuthPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [welcomeName, setWelcomeName] = useState<string | null>(null);
-  const [welcomeMode, setWelcomeMode] = useState<"signup" | "returning" | null>(null);
+  const [welcomeMode, setWelcomeMode] = useState<"signup" | "returning" | "admin" | null>(null);
 
   const requested = redirect && redirect.startsWith("/") ? redirect : "/biblioteca";
-  const destination = requested === "/admin" ? "/inicio" : requested;
+  const isAdminLogin = requested === "/admin";
+  const destination = isAdminLogin ? "/inicio" : requested;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -46,6 +47,20 @@ function AuthPage() {
         localStorage.setItem("hiraeth-remember-session", rememberSession ? "true" : "false");
         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
+        if (isAdminLogin) {
+          const { data: isAdmin, error: roleError } = await supabase.rpc("has_role", {
+            _user_id: data.user.id,
+            _role: "admin",
+          });
+          if (roleError || isAdmin !== true) {
+            await supabase.auth.signOut();
+            setError("Esta é uma página administrativa. Somente a responsável pela Hiraeth pode acessar. Entre com a conta administrativa autorizada.");
+            return;
+          }
+          setWelcomeName("Hira");
+          setWelcomeMode("admin");
+          return;
+        }
         const savedName = data.user.user_metadata?.["display_name"];
         setWelcomeName(typeof savedName === "string" && savedName.trim() ? savedName.trim().split(/\s+/)[0] ?? "viajante" : (data.user.email?.split("@")[0] ?? "viajante"));
         setWelcomeMode("returning");
@@ -88,11 +103,11 @@ function AuthPage() {
             <div className="relative">
               <p className="eyebrow">O portal foi aberto</p>
               <div aria-hidden="true" className="mx-auto my-6 flex h-20 w-20 items-center justify-center rounded-full border border-primary/50 text-4xl text-primary">✦</div>
-              <h1 className="text-3xl text-foreground">{welcomeMode === "returning" ? `Bem-vinda de volta, ${welcomeName}.` : `Olá, ${welcomeName}.`}</h1>
-              <p className="mt-4 text-lg italic text-primary">{welcomeMode === "returning" ? "Que bom ter você de volta ao Círculo do Fogo." : "Seja bem-vinda ao Círculo do Fogo."}</p>
-              <p className="mt-4 text-sm leading-7 text-muted-foreground">{welcomeMode === "returning" ? "Sua próxima história está esperando por você. Entre, explore e sinta-se em casa." : "Sua história agora também faz parte da Hiraeth. Há novos mundos esperando para serem descobertos."}</p>
+              <h1 className="text-3xl text-foreground">{welcomeMode === "admin" ? `Bem-vinda, ${welcomeName}.` : welcomeMode === "returning" ? `Bem-vinda de volta, ${welcomeName}.` : `Olá, ${welcomeName}.`}</h1>
+              <p className="mt-4 text-lg italic text-primary">{welcomeMode === "admin" ? "O espaço da Guardiã da Chama está pronto." : welcomeMode === "returning" ? "Que bom ter você de volta ao Círculo do Fogo." : "Seja bem-vinda ao Círculo do Fogo."}</p>
+              <p className="mt-4 text-sm leading-7 text-muted-foreground">{welcomeMode === "admin" ? "Acesse o painel administrativo ou abra a loja com as ferramentas de edição habilitadas." : welcomeMode === "returning" ? "Sua próxima história está esperando por você. Entre, explore e sinta-se em casa." : "Sua história agora também faz parte da Hiraeth. Há novos mundos esperando para serem descobertos."}</p>
               {message && <p className="mt-4 text-sm text-muted-foreground">{message}</p>}
-              <button type="button" onClick={() => navigate({ to: destination })} aria-label="Continuar para a Hiraeth" className="mt-7 inline-flex w-full items-center justify-center gap-2 border border-primary/40 px-5 py-3 text-sm text-foreground transition-colors hover:bg-primary/10">Entrar no meu círculo</button>
+              {welcomeMode === "admin" ? <div className="mt-7 grid gap-3"><button type="button" onClick={() => navigate({ to: "/admin" })} className="btn-gold w-full justify-center">Abrir dashboard administrativo</button><button type="button" onClick={() => { window.localStorage.setItem("hiraeth-edit-mode", "on"); navigate({ to: "/inicio" }); }} className="inline-flex w-full items-center justify-center gap-2 border border-primary/40 px-5 py-3 text-sm text-foreground transition-colors hover:bg-primary/10">Abrir loja em modo edição</button></div> : <button type="button" onClick={() => navigate({ to: destination })} aria-label="Continuar para a Hiraeth" className="mt-7 inline-flex w-full items-center justify-center gap-2 border border-primary/40 px-5 py-3 text-sm text-foreground transition-colors hover:bg-primary/10">Entrar no meu círculo</button>}
             </div>
           </section>
         ) : <>
