@@ -115,10 +115,13 @@ export function SiteHeader() {
 
 export function SiteFooter() {
   const [profile, setProfile] = useState<{ instagram_url: string; whatsapp_number: string; whatsapp_url: string; contact_email: string } | null>(null);
+  const [tiktokUrl, setTiktokUrl] = useState("");
   useEffect(() => {
     void (async () => {
       const { data } = await (supabase as any).from("site_profile").select("instagram_url,whatsapp_number,whatsapp_url,contact_email").eq("id", true).maybeSingle();
       if (data) setProfile(data);
+      const { data: footerData } = await (supabase as any).from("site_content").select("value").eq("key", "footer_settings").maybeSingle();
+      setTiktokUrl(String(footerData?.value?.tiktok_url ?? ""));
     })();
   }, []);
   const whatsapp = profile?.whatsapp_url || (profile?.whatsapp_number ? `https://wa.me/${profile.whatsapp_number.replace(/\\D/g, "")}` : "");
@@ -133,11 +136,18 @@ export function SiteFooter() {
     if (error) throw error;
     setProfile(payload);
   }
+  async function saveTikTok(values: Record<string, unknown>) {
+    const next = String(values.tiktok_url ?? "").trim();
+    const { error } = await (supabase as any).from("site_content").upsert({ key: "footer_settings", value: { tiktok_url: next }, updated_at: new Date().toISOString() }, { onConflict: "key" });
+    if (error) throw error;
+    setTiktokUrl(next);
+  }
   return (
     <footer className="border-t px-6 py-10 text-center text-sm text-muted-foreground">
       <p className="font-display text-lg italic text-primary">Onde a Chama Acesa te Espera</p>
       <nav aria-label="Contatos da Hiraeth" className="mt-5 flex flex-wrap justify-center gap-x-6 gap-y-3">
         {profile?.instagram_url && <a href={profile.instagram_url} target="_blank" rel="noreferrer" className="underline hover:text-primary">Instagram</a>}
+        {tiktokUrl && <a href={tiktokUrl} target="_blank" rel="noreferrer" className="underline hover:text-primary">TikTok</a>}
         {whatsapp && <a href={whatsapp} target="_blank" rel="noreferrer" className="underline hover:text-primary">WhatsApp</a>}
         {profile?.contact_email && <a href={`mailto:${profile.contact_email}`} className="underline hover:text-primary">{profile.contact_email}</a>}
       </nav>
@@ -146,7 +156,9 @@ export function SiteFooter() {
         { name: "whatsapp_number", label: "WhatsApp com DDI e DDD", type: "text" },
         { name: "whatsapp_url", label: "Link direto do WhatsApp (opcional)", type: "text" },
         { name: "contact_email", label: "E-mail de contato", type: "text" },
-      ]} values={{ instagram_url: profile?.instagram_url ?? "", whatsapp_number: profile?.whatsapp_number ?? "", whatsapp_url: profile?.whatsapp_url ?? "", contact_email: profile?.contact_email ?? "" }} onSave={saveContacts} /></div>
+      ]} values={{ instagram_url: profile?.instagram_url ?? "", whatsapp_number: profile?.whatsapp_number ?? "", whatsapp_url: profile?.whatsapp_url ?? "", contact_email: profile?.contact_email ?? "" }} onSave={saveContacts} />
+      <div className="mt-3"><InlineEditor label="TikTok do rodapé" fields={[{ name: "tiktok_url", label: "Link do TikTok", type: "text" }]} values={{ tiktok_url: tiktokUrl }} onSave={saveTikTok} /></div>
+      </div>
       <p className="mt-5">© {new Date().getFullYear()} Hiraeth ·{" "}
         <Link to="/privacidade" className="underline hover:text-primary">Privacidade</Link>
       </p>
