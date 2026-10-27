@@ -2,6 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { PageShell } from "@/components/SiteLayout";
 import { supabase } from "@/integrations/supabase/client";
+import { InlineEditor } from "@/components/InlineEditor";
+import { useSiteContent } from "@/lib/admin-edit";
 
 type Profile = { about_story: string; about_mari: string; about_image_url: string; story_image_url: string };
 type AboutLink = { label: string; url: string };
@@ -13,6 +15,7 @@ export const Route = createFileRoute("/sobre")({
   component: Sobre,
 });
 function Sobre() {
+  const [pageSettings, savePageSettings] = useSiteContent("about-page-appearance", { eyebrow: "Nossa história", title: "Sobre a Hiraeth", closing: "Onde a Chama Acesa te Espera" });
   const [blocks, setBlocks] = useState<AboutBlock[]>([]);
   const [bannerSettings, setBannerSettings] = useState<{ enabled: boolean; image_url: string; href: string; title: string }>({ enabled: false, image_url: "", href: "/loja", title: "" });
   useEffect(() => {
@@ -39,7 +42,11 @@ function Sobre() {
     })();
   }, []);
   const shownBlocks = blocks.length ? blocks : seedBlocks(defaults);
-  return <PageShell eyebrow="Nossa história" title="Sobre a Hiraeth">
+  return <PageShell eyebrow={pageSettings.eyebrow} title={pageSettings.title}>
+    <div className="space-y-4">
+      <InlineEditor label="cabeçalho de Conheça a Hiraeth" fields={[{ name: "eyebrow", label: "Texto pequeno acima do título", type: "text" }, { name: "title", label: "Título da página", type: "text" }, { name: "closing", label: "Frase de encerramento", type: "text" }]} values={pageSettings} onSave={async (next) => savePageSettings({ ...pageSettings, ...next } as typeof pageSettings)} />
+      <p className="text-sm text-muted-foreground">Para editar os textos, blocos, imagens e links da história, use a área administrativa <a href="/admin/sobre" className="text-primary underline">Sobre e contatos</a>.</p>
+    </div>
     <div className="space-y-12">
       {bannerSettings.enabled && bannerSettings.image_url && <a href={bannerSettings.href || "/loja"} target={/^https?:\\/\\//i.test(bannerSettings.href) ? "_blank" : undefined} rel={/^https?:\\/\\//i.test(bannerSettings.href) ? "noreferrer" : undefined} className="block overflow-hidden"><img src={bannerSettings.image_url} alt={bannerSettings.title || "Banner Hiraeth"} className="max-h-[28rem] w-full object-cover" /></a>}
       {shownBlocks.map((block, index) => <section key={block.id || index} className="space-y-5">
@@ -53,7 +60,7 @@ function Sobre() {
           {(block.layout === "image-right" || block.layout === "gallery") && block.images?.length > 0 && <div className={block.layout === "gallery" ? "grid grid-cols-2 gap-3 md:grid-cols-3" : "space-y-3"}>{block.images.map((url, i) => <img key={url + i} src={url} alt={block.title || "Hiraeth"} className={block.layout === "gallery" ? "aspect-[4/5] w-full object-cover" : "max-h-[34rem] w-full object-cover"} />)}</div>}
         </div>
       </section>)}
-      <p className="border-t pt-6 italic text-primary">Onde a Chama Acesa te Espera</p>
+      <p className="border-t pt-6 italic text-primary">{pageSettings.closing}</p>
     </div>
   </PageShell>;
 }
