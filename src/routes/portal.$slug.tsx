@@ -115,7 +115,7 @@ function PortalPage() {
           {portal.intro_subtitle && <p className="mx-auto mt-4 max-w-2xl text-lg text-foreground/85">{portal.intro_subtitle}</p>}
           {portal.store_category_url && (
             <a href={portal.store_category_url} className="btn-gold mt-8 inline-flex">
-              Conheça as velas deste universo
+              Explorar o catálogo deste universo
             </a>
           )}
         </div>
