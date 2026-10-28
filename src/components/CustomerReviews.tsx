@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { Flame } from "lucide-react";
 
@@ -40,7 +39,7 @@ export function CustomerReviews() {
 
   async function submitReview(event: React.FormEvent) {
     event.preventDefault();
-    if (!userId || message.trim().length < 3) return;
+    if (message.trim().length < 3) return;
     setSending(true);
     setNotice("");
     try {
@@ -48,12 +47,12 @@ export function CustomerReviews() {
       for (const file of photos.slice(0, 4)) {
         if (!file.type.startsWith("image/") || file.size > 8 * 1024 * 1024) throw new Error("Envie apenas imagens de até 8 MB cada.");
         const extension = file.name.split(".").pop()?.replace(/[^a-zA-Z0-9]/g, "") || "jpg";
-        const path = `${userId}/${crypto.randomUUID()}.${extension}`;
+        const path = `${userId ?? "guest"}/${crypto.randomUUID()}.${extension}`;
         const { error: uploadError } = await supabase.storage.from("review-photos").upload(path, file, { contentType: file.type, upsert: false });
         if (uploadError) throw uploadError;
         photoUrls.push(supabase.storage.from("review-photos").getPublicUrl(path).data.publicUrl);
       }
-      const { error } = await (supabase as any).from("customer_reviews").insert({ order_id: selectedOrder || null, user_id: userId, rating, message: message.trim(), photo_urls: photoUrls, approved: false });
+      const { error } = await (supabase as any).from("customer_reviews").insert({ order_id: userId ? (selectedOrder || null) : null, user_id: userId, rating, message: message.trim(), photo_urls: photoUrls, approved: false });
       if (error) throw error;
       setMessage("");
       setPhotos([]);
@@ -78,8 +77,8 @@ export function CustomerReviews() {
       <div className="mx-auto mt-10 max-w-xl border border-primary/25 bg-background p-5 sm:p-6">
         <h3 className="font-display text-2xl text-foreground">Deixe seu recadinho</h3>
         <p className="mt-1 text-sm text-muted-foreground">Já comprou uma vela Hiraeth, mesmo há bastante tempo? Conte como foi sua experiência e, se quiser, compartilhe fotos. Todos os relatos passam por revisão antes da publicação.</p>
-        {!userId ? <p className="mt-4 text-sm">Entre na sua conta para compartilhar sua experiência com a Hiraeth. <Link to="/auth" search={{ redirect: "/loja" }} className="text-primary underline underline-offset-4">Entrar</Link></p> : <form onSubmit={submitReview} className="mt-4 space-y-4">
-          <label className="block text-sm">Pedido (opcional)<select value={selectedOrder} onChange={(e) => setSelectedOrder(e.target.value)} className="mt-1 w-full border bg-transparent px-3 py-2 text-foreground"><option value="">Minha compra foi antiga ou não aparece aqui</option>{orders.map((order) => <option key={order.id} value={order.id}>Pedido de {new Date(order.created_at).toLocaleDateString("pt-BR")} · {order.id.slice(0, 8).toUpperCase()}</option>)}</select></label>
+        {!userId ? <form onSubmit={submitReview} className="mt-4 space-y-4">
+          {userId && <label className="block text-sm">Pedido (opcional)<select value={selectedOrder} onChange={(e) => setSelectedOrder(e.target.value)} className="mt-1 w-full border bg-transparent px-3 py-2 text-foreground"><option value="">Minha compra foi antiga ou não aparece aqui</option>{orders.map((order) => <option key={order.id} value={order.id}>Pedido de {new Date(order.created_at).toLocaleDateString("pt-BR")} · {order.id.slice(0, 8).toUpperCase()}</option>)}</select></label>}
           <fieldset><legend className="text-sm">Quantos foguinhos merece sua experiência?</legend><div className="mt-2 flex gap-3">{[1,2,3,4,5].map((value) => <button key={value} type="button" onClick={() => setRating(value)} aria-label={`${value} foguinhos`} aria-pressed={rating === value} className="rounded p-1 transition-transform hover:scale-110 focus-visible:outline focus-visible:outline-primary"><Flame size={28} className={value <= rating ? "fill-primary text-primary" : "text-muted-foreground/35"} /></button>)}</div></fieldset>
           <label className="block text-sm">Conte sobre sua experiência<textarea required minLength={3} maxLength={1200} rows={4} value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Como foi sua vela? O aroma, a embalagem, o momento em que acendeu..." className="mt-1 w-full border bg-transparent px-3 py-2 text-foreground placeholder:text-muted-foreground" /></label>
           <label className="block text-sm">Fotos das suas velas (opcional, até 4 fotos de 8 MB cada)<input type="file" accept="image/*" multiple onChange={(e) => setPhotos(Array.from(e.target.files ?? []).slice(0, 4)} className="mt-2 block w-full text-sm text-muted-foreground" /></label>{photos.length > 0 && <p className="text-xs text-muted-foreground">{photos.length} foto(s) selecionada(s).</p>}
