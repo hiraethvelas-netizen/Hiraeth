@@ -65,17 +65,21 @@ export function CollectionPortals() {
       <p className="mx-auto mt-2 max-w-xl text-center text-sm text-muted-foreground">Escolha um universo e atravesse o portal.</p>
       {isAdmin && editMode && <p className="mx-auto mt-3 max-w-xl text-center text-xs text-primary">Use as setas para definir a ordem das bolinhas. A primeira será exibida primeiro na página.</p>}
       <div className="mt-7 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
-        {categories.map((category) => <div key={category.id} className="flex flex-col items-center gap-3 text-center">\n          <button type="button" onClick={() => enter(category)} className="group flex w-full flex-col items-center gap-3 text-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">
+        {categories.map((category) => <div key={category.id} className="flex flex-col items-center gap-3 text-center">
+          <button type="button" onClick={() => enter(category)} className="group flex w-full flex-col items-center gap-3 text-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">
           <span className="relative block aspect-square w-full max-w-44 overflow-hidden rounded-full border border-primary/40 bg-card p-1 shadow-[var(--glow)] transition-transform duration-500 group-hover:scale-105 group-active:scale-95">
             {category.image_url ? <img src={category.image_url} alt="" className="h-full w-full rounded-full object-cover transition-transform duration-700 group-hover:scale-110" loading="lazy" /> : <span className="flex h-full w-full items-center justify-center rounded-full bg-gradient-to-br from-card via-muted to-card px-3 font-display text-xl text-primary">{category.name}</span>}
             <span className="pointer-events-none absolute inset-0 rounded-full opacity-0 shadow-[inset_0_0_30px_rgba(198,166,91,0.65)] transition-opacity duration-500 group-hover:opacity-100" />
           </span>
-          <span className="font-display text-xl text-foreground transition-colors group-hover:text-primary">{category.name}</span>\n          </button>\n          {category.is_temporary && <span className="border border-amber-600/60 px-2 py-0.5 text-[9px] uppercase tracking-widest text-amber-700">Temporária</span>}
+          <span className="font-display text-xl text-foreground transition-colors group-hover:text-primary">{category.name}</span>
+          </button>
+          {category.is_temporary && <span className="border border-amber-600/60 px-2 py-0.5 text-[9px] uppercase tracking-widest text-amber-700">Temporária</span>}
           {isAdmin && editMode && <div className="mt-1 flex flex-wrap items-center justify-center gap-1" onClick={event => event.stopPropagation()}>
             <button type="button" disabled={categories.indexOf(category) === 0} onClick={() => void moveCategory(categories.indexOf(category), -1).catch(error => window.alert("Não foi possível alterar a ordem: " + (error instanceof Error ? error.message : "erro")))} className="rounded border px-2 py-1 text-xs disabled:opacity-30" aria-label={`Mover ${category.name} para cima`}>↑</button>
             <button type="button" disabled={categories.indexOf(category) === categories.length - 1} onClick={() => void moveCategory(categories.indexOf(category), 1).catch(error => window.alert("Não foi possível alterar a ordem: " + (error instanceof Error ? error.message : "erro")))} className="rounded border px-2 py-1 text-xs disabled:opacity-30" aria-label={`Mover ${category.name} para baixo`}>↓</button>
             <InlineEditor label={`categoria ${category.name}`} fields={[{ name: "name", label: "Nome da categoria", type: "text" }, { name: "image_url", label: "Imagem da bolinha", type: "image", help: "Envie uma imagem JPG, PNG ou WebP, até 5 MB." }]} values={{ name: category.name, image_url: category.image_url ?? "" }} onSave={values => saveCategory(category, values)} />
-          </div>}\n        </div>)}
+          </div>}
+        </div>)}
       </div>
     </section>
     {entering && <div className="portal-entry-overlay" aria-hidden="true">
