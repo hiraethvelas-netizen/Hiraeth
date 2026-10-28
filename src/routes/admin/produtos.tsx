@@ -100,18 +100,25 @@ function AdminProdutos() {
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
+    let variants: unknown[];
+    try {
+      variants = JSON.parse(form.variantsJson || "[]");
+      if (!Array.isArray(variants)) throw new Error("As variações precisam ser uma lista.");
+    } catch {
+      toast.error("Revise o JSON das variações antes de salvar.");
+      return;
+    }
     const payload = {
       name: form.name, slug: editing ? editing.slug : slugify(form.name),
       description: form.description || null, category_id: form.category_id || null,
       price: Number(form.price) || 0, sale_price: form.sale_price ? Number(form.sale_price) : null,
       stock: Math.max(0, Number(form.stock) || 0), sku: form.sku || null,
       fragrance: form.fragrance || null, images: form.images, status: form.status,
-      dimensions: form.dimensions || null,
-      variants: (() => { try { const parsed = JSON.parse((form as any).variantsJson || "[]"); if (!Array.isArray(parsed)) throw new Error("As variações precisam ser uma lista."); return parsed; } catch { toast.error("Revise o JSON das variações antes de salvar."); throw new Error("Variações inválidas"); } })(),
+      dimensions: form.dimensions || null, variants,
     };
     const { error } = editing
-      ? await supabase.from("products").update(payload).eq("id", editing.id)
-      : await supabase.from("products").insert(payload);
+      ? await db.from("products").update(payload).eq("id", editing.id)
+      : await db.from("products").insert(payload);
     if (error) toast.error(error.message.includes("unique") ? "Já existe um produto com esse nome/link." : `Erro ao salvar: ${error.message}`);
     else {
       const saved = editing ? editing.id : (await db.from("products").select("id").eq("slug", slugify(form.name)).maybeSingle()).data?.id;
