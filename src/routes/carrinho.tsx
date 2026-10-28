@@ -63,7 +63,10 @@ function Carrinho() {
       .from("orders")
       .insert({
         user_id: userData.user.id,
-        total: cart.total,
+        total: payableTotal,
+        subtotal: cart.total,
+        discount: couponDiscount,
+        coupon_code: couponCode,
         customer_email: userData.user.email ?? null,
         status: "pending",
       })
@@ -76,15 +79,17 @@ function Carrinho() {
       return;
     }
 
-    await supabase.from("order_items").insert(
+    const { error: itemError } = await db.from("order_items").insert(
       cart.items.map((i) => ({
         order_id: order.id,
         product_id: i.productId,
         product_name: i.name,
         quantity: i.quantity,
         unit_price: i.price,
+        variant_details: i.variantDetails ?? {},
       })),
     );
+    if (itemError) { await db.from("orders").delete().eq("id", order.id); toast.error("Não foi possível salvar os itens do pedido."); setPlacing(false); return; }
 
     cart.clear();
     setPlacing(false);
@@ -132,8 +137,11 @@ function Carrinho() {
             </ul>
 
             <div className="mt-8 border-t pt-6 text-right">
+              <div className="mb-5 flex gap-2"><input aria-label="Cupom de desconto" value={coupon} onChange={(e) => setCoupon(e.target.value.toUpperCase())} placeholder="Código do cupom" className="min-w-0 flex-1 border bg-transparent px-3 py-2 text-sm" /><button type="button" onClick={() => void applyCoupon()} disabled={validatingCoupon} className="border px-4 py-2 text-sm">{validatingCoupon ? "Verificando..." : "Aplicar cupom"}</button></div>
+              {couponCode && <p className="mb-2 text-sm text-primary">Cupom {couponCode}: −{brl(couponDiscount)} <button className="ml-2 underline" onClick={() => {setCouponCode(null);setCouponDiscount(0);setCoupon("");}}>Remover</button></p>}
+              <p className="text-sm text-muted-foreground">Subtotal: {brl(cart.total)}</p>
               <p className="text-2xl">
-                Total: <span className="text-primary">{brl(cart.total)}</span>
+                Total: <span className="text-primary">{brl(payableTotal)}</span>
               </p>
               <p className="mt-1 text-sm text-muted-foreground">Frete calculado na finalização.</p>
               <button onClick={checkout} disabled={placing} className="btn-gold mt-6">
