@@ -132,17 +132,17 @@ useEffect(() => {
     <div className="min-h-screen">
       <SiteHeader />
       <AcervoNavigation />
-      <StoreBanners />
+      {!selectedCategory && <StoreBanners />}
 
       <main className="mx-auto max-w-6xl px-5 pb-20 pt-8 md:px-8 md:pt-12">
         {/* Catálogo da loja */}
-        <div className="mb-5 space-y-3">
+        {!selectedCategory && <div className="mb-5 space-y-3">
           <InlineEditor label="apresentação da loja" fields={[{ name: "eyebrow", label: "Texto pequeno acima do título", type: "text" }, { name: "title", label: "Título da página", type: "text" }, { name: "intro", label: "Texto de apresentação", type: "textarea" }, { name: "bannerImage", label: "Banner opcional", type: "image" }, { name: "showBanner", label: "Exibir banner", type: "checkbox" }]} values={pageSettings} onSave={async (next) => savePageSettings({ ...pageSettings, ...next } as typeof pageSettings)} />
-        </div>
-        {pageSettings.showBanner && pageSettings.bannerImage && <img src={pageSettings.bannerImage} alt="Banner da loja Hiraeth" className="mb-8 max-h-[28rem] w-full object-cover" />}
-        {pageSettings.eyebrow && pageSettings.eyebrow.trim().toLocaleLowerCase("pt-BR") !== pageSettings.title.trim().toLocaleLowerCase("pt-BR") && <p className="eyebrow">{pageSettings.eyebrow}</p>}
-        <h1 className="mt-2 text-4xl text-foreground md:text-5xl">{pageSettings.title}</h1>
-        {pageSettings.intro && <p className="mt-3 max-w-2xl text-muted-foreground">{pageSettings.intro}</p>}
+        </div>}
+        {!selectedCategory && pageSettings.showBanner && pageSettings.bannerImage && <img src={pageSettings.bannerImage} alt="Banner da loja Hiraeth" className="mb-8 max-h-[28rem] w-full object-cover" />}
+        {!selectedCategory && pageSettings.eyebrow && pageSettings.eyebrow.trim().toLocaleLowerCase("pt-BR") !== pageSettings.title.trim().toLocaleLowerCase("pt-BR") && <p className="eyebrow">{pageSettings.eyebrow}</p>}
+        {!selectedCategory && <h1 className="mt-2 text-4xl text-foreground md:text-5xl">{pageSettings.title}</h1>}
+        {!selectedCategory && pageSettings.intro && <p className="mt-3 max-w-2xl text-muted-foreground">{pageSettings.intro}</p>}
 
         {selectedCategory && <section className="relative mt-7 mb-8 overflow-hidden rounded-lg border border-primary/20">
           {selectedCategory.image_url ? <img src={selectedCategory.image_url} alt={selectedCategory.name} className="h-48 w-full object-cover sm:h-64 md:h-80" /> : <div className="h-48 w-full bg-[radial-gradient(ellipse_at_center,_var(--color-secondary),_var(--color-background)_70%)] sm:h-64 md:h-80" aria-hidden="true" />}
@@ -151,6 +151,12 @@ useEffect(() => {
               {selectedCategory.is_temporary && <span className="mt-2 inline-flex border border-amber-200/80 bg-black/25 px-2 py-1 text-[10px] uppercase tracking-widest text-amber-100">Coleção temporária{selectedCategory.ends_at ? ` · até ${new Date(selectedCategory.ends_at + "T12:00:00").toLocaleDateString("pt-BR")}` : ""}</span>}
             </div>
           </div>
+          <InlineEditor label={"banner da coleção " + selectedCategory.name} fields={[{ name: "name", label: "Nome da coleção", type: "text" }, { name: "image_url", label: "Foto do banner da coleção", type: "image", help: "Essa imagem também será usada na bolinha da subcategoria. JPG, PNG ou WebP." }]} values={{ name: selectedCategory.name, image_url: selectedCategory.image_url ?? "" }} onSave={async values => {
+            const payload = { name: String(values.name ?? selectedCategory.name).trim(), image_url: String(values.image_url ?? selectedCategory.image_url ?? "").trim() || null };
+            const { error } = await supabase.from("categories").update(payload).eq("id", selectedCategory.id);
+            if (error) throw error;
+            setCategories(current => current.map(item => item.id === selectedCategory.id ? { ...item, ...payload } as Category : item));
+          }} className="mt-3" />
         </section>}
 
         {!categoryId && featuredCollections.length > 0 && <section className="mt-8">
