@@ -66,7 +66,18 @@ useEffect(() => {
       ]);
 
     setProducts(prods ?? []);
-    setCategories(cats ?? []);
+    const now = new Date();
+    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+    const categoryIsInPeriod = (category: Category) => !category.is_temporary
+      || Boolean(category.starts_at && category.ends_at && category.starts_at <= today && category.ends_at >= today);
+    const allCategories = (cats ?? []) as Category[];
+    const activeCategories = allCategories.filter((category) => {
+      if (!categoryIsInPeriod(category)) return false;
+      if (!category.parent_id) return true;
+      const parent = allCategories.find((item) => item.id === category.parent_id);
+      return Boolean(parent && categoryIsInPeriod(parent));
+    });
+    setCategories(activeCategories);
 
     // Permite abrir a loja diretamente em uma categoria usando /loja?categoria=slug.
     const categorySlug = new URLSearchParams(window.location.search).get("categoria");
@@ -83,7 +94,9 @@ useEffect(() => {
 
 
   const filtered = useMemo(() => {
+    const activeCategoryIds = new Set(categories.map((category) => category.id));
     return products.filter((p) => {
+      if (p.category_id && !activeCategoryIds.has(p.category_id)) return false;
       if (categoryId && p.category_id !== categoryId) return false;
 
       if (query) {
@@ -98,7 +111,7 @@ useEffect(() => {
 
       return true;
     });
-  }, [products, query, categoryId]);
+  }, [products, query, categoryId, categories]);
 
   return (
     <div className="min-h-screen">
@@ -152,7 +165,11 @@ useEffect(() => {
                     : "text-muted-foreground hover:text-primary"
                 }`}
               >
-                {c.name}
+                <span>{c.name}</span>
+                {c.is_temporary && c.ends_at && <span className="ml-2 inline-flex flex-col items-start gap-0.5 normal-case tracking-normal">
+                  <span className="border border-amber-500/70 px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-widest text-amber-600">Temporária</span>
+                  <span className="text-[10px] text-amber-700/90">Até {new Date(c.ends_at + "T12:00:00").toLocaleDateString("pt-BR")}</span>
+                </span>}
               </button>
             ))}
           </div>
