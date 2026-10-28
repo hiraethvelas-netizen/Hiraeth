@@ -178,7 +178,7 @@ function AdminPortais() {
   }
 
   const inputCls =
-    "w-full border bg-transparent px-3 py-2 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none";
+    "w-full border border-amber-700/50 bg-slate-950/70 px-3 py-2 text-amber-50 placeholder:text-amber-100/45 focus:border-amber-300 focus:outline-none focus:ring-1 focus:ring-amber-300/40";
 
   return (
     <div>
@@ -188,9 +188,9 @@ function AdminPortais() {
       </div>
 
       {showForm && (
-        <form onSubmit={save} className="mt-6 space-y-4 border bg-card p-6">
-          <p className="font-display text-xl text-primary">{editing ? `Editar: ${editing.name}` : "Novo portal"}</p>
-          <div className="grid gap-4 md:grid-cols-2">
+        <form onSubmit={save} className="relative mt-6 space-y-5 overflow-hidden rounded-sm border border-amber-500/40 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-amber-900/35 via-slate-950 to-slate-950 p-5 shadow-[0_20px_70px_rgba(0,0,0,0.35)] md:p-8">
+          <div className="pointer-events-none absolute inset-0 opacity-25" aria-hidden="true"><div className="absolute -right-8 -top-10 h-48 w-48 rounded-full border border-amber-300/40" /><div className="absolute -right-3 -top-5 h-36 w-36 rounded-full border border-amber-300/30" /><div className="absolute bottom-8 left-8 h-1 w-1 rounded-full bg-amber-200 shadow-[0_0_18px_5px_rgba(251,191,36,0.25)]" /></div><div className="relative z-10"><p className="font-display text-2xl tracking-wide text-amber-200">{editing ? `✦ Editar portal: ${editing.name} ✦` : "✦ Abrir novo portal ✦"}</p><p className="mt-2 max-w-2xl text-sm text-amber-100/70">Personalize esta passagem mágica: abertura, vídeo, destino e trilha sonora.</p></div>
+          <div className="relative z-10 grid gap-4 md:grid-cols-2">
             <input required placeholder="Nome do portal" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className={inputCls} />
             <input placeholder="Universo (livro, filme, série)" value={form.universe} onChange={(e) => setForm({ ...form, universe: e.target.value })} className={inputCls} />
             <input placeholder="URL da capa" value={form.cover_url} onChange={(e) => setForm({ ...form, cover_url: e.target.value })} className={inputCls} />
@@ -228,7 +228,7 @@ function AdminPortais() {
               onChange={(e) => setForm({ ...form, store_category_url: e.target.value })}
               className={inputCls}
             />
-            <label className="flex items-center gap-2 text-sm text-muted-foreground">
+            <label className="relative z-10 flex items-center gap-2 text-sm text-amber-100/80">
               <input type="checkbox" checked={form.intro_enabled} onChange={(e) => setForm({ ...form, intro_enabled: e.target.checked })} />
               Abertura animada ativa
             </label>
@@ -239,14 +239,14 @@ function AdminPortais() {
             <input placeholder="Link da playlist do Spotify" value={form.spotify_playlist_url} onChange={(e) => setForm({ ...form, spotify_playlist_url: e.target.value })} className={inputCls} />
             <input placeholder="Título da seção de playlist" value={form.spotify_title} onChange={(e) => setForm({ ...form, spotify_title: e.target.value })} className={inputCls} />
           </div>
-          <textarea placeholder="Descrição da playlist" rows={2} value={form.spotify_description} onChange={(e) => setForm({ ...form, spotify_description: e.target.value })} className={inputCls} />
+          <div className="relative z-10"><label className="mb-2 block text-sm text-amber-100/80">Descrição da playlist</label><textarea placeholder="Descrição da playlist" rows={2} value={form.spotify_description} onChange={(e) => setForm({ ...form, spotify_description: e.target.value })} className={inputCls} /></div>
           <label className="flex items-center gap-2 text-sm text-muted-foreground">
             <input type="checkbox" checked={form.spotify_visible} onChange={(e) => setForm({ ...form, spotify_visible: e.target.checked })} />
             Mostrar seção de playlist
           </label>
-          <div className="flex gap-3">
-            <button type="submit" className="btn-gold">Salvar</button>
-            <button type="button" onClick={() => setShowForm(false)} className="border px-4 py-2 text-sm text-muted-foreground hover:text-primary">Cancelar</button>
+          <div className="relative z-10 flex flex-wrap gap-3">
+            <button type="submit" className="btn-gold border border-amber-300/60">Salvar alterações</button>
+            <button type="button" onClick={() => setShowForm(false)} className="border border-amber-700/60 px-4 py-2 text-sm text-amber-100/75 hover:border-amber-300 hover:text-amber-100">Cancelar</button>
           </div>
         </form>
       )}
