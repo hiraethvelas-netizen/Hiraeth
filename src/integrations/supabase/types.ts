@@ -20,6 +20,9 @@ export type Database = {
           description: string | null
           id: string
           image_url: string | null
+          is_temporary: boolean
+          starts_at: string | null
+          ends_at: string | null
           name: string
           parent_id: string | null
           position: number
@@ -31,6 +34,9 @@ export type Database = {
           description?: string | null
           id?: string
           image_url?: string | null
+          is_temporary?: boolean
+          starts_at?: string | null
+          ends_at?: string | null
           name: string
           parent_id?: string | null
           position?: number
@@ -42,6 +48,9 @@ export type Database = {
           description?: string | null
           id?: string
           image_url?: string | null
+          is_temporary?: boolean
+          starts_at?: string | null
+          ends_at?: string | null
           name?: string
           parent_id?: string | null
           position?: number
