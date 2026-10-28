@@ -52,7 +52,8 @@ function Carrinho() {
     const { data: products } = await supabase.from("products").select("id, name, stock").in("id", ids);
     for (const item of cart.items) {
       const p = products?.find((x) => x.id === item.productId);
-      if (!p || p.stock < item.quantity) {
+      const variantStock = typeof item.variantDetails?.stock === "number" ? item.variantDetails.stock : null;
+      if (!p || (variantStock !== null ? variantStock < item.quantity : p.stock < item.quantity)) {
         toast.error(`Estoque insuficiente para "${item.name}".`);
         setPlacing(false);
         return;
