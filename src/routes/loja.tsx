@@ -140,7 +140,7 @@ useEffect(() => {
           <InlineEditor label="apresentação da loja" fields={[{ name: "eyebrow", label: "Texto pequeno acima do título", type: "text" }, { name: "title", label: "Título da página", type: "text" }, { name: "intro", label: "Texto de apresentação", type: "textarea" }, { name: "bannerImage", label: "Banner opcional", type: "image" }, { name: "showBanner", label: "Exibir banner", type: "checkbox" }]} values={pageSettings} onSave={async (next) => savePageSettings({ ...pageSettings, ...next } as typeof pageSettings)} />
         </div>
         {pageSettings.showBanner && pageSettings.bannerImage && <img src={pageSettings.bannerImage} alt="Banner da loja Hiraeth" className="mb-8 max-h-[28rem] w-full object-cover" />}
-        <p className="eyebrow">{pageSettings.eyebrow}</p>
+        {pageSettings.eyebrow && pageSettings.eyebrow.trim().toLocaleLowerCase("pt-BR") !== pageSettings.title.trim().toLocaleLowerCase("pt-BR") && <p className="eyebrow">{pageSettings.eyebrow}</p>}
         <h1 className="mt-2 text-4xl text-foreground md:text-5xl">{pageSettings.title}</h1>
         {pageSettings.intro && <p className="mt-3 max-w-2xl text-muted-foreground">{pageSettings.intro}</p>}
 
