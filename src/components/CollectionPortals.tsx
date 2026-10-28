@@ -13,7 +13,7 @@ export function CollectionPortals() {
 
   useEffect(() => {
     let alive = true;
-    void supabase.from("categories").select("id,name,slug,image_url,parent_id,is_temporary,starts_at,ends_at").eq("visible", true).is("parent_id", "not.null").order("position")
+    void supabase.from("categories").select("id,name,slug,image_url,parent_id,is_temporary,starts_at,ends_at").eq("visible", true).not("parent_id", "is", null).order("position")
       .then(({ data }) => {
         if (!alive) return;
         const now = new Date();
