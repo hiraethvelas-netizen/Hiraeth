@@ -29,6 +29,7 @@ function PortalPage() {
   const [fragments, setFragments] = useState<Fragment[]>([]);
   const [loading, setLoading] = useState(true);
   const [intro, setIntro] = useState(true);
+  const [introReveal, setIntroReveal] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -78,19 +79,36 @@ function PortalPage() {
               autoPlay
               muted
               playsInline
-              loop
+              preload="auto"
+              onTimeUpdate={(event) => {
+                const video = event.currentTarget;
+                if (video.duration && video.duration - video.currentTime <= 2.2) {
+                  setIntroReveal(true);
+                }
+              }}
+              onEnded={() => setIntroReveal(true)}
+              onError={() => setIntroReveal(true)}
+              onPlay={() => setIntroReveal(false)}
               aria-label={portal.intro_title ?? portal.name}
             />
           ) : portal.cover_url ? (
             <img src={portal.cover_url} alt="" className="animate-portal absolute inset-0 h-full w-full object-cover" />
           ) : null}
-          <div className="absolute inset-0 bg-overlay" />
-          <div className="animate-portal relative flex flex-col items-center px-6 text-center">
-            <h1 className="text-5xl text-foreground md:text-7xl">{portal.intro_title ?? portal.name}</h1>
-            {portal.intro_subtitle && <p className="eyebrow mt-4 text-xl">{portal.intro_subtitle}</p>}
+          {portal.intro_video_url ? (
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent" />
+          ) : (
+            <div className="absolute inset-0 bg-overlay/35" />
+          )}
+          <div
+            className={`absolute inset-x-0 bottom-[9%] z-10 flex flex-col items-center px-6 pb-[max(env(safe-area-inset-bottom),1rem)] text-center transition-all duration-[1400ms] ease-out md:bottom-[12%] ${introReveal ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-5 opacity-0"}`}
+            aria-hidden={!introReveal}
+          >
+            <h1 className="max-w-4xl text-4xl text-white drop-shadow-[0_2px_18px_rgba(0,0,0,0.55)] md:text-6xl lg:text-7xl">{portal.intro_title ?? portal.name}</h1>
+            {portal.intro_subtitle && <p className="eyebrow mt-4 text-xl text-white drop-shadow-md">{portal.intro_subtitle}</p>}
             <button
               onClick={() => setIntro(false)}
-              className="btn-gold mt-10"
+              tabIndex={introReveal ? 0 : -1}
+              className="btn-gold mt-6"
             >
               {portal.intro_cta_text || "Atravesse o Portal"}
             </button>
