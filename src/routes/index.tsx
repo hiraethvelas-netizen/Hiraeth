@@ -58,9 +58,9 @@ const DEFAULT_HOME_CONTENT: HomeContent = {
   featuredBannerImage: "",
   featuredBannerHref: "/loja",
   showPortals: true,
-  showBanners: true,
+  showBanners: false,
   showCare: true,
-  sectionOrder: "portals,banners,care",
+  sectionOrder: "portals,care",
   fontStyle: "display",
 };
 
@@ -158,7 +158,7 @@ export function ExistingHomepage() {
         </div>
       </section>
     ),
-    banners: content.showBanners && (
+    banners: false && content.showBanners && (
       <section key="banners" className="w-full py-8 md:py-12">
         <div className="mx-auto max-w-6xl px-5"><h2 className={`text-3xl text-foreground md:text-4xl ${headingFont}`}>{content.bannersTitle}</h2></div>
         <div className="mt-6 flex snap-x gap-0 overflow-x-auto pb-4 sm:gap-5 sm:px-5">
@@ -195,25 +195,13 @@ export function ExistingHomepage() {
   };
 
   const order = content.sectionOrder.split(",").filter((key) => key in sections);
-  const orderedKeys = [...order, ...["portals", "banners", "care"].filter((key) => !order.includes(key))];
+  const orderedKeys = ["portals", "care"].filter((key) => key in sections);
   const mergedContent = { ...DEFAULT_HOME_CONTENT, ...content } as HomeContent;
 
   return (
     <div className="min-h-screen bg-background">
       <SiteHeader />
       <main>
-        <section className="mx-auto max-w-6xl px-5 pt-5 md:px-8 md:pt-8">
-          {banners.slice(0, 3).length ? <div className="relative overflow-hidden rounded-sm">
-            {banners.slice(0, 3).map((item, index) => <Link key={item.id} to={(item.href || "/loja") as never} aria-label={item.title || "Conheça o Acervo Hiraeth"} className={"group block " + (index === heroBannerIndex ? "relative" : "absolute inset-0 pointer-events-none opacity-0")}>
-              <img src={item.image_url} alt="" className="h-auto max-h-[70vh] min-h-[14rem] w-full object-cover transition-opacity duration-700 sm:min-h-[18rem]" />
-            </Link>)}
-            {banners.slice(0, 3).length > 1 && <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-2">{banners.slice(0, 3).map((item, index) => <button key={item.id} type="button" onClick={() => setHeroBannerIndex(index)} aria-label={"Mostrar banner " + (index + 1)} aria-pressed={index === heroBannerIndex} className={"h-2 rounded-full transition-all " + (index === heroBannerIndex ? "w-6 bg-primary" : "w-2 bg-white/70")} />)}</div>}
-          </div> : <div className="flex min-h-40 items-center justify-center border border-dashed border-primary/40 bg-card text-center text-sm text-muted-foreground">{isAdmin && editMode ? "Adicione até três banners em Admin → Banners" : null}</div>}
-          {isAdmin && editMode && <p className="mt-2 text-xs text-muted-foreground">Edite as imagens, links e a ordem dos três banners em Admin → Banners. Eles giram automaticamente e não exibem título sobre a foto.</p>}
-        </section>
-        <section className="mx-auto max-w-6xl px-5 py-8 text-center md:px-8">
-          <h2 className="text-3xl text-foreground md:text-4xl">Conheça o Acervo Hiraeth</h2>
-        </section>
         {isAdmin && editMode && <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-5 pt-3">
           <Link to="/admin" className="inline-flex items-center gap-2 border border-primary/50 px-4 py-2 text-sm text-primary transition-colors hover:bg-primary/10">
             ← Voltar ao dashboard
