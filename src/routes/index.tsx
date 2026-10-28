@@ -40,6 +40,8 @@ type HomeContent = Record<string, unknown> & {
   careImage: string;
   featuredBannerImage: string;
   featuredBannerHref: string;
+  heroBannerImage: string;
+  heroBannerHref: string;
   showPortals: boolean;
   showBanners: boolean;
   showCare: boolean;
@@ -58,6 +60,8 @@ const DEFAULT_HOME_CONTENT: HomeContent = {
   careImage: "",
   featuredBannerImage: "",
   featuredBannerHref: "/loja",
+  heroBannerImage: "",
+  heroBannerHref: "/loja",
   showPortals: true,
   showBanners: true,
   showCare: true,
@@ -70,7 +74,9 @@ const HOME_FIELDS = [
   { name: "portalsTitle", label: "Título principal", type: "text" },
   { name: "bannersTitle", label: "Título da seção de novidades", type: "text" },
   { name: "featuredBannerImage", label: "Imagem do banner principal de novidades", type: "image", help: "Envie a imagem que deve ocupar toda a largura no celular." },
-  { name: "featuredBannerHref", label: "Link do banner principal", type: "text" },
+  { name: "featuredBannerHref", label: "Link do banner principal de novidades", type: "text" },
+  { name: "heroBannerImage", label: "Imagem do banner principal do Acervo", type: "image", help: "Banner horizontal sem texto sobreposto. JPG, PNG ou WebP, até 5 MB." },
+  { name: "heroBannerHref", label: "Link do banner principal do Acervo", type: "text" },
   { name: "careEyebrow", label: "Texto pequeno da seção de cuidados", type: "text" },
   { name: "careTitle", label: "Título da seção de cuidados", type: "text" },
   { name: "careDescription", label: "Descrição dos cuidados", type: "textarea" },
@@ -195,6 +201,12 @@ export function ExistingHomepage() {
     <div className="min-h-screen bg-background">
       <SiteHeader />
       <main>
+        {(mergedContent.heroBannerImage || (isAdmin && editMode)) && <section className="mx-auto max-w-6xl px-5 pt-5 md:px-8 md:pt-8">
+          {mergedContent.heroBannerImage ? <Link to={(mergedContent.heroBannerHref || "/loja") as never} aria-label="Conheça o Acervo Hiraeth" className="group block overflow-hidden rounded-sm">
+            <img src={mergedContent.heroBannerImage} alt="" className="h-auto max-h-[70vh] min-h-[14rem] w-full object-cover transition-transform duration-500 group-hover:scale-[1.01] sm:min-h-[18rem]" />
+          </Link> : <div className="flex min-h-40 items-center justify-center border border-dashed border-primary/40 bg-card text-center text-sm text-muted-foreground">Adicione a imagem do banner principal do Acervo</div>}
+          {isAdmin && editMode && <InlineEditor label="banner principal do Acervo" fields={[{ name: "heroBannerImage", label: "Imagem do banner (sem título)", type: "image" }, { name: "heroBannerHref", label: "Link de destino", type: "text" }]} values={{ heroBannerImage: mergedContent.heroBannerImage || "", heroBannerHref: mergedContent.heroBannerHref || "/loja" }} onSave={async values => saveContent({ ...mergedContent, heroBannerImage: String(values.heroBannerImage || ""), heroBannerHref: String(values.heroBannerHref || "/loja") } as HomeContent)} className="mt-3" />}
+        </section>}
         {isAdmin && editMode && <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-5 pt-3">
           <Link to="/admin" className="inline-flex items-center gap-2 border border-primary/50 px-4 py-2 text-sm text-primary transition-colors hover:bg-primary/10">
             ← Voltar ao dashboard
