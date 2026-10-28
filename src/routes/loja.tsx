@@ -109,11 +109,13 @@ useEffect(() => {
 
       if (query) {
         const q = query.toLowerCase();
+        const categoryName = categories.find((category) => category.id === p.category_id)?.name ?? "";
 
         return (
           p.name.toLowerCase().includes(q) ||
           (p.description ?? "").toLowerCase().includes(q) ||
-          (p.fragrance ?? "").toLowerCase().includes(q)
+          (p.fragrance ?? "").toLowerCase().includes(q) ||
+          categoryName.toLowerCase().includes(q)
         );
       }
 
