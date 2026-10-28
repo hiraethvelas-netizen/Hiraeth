@@ -322,3 +322,14 @@
   }
 }
 
+
+
+/* Transição de travessia dos portais do Acervo */
+.portal-entry-overlay { position: fixed; inset: 0; z-index: 100; overflow: hidden; background: #120e0a; animation: portal-entry-screen 620ms cubic-bezier(.2,.75,.25,1) both; pointer-events: none; }
+.portal-entry-image { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; animation: portal-entry-zoom 620ms cubic-bezier(.2,.75,.25,1) both; }
+.portal-entry-placeholder { position: absolute; inset: 0; display: grid; place-items: center; background: radial-gradient(circle, #c6a65b 0%, #3c2a1a 35%, #120e0a 75%); color: #f7efda; font: italic 3rem var(--font-display); animation: portal-entry-zoom 620ms ease-in both; }
+.portal-entry-glow { position: absolute; inset: -20%; border-radius: 50%; background: radial-gradient(circle, transparent 25%, rgba(198,166,91,.48) 45%, transparent 70%); animation: portal-entry-glow 620ms ease-out both; }
+@keyframes portal-entry-screen { from { opacity: 0; } 20% { opacity: 1; } to { opacity: 1; } }
+@keyframes portal-entry-zoom { from { transform: scale(.6); filter: brightness(.6); border-radius: 50%; } to { transform: scale(1.25); filter: brightness(1.15); border-radius: 0; } }
+@keyframes portal-entry-glow { from { opacity: 0; transform: scale(.2); } 40% { opacity: 1; } to { opacity: 0; transform: scale(1.6); } }
+@media (prefers-reduced-motion: reduce) { .portal-entry-overlay, .portal-entry-image, .portal-entry-placeholder, .portal-entry-glow { animation: none !important; } }
