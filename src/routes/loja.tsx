@@ -14,12 +14,12 @@ type Category = Tables<"categories">;
 export const Route = createFileRoute("/loja")({
   head: () => ({
     meta: [
-      { title: "Loja — Hiraeth" },
+      { title: "O Acervo Hiraeth" },
       {
         name: "description",
-        content: "Catálogo de velas literárias e camisetas Hiraeth.",
+        content: "Explore o Acervo Hiraeth: velas literárias e camisetas inspiradas nos universos que moram em você.",
       },
-      { property: "og:title", content: "Loja — Hiraeth" },
+      { property: "og:title", content: "O Acervo Hiraeth" },
       {
         property: "og:description",
         content:
@@ -34,7 +34,7 @@ export const Route = createFileRoute("/loja")({
 
 
 function Loja() {
-  const [pageSettings, savePageSettings] = useSiteContent("store-page-settings", { eyebrow: "O acervo", title: "Loja", intro: "Velas literárias e camisetas inspiradas nos universos que moram em você.", bannerImage: "", showBanner: false });
+  const [pageSettings, savePageSettings] = useSiteContent("store-page-settings", { eyebrow: "O Acervo Hiraeth", title: "O Acervo Hiraeth", intro: "Encontre o universo que mora em você.", bannerImage: "", showBanner: false });
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
 const [loading, setLoading] = useState(true);
@@ -66,6 +66,8 @@ useEffect(() => {
       ]);
 
     setProducts(prods ?? []);
+    const initialQuery = new URLSearchParams(window.location.search).get("q");
+    if (initialQuery) setQuery(initialQuery);
     const now = new Date();
     const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
     const categoryIsInPeriod = (category: Category) => !category.is_temporary
