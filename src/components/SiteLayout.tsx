@@ -6,7 +6,6 @@ import fenixImage from "@/assets/fenix.png";
 import { supabase } from "@/integrations/supabase/client";
 import { InlineEditor } from "@/components/InlineEditor";
 import { useAdminEdit } from "@/lib/admin-edit";
-import { AcervoNavigation } from "@/components/AcervoNavigation";
 
 function ThemeToggle() {
   const [dark, setDark] = useState(false);
@@ -110,7 +109,6 @@ export function SiteHeader() {
           </Link>
         </div>
       </div>
-      <div className="mx-auto max-w-7xl px-1 pb-1"><AcervoNavigation /></div>
     </header>
   );
 }
