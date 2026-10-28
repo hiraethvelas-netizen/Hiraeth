@@ -141,8 +141,8 @@ useEffect(() => {
         <h1 className="mt-2 text-4xl text-foreground md:text-5xl">{pageSettings.title}</h1>
         {pageSettings.intro && <p className="mt-3 max-w-2xl text-muted-foreground">{pageSettings.intro}</p>}
 
-        {selectedCategory?.image_url && <section className="relative mt-7 mb-8 overflow-hidden rounded-lg border border-primary/20">
-          <img src={selectedCategory.image_url} alt={selectedCategory.name} className="h-48 w-full object-cover sm:h-64 md:h-80" />
+        {selectedCategory && <section className="relative mt-7 mb-8 overflow-hidden rounded-lg border border-primary/20">
+          {selectedCategory.image_url ? <img src={selectedCategory.image_url} alt={selectedCategory.name} className="h-48 w-full object-cover sm:h-64 md:h-80" /> : <div className="h-48 w-full bg-[radial-gradient(ellipse_at_center,_var(--color-secondary),_var(--color-background)_70%)] sm:h-64 md:h-80" aria-hidden="true" />}
           <div className="absolute inset-0 flex items-end bg-gradient-to-t from-black/75 via-black/15 to-transparent p-5 sm:p-8">
             <div><p className="text-xs uppercase tracking-[0.25em] text-white/80">Explore este universo</p><h2 className="mt-1 text-3xl text-white sm:text-4xl md:text-5xl">{selectedCategory.name}</h2>
               {selectedCategory.is_temporary && <span className="mt-2 inline-flex border border-amber-200/80 bg-black/25 px-2 py-1 text-[10px] uppercase tracking-widest text-amber-100">Coleção temporária{selectedCategory.ends_at ? ` · até ${new Date(selectedCategory.ends_at + "T12:00:00").toLocaleDateString("pt-BR")}` : ""}</span>}
