@@ -18,6 +18,7 @@ function AdminCategorias() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [name, setName] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
   const [parentId, setParentId] = useState("");
   const [schedule, setSchedule] = useState(emptySchedule);
   const [editing, setEditing] = useState<Category | null>(null);
@@ -33,6 +34,7 @@ function AdminCategorias() {
 
   function resetForm() {
     setName("");
+    setImageUrl("");
     setParentId("");
     setSchedule(emptySchedule);
     setEditing(null);
@@ -41,6 +43,7 @@ function AdminCategorias() {
   function startEdit(c: Category) {
     setEditing(c);
     setName(c.name);
+    setImageUrl(c.image_url ?? "");
     setParentId(c.parent_id ?? "");
     setSchedule({
       is_temporary: Boolean(c.is_temporary),
@@ -65,6 +68,7 @@ function AdminCategorias() {
     const siblings = categories.filter((c) => (c.parent_id ?? "") === parentId && c.id !== editing?.id);
     const payload = {
       name: cleanName,
+      image_url: imageUrl.trim() || null,
       slug: editing ? (editing.name === cleanName ? editing.slug : slugify(cleanName)) : slugify(cleanName),
       parent_id: parentId || null,
       position: editing?.position ?? siblings.length + 1,
@@ -131,11 +135,12 @@ function AdminCategorias() {
 
   return <div>
     <h1 className="text-4xl text-foreground">Categorias</h1>
-    <p className="mt-2 text-sm text-muted-foreground">Organize categorias e subcategorias e programe coleções temporárias.</p>
+    <p className="mt-2 text-sm text-muted-foreground">Organize categorias, subcategorias, banners de capa e coleções temporárias.</p>
     <form onSubmit={save} className="mt-6 space-y-4 border bg-card p-5">
       <h2 className="font-display text-xl text-primary">{editing ? `Editar: ${editing.name}` : "Adicionar categoria ou subcategoria"}</h2>
       <div className="grid gap-3 md:grid-cols-[1fr_1fr]">
         <input required placeholder="Nome da categoria ou subcategoria" value={name} onChange={(e) => setName(e.target.value)} className={inputCls} />
+        <input placeholder="URL da imagem/banner da capa (opcional)" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} className={inputCls} />
         <select value={parentId} onChange={(e) => setParentId(e.target.value)} className={inputCls}><option value="">Categoria principal (sem categoria pai)</option>{parents.filter((c) => c.id !== editing?.id).map((c) => <option key={c.id} value={c.id}>Subcategoria de: {c.name}</option>)}</select>
       </div>
       <div className="border border-primary/20 p-4">
