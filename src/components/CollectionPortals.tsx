@@ -60,7 +60,6 @@ export function CollectionPortals() {
 
   return <>
     <section className="mx-auto max-w-6xl px-5 py-10 md:px-8 md:py-14">
-      <p className="eyebrow text-center">Portais permanentes</p>
       <h2 className="mt-2 text-center text-3xl text-foreground md:text-4xl">Conheça o Acervo Hiraeth</h2>
       <p className="mx-auto mt-2 max-w-xl text-center text-sm text-muted-foreground">Escolha um universo e atravesse o portal.</p>
       {isAdmin && editMode && <p className="mx-auto mt-3 max-w-xl text-center text-xs text-primary">Use as setas para definir a ordem das bolinhas. A primeira será exibida primeiro na página.</p>}
