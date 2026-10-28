@@ -152,6 +152,11 @@ const AdminProdutosRoute = AdminProdutosRouteImport.update({
   path: '/produtos',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminPromocoesRoute = AdminPromocoesRouteImport.update({
+  id: '/promocoes',
+  path: '/promocoes',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminSobreRoute = AdminSobreRouteImport.update({
   id: '/sobre',
   path: '/sobre',
@@ -562,6 +567,7 @@ interface AdminRouteChildren {
   AdminPedidosRoute: typeof AdminPedidosRoute
   AdminPortaisRoute: typeof AdminPortaisRoute
   AdminProdutosRoute: typeof AdminProdutosRoute
+  AdminPromocoesRoute: typeof AdminPromocoesRoute
   AdminSobreRoute: typeof AdminSobreRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
@@ -575,6 +581,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminPedidosRoute: AdminPedidosRoute,
   AdminPortaisRoute: AdminPortaisRoute,
   AdminProdutosRoute: AdminProdutosRoute,
+  AdminPromocoesRoute: AdminPromocoesRoute,
   AdminSobreRoute: AdminSobreRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
