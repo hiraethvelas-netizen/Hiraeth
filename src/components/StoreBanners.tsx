@@ -24,11 +24,12 @@ export function StoreBanners() {
     setBanners((current) => current.map((item) => item.id === banner.id ? { ...item, ...payload } : item));
   }
 
-  const visibleBanners: Banner[] = (banners.length ? banners : [
+  const placeholders: Banner[] = [
     { id: "placeholder-1", title: "Novidades do Acervo", image_url: "", href: "/loja", position: 1, active: true },
     { id: "placeholder-2", title: "Novos universos a descobrir", image_url: "", href: "/loja", position: 2, active: true },
     { id: "placeholder-3", title: "Rituais para sua coleção", image_url: "", href: "/loja", position: 3, active: true },
-  ]).slice(0, 3);
+  ];
+  const visibleBanners: Banner[] = [...banners.slice(0, 3), ...placeholders.slice(banners.length)].slice(0, 3);
 
   useEffect(() => {
     const container = carouselRef.current;
@@ -45,7 +46,7 @@ export function StoreBanners() {
   return <section className="mx-auto max-w-6xl px-5 py-6 md:px-8" aria-label="Novidades da loja">
     <div className="mb-4"><p className="eyebrow">Recém-chegados ao Acervo</p><h2 className="mt-1 text-2xl text-foreground md:text-3xl">Novidades e coleções especiais</h2></div>
     <div ref={carouselRef} className="flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth pb-4" aria-roledescription="carrossel de banners">
-      {visibleBanners.map((banner) => <article data-store-banner key={banner.id} className="w-[88% min-w-[88%] snap-start sm:w-[60%] sm:min-w-[60%] md:w-[calc(33.333%-11px)] md:min-w-[calc(33.333%-11px)]">
+      {visibleBanners.map((banner) => <article data-store-banner key={banner.id} className="w-[88%] min-w-[88%] snap-start sm:w-[60%] sm:min-w-[60%] md:w-[calc(33.333%-11px)] md:min-w-[calc(33.333%-11px)]">
         <Link to={banner.href as never} className="group relative block aspect-[4/3] overflow-hidden rounded-lg border border-primary/20 bg-card">
           {banner.image_url ? <img src={banner.image_url} alt={banner.title ?? "Novidade Hiraeth"} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110" loading="lazy" /> : <div className="flex h-full items-end bg-[radial-gradient(ellipse_at_top,_var(--color-secondary),_var(--color-background)_75%)] p-5 font-display text-2xl text-primary sm:text-3xl">{banner.title}</div>}
           <span className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-transparent" />
