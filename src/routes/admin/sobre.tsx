@@ -33,9 +33,9 @@ function AdminSobre() {
         const mainIndex = merged.findIndex(block => /hist[oó]ria.*hiraeth|sobre.*hiraeth/i.test(block.title) || block.id === "historia-hiraeth");
         const guardIndex = merged.findIndex(block => block.id === "guardiã-da-chama" || block.id === "guardia-da-chama" || /guardi[aã].*chama|prazer.*mari|sobre.*mari/i.test(block.title));
         if (guardIndex >= 0 && guardIndex !== mainIndex) {
-          const guard = merged[guardIndex];
+          const guard = merged[guardIndex]!;
           const targetIndex = mainIndex >= 0 ? mainIndex : Math.max(0, merged.findIndex((_, index) => index !== guardIndex));
-          const target = merged[targetIndex];
+          const target = merged[targetIndex]!;
           merged[targetIndex] = { ...target, title: "Sobre a Hiraeth", text: [target.text, guard.text].filter(Boolean).join("\n\n"), images: [...(target.images ?? []), ...(guard.images ?? [])], links: [...(target.links ?? []), ...(guard.links ?? [])] };
           merged.splice(guardIndex, 1);
         }
@@ -88,8 +88,8 @@ function AdminSobre() {
     <form onSubmit={save} className="space-y-6">
       {blocks.map((block, index) => <section key={block.id} className="space-y-4 border bg-card p-5">
         <div className="flex flex-wrap items-center justify-between gap-3"><h2 className="text-xl text-foreground">Bloco {index + 1}</h2><div className="flex flex-wrap gap-2">
-          <button type="button" disabled={index === 0} onClick={() => setBlocks(current => { const next = [...current]; [next[index - 1], next[index]] = [next[index], next[index - 1]]; return next; })} className="border px-3 py-2 text-sm disabled:opacity-40">↑ Subir</button>
-          <button type="button" disabled={index === blocks.length - 1} onClick={() => setBlocks(current => { const next = [...current]; [next[index + 1], next[index]] = [next[index], next[index + 1]]; return next; })} className="border px-3 py-2 text-sm disabled:opacity-40">↓ Descer</button>
+          <button type="button" disabled={index === 0} onClick={() => setBlocks(current => { const next = [...current]; [next[index - 1]!, next[index]!] = [next[index]!, next[index - 1]!]; return next; })} className="border px-3 py-2 text-sm disabled:opacity-40">↑ Subir</button>
+          <button type="button" disabled={index === blocks.length - 1} onClick={() => setBlocks(current => { const next = [...current]; [next[index + 1]!, next[index]!] = [next[index]!, next[index + 1]!]; return next; })} className="border px-3 py-2 text-sm disabled:opacity-40">↓ Descer</button>
           <button type="button" onClick={() => setBlocks(current => current.filter((_, i) => i !== index))} className="border border-destructive px-3 py-2 text-sm text-destructive">Excluir bloco</button>
         </div></div>
         <div className="grid gap-4 md:grid-cols-2">

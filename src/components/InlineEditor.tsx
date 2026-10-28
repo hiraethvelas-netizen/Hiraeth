@@ -6,7 +6,7 @@ import { uploadSiteImage, useAdminEdit } from "@/lib/admin-edit";
 export type Field =
   | { name: string; label: string; type: "text" | "textarea"; help?: string }
   | { name: string; label: string; type: "image" | "images"; help?: string }
-  | { name: string; label: string; type: "select"; options: { value: string; label: string }[] }
+  | { name: string; label: string; type: "select"; options: readonly { value: string; label: string }[] }
   | { name: string; label: string; type: "checkbox" };
 
 type Values = Record<string, unknown>;

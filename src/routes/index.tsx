@@ -107,10 +107,10 @@ export function ExistingHomepage() {
 
   async function saveShortcut(id: string, values: Record<string, unknown>) {
     const { error } = await (supabase as any).from("site_shortcuts").update({
-      title: String(values.title ?? ""),
-      description: String(values.description ?? "").trim() || null,
-      href: String(values.href ?? "/loja"),
-      image_key: String(values.image_key ?? "portal"),
+      title: String(values["title"] ?? ""),
+      description: String(values["description"] ?? "").trim() || null,
+      href: String(values["href"] ?? "/loja"),
+      image_key: String(values["image_key"] ?? "portal"),
     }).eq("id", id);
     if (error) throw error;
     const { data, error: loadError } = await (supabase as any).from("site_shortcuts").select("*").eq("active", true).order("position");
@@ -160,14 +160,14 @@ export function ExistingHomepage() {
                 <img src={item.image_url} alt={item.title || "Novidade Hiraeth"} className="h-auto max-h-[70vh] min-h-[18rem] w-full object-cover transition-transform duration-500 group-hover:scale-[1.01] sm:h-64 md:h-80" loading="lazy" />
                 {item.title && <span className="sr-only">{item.title}</span>}
               </Link>
-              {item.id === "fallback" ? <InlineEditor label="banner principal de novidades" fields={[{ name: "featuredBannerImage", label: "Imagem do banner", type: "image" }, { name: "featuredBannerHref", label: "Link de destino", type: "text" }]} values={{ featuredBannerImage: content.featuredBannerImage || "", featuredBannerHref: content.featuredBannerHref || "/loja" }} onSave={async values => saveContent({ ...mergedContent, featuredBannerImage: String(values.featuredBannerImage || ""), featuredBannerHref: String(values.featuredBannerHref || "/loja") } as HomeContent)} className="mx-auto max-w-6xl px-5 mt-3" /> : <InlineEditor label={`novidade ${item.title || ""}`} fields={[
+              {item.id === "fallback" ? <InlineEditor label="banner principal de novidades" fields={[{ name: "featuredBannerImage", label: "Imagem do banner", type: "image" }, { name: "featuredBannerHref", label: "Link de destino", type: "text" }]} values={{ featuredBannerImage: content.featuredBannerImage || "", featuredBannerHref: content.featuredBannerHref || "/loja" }} onSave={async values => saveContent({ ...mergedContent, featuredBannerImage: String(values["featuredBannerImage"] || ""), featuredBannerHref: String(values["featuredBannerHref"] || "/loja") } as HomeContent)} className="mx-auto max-w-6xl px-5 mt-3" /> : <InlineEditor label={`novidade ${item.title || ""}`} fields={[
                 { name: "title", label: "Título", type: "text" },
                 { name: "image_url", label: "Imagem do banner", type: "image" },
                 { name: "href", label: "Link de destino", type: "text" },
               ]} values={{ title: item.title ?? "", image_url: item.image_url, href: item.href }} onSave={async (values) => {
-                const { error } = await (supabase as any).from("site_banners").update({ title: String(values.title ?? "") || null, image_url: String(values.image_url ?? item.image_url), href: String(values.href ?? item.href) }).eq("id", item.id);
+                const { error } = await (supabase as any).from("site_banners").update({ title: String(values["title"] ?? "") || null, image_url: String(values["image_url"] ?? item.image_url), href: String(values["href"] ?? item.href) }).eq("id", item.id);
                 if (error) throw error;
-                setBanners(current => current.map(b => b.id === item.id ? { ...b, title: String(values.title ?? "") || null, image_url: String(values.image_url ?? item.image_url), href: String(values.href ?? item.href) } : b));
+                setBanners(current => current.map(b => b.id === item.id ? { ...b, title: String(values["title"] ?? "") || null, image_url: String(values["image_url"] ?? item.image_url), href: String(values["href"] ?? item.href) } : b));
               }} className="mt-3" />}
             </div>
           ))}

@@ -42,7 +42,7 @@ const [loading, setLoading] = useState(true);
   const [categoryId, setCategoryId] = useState<string | null>(null);
 
   async function saveProduct(product: Product, values: Record<string, unknown>) {
-    const payload = { name: String(values.name ?? product.name), description: String(values.description ?? "") || null, price: Number(values.price ?? product.price), sale_price: values.sale_price === "" || values.sale_price == null ? null : Number(values.sale_price), fragrance: String(values.fragrance ?? "") || null, images: Array.isArray(values.images) ? values.images as string[] : product.images };
+    const payload = { name: String(values["name"] ?? product.name), description: String(values["description"] ?? "") || null, price: Number(values["price"] ?? product.price), sale_price: values["sale_price"] === "" || values["sale_price"] == null ? null : Number(values["sale_price"]), fragrance: String(values["fragrance"] ?? "") || null, images: Array.isArray(values["images"]) ? values["images"] as string[] : product.images };
     const { error } = await supabase.from("products").update(payload).eq("id", product.id);
     if (error) throw error;
     setProducts(current => current.map(item => item.id === product.id ? { ...item, ...payload } : item));
