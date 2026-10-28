@@ -96,6 +96,7 @@ const HOME_FIELDS = [
 export function ExistingHomepage() {
   const [shortcuts, setShortcuts] = useState<Shortcut[]>([]);
   const [banners, setBanners] = useState<HomeBanner[]>([]);
+  // Lovable sync trigger 2026-10-28
   const [heroBannerIndex, setHeroBannerIndex] = useState(0);
   const { isAdmin, editMode } = useAdminEdit();
   const [content, saveContent] = useSiteContent<HomeContent>("homepage", DEFAULT_HOME_CONTENT);
