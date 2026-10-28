@@ -14,8 +14,22 @@ ALTER TABLE public.customer_reviews ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "Public can read approved Hiraeth reviews" ON public.customer_reviews;
 CREATE POLICY "Public can read approved Hiraeth reviews"
-  ON public.customer_reviews FOR SELECT
-  USING (approved = true);
+  ON public.customer_reviews FOR SELECT USING (approved = true);
+
+DROP POLICY IF EXISTS "Customers can read their own reviews" ON public.customer_reviews;
+CREATE POLICY "Customers can read their own reviews"
+  ON public.customer_reviews FOR SELECT TO authenticated USING (user_id = auth.uid());
+
+DROP POLICY IF EXISTS "Admins can read all Hiraeth reviews" ON public.customer_reviews;
+CREATE POLICY "Admins can read all Hiraeth reviews"
+  ON public.customer_reviews FOR SELECT TO authenticated
+  USING (public.has_role(auth.uid(), 'admin'));
+
+DROP POLICY IF EXISTS "Admins can moderate Hiraeth reviews" ON public.customer_reviews;
+CREATE POLICY "Admins can moderate Hiraeth reviews"
+  ON public.customer_reviews FOR UPDATE TO authenticated
+  USING (public.has_role(auth.uid(), 'admin'))
+  WITH CHECK (public.has_role(auth.uid(), 'admin'));
 
 DROP POLICY IF EXISTS "Customers can review their completed paid orders" ON public.customer_reviews;
 CREATE POLICY "Customers can review their completed paid orders"
@@ -30,5 +44,3 @@ CREATE POLICY "Customers can review their completed paid orders"
         AND lower(coalesce(o.status, '')) IN ('delivered', 'completed', 'concluido', 'concluído', 'entregue')
     )
   );
-
--- A publicação fica deliberadamente moderada: somente avaliações aprovadas aparecem publicamente.
