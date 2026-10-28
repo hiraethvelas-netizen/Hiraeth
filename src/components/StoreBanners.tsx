@@ -23,19 +23,23 @@ export function StoreBanners() {
     setBanners((current) => current.map((item) => item.id === banner.id ? { ...item, ...payload } : item));
   }
 
-  if (!banners.length) return null;
-  return <section className="mx-auto max-w-6xl px-5 py-8 md:px-8">
-    <div className="mb-4"><p className="eyebrow">Recém-chegados ao Acervo</p><h2 className="mt-1 text-3xl text-foreground md:text-4xl">Novidades e coleções especiais</h2></div>
+  const visibleBanners: Banner[] = banners.length ? banners : [
+    { id: "placeholder-1", title: "Novidades do Acervo", image_url: "", href: "/loja", position: 1, active: true },
+    { id: "placeholder-2", title: "Novos universos a descobrir", image_url: "", href: "/loja", position: 2, active: true },
+    { id: "placeholder-3", title: "Rituais para sua coleção", image_url: "", href: "/loja", position: 3, active: true },
+  ];
+  return <section className="mx-auto max-w-6xl px-5 py-6 md:px-8" aria-label="Novidades da loja">
+    <div className="mb-4"><p className="eyebrow">Recém-chegados ao Acervo</p><h2 className="mt-1 text-2xl text-foreground md:text-3xl">Novidades e coleções especiais</h2></div>
     <div className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-4">
-      {banners.map((banner) => <article key={banner.id} className="w-[88%] min-w-[88%] snap-start sm:w-[60%] sm:min-w-[60%] md:w-[calc(33.333%-11px)] md:min-w-[calc(33.333%-11px)]">
+      {visibleBanners.map((banner) => <article key={banner.id} className="w-[88%] min-w-[88%] snap-start sm:w-[60%] sm:min-w-[60%] md:w-[calc(33.333%-11px)] md:min-w-[calc(33.333%-11px)]">
         <Link to={banner.href as never} className="group relative block aspect-[4/3] overflow-hidden rounded-lg border border-primary/20 bg-card">
-          <img src={banner.image_url} alt={banner.title ?? "Novidade Hiraeth"} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110" loading="lazy" />
+          {banner.image_url ? <img src={banner.image_url} alt={banner.title ?? "Novidade Hiraeth"} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110" loading="lazy" /> : <div className="flex h-full items-end bg-[radial-gradient(ellipse_at_top,_var(--color-secondary),_var(--color-background)_75%)] p-5 font-display text-2xl text-primary sm:text-3xl">{banner.title}</div>}
           <span className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-transparent" />
           {banner.title && <span className="absolute inset-x-4 bottom-4 font-display text-2xl text-white">{banner.title}</span>}
         </Link>
-        {isAdmin && editMode && <InlineEditor label={`banner de novidade: ${banner.title ?? "sem título"}`} className="mt-2" fields={[{ name: "title", label: "Nome/título", type: "text" }, { name: "image_url", label: "Imagem do banner", type: "image" }, { name: "href", label: "Destino do clique", type: "text" }]} values={{ title: banner.title ?? "", image_url: banner.image_url, href: banner.href }} onSave={(values) => save(banner, values)} />}
+        {isAdmin && editMode && !banner.id.startsWith("placeholder-") && <InlineEditor label={`banner de novidade: ${banner.title ?? "sem título"}`} className="mt-2" fields={[{ name: "title", label: "Nome/título", type: "text" }, { name: "image_url", label: "Imagem do banner", type: "image" }, { name: "href", label: "Destino do clique", type: "text" }]} values={{ title: banner.title ?? "", image_url: banner.image_url, href: banner.href }} onSave={(values) => save(banner, values)} />}
       </article>)}
     </div>
-    {isAdmin && editMode && <p className="mt-2 text-xs text-muted-foreground">Os banners são editáveis aqui. Para adicionar ou remover banners, gerencie os registros de site_banners no painel administrativo.</p>}
+    {isAdmin && editMode && <p className="mt-2 text-xs text-muted-foreground">Cadastre imagens em Administração → Banners para substituir estes espaços temporários por novidades reais.</p>}
   </section>;
 }
