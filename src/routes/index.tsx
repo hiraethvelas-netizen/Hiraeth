@@ -9,7 +9,6 @@ import { CinematicOpening } from "@/components/CinematicOpening";
 import { ShortcutIcon } from "@/components/ShortcutIcon";
 import { InlineEditor } from "@/components/InlineEditor";
 import { useAdminEdit, useSiteContent } from "@/lib/admin-edit";
-import { CollectionPortals } from "@/components/CollectionPortals";
 
 type Shortcut = { id: string; title: string; description: string | null; href: string; image_key: string; position: number; active: boolean };
 type HomeBanner = { id: string; title: string | null; image_url: string; href: string; position: number; active: boolean };
@@ -40,8 +39,6 @@ type HomeContent = Record<string, unknown> & {
   careImage: string;
   featuredBannerImage: string;
   featuredBannerHref: string;
-  heroBannerImage: string;
-  heroBannerHref: string;
   showPortals: boolean;
   showBanners: boolean;
   showCare: boolean;
@@ -60,8 +57,6 @@ const DEFAULT_HOME_CONTENT: HomeContent = {
   careImage: "",
   featuredBannerImage: "",
   featuredBannerHref: "/loja",
-  heroBannerImage: "",
-  heroBannerHref: "/loja",
   showPortals: true,
   showBanners: true,
   showCare: true,
@@ -75,8 +70,6 @@ const HOME_FIELDS = [
   { name: "bannersTitle", label: "Título da seção de novidades", type: "text" },
   { name: "featuredBannerImage", label: "Imagem do banner principal de novidades", type: "image", help: "Envie a imagem que deve ocupar toda a largura no celular." },
   { name: "featuredBannerHref", label: "Link do banner principal de novidades", type: "text" },
-  { name: "heroBannerImage", label: "Imagem do banner principal do Acervo", type: "image", help: "Banner horizontal sem texto sobreposto. JPG, PNG ou WebP, até 5 MB." },
-  { name: "heroBannerHref", label: "Link do banner principal do Acervo", type: "text" },
   { name: "careEyebrow", label: "Texto pequeno da seção de cuidados", type: "text" },
   { name: "careTitle", label: "Título da seção de cuidados", type: "text" },
   { name: "careDescription", label: "Descrição dos cuidados", type: "textarea" },
@@ -103,6 +96,7 @@ const HOME_FIELDS = [
 export function ExistingHomepage() {
   const [shortcuts, setShortcuts] = useState<Shortcut[]>([]);
   const [banners, setBanners] = useState<HomeBanner[]>([]);
+  const [heroBannerIndex, setHeroBannerIndex] = useState(0);
   const { isAdmin, editMode } = useAdminEdit();
   const [content, saveContent] = useSiteContent<HomeContent>("homepage", DEFAULT_HOME_CONTENT);
   useEffect(() => {
@@ -111,6 +105,12 @@ export function ExistingHomepage() {
     (supabase as any).from("site_banners").select("*").eq("active", true).order("position")
       .then(({ data }: { data: HomeBanner[] | null }) => setBanners(data ?? []));
   }, []);
+
+  useEffect(() => {
+    if (banners.length < 2) return;
+    const timer = window.setInterval(() => setHeroBannerIndex(index => (index + 1) % Math.min(3, banners.length)), 5000);
+    return () => window.clearInterval(timer);
+  }, [banners.length]);
 
   async function saveShortcut(id: string, values: Record<string, unknown>) {
     const { error } = await (supabase as any).from("site_shortcuts").update({
@@ -201,13 +201,18 @@ export function ExistingHomepage() {
     <div className="min-h-screen bg-background">
       <SiteHeader />
       <main>
-        {(mergedContent.heroBannerImage || (isAdmin && editMode)) && <section className="mx-auto max-w-6xl px-5 pt-5 md:px-8 md:pt-8">
-          {mergedContent.heroBannerImage ? <Link to={(mergedContent.heroBannerHref || "/loja") as never} aria-label="Conheça o Acervo Hiraeth" className="group block overflow-hidden rounded-sm">
-            <img src={mergedContent.heroBannerImage} alt="" className="h-auto max-h-[70vh] min-h-[14rem] w-full object-cover transition-transform duration-500 group-hover:scale-[1.01] sm:min-h-[18rem]" />
-          </Link> : <div className="flex min-h-40 items-center justify-center border border-dashed border-primary/40 bg-card text-center text-sm text-muted-foreground">Adicione a imagem do banner principal do Acervo</div>}
-          {isAdmin && editMode && <InlineEditor label="banner principal do Acervo" fields={[{ name: "heroBannerImage", label: "Imagem do banner (sem título)", type: "image" }, { name: "heroBannerHref", label: "Link de destino", type: "text" }]} values={{ heroBannerImage: mergedContent.heroBannerImage || "", heroBannerHref: mergedContent.heroBannerHref || "/loja" }} onSave={async values => saveContent({ ...mergedContent, heroBannerImage: String(values.heroBannerImage || ""), heroBannerHref: String(values.heroBannerHref || "/loja") } as HomeContent)} className="mt-3" />}
-        </section>}
-        <CollectionPortals />
+        <section className="mx-auto max-w-6xl px-5 pt-5 md:px-8 md:pt-8">
+          {banners.slice(0, 3).length ? <div className="relative overflow-hidden rounded-sm">
+            {banners.slice(0, 3).map((item, index) => <Link key={item.id} to={(item.href || "/loja") as never} aria-label={item.title || "Conheça o Acervo Hiraeth"} className={"group block " + (index === heroBannerIndex ? "relative" : "absolute inset-0 pointer-events-none opacity-0")}>
+              <img src={item.image_url} alt="" className="h-auto max-h-[70vh] min-h-[14rem] w-full object-cover transition-opacity duration-700 sm:min-h-[18rem]" />
+            </Link>)}
+            {banners.slice(0, 3).length > 1 && <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-2">{banners.slice(0, 3).map((item, index) => <button key={item.id} type="button" onClick={() => setHeroBannerIndex(index)} aria-label={"Mostrar banner " + (index + 1)} aria-pressed={index === heroBannerIndex} className={"h-2 rounded-full transition-all " + (index === heroBannerIndex ? "w-6 bg-primary" : "w-2 bg-white/70")} />)}</div>}
+          </div> : <div className="flex min-h-40 items-center justify-center border border-dashed border-primary/40 bg-card text-center text-sm text-muted-foreground">{isAdmin && editMode ? "Adicione até três banners em Admin → Banners" : null}</div>}
+          {isAdmin && editMode && <p className="mt-2 text-xs text-muted-foreground">Edite as imagens, links e a ordem dos três banners em Admin → Banners. Eles giram automaticamente e não exibem título sobre a foto.</p>}
+        </section>
+        <section className="mx-auto max-w-6xl px-5 py-8 text-center md:px-8">
+          <h2 className="text-3xl text-foreground md:text-4xl">Conheça o Acervo Hiraeth</h2>
+        </section>
         {isAdmin && editMode && <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-5 pt-3">
           <Link to="/admin" className="inline-flex items-center gap-2 border border-primary/50 px-4 py-2 text-sm text-primary transition-colors hover:bg-primary/10">
             ← Voltar ao dashboard
