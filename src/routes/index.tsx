@@ -9,6 +9,7 @@ import { CinematicOpening } from "@/components/CinematicOpening";
 import { ShortcutIcon } from "@/components/ShortcutIcon";
 import { InlineEditor } from "@/components/InlineEditor";
 import { useAdminEdit, useSiteContent } from "@/lib/admin-edit";
+import { CollectionPortals } from "@/components/CollectionPortals";
 
 type Shortcut = { id: string; title: string; description: string | null; href: string; image_key: string; position: number; active: boolean };
 type HomeBanner = { id: string; title: string | null; image_url: string; href: string; position: number; active: boolean };
@@ -206,6 +207,7 @@ export function ExistingHomepage() {
           />
         </div>}
         {orderedKeys.map((key) => sections[key])}
+        <CollectionPortals />
       </main>
       <SiteFooter />
     </div>
