@@ -207,6 +207,7 @@ export function ExistingHomepage() {
           </Link> : <div className="flex min-h-40 items-center justify-center border border-dashed border-primary/40 bg-card text-center text-sm text-muted-foreground">Adicione a imagem do banner principal do Acervo</div>}
           {isAdmin && editMode && <InlineEditor label="banner principal do Acervo" fields={[{ name: "heroBannerImage", label: "Imagem do banner (sem título)", type: "image" }, { name: "heroBannerHref", label: "Link de destino", type: "text" }]} values={{ heroBannerImage: mergedContent.heroBannerImage || "", heroBannerHref: mergedContent.heroBannerHref || "/loja" }} onSave={async values => saveContent({ ...mergedContent, heroBannerImage: String(values.heroBannerImage || ""), heroBannerHref: String(values.heroBannerHref || "/loja") } as HomeContent)} className="mt-3" />}
         </section>}
+        <CollectionPortals />
         {isAdmin && editMode && <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-5 pt-3">
           <Link to="/admin" className="inline-flex items-center gap-2 border border-primary/50 px-4 py-2 text-sm text-primary transition-colors hover:bg-primary/10">
             ← Voltar ao dashboard
@@ -219,7 +220,6 @@ export function ExistingHomepage() {
           />
         </div>}
         {orderedKeys.map((key) => sections[key])}
-        <CollectionPortals />
       </main>
       <SiteFooter />
     </div>
