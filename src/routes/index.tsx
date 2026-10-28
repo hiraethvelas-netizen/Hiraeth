@@ -96,8 +96,6 @@ const HOME_FIELDS = [
 export function ExistingHomepage() {
   const [shortcuts, setShortcuts] = useState<Shortcut[]>([]);
   const [banners, setBanners] = useState<HomeBanner[]>([]);
-  // Lovable sync trigger 2026-10-28
-  const [heroBannerIndex, setHeroBannerIndex] = useState(0);
   const { isAdmin, editMode } = useAdminEdit();
   const [content, saveContent] = useSiteContent<HomeContent>("homepage", DEFAULT_HOME_CONTENT);
   useEffect(() => {
@@ -106,12 +104,6 @@ export function ExistingHomepage() {
     (supabase as any).from("site_banners").select("*").eq("active", true).order("position")
       .then(({ data }: { data: HomeBanner[] | null }) => setBanners(data ?? []));
   }, []);
-
-  useEffect(() => {
-    if (banners.length < 2) return;
-    const timer = window.setInterval(() => setHeroBannerIndex(index => (index + 1) % Math.min(3, banners.length)), 5000);
-    return () => window.clearInterval(timer);
-  }, [banners.length]);
 
   async function saveShortcut(id: string, values: Record<string, unknown>) {
     const { error } = await (supabase as any).from("site_shortcuts").update({
