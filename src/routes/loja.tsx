@@ -105,7 +105,10 @@ useEffect(() => {
     const activeCategoryIds = new Set(categories.map((category) => category.id));
     return products.filter((p) => {
       if (p.category_id && !activeCategoryIds.has(p.category_id)) return false;
-      if (categoryId && p.category_id !== categoryId) return false;
+      if (categoryId) {
+        const includedCategoryIds = new Set([categoryId, ...categories.filter((category) => category.parent_id === categoryId).map((category) => category.id)]);
+        if (!p.category_id || !includedCategoryIds.has(p.category_id)) return false;
+      }
 
       if (query) {
         const q = query.toLowerCase();
