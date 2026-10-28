@@ -68,7 +68,7 @@ function AdminProdutos() {
       price: String(p.price), sale_price: p.sale_price != null ? String(p.sale_price) : "",
       stock: String(p.stock), sku: p.sku ?? "", fragrance: p.fragrance ?? "",
       images: p.images ?? [], status: p.status,
-      dimensions: p.dimensions ?? "",
+      dimensions: p.dimensions ?? "", variantsJson: JSON.stringify((p as any).variants ?? [], null, 2),
     });
     const { data } = await db.from("product_essences").select("essence_id,quantity_ml,essences(name)").eq("product_id", p.id);
     setProductAromas((data ?? []).map((r:any) => ({essence_id:r.essence_id,quantity_ml:Number(r.quantity_ml),name:r.essences?.name ?? "Aroma"})));
@@ -106,7 +106,7 @@ function AdminProdutos() {
       price: Number(form.price) || 0, sale_price: form.sale_price ? Number(form.sale_price) : null,
       stock: Math.max(0, Number(form.stock) || 0), sku: form.sku || null,
       fragrance: form.fragrance || null, images: form.images, status: form.status,
-      dimensions: form.dimensions || null,
+      dimensions: form.dimensions || null,\n      variants: (() => { try { const parsed = JSON.parse((form as any).variantsJson || "[]"); if (!Array.isArray(parsed)) throw new Error("As variações precisam ser uma lista."); return parsed; } catch { toast.error("Revise o JSON das variações antes de salvar."); throw new Error("Variações inválidas"); } })(),
     };
     const { error } = editing
       ? await supabase.from("products").update(payload).eq("id", editing.id)
