@@ -15,6 +15,28 @@ function Carrinho() {
   const cart = useCart();
   const navigate = useNavigate();
   const [placing, setPlacing] = useState(false);
+  const [coupon, setCoupon] = useState("");
+  const [couponDiscount, setCouponDiscount] = useState(0);
+  const [couponCode, setCouponCode] = useState<string | null>(null);
+  const [validatingCoupon, setValidatingCoupon] = useState(false);
+  const db = supabase as any;
+  const payableTotal = Math.max(0, cart.total - couponDiscount);
+
+  async function applyCoupon() {
+    const code = coupon.trim().toUpperCase();
+    if (!code) { toast.error("Digite o código do cupom."); return; }
+    setValidatingCoupon(true);
+    const now = new Date().toISOString();
+    const { data, error } = await db.from("promotions").select("*").eq("kind", "coupon").eq("code", code).eq("active", true).eq("visible", true).maybeSingle();
+    setValidatingCoupon(false);
+    if (error || !data || (data.starts_at && data.starts_at > now) || (data.ends_at && data.ends_at < now) || (data.usage_limit != null && data.usage_count >= data.usage_limit) || cart.total < Number(data.min_cart_value ?? 0)) {
+      setCouponDiscount(0); setCouponCode(null); toast.error("Cupom inválido, expirado ou não aplicável a este carrinho."); return;
+    }
+    const discount = data.discount_type === "percent" ? cart.total * Number(data.discount_value) / 100 : Number(data.discount_value);
+    setCouponDiscount(Math.min(cart.total, Math.max(0, discount)));
+    setCouponCode(code);
+    toast.success("Cupom aplicado.");
+  }
 
   async function checkout() {
     setPlacing(true);
@@ -86,7 +108,7 @@ function Carrinho() {
           <>
             <ul className="mt-10 divide-y">
               {cart.items.map((item) => (
-                <li key={item.productId} className="flex items-center gap-4 py-4">
+                <li key={`${item.productId}-${item.variantKey ?? "default"}`} className="flex items-center gap-4 py-4">
                   <div className="h-20 w-20 shrink-0 overflow-hidden border bg-muted">
                     {item.image && <img src={item.image} alt="" className="h-full w-full object-cover" />}
                   </div>
@@ -97,12 +119,12 @@ function Carrinho() {
                     <p className="text-sm text-muted-foreground">{brl(item.price)} cada</p>
                   </div>
                   <div className="flex items-center border">
-                    <button onClick={() => cart.setQuantity(item.productId, item.quantity - 1)} className="px-3 py-1">−</button>
+                    <button onClick={() => cart.setQuantity(item.productId, item.quantity - 1, item.variantKey)} className="px-3 py-1">−</button>
                     <span className="w-8 text-center">{item.quantity}</span>
-                    <button onClick={() => cart.setQuantity(item.productId, item.quantity + 1)} className="px-3 py-1">+</button>
+                    <button onClick={() => cart.setQuantity(item.productId, item.quantity + 1, item.variantKey)} className="px-3 py-1">+</button>
                   </div>
                   <span className="w-24 text-right text-primary">{brl(item.price * item.quantity)}</span>
-                  <button onClick={() => cart.remove(item.productId)} className="text-muted-foreground hover:text-destructive" aria-label="Remover">
+                  <button onClick={() => cart.remove(item.productId, item.variantKey)} className="text-muted-foreground hover:text-destructive" aria-label="Remover">
                     ✕
                   </button>
                 </li>
