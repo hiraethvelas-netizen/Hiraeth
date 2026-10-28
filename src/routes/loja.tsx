@@ -7,6 +7,7 @@ import type { Tables } from "@/integrations/supabase/types";
 import { InlineEditor } from "@/components/InlineEditor";
 import { useSiteContent } from "@/lib/admin-edit";
 import { StoreBanners } from "@/components/StoreBanners";
+import { CustomerReviews } from "@/components/CustomerReviews";
 
 
 type Product = Tables<"products">;
@@ -291,6 +292,7 @@ useEffect(() => {
             ))}
           </div>
         )}
+        <CustomerReviews />
       </main>
 
       <SiteFooter />
