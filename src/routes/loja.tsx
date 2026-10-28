@@ -42,6 +42,7 @@ function Loja() {
 const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
   const [categoryId, setCategoryId] = useState<string | null>(null);
+  const [enteringCategory, setEnteringCategory] = useState<Category | null>(null);
 
   async function saveProduct(product: Product, values: Record<string, unknown>) {
     const payload = { name: String(values["name"] ?? product.name), description: String(values["description"] ?? "") || null, price: Number(values["price"] ?? product.price), sale_price: values["sale_price"] === "" || values["sale_price"] == null ? null : Number(values["sale_price"]), fragrance: String(values["fragrance"] ?? "") || null, images: Array.isArray(values["images"]) ? values["images"] as string[] : product.images };
@@ -153,7 +154,7 @@ useEffect(() => {
         {!categoryId && featuredCollections.length > 0 && <section className="mt-8">
           <div className="mb-4 flex items-end justify-between gap-3"><div><p className="eyebrow">Coleções fixas</p><h2 className="mt-1 text-3xl text-foreground">Explore o Acervo</h2></div><span className="text-xs text-muted-foreground">7 universos</span></div>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
-            {featuredCollections.map((collection) => <button key={collection.id} type="button" onClick={() => { setCategoryId(collection.id); const url = new URL(window.location.href); url.searchParams.set("categoria", collection.slug); window.history.replaceState({}, "", url.toString()); window.scrollTo({ top: 0, behavior: "smooth" }); }} className="group relative overflow-hidden rounded-lg border border-primary/25 text-left transition-transform duration-500 hover:scale-[1.02] focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">
+            {featuredCollections.map((collection) => <button key={collection.id} type="button" onClick={() => { const enter = () => { setCategoryId(collection.id); const url = new URL(window.location.href); url.searchParams.set("categoria", collection.slug); window.history.replaceState({}, "", url.toString()); window.scrollTo({ top: 0, behavior: "smooth" }); }; if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) enter(); else { setEnteringCategory(collection); window.setTimeout(() => { enter(); setEnteringCategory(null); }, 620); } }} className="group relative overflow-hidden rounded-lg border border-primary/25 text-left transition-transform duration-500 hover:scale-[1.02] focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">
               <div className="aspect-[4/3] bg-muted">{collection.image_url ? <img src={collection.image_url} alt="" className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110" loading="lazy" /> : <div className="flex h-full items-center justify-center bg-gradient-to-br from-card to-muted p-3 text-center font-display text-xl text-primary">{collection.name}</div>}</div>
               <div className="absolute inset-0 flex items-end bg-gradient-to-t from-black/80 via-black/5 to-transparent p-3"><span className="font-display text-lg text-white sm:text-xl">{collection.name}</span>{collection.is_temporary && <span className="ml-auto border border-amber-100/80 px-1.5 py-0.5 text-[9px] uppercase tracking-wide text-amber-50">Temporária</span>}</div>
               <span className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100 group-hover:shadow-[inset_0_0_35px_rgba(198,166,91,0.55)]" />
@@ -298,6 +299,7 @@ useEffect(() => {
           </div>
         )}
         <CustomerReviews />
+        {enteringCategory && <div className="portal-entry-overlay" aria-hidden="true">{enteringCategory.image_url ? <img src={enteringCategory.image_url} alt="" className="portal-entry-image" /> : <div className="portal-entry-placeholder"><span>{enteringCategory.name}</span></div>}<div className="portal-entry-glow" /></div>}
       </main>
 
       <SiteFooter />
