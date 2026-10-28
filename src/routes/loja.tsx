@@ -6,6 +6,7 @@ import { brl } from "@/lib/format";
 import type { Tables } from "@/integrations/supabase/types";
 import { InlineEditor } from "@/components/InlineEditor";
 import { useSiteContent } from "@/lib/admin-edit";
+import { StoreBanners } from "@/components/StoreBanners";
 
 
 type Product = Tables<"products">;
@@ -122,6 +123,7 @@ useEffect(() => {
   return (
     <div className="min-h-screen">
       <SiteHeader />
+      <StoreBanners />
 
       <main className="mx-auto max-w-6xl px-5 pb-20 pt-8 md:px-8 md:pt-12">
         {/* Catálogo da loja */}
