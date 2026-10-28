@@ -30,7 +30,7 @@ function ProdutoPage() {
   const [quantity, setQuantity] = useState(1);
   const [inWishlist, setInWishlist] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
-  const [aromaNotes, setAromaNotes] = useState<AromaNote[]>([]);
+  const [aromaNotes, setAromaNotes] = useState<AromaNote[]>([]);\n  const [selectedVariant, setSelectedVariant] = useState<any>(null);\n  const [selectedHouse, setSelectedHouse] = useState("Aleatória / casa surpresa");
 
   useEffect(() => {
     async function load() {
@@ -111,9 +111,9 @@ function ProdutoPage() {
                 </div>
               )}
             </div>
-            {product.images.length > 1 && (
+            {currentImages.length > 1 && (
               <div className="mt-3 flex gap-2">
-                {product.images.map((img, i) => (
+                {currentImages.map((img, i) => (
                   <button
                     key={i}
                     onClick={() => setActiveImage(i)}
@@ -130,7 +130,7 @@ function ProdutoPage() {
             <h1 className="text-4xl text-foreground">{product.name}</h1>
             {product.fragrance && <p className="eyebrow mt-2 text-lg">{product.fragrance}</p>}
 
-            <div className="mt-4 flex items-baseline gap-3">
+            {sizeVariants.length > 0 && <div className="mt-6"><label className="mb-2 block text-sm text-foreground">Tamanho</label><div className="flex flex-wrap gap-2">{sizeVariants.map((v:any) => <button key={v.id ?? v.label} type="button" onClick={() => { setSelectedVariant(v); setActiveImage(0); }} className={`border px-4 py-2 text-sm ${activeVariant === v ? "border-primary bg-primary/10" : "border-border"}`}>{v.label}</button>)}</div></div>}\n            {houseVariants.length > 0 && <div className="mt-5"><label className="mb-2 block text-sm text-foreground">Escolha sua casa</label><select value={selectedHouse} onChange={(e) => { setSelectedHouse(e.target.value); setActiveImage(0); }} className="w-full border bg-background px-3 py-2 text-foreground"><option>Aleatória / casa surpresa</option>{houseVariants.map((v:any) => <option key={v.id ?? v.label} value={v.label}>{v.label}</option>)}</select><p className="mt-2 text-xs text-muted-foreground">A casa será revelada ao acender a vela.</p></div>}\n\n            <div className="mt-4 flex items-baseline gap-3">
               <span className="text-3xl text-primary">{brl(price)}</span>
               {product.sale_price != null && (
                 <span className="text-lg text-muted-foreground line-through">{brl(Number(product.price))}</span>
