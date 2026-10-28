@@ -127,10 +127,10 @@ export function SiteFooter() {
   const whatsapp = profile?.whatsapp_url || (profile?.whatsapp_number ? `https://wa.me/${profile.whatsapp_number.replace(/\D/g, "")}` : "");
   async function saveContacts(values: Record<string, unknown>) {
     const payload = {
-      instagram_url: String(values.instagram_url ?? ""),
-      whatsapp_number: String(values.whatsapp_number ?? ""),
-      whatsapp_url: String(values.whatsapp_url ?? ""),
-      contact_email: String(values.contact_email ?? ""),
+      instagram_url: String(values["instagram_url"] ?? ""),
+      whatsapp_number: String(values["whatsapp_number"] ?? ""),
+      whatsapp_url: String(values["whatsapp_url"] ?? ""),
+      contact_email: String(values["contact_email"] ?? ""),
     };
     const { error } = await (supabase as any).from("site_profile").upsert(
       { id: true, ...payload, updated_at: new Date().toISOString() },
@@ -140,7 +140,7 @@ export function SiteFooter() {
     setProfile(payload);
   }
   async function saveTikTok(values: Record<string, unknown>) {
-    const next = String(values.tiktok_url ?? "").trim();
+    const next = String(values["tiktok_url"] ?? "").trim();
     const { error } = await (supabase as any).from("site_content").upsert({ key: "footer_settings", value: { tiktok_url: next }, updated_at: new Date().toISOString() }, { onConflict: "key" });
     if (error) throw new Error(`Falha ao salvar o TikTok (${error.code ?? "sem código"}): ${error.message}. Confirme que você está autenticada como administradora.`);
     setTiktokUrl(next);
