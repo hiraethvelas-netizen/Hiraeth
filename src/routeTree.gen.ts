@@ -31,7 +31,7 @@ import { Route as AdminEssenciasRouteImport } from './routes/admin/essencias'
 import { Route as AdminFinanceiroRouteImport } from './routes/admin/financeiro'
 import { Route as AdminPedidosRouteImport } from './routes/admin/pedidos'
 import { Route as AdminPortaisRouteImport } from './routes/admin/portais'
-import { Route as AdminProdutosRouteImport } from './routes/admin/produtos'
+import { Route as AdminProdutosRouteImport } from './routes/admin/produtos'\nimport { Route as AdminPromocoesRouteImport } from './routes/admin/promocoes'
 import { Route as AdminSobreRouteImport } from './routes/admin/sobre'
 import { Route as PortalSlugRouteImport } from './routes/portal.$slug'
 import { Route as ProdutoSlugRouteImport } from './routes/produto.$slug'
@@ -188,7 +188,7 @@ export interface FileRoutesByFullPath {
   '/admin/financeiro': typeof AdminFinanceiroRoute
   '/admin/pedidos': typeof AdminPedidosRoute
   '/admin/portais': typeof AdminPortaisRoute
-  '/admin/produtos': typeof AdminProdutosRoute
+  '/admin/produtos': typeof AdminProdutosRoute\n  '/admin/promocoes': typeof AdminPromocoesRoute\n  '/admin/promocoes': typeof AdminPromocoesRoute
   '/admin/sobre': typeof AdminSobreRoute
   '/portal/$slug': typeof PortalSlugRoute
   '/produto/$slug': typeof ProdutoSlugRoute
