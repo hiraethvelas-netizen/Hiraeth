@@ -121,21 +121,23 @@ export function ExistingHomepage() {
   const headingFont = content.fontStyle === "serif" ? "font-serif" : content.fontStyle === "sans" ? "font-sans" : "font-display";
   const sections: Record<string, ReactNode> = {
     portals: content.showPortals && (
-      <section key="portals" className="mx-auto max-w-6xl px-5 pb-8 pt-10 text-center md:pt-14">
-        <p className="eyebrow">{content.portalsEyebrow}</p>
-        <h1 className={`mt-2 text-4xl text-foreground md:text-5xl ${headingFont}`}>{content.portalsTitle}</h1>
-        <div className="mx-auto mt-8 grid max-w-4xl grid-cols-2 gap-5 sm:grid-cols-3 md:grid-cols-4">
+      <section key="portals" className="hiraeth-home-portals relative mx-auto max-w-6xl px-5 pb-12 pt-12 text-center md:pb-16 md:pt-20">
+        <div className="hiraeth-ember-field" aria-hidden="true" />
+        <p className="eyebrow hiraeth-reveal relative z-10">{content.portalsEyebrow}</p>
+        <h1 className="hiraeth-editorial-title hiraeth-reveal relative z-10 mt-4">{content.portalsTitle}</h1>
+        <div className="hiraeth-ornament relative z-10" aria-hidden="true"><span className="hiraeth-flame">✦</span></div>
+        <div className="relative z-10 mx-auto mt-8 grid max-w-5xl grid-cols-2 gap-x-4 gap-y-7 sm:grid-cols-3 md:grid-cols-4">
           {(shortcuts.length ? shortcuts : [
             { id: "default-about", title: "Conheça a Hiraeth", description: "Conheça nossa história", href: "/sobre", image_key: "hiraeth", position: 1, active: true },
             { id: "default-store", title: "Nossa Loja", description: "Velas e camisetas literárias", href: "/loja", image_key: "candle", position: 2, active: true },
             { id: "default-library", title: "Seu próximo portal", description: "Volte ao Círculo do Fogo", href: "/inicio", image_key: "portal", position: 3, active: true },
             { id: "default-care", title: "Cuidados", description: "Cuidados com suas velas", href: "/cuidados", image_key: "book", position: 4, active: true },
           ] as Shortcut[]).map((item) => (
-            <div key={item.id} className="flex flex-col items-center gap-2 text-center">
-              <span className="block aspect-square w-full max-w-40 overflow-hidden rounded-full border border-primary/40 bg-card p-1 transition-transform group-hover:scale-105">
+            <div key={item.id} className="hiraeth-reveal group flex flex-col items-center gap-3 text-center">
+              <span className="hiraeth-collection-card block aspect-square w-full max-w-40 overflow-hidden rounded-full bg-card p-1.5">
                 <ShortcutIcon imageKey={item.image_key} title={item.title} />
               </span>
-              <span className={`text-xl text-foreground ${headingFont}`}>{item.title}</span>
+              <span className={`hiraeth-collection-label text-foreground ${headingFont}`}>{item.title}</span>
               {item.description && <span className="max-w-40 text-sm text-muted-foreground">{item.description}</span>}
               <Link to={item.href as never} className="text-xs text-primary underline-offset-4 hover:underline">Explorar</Link>
               {!item.id.startsWith("default-") && <InlineEditor label={`atalho ${item.title}`} fields={[
@@ -175,12 +177,20 @@ export function ExistingHomepage() {
       </section>
     ),
     care: content.showCare && (
-      <section key="care" className="border-y bg-card px-6 py-16 text-center">
-        <p className="eyebrow">{content.careEyebrow}</p>
-        <h2 className={`mt-2 text-4xl text-foreground ${headingFont}`}>{content.careTitle}</h2>
-        <p className="mx-auto mt-5 max-w-xl text-foreground/85">{content.careDescription}</p>
-        {typeof content.careImage === "string" && content.careImage && <img src={content.careImage} alt="" className="mx-auto mt-6 max-h-72 max-w-full object-cover" />}
-        <Link to="/cuidados" className="btn-gold mt-8">{content.careButton}</Link>
+      <section key="care" className="relative overflow-hidden px-5 py-12 md:px-8 md:py-20">
+        <div className="mx-auto grid max-w-5xl items-stretch gap-0 md:grid-cols-2">
+          <div className="hiraeth-care-panel hiraeth-reveal z-10 flex flex-col justify-center px-6 py-10 text-center sm:px-10 md:-mr-5 md:my-5 md:px-12">
+            <p className="eyebrow">{content.careEyebrow}</p>
+            <h2 className={`mt-4 text-4xl leading-[1.02] sm:text-5xl ${headingFont}`}>{content.careTitle}</h2>
+            <div className="hiraeth-ornament" aria-hidden="true"><span>✧</span></div>
+            <p className="mx-auto max-w-xl text-base leading-relaxed text-[#4c4938]">{content.careDescription}</p>
+            {typeof content.careImage === "string" && content.careImage && <img src={content.careImage} alt="" className="mx-auto mt-6 max-h-72 max-w-full object-cover" />}
+            <div><Link to="/cuidados" className="mt-7 inline-flex items-center gap-2 rounded-full border border-[#6c7143] bg-[#17291e] px-6 py-3 font-display text-lg text-[#f3e7c7] transition-transform hover:-translate-y-0.5">{content.careButton}<span aria-hidden="true">＋</span></Link></div>
+          </div>
+          <div className="hiraeth-photo-frame relative mt-[-1rem] min-h-[280px] overflow-hidden bg-[#17291e] md:ml-0 md:mt-0 md:min-h-[420px]">
+            {typeof content.careImage === "string" && content.careImage ? <img src={content.careImage} alt="Vela Hiraeth acesa" className="absolute inset-0 h-full w-full object-cover" /> : <div className="hiraeth-candle-scene absolute inset-0 flex items-center justify-center"><div className="hiraeth-candle-books" aria-hidden="true"></div><div className="hiraeth-candle-jar"><span className="hiraeth-candle-flame"></span><span className="hiraeth-candle-wax"></span></div><div className="hiraeth-candle-lid" aria-hidden="true"></div><div className="hiraeth-candle-smoke" aria-hidden="true"></div></div>}
+          </div>
+        </div>
       </section>
     ),
 
