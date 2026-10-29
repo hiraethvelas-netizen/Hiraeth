@@ -140,9 +140,6 @@ useEffect(() => {
           <InlineEditor label="apresentação da loja" fields={[{ name: "eyebrow", label: "Texto pequeno acima do título", type: "text" }, { name: "title", label: "Título da página", type: "text" }, { name: "intro", label: "Texto de apresentação", type: "textarea" }, { name: "bannerImage", label: "Banner opcional", type: "image" }, { name: "showBanner", label: "Exibir banner", type: "checkbox" }]} values={pageSettings} onSave={async (next) => savePageSettings({ ...pageSettings, ...next } as typeof pageSettings)} />
         </div>}
         {!selectedCategory && pageSettings.showBanner && pageSettings.bannerImage && <img src={pageSettings.bannerImage} alt="Banner da loja Hiraeth" className="mb-8 max-h-[28rem] w-full object-cover" />}
-        {!selectedCategory && pageSettings.eyebrow && pageSettings.eyebrow.trim().toLocaleLowerCase("pt-BR") !== pageSettings.title.trim().toLocaleLowerCase("pt-BR") && <p className="eyebrow">{pageSettings.eyebrow}</p>}
-        {!selectedCategory && <><h1 className="hiraeth-editorial-title mt-4 text-left md:!mx-0">{pageSettings.title}</h1><div className="hiraeth-ornament !mx-0 justify-start" aria-hidden="true"><span>✧</span></div></>}
-        {!selectedCategory && pageSettings.intro && <p className="mt-3 max-w-2xl text-muted-foreground">{pageSettings.intro}</p>}
 
         {selectedCategory && <section className="hiraeth-category-hero hiraeth-reveal relative mt-7 mb-10 overflow-hidden rounded-xl border border-primary/40">
           {selectedCategory.image_url ? <img src={selectedCategory.image_url} alt={selectedCategory.name} className="h-64 w-full object-cover sm:h-80 md:h-[26rem]" /> : <div className="h-48 w-full bg-[radial-gradient(ellipse_at_center,_var(--color-secondary),_var(--color-background)_70%)] sm:h-64 md:h-80" aria-hidden="true" />}
