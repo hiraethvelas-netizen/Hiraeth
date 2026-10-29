@@ -513,3 +513,29 @@ h1, h2, h3, h4, .font-display {
 @media (prefers-reduced-motion: reduce) {
   .hiraeth-review-flame.is-active { animation: none; }
 }
+
+
+/* Cabeçalho do Acervo acima das novidades, com Fênix dourada. */
+.hiraeth-store-heading {
+  isolation: isolate;
+  background:
+    radial-gradient(ellipse at 82% 50%, rgba(198,166,91,.13), transparent 34%),
+    linear-gradient(110deg, rgba(198,166,91,.055), transparent 55%);
+  border: 1px solid rgba(198,166,91,.25);
+}
+.hiraeth-store-heading .hiraeth-editorial-title {
+  margin-inline: auto;
+  text-align: center;
+  color: var(--color-foreground);
+  text-shadow: 0 2px 0 rgba(198,166,91,.16), 0 8px 28px rgba(0,0,0,.18);
+}
+.hiraeth-store-heading .hiraeth-editorial-title em { color: var(--color-primary); }
+.hiraeth-store-heading > img {
+  opacity: .82;
+  filter: sepia(1) saturate(1.8) hue-rotate(350deg) brightness(1.12) drop-shadow(0 0 18px rgba(198,166,91,.34));
+  mix-blend-mode: screen;
+}
+@media (max-width: 639px) {
+  .hiraeth-store-heading { padding-right: 5.5rem; }
+  .hiraeth-store-heading > img { right: -.8rem; opacity: .48; }
+}
