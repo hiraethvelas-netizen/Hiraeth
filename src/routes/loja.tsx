@@ -9,6 +9,9 @@ import { useSiteContent } from "@/lib/admin-edit";
 import { StoreBanners } from "@/components/StoreBanners";
 import { AcervoNavigation } from "@/components/AcervoNavigation";
 import { CustomerReviews } from "@/components/CustomerReviews";
+import { SecretFlamesPromotion } from "@/components/SecretFlamesPromotion";
+import { Heart } from "lucide-react";
+import { toast } from "sonner";
 
 
 type Product = Tables<"products">;
@@ -44,6 +47,8 @@ const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
   const [categoryId, setCategoryId] = useState<string | null>(null);
   const [enteringCategory, setEnteringCategory] = useState<Category | null>(null);
+  const [wishlistIds, setWishlistIds] = useState<Set<string>>(new Set());
+  const [wishlistUserId, setWishlistUserId] = useState<string | null>(null);
 
   async function saveProduct(product: Product, values: Record<string, unknown>) {
     const payload = { name: String(values["name"] ?? product.name), description: String(values["description"] ?? "") || null, price: Number(values["price"] ?? product.price), sale_price: values["sale_price"] === "" || values["sale_price"] == null ? null : Number(values["sale_price"]), fragrance: String(values["fragrance"] ?? "") || null, images: Array.isArray(values["images"]) ? values["images"] as string[] : product.images };
@@ -70,6 +75,12 @@ useEffect(() => {
       ]);
 
     setProducts(prods ?? []);
+    const { data: authData } = await supabase.auth.getUser();
+    if (authData.user) {
+      setWishlistUserId(authData.user.id);
+      const { data: saved } = await supabase.from("wishlist_items").select("product_id").eq("user_id", authData.user.id);
+      setWishlistIds(new Set((saved ?? []).map((item) => item.product_id)));
+    }
     const initialQuery = new URLSearchParams(window.location.search).get("q");
     if (initialQuery) setQuery(initialQuery);
     const now = new Date();
@@ -100,6 +111,17 @@ useEffect(() => {
 
 
   const selectedCategory = categories.find((category) => category.id === categoryId) ?? null;
+  async function toggleWishlist(productId: string, event: React.MouseEvent) {
+    event.preventDefault(); event.stopPropagation();
+    if (!wishlistUserId) { toast.info("Entre na sua conta para salvar seus favoritos."); return; }
+    const alreadySaved = wishlistIds.has(productId);
+    const result = alreadySaved
+      ? await supabase.from("wishlist_items").delete().eq("user_id", wishlistUserId).eq("product_id", productId)
+      : await supabase.from("wishlist_items").insert({ user_id: wishlistUserId, product_id: productId });
+    if (result.error) { toast.error("Não foi possível atualizar seus favoritos."); return; }
+    setWishlistIds(current => { const next = new Set(current); if (alreadySaved) next.delete(productId); else next.add(productId); return next; });
+    toast.success(alreadySaved ? "Removido dos favoritos." : "Adicionado aos favoritos.");
+  }
   const featuredCollectionSlugs = ["harry-potter", "universo-sarah-j-maas", "friends", "the-vampire-diaries", "crepusculo", "taylor-swift", "gilmore-girls"];
   const featuredCollections = featuredCollectionSlugs.map((slug) => categories.find((category) => category.slug === slug)).filter((category): category is Category => Boolean(category));
 
@@ -191,7 +213,7 @@ useEffect(() => {
                 params={{ slug: p.slug }}
                 className="group block border-0 bg-transparent text-center shadow-none transition-transform duration-300 hover:-translate-y-1"
               >
-                <div className="aspect-square overflow-hidden bg-transparent">
+                <div className="relative aspect-square overflow-hidden bg-transparent">
                   {p.images[0] ? (
                     <img
                       src={p.images[0]}
@@ -244,7 +266,7 @@ useEffect(() => {
             ))}
           </div>
         )}
-        <CustomerReviews />
+        <CustomerReviews />\n      <SecretFlamesPromotion />
         {enteringCategory && <div className="portal-entry-overlay" aria-hidden="true">{enteringCategory.image_url ? <img src={enteringCategory.image_url} alt="" className="portal-entry-image" /> : <div className="portal-entry-placeholder"><span>{enteringCategory.name}</span></div>}</div>}
       </main>
 
