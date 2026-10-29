@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { X, Sparkles, Copy, Check } from "lucide-react";
+import { toast } from "sonner";
 
 type CandleImage = { image_url?: string; label?: string };
 type Reward = { type?: string; title?: string; description?: string; coupon_code?: string };
 type Claim = { already_claimed?: boolean; candle_index: number; reward: Reward };
 
 const VISITOR_KEY = "hiraeth-secret-flames-visitor-v1";
+const SEEN_KEY = "hiraeth-secret-flames-seen-v1";
 function getVisitorKey() {
   let key = localStorage.getItem(VISITOR_KEY);
   if (!key) {
@@ -48,7 +50,8 @@ export function SecretFlamesPromotion() {
           return;
         }
       }
-      if (localStorage.getItem("hiraeth-secret-flames-completed")) return;
+      if (localStorage.getItem(SEEN_KEY) || localStorage.getItem("hiraeth-secret-flames-completed")) return;
+      localStorage.setItem(SEEN_KEY, "1");
       setOpen(true);
     }
     void load();
@@ -66,6 +69,7 @@ export function SecretFlamesPromotion() {
     setBusy(false);
     if (error || !data) {
       setChosen(null);
+      toast.error(error?.message || "Não foi possível registrar sua escolha. Tente novamente.");
       return;
     }
     setClaim(data as Claim);
@@ -89,7 +93,7 @@ export function SecretFlamesPromotion() {
           {[0,1,2,3].map(index => {
             const item = images[index] || {};
             return <button key={index} type="button" disabled={busy} onClick={() => void choose(index)} className={`group relative aspect-[4/5] overflow-hidden rounded-2xl border border-[#d7c7b6] bg-[#e9dfd7] p-2 transition hover:-translate-y-1 hover:shadow-lg disabled:opacity-60 ${chosen === index ? "ring-2 ring-[#6d7955]" : ""}`}>
-              {item.image_url ? <img src={item.image_url} alt={item.label || `Vela misteriosa ${index+1}`} className="h-full w-full rounded-xl object-cover"/> : <div className="flex h-full flex-col items-center justify-center gap-3 rounded-xl bg-gradient-to-b from-[#d8c9bd] to-[#9b847d] text-[#fff7ed]"><span className="text-4xl">✧</span><span className="font-display text-lg">Chama {index+1}</span></div>}
+              {item.image_url ? <img src={item.image_url} alt={item.label || `Vela misteriosa ${index+1}`} className="h-full w-full rounded-xl object-contain"/> : <div className="flex h-full flex-col items-center justify-center gap-3 rounded-xl bg-gradient-to-b from-[#d8c9bd] to-[#9b847d] text-[#fff7ed]"><span className="text-4xl">✧</span><span className="font-display text-lg">Chama {index+1}</span></div>}
               <span className="absolute inset-x-2 bottom-2 rounded-lg bg-[#342c2a]/65 px-2 py-1 text-xs text-white">{busy && chosen === index ? "Revelando..." : "Escolher esta vela"}</span>
             </button>;
           })}
