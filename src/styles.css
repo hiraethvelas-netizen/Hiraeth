@@ -474,3 +474,118 @@ h1, h2, h3, h4, .font-display {
   }
   .hiraeth-collection-card { transition: none; }
 }
+
+
+/* Ilustração original do pote Hiraeth: vidro sem rótulo, tampa ao lado e chama acesa. */
+.hiraeth-candle-scene {
+  background:
+    radial-gradient(ellipse at 50% 72%, rgba(198,166,91,.16), transparent 35%),
+    linear-gradient(135deg, #1d3023, #0b140e 70%);
+}
+.hiraeth-candle-books {
+  position: absolute;
+  bottom: 13%;
+  left: 7%;
+  width: 52%;
+  height: 13%;
+  border: 1px solid rgba(198,166,91,.45);
+  border-radius: 2px;
+  background: linear-gradient(180deg, #453522 0 30%, #17251a 31% 66%, #4a3824 67%);
+  box-shadow: 0 13px 22px rgba(0,0,0,.4);
+  transform: rotate(-5deg);
+}
+.hiraeth-candle-jar {
+  position: relative;
+  z-index: 2;
+  width: clamp(115px, 34%, 190px);
+  height: clamp(155px, 48%, 250px);
+  margin-top: -5%;
+  border: 2px solid rgba(210,219,194,.34);
+  border-top: 5px solid rgba(221,225,205,.4);
+  border-radius: 13% 13% 17% 17%;
+  background: linear-gradient(90deg, rgba(6,22,13,.92), rgba(43,70,43,.88) 42%, rgba(10,29,16,.97));
+  box-shadow: inset 9px 0 16px rgba(255,255,255,.05), inset -10px 0 18px rgba(0,0,0,.35), 0 18px 32px rgba(0,0,0,.4);
+  overflow: visible;
+}
+.hiraeth-candle-jar::before {
+  content: "";
+  position: absolute;
+  top: -7px;
+  left: -3%;
+  width: 106%;
+  height: 17px;
+  border: 2px solid rgba(205,215,194,.45);
+  border-radius: 50%;
+  background: linear-gradient(180deg, #17271c, #0b140e);
+}
+.hiraeth-candle-wax {
+  position: absolute;
+  top: 8px;
+  left: 4%;
+  width: 92%;
+  height: 25%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at 50% 20%, #d8cba0, #a79b70 75%);
+  box-shadow: inset 0 4px 5px rgba(255,255,255,.14);
+}
+.hiraeth-candle-flame {
+  position: absolute;
+  z-index: 3;
+  top: -42px;
+  left: 50%;
+  width: 18px;
+  height: 40px;
+  border-radius: 80% 15% 65% 35%;
+  background: radial-gradient(ellipse at 50% 75%, #fff8cf 0 20%, #ffc65c 43%, #e76d27 73%, transparent 75%);
+  filter: drop-shadow(0 0 13px rgba(245,157,58,.75));
+  transform: translateX(-50%) rotate(2deg);
+  transform-origin: 50% 100%;
+  animation: hiraeth-flame-flicker 1.8s ease-in-out infinite;
+}
+.hiraeth-candle-lid {
+  position: absolute;
+  z-index: 4;
+  left: 58%;
+  bottom: 17%;
+  width: clamp(90px, 28%, 150px);
+  aspect-ratio: 1;
+  border: 5px solid #e9e0cc;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #f4ead5, #cfc3a6);
+  box-shadow: inset 0 0 0 2px rgba(80,69,46,.18), 0 14px 22px rgba(0,0,0,.38);
+  transform: rotate(-24deg) perspective(300px) rotateX(16deg);
+}
+.hiraeth-candle-lid::after {
+  content: "✦";
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: #8b7547;
+  font-size: 1.6rem;
+}
+.hiraeth-candle-smoke {
+  position: absolute;
+  top: 15%;
+  left: 46%;
+  width: 55px;
+  height: 105px;
+  border-radius: 50%;
+  border-left: 2px solid rgba(212,202,169,.16);
+  transform: rotate(18deg);
+  filter: blur(2px);
+  animation: hiraeth-smoke-rise 5s ease-in-out infinite;
+}
+@keyframes hiraeth-smoke-rise {
+  0%,100% { opacity: .12; transform: translateY(12px) rotate(18deg) scale(.85); }
+  50% { opacity: .45; transform: translateY(-12px) rotate(-8deg) scale(1.12); }
+}
+.hiraeth-category-hero {
+  box-shadow: 0 22px 70px rgba(0,0,0,.28);
+}
+.hiraeth-category-hero img { transition: transform 1.2s cubic-bezier(.2,.75,.25,1); }
+.hiraeth-category-hero:hover img { transform: scale(1.025); }
+@media (max-width: 640px) {
+  .hiraeth-candle-lid { left: 56%; bottom: 14%; }
+  .hiraeth-candle-books { left: 2%; width: 60%; }
+}
