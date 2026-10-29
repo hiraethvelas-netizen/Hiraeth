@@ -6,8 +6,32 @@ export const Route = createFileRoute("/admin/promocoes")({ component: PromocoesA
 const blank = {name:"",kind:"coupon",code:"",discount_type:"percent",discount_value:"10",buy_quantity:"3",pay_quantity:"2",min_cart_value:"0",gift_name:"",visible:false,active:false,starts_at:"",ends_at:"",usage_limit:"",all_products:true};
 function PromocoesAdmin(){
  const [items,setItems]=useState<any[]>([]); const [form,setForm]=useState(blank); const [editing,setEditing]=useState<string|null>(null); const [loading,setLoading]=useState(true); const db=supabase as any;
+  const [flameSettings,setFlameSettings]=useState<any>({active:false,title:"O Segredo das Quatro Chamas",subtitle:"Escolha uma vela e descubra a surpresa que ela guarda.",candle_images:[{image_url:""},{image_url:""},{image_url:""},{image_url:""}],min_cart_value:"0",starts_at:"",ends_at:""});
+  const [flameRewards,setFlameRewards]=useState<any[]>([0,1,2,3].map(candle_index=>({candle_index,reward_type:"message",reward_title:"",reward_description:"",coupon_code:""})));
+  const [flameClaims,setFlameClaims]=useState<any[]>([]);
+
  async function load(){setLoading(true);const {data,error}=await db.from("promotions").select("*").order("created_at",{ascending:false});if(error){toast.error("Não foi possível carregar promoções. A migração do banco precisa ser aplicada.");setLoading(false);return;}setItems(data??[]);setLoading(false)}
- useEffect(()=>{void load()},[]);
+ useEffect(()=>{void load(); void loadFlames()},[]);
+ async function loadFlames(){
+   const [{data:s},{data:r},{data:c}] = await Promise.all([
+     db.from("secret_flame_settings").select("*").eq("id",true).maybeSingle(),
+     db.from("secret_flame_rewards").select("*").order("candle_index"),
+     db.from("secret_flame_claims").select("id,user_id,candle_index,reward_snapshot,created_at").order("created_at",{ascending:false}).limit(100)
+   ]);
+   if(s) setFlameSettings({...s,min_cart_value:String(s.min_cart_value??0),starts_at:s.starts_at?.slice(0,16)??"",ends_at:s.ends_at?.slice(0,16)??"",candle_images:Array.from({length:4},(_,i)=>s.candle_images?.[i]??{image_url:""})});
+   if(r) setFlameRewards([0,1,2,3].map(i=>r.find((x:any)=>x.candle_index===i)??{candle_index:i,reward_type:"message",reward_title:"",reward_description:"",coupon_code:""}));
+   setFlameClaims(c??[]);
+ }
+ async function saveFlames(e:React.FormEvent){
+   e.preventDefault();
+   const settings={id:true,active:flameSettings.active,title:flameSettings.title,subtitle:flameSettings.subtitle,candle_images:flameSettings.candle_images,min_cart_value:Number(flameSettings.min_cart_value)||0,starts_at:flameSettings.starts_at?new Date(flameSettings.starts_at).toISOString():null,ends_at:flameSettings.ends_at?new Date(flameSettings.ends_at).toISOString():null,updated_at:new Date().toISOString()};
+   const {error}=await db.from("secret_flame_settings").upsert(settings,{onConflict:"id"});
+   if(error){toast.error("Não foi possível salvar a promoção: "+error.message);return;}
+   const rewards=flameRewards.map((r:any)=>({...r,reward_title:r.reward_title.trim(),reward_description:r.reward_description.trim(),coupon_code:r.coupon_code.trim()||null,updated_at:new Date().toISOString()}));
+   const {error:rewardError}=await db.from("secret_flame_rewards").upsert(rewards,{onConflict:"candle_index"});
+   if(rewardError){toast.error("Configuração salva, mas houve erro nos benefícios: "+rewardError.message);return;}
+   toast.success("O Segredo das Quatro Chamas foi salvo.");void loadFlames();
+ }
  async function save(e:React.FormEvent){e.preventDefault();const payload={...form,discount_value:Number(form.discount_value)||0,min_cart_value:Number(form.min_cart_value)||0,buy_quantity:form.kind==="buy_x_pay_y"?Number(form.buy_quantity):null,pay_quantity:form.kind==="buy_x_pay_y"?Number(form.pay_quantity):null,usage_limit:form.usage_limit?Number(form.usage_limit):null,starts_at:form.starts_at?new Date(form.starts_at).toISOString():null,ends_at:form.ends_at?new Date(form.ends_at).toISOString():null,code:form.kind==="coupon"?form.code.trim().toUpperCase():null,updated_at:new Date().toISOString()};const res=editing?await db.from("promotions").update(payload).eq("id",editing):await db.from("promotions").insert(payload);if(res.error){toast.error(res.error.message);return;}toast.success("Promoção salva.");setForm(blank);setEditing(null);void load()}
  async function toggle(p:any){const {error}=await db.from("promotions").update({active:!p.active,updated_at:new Date().toISOString()}).eq("id",p.id);if(error)toast.error(error.message);else void load()}
  async function remove(p:any){if(!confirm("Excluir "+p.name+"?"))return;const {error}=await db.from("promotions").delete().eq("id",p.id);if(error)toast.error(error.message);else void load()}
