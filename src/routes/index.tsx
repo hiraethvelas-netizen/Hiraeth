@@ -185,8 +185,6 @@ export function ExistingHomepage() {
             <p className="mx-auto max-w-xl text-base leading-relaxed text-[#4c4938]">{content.careDescription}</p>
             {typeof content.careImage === "string" && content.careImage && <img src={content.careImage} alt="" className="mx-auto mt-6 max-h-72 max-w-full object-cover" />}
             <div><Link to="/cuidados" className="mt-7 inline-flex items-center gap-2 rounded-full border border-[#6c7143] bg-[#17291e] px-6 py-3 font-display text-lg text-[#f3e7c7] transition-transform hover:-translate-y-0.5">{content.careButton}<span aria-hidden="true">＋</span></Link></div>
-          </div>
-          
         </div>
       </section>
     ),
