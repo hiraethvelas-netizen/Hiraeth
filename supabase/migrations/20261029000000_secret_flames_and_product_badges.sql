@@ -21,8 +21,8 @@ create policy "Public can view active Secret Flames settings"
 drop policy if exists "Admins manage Secret Flames settings" on public.secret_flame_settings;
 create policy "Admins manage Secret Flames settings"
   on public.secret_flame_settings for all to authenticated
-  using (public.has_role('admin', auth.uid()))
-  with check (public.has_role('admin', auth.uid()));
+  using (public.has_role(auth.uid(), 'admin'))
+  with check (public.has_role(auth.uid(), 'admin'));
 
 create table if not exists public.secret_flame_rewards (
   candle_index integer primary key check (candle_index between 0 and 3),
@@ -36,8 +36,8 @@ alter table public.secret_flame_rewards enable row level security;
 drop policy if exists "Admins manage Secret Flames rewards" on public.secret_flame_rewards;
 create policy "Admins manage Secret Flames rewards"
   on public.secret_flame_rewards for all to authenticated
-  using (public.has_role('admin', auth.uid()))
-  with check (public.has_role('admin', auth.uid()));
+  using (public.has_role(auth.uid(), 'admin'))
+  with check (public.has_role(auth.uid(), 'admin'));
 
 create table if not exists public.secret_flame_claims (
   id uuid primary key default gen_random_uuid(),
@@ -58,7 +58,7 @@ create policy "Users read own Secret Flames claim"
   on public.secret_flame_claims for select to authenticated using (auth.uid() = user_id);
 drop policy if exists "Admins read Secret Flames claims" on public.secret_flame_claims;
 create policy "Admins read Secret Flames claims"
-  on public.secret_flame_claims for select to authenticated using (public.has_role('admin', auth.uid()));
+  on public.secret_flame_claims for select to authenticated using (public.has_role(auth.uid(), 'admin'));
 
 create or replace function public.claim_secret_flame(p_candle_index integer, p_visitor_key text default null)
 returns jsonb
