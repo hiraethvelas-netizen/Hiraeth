@@ -485,3 +485,31 @@ h1, h2, h3, h4, .font-display {
 @media (max-width: 767px) {
   .hiraeth-care-phoenix { display: block; opacity: .10; right: -6rem; height: 75%; }
 }
+
+
+/* Avaliações Hiraeth: convite compacto em baunilha e foguinhos vivos. */
+.hiraeth-review-invite {
+  background: #f0e4cc;
+  border-color: rgba(182,151,87,.7);
+  color: #20382b;
+  box-shadow: 0 14px 38px rgba(30,35,23,.12);
+}
+.hiraeth-review-invite .eyebrow { color: #94753c; }
+.hiraeth-review-flame.is-active {
+  color: #e87527;
+  fill: #f4a33b;
+  stroke: #c94b1e;
+  filter: drop-shadow(0 0 3px rgba(255,145,45,.42));
+  background: linear-gradient(180deg,#fff2a6 0%,#ffb13d 42%,#ed6427 76%,#a92d19 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: hiraeth-fire-glow 1.8s ease-in-out infinite alternate;
+}
+@keyframes hiraeth-fire-glow {
+  from { filter: drop-shadow(0 0 2px rgba(255,145,45,.25)); transform: translateY(0) scale(1); }
+  to { filter: drop-shadow(0 0 7px rgba(255,111,35,.55)); transform: translateY(-1px) scale(1.06); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hiraeth-review-flame.is-active { animation: none; }
+}
