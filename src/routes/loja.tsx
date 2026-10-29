@@ -189,14 +189,14 @@ useEffect(() => {
                 key={p.id}
                 to="/produto/$slug"
                 params={{ slug: p.slug }}
-                className="group border bg-card transition-shadow hover:shadow-[var(--glow)]"
+                className="group block border-0 bg-transparent text-center shadow-none transition-transform duration-300 hover:-translate-y-1"
               >
-                <div className="aspect-square overflow-hidden bg-muted">
+                <div className="aspect-square overflow-hidden bg-transparent">
                   {p.images[0] ? (
                     <img
                       src={p.images[0]}
                       alt={p.name}
-                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      className="h-full w-full object-contain p-3 transition-transform duration-500 group-hover:scale-[1.03]"
                       loading="lazy"
                     />
                   ) : (
@@ -206,7 +206,7 @@ useEffect(() => {
                   )}
                 </div>
 
-                <div className="p-5">
+                <div className="px-2 pb-3 pt-3">
                   <InlineEditor
                     label={`produto ${p.name}`}
                     fields={[
@@ -220,15 +220,9 @@ useEffect(() => {
                     values={{ name: p.name, description: p.description ?? "", price: String(p.price), sale_price: p.sale_price == null ? "" : String(p.sale_price), fragrance: p.fragrance ?? "", images: p.images ?? [] }}
                     onSave={(values) => saveProduct(p, values)}
                   />
-                  <h2 className="text-2xl text-foreground">{p.name}</h2>
+                  <h2 className="font-display text-lg font-medium tracking-wide text-foreground sm:text-xl">{p.name}</h2>
 
-                  {p.fragrance && (
-                    <p className="mt-1 text-sm italic text-muted-foreground">
-                      {p.fragrance}
-                    </p>
-                  )}
-
-                  <div className="mt-3 flex items-baseline gap-2">
+                  <div className="mt-2 flex items-baseline justify-center gap-2">
                     {p.sale_price != null ? (
                       <>
                         <span className="text-lg text-primary">
@@ -245,11 +239,6 @@ useEffect(() => {
                     )}
                   </div>
 
-                  {p.stock <= 0 && (
-                    <p className="mt-2 text-xs uppercase tracking-widest text-destructive">
-                      Esgotado
-                    </p>
-                  )}
                 </div>
               </Link>
             ))}
