@@ -440,9 +440,6 @@ h1, h2, h3, h4, .font-display {
   35% { transform: rotate(2deg) scaleY(1.06); }
   68% { transform: rotate(-1deg) scaleY(.97); }
 }
-  15%,75% { opacity: .45; }
-  100% { transform: translateY(-110vh) translateX(-24px); opacity: 0; }
-}
 @media (prefers-reduced-motion: reduce) {
   .hiraeth-reveal { animation: none !important; }
   .hiraeth-collection-card { transition: none; }
@@ -454,10 +451,6 @@ h1, h2, h3, h4, .font-display {
 }
 .hiraeth-category-hero img { transition: transform 1.2s cubic-bezier(.2,.75,.25,1); }
 .hiraeth-category-hero:hover img { transform: scale(1.025); }
-@media (max-width: 640px) {
-  .hiraeth-candle-lid { left: 56%; bottom: 14%; }
-  .hiraeth-candle-books { left: 2%; width: 60%; }
-}
 
 
 /* Acervo Hiraeth — tipografia de destaque e atmosfera de fumaça dourada. */
