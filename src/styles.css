@@ -1,3 +1,4 @@
+@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=DM+Sans:wght@400;500;600;700&family=Italiana&display=swap");
 @import "tailwindcss" source(none);
 @source "../src";
 @import "tw-animate-css";
@@ -5,8 +6,8 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --font-display: "Hello Paris", "Cormorant Garamond", Georgia, serif;
-  --font-body: "Beaumaris", "EB Garamond", Georgia, serif;
+  --font-display: "Italiana", "Cormorant Garamond", Georgia, serif;
+  --font-body: "DM Sans", "EB Garamond", Georgia, serif;
   --radius-sm: calc(var(--radius) - 2px);
   --radius-md: var(--radius);
   --radius-lg: var(--radius);
@@ -33,30 +34,30 @@
 }
 
 :root {
-  color-scheme: light;
-  --radius: 0.25rem;
-  /* Modo claro: baunilha, marrom e verde-oliva Hiraeth. */
-  --background: #f7efda;
-  --foreground: #5b1d04;
-  --card: #fbf6e9;
-  --card-foreground: #5b1d04;
-  --popover: #fbf6e9;
-  --popover-foreground: #5b1d04;
-  --primary: #878e47;
-  --primary-foreground: #f7efda;
-  --secondary: #e9dfc5;
-  --secondary-foreground: #5b1d04;
-  --muted: #eee5cf;
-  --muted-foreground: #70503d;
-  --accent: #878e47;
-  --accent-foreground: #f7efda;
-  --destructive: #8c3020;
-  --destructive-foreground: #f7efda;
-  --border: #878e474d;
-  --input: #878e4770;
-  --ring: #878e47;
-  --overlay: #2c160db3;
-  --glow: 0 0 28px #878e4730;
+  color-scheme: dark;
+  --radius: 0.7rem;
+  /* Identidade principal: verde-floresta, baunilha e dourado envelhecido. */
+  --background: #101b14;
+  --foreground: #f3e7c7;
+  --card: #1b2a20;
+  --card-foreground: #f3e7c7;
+  --popover: #1b2a20;
+  --popover-foreground: #f3e7c7;
+  --primary: #c6a65b;
+  --primary-foreground: #101b14;
+  --secondary: #26382b;
+  --secondary-foreground: #f3e7c7;
+  --muted: #223127;
+  --muted-foreground: #c4b995;
+  --accent: #c6a65b;
+  --accent-foreground: #101b14;
+  --destructive: #b85b4b;
+  --destructive-foreground: #fff4df;
+  --border: #c6a65b55;
+  --input: #c6a65b70;
+  --ring: #c6a65b;
+  --overlay: #08120bd9;
+  --glow: 0 0 32px #c6a65b25;
 }
 
 :root.dark {
@@ -334,3 +335,142 @@
 @keyframes portal-entry-zoom { from { transform: scale(.6); filter: brightness(.6); border-radius: 50%; } to { transform: scale(1.25); filter: brightness(1.15); border-radius: 0; } }
 @keyframes portal-entry-glow { from { opacity: 0; transform: scale(.2); } 40% { opacity: 1; } to { opacity: 0; transform: scale(1.6); } }
 @media (prefers-reduced-motion: reduce) { .portal-entry-overlay, .portal-entry-image, .portal-entry-placeholder, .portal-entry-glow { animation: none !important; } }
+
+
+/* Hiraeth — identidade editorial cinematográfica */
+body {
+  background:
+    radial-gradient(ellipse at 50% -12%, rgba(91, 113, 70, .20), transparent 48%),
+    var(--color-background);
+  letter-spacing: .012em;
+}
+h1, h2, h3, h4, .font-display {
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: -.025em;
+}
+.eyebrow {
+  color: #c6a65b;
+  font-family: var(--font-body);
+  font-size: .7rem;
+  font-style: normal;
+  font-weight: 600;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+}
+.hiraeth-editorial-title {
+  position: relative;
+  width: fit-content;
+  max-width: 100%;
+  margin-inline: auto;
+  color: #f3e7c7;
+  font-family: var(--font-display);
+  font-size: clamp(2.8rem, 7vw, 5.8rem);
+  font-weight: 400;
+  line-height: .98;
+  letter-spacing: -.035em;
+  text-wrap: balance;
+  text-shadow: 0 5px 35px rgba(0,0,0,.22);
+}
+.hiraeth-editorial-title em { color: #d4b56c; font-weight: 400; }
+.hiraeth-ornament {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .9rem;
+  margin: 1.15rem auto;
+  color: #c6a65b;
+}
+.hiraeth-ornament::before, .hiraeth-ornament::after {
+  content: "";
+  width: clamp(36px, 8vw, 94px);
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #c6a65b);
+}
+.hiraeth-ornament::after { transform: rotate(180deg); }
+.hiraeth-ornament span { font-size: 1.15rem; line-height: 1; }
+.hiraeth-flame {
+  display: inline-block;
+  color: #e7ad58;
+  filter: drop-shadow(0 0 8px rgba(231,173,88,.45));
+  transform-origin: 50% 85%;
+  animation: hiraeth-flame-flicker 2.4s ease-in-out infinite;
+}
+.hiraeth-ember-field {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  opacity: .8;
+}
+.hiraeth-ember-field::before, .hiraeth-ember-field::after {
+  content: "✦  ·     ✧     ·  ✦";
+  position: absolute;
+  color: #d8a75d;
+  font-size: 1rem;
+  letter-spacing: 1.5rem;
+  opacity: .55;
+  animation: hiraeth-embers 12s linear infinite;
+}
+.hiraeth-ember-field::before { left: 8%; bottom: -2rem; }
+.hiraeth-ember-field::after { right: -5%; bottom: -5rem; animation-delay: -6s; }
+.hiraeth-care-panel {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border: 1px solid rgba(198,166,91,.48);
+  border-radius: 1rem;
+  background: #f0e4cc;
+  color: #20382b;
+  box-shadow: 0 24px 70px rgba(0,0,0,.22);
+}
+.hiraeth-care-panel::before {
+  content: "✦";
+  position: absolute;
+  right: 1rem;
+  top: .5rem;
+  color: rgba(133,105,54,.38);
+  font-size: 2rem;
+}
+.hiraeth-photo-frame {
+  border: 1px solid rgba(198,166,91,.7);
+  border-radius: .85rem;
+  box-shadow: inset 0 0 0 5px rgba(16,27,20,.45), 0 18px 45px rgba(0,0,0,.22);
+}
+.hiraeth-collection-card {
+  position: relative;
+  isolation: isolate;
+  border: 1px solid rgba(198,166,91,.72);
+  box-shadow: 0 0 0 4px rgba(198,166,91,.07), 0 10px 28px rgba(0,0,0,.18);
+  transition: transform .55s cubic-bezier(.2,.75,.25,1), box-shadow .55s ease;
+}
+.hiraeth-collection-card:hover {
+  transform: translateY(-5px) scale(1.025);
+  box-shadow: 0 0 28px rgba(198,166,91,.24), 0 18px 40px rgba(0,0,0,.3);
+}
+.hiraeth-collection-label {
+  font-family: var(--font-display);
+  font-size: clamp(1.05rem, 2vw, 1.35rem);
+  text-shadow: 0 2px 12px rgba(0,0,0,.9);
+}
+.hiraeth-reveal { animation: hiraeth-reveal .9s cubic-bezier(.2,.75,.25,1) both; }
+@keyframes hiraeth-reveal {
+  from { opacity: 0; transform: translateY(22px); filter: blur(4px); }
+  to { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+@keyframes hiraeth-flame-flicker {
+  0%,100% { transform: rotate(-2deg) scaleY(1); }
+  35% { transform: rotate(2deg) scaleY(1.06); }
+  68% { transform: rotate(-1deg) scaleY(.97); }
+}
+@keyframes hiraeth-embers {
+  0% { transform: translateY(0) translateX(0); opacity: 0; }
+  15%,75% { opacity: .45; }
+  100% { transform: translateY(-110vh) translateX(-24px); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hiraeth-flame, .hiraeth-ember-field::before, .hiraeth-ember-field::after, .hiraeth-reveal {
+    animation: none !important;
+  }
+  .hiraeth-collection-card { transition: none; }
+}
