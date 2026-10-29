@@ -363,7 +363,7 @@ h1, h2, h3, h4, .font-display {
   width: fit-content;
   max-width: 100%;
   margin-inline: auto;
-  color: #f3e7c7;
+  color: var(--color-foreground);
   font-family: var(--font-display);
   font-size: clamp(2.8rem, 7vw, 5.8rem);
   font-weight: 400;
@@ -372,7 +372,7 @@ h1, h2, h3, h4, .font-display {
   text-wrap: balance;
   text-shadow: 0 5px 35px rgba(0,0,0,.22);
 }
-.hiraeth-editorial-title em { color: #d4b56c; font-weight: 400; }
+.hiraeth-editorial-title em { color: var(--color-primary); font-weight: 400; }
 .hiraeth-ornament {
   display: flex;
   align-items: center;
@@ -394,26 +394,8 @@ h1, h2, h3, h4, .font-display {
   color: #e7ad58;
   filter: drop-shadow(0 0 8px rgba(231,173,88,.45));
   transform-origin: 50% 85%;
-  animation: hiraeth-flame-flicker 2.4s ease-in-out infinite;
+  animation: none;
 }
-.hiraeth-ember-field {
-  pointer-events: none;
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  opacity: .8;
-}
-.hiraeth-ember-field::before, .hiraeth-ember-field::after {
-  content: "✦  ·     ✧     ·  ✦";
-  position: absolute;
-  color: #d8a75d;
-  font-size: 1rem;
-  letter-spacing: 1.5rem;
-  opacity: .55;
-  animation: hiraeth-embers 12s linear infinite;
-}
-.hiraeth-ember-field::before { left: 8%; bottom: -2rem; }
-.hiraeth-ember-field::after { right: -5%; bottom: -5rem; animation-delay: -6s; }
 .hiraeth-care-panel {
   position: relative;
   isolation: isolate;
@@ -431,11 +413,6 @@ h1, h2, h3, h4, .font-display {
   top: .5rem;
   color: rgba(133,105,54,.38);
   font-size: 2rem;
-}
-.hiraeth-photo-frame {
-  border: 1px solid rgba(198,166,91,.7);
-  border-radius: .85rem;
-  box-shadow: inset 0 0 0 5px rgba(16,27,20,.45), 0 18px 45px rgba(0,0,0,.22);
 }
 .hiraeth-collection-card {
   position: relative;
@@ -463,123 +440,15 @@ h1, h2, h3, h4, .font-display {
   35% { transform: rotate(2deg) scaleY(1.06); }
   68% { transform: rotate(-1deg) scaleY(.97); }
 }
-@keyframes hiraeth-embers {
-  0% { transform: translateY(0) translateX(0); opacity: 0; }
   15%,75% { opacity: .45; }
   100% { transform: translateY(-110vh) translateX(-24px); opacity: 0; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .hiraeth-flame, .hiraeth-ember-field::before, .hiraeth-ember-field::after, .hiraeth-reveal {
-    animation: none !important;
-  }
+  .hiraeth-reveal { animation: none !important; }
   .hiraeth-collection-card { transition: none; }
 }
 
 
-/* Ilustração original do pote Hiraeth: vidro sem rótulo, tampa ao lado e chama acesa. */
-.hiraeth-candle-scene {
-  background:
-    radial-gradient(ellipse at 50% 72%, rgba(198,166,91,.16), transparent 35%),
-    linear-gradient(135deg, #1d3023, #0b140e 70%);
-}
-.hiraeth-candle-books {
-  position: absolute;
-  bottom: 13%;
-  left: 7%;
-  width: 52%;
-  height: 13%;
-  border: 1px solid rgba(198,166,91,.45);
-  border-radius: 2px;
-  background: linear-gradient(180deg, #453522 0 30%, #17251a 31% 66%, #4a3824 67%);
-  box-shadow: 0 13px 22px rgba(0,0,0,.4);
-  transform: rotate(-5deg);
-}
-.hiraeth-candle-jar {
-  position: relative;
-  z-index: 2;
-  width: clamp(115px, 34%, 190px);
-  height: clamp(155px, 48%, 250px);
-  margin-top: -5%;
-  border: 2px solid rgba(210,219,194,.34);
-  border-top: 5px solid rgba(221,225,205,.4);
-  border-radius: 13% 13% 17% 17%;
-  background: linear-gradient(90deg, rgba(6,22,13,.92), rgba(43,70,43,.88) 42%, rgba(10,29,16,.97));
-  box-shadow: inset 9px 0 16px rgba(255,255,255,.05), inset -10px 0 18px rgba(0,0,0,.35), 0 18px 32px rgba(0,0,0,.4);
-  overflow: visible;
-}
-.hiraeth-candle-jar::before {
-  content: "";
-  position: absolute;
-  top: -7px;
-  left: -3%;
-  width: 106%;
-  height: 17px;
-  border: 2px solid rgba(205,215,194,.45);
-  border-radius: 50%;
-  background: linear-gradient(180deg, #17271c, #0b140e);
-}
-.hiraeth-candle-wax {
-  position: absolute;
-  top: 8px;
-  left: 4%;
-  width: 92%;
-  height: 25%;
-  border-radius: 50%;
-  background: radial-gradient(ellipse at 50% 20%, #d8cba0, #a79b70 75%);
-  box-shadow: inset 0 4px 5px rgba(255,255,255,.14);
-}
-.hiraeth-candle-flame {
-  position: absolute;
-  z-index: 3;
-  top: -42px;
-  left: 50%;
-  width: 18px;
-  height: 40px;
-  border-radius: 80% 15% 65% 35%;
-  background: radial-gradient(ellipse at 50% 75%, #fff8cf 0 20%, #ffc65c 43%, #e76d27 73%, transparent 75%);
-  filter: drop-shadow(0 0 13px rgba(245,157,58,.75));
-  transform: translateX(-50%) rotate(2deg);
-  transform-origin: 50% 100%;
-  animation: hiraeth-flame-flicker 1.8s ease-in-out infinite;
-}
-.hiraeth-candle-lid {
-  position: absolute;
-  z-index: 4;
-  left: 58%;
-  bottom: 17%;
-  width: clamp(90px, 28%, 150px);
-  aspect-ratio: 1;
-  border: 5px solid #e9e0cc;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #f4ead5, #cfc3a6);
-  box-shadow: inset 0 0 0 2px rgba(80,69,46,.18), 0 14px 22px rgba(0,0,0,.38);
-  transform: rotate(-24deg) perspective(300px) rotateX(16deg);
-}
-.hiraeth-candle-lid::after {
-  content: "✦";
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  color: #8b7547;
-  font-size: 1.6rem;
-}
-.hiraeth-candle-smoke {
-  position: absolute;
-  top: 15%;
-  left: 46%;
-  width: 55px;
-  height: 105px;
-  border-radius: 50%;
-  border-left: 2px solid rgba(212,202,169,.16);
-  transform: rotate(18deg);
-  filter: blur(2px);
-  animation: hiraeth-smoke-rise 5s ease-in-out infinite;
-}
-@keyframes hiraeth-smoke-rise {
-  0%,100% { opacity: .12; transform: translateY(12px) rotate(18deg) scale(.85); }
-  50% { opacity: .45; transform: translateY(-12px) rotate(-8deg) scale(1.12); }
-}
 .hiraeth-category-hero {
   box-shadow: 0 22px 70px rgba(0,0,0,.28);
 }
@@ -588,4 +457,38 @@ h1, h2, h3, h4, .font-display {
 @media (max-width: 640px) {
   .hiraeth-candle-lid { left: 56%; bottom: 14%; }
   .hiraeth-candle-books { left: 2%; width: 60%; }
+}
+
+
+/* Acervo Hiraeth — tipografia de destaque e atmosfera de fumaça dourada. */
+.hiraeth-acervo-heading {
+  letter-spacing: -.045em;
+  line-height: .92;
+  text-shadow: 0 2px 0 rgba(198,166,91,.12), 0 12px 34px rgba(20,30,22,.12);
+}
+.hiraeth-acervo-heading em { display: inline-block; }
+.hiraeth-care-atmosphere::before,
+.hiraeth-care-atmosphere::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  width: 48rem;
+  height: 16rem;
+  border: 1px solid rgba(198,166,91,.08);
+  border-color: rgba(198,166,91,.12) transparent transparent;
+  border-radius: 50%;
+  filter: blur(13px);
+  transform: rotate(-13deg);
+}
+.hiraeth-care-atmosphere::before { left: -18rem; top: 8%; box-shadow: 0 -16px 30px rgba(198,166,91,.07); }
+.hiraeth-care-atmosphere::after { right: -20rem; bottom: 2%; transform: rotate(164deg); box-shadow: 0 -16px 30px rgba(198,166,91,.07); }
+.hiraeth-care-phoenix { opacity: .19; filter: sepia(.35) saturate(.75) drop-shadow(0 0 24px rgba(198,166,91,.22)); mix-blend-mode: screen; }
+.hiraeth-care-panel { background: #f0e4cc; color: #20382b; }
+.hiraeth-care-panel .eyebrow { color: #94753c; }
+.hiraeth-care-panel h2 { color: #20382b; }
+.hiraeth-care-panel .hiraeth-ornament { color: #94753c; }
+.hiraeth-care-panel .hiraeth-ornament::before,
+.hiraeth-care-panel .hiraeth-ornament::after { background: linear-gradient(90deg, transparent, #94753c); }
+@media (max-width: 767px) {
+  .hiraeth-care-phoenix { display: block; opacity: .10; right: -6rem; height: 75%; }
 }
