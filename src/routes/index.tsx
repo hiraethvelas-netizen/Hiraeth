@@ -122,10 +122,9 @@ export function ExistingHomepage() {
   const sections: Record<string, ReactNode> = {
     portals: content.showPortals && (
       <section key="portals" className="hiraeth-home-portals relative mx-auto max-w-6xl px-5 pb-12 pt-12 text-center md:pb-16 md:pt-20">
-        <div className="hiraeth-ember-field" aria-hidden="true" />
         <p className="eyebrow hiraeth-reveal relative z-10">{content.portalsEyebrow}</p>
         <h1 className="hiraeth-editorial-title hiraeth-reveal relative z-10 mt-4">{content.portalsTitle}</h1>
-        <div className="hiraeth-ornament relative z-10" aria-hidden="true"><span className="hiraeth-flame">✦</span></div>
+        <div className="hiraeth-ornament relative z-10" aria-hidden="true"><span>✧</span></div>
         <div className="relative z-10 mx-auto mt-8 grid max-w-5xl grid-cols-2 gap-x-4 gap-y-7 sm:grid-cols-3 md:grid-cols-4">
           {(shortcuts.length ? shortcuts : [
             { id: "default-about", title: "Conheça a Hiraeth", description: "Conheça nossa história", href: "/sobre", image_key: "hiraeth", position: 1, active: true },
@@ -177,9 +176,9 @@ export function ExistingHomepage() {
       </section>
     ),
     care: content.showCare && (
-      <section key="care" className="relative overflow-hidden px-5 py-12 md:px-8 md:py-20">
-        <div className="mx-auto grid max-w-5xl items-stretch gap-0 md:grid-cols-2">
-          <div className="hiraeth-care-panel hiraeth-reveal z-10 flex flex-col justify-center px-6 py-10 text-center sm:px-10 md:-mr-5 md:my-5 md:px-12">
+      <section key="care" className="hiraeth-care-atmosphere relative overflow-hidden px-5 py-12 md:px-8 md:py-20">
+        <img src={fenix} alt="" aria-hidden="true" className="hiraeth-care-phoenix pointer-events-none absolute right-[-5%] top-1/2 hidden h-[min(34rem,85%)] w-auto -translate-y-1/2 object-contain md:block" />
+        <div className="hiraeth-care-panel hiraeth-reveal relative z-10 mx-auto flex max-w-3xl flex-col justify-center px-6 py-10 text-center sm:px-10 md:px-16 md:py-14">
             <p className="eyebrow">{content.careEyebrow}</p>
             <h2 className={`mt-4 text-4xl leading-[1.02] sm:text-5xl ${headingFont}`}>{content.careTitle}</h2>
             <div className="hiraeth-ornament" aria-hidden="true"><span>✧</span></div>
@@ -187,9 +186,7 @@ export function ExistingHomepage() {
             {typeof content.careImage === "string" && content.careImage && <img src={content.careImage} alt="" className="mx-auto mt-6 max-h-72 max-w-full object-cover" />}
             <div><Link to="/cuidados" className="mt-7 inline-flex items-center gap-2 rounded-full border border-[#6c7143] bg-[#17291e] px-6 py-3 font-display text-lg text-[#f3e7c7] transition-transform hover:-translate-y-0.5">{content.careButton}<span aria-hidden="true">＋</span></Link></div>
           </div>
-          <div className="hiraeth-photo-frame relative mt-[-1rem] min-h-[280px] overflow-hidden bg-[#17291e] md:ml-0 md:mt-0 md:min-h-[420px]">
-            {typeof content.careImage === "string" && content.careImage ? <img src={content.careImage} alt="Vela Hiraeth acesa" className="absolute inset-0 h-full w-full object-cover" /> : <div className="hiraeth-candle-scene absolute inset-0 flex items-center justify-center"><div className="hiraeth-candle-books" aria-hidden="true"></div><div className="hiraeth-candle-jar"><span className="hiraeth-candle-flame"></span><span className="hiraeth-candle-wax"></span></div><div className="hiraeth-candle-lid" aria-hidden="true"></div><div className="hiraeth-candle-smoke" aria-hidden="true"></div></div>}
-          </div>
+          
         </div>
       </section>
     ),
