@@ -25,6 +25,7 @@ import { Route as AuthenticatedConfiguracoesRouteImport } from './routes/_authen
 import { Route as AuthenticatedPedidosRouteImport } from './routes/_authenticated/pedidos'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminAparenciaRouteImport } from './routes/admin/aparencia'
+import { Route as AdminAvaliacoesRouteImport } from './routes/admin/avaliacoes'
 import { Route as AdminBannersRouteImport } from './routes/admin/banners'
 import { Route as AdminCategoriasRouteImport } from './routes/admin/categorias'
 import { Route as AdminEssenciasRouteImport } from './routes/admin/essencias'
@@ -117,6 +118,11 @@ const AdminAparenciaRoute = AdminAparenciaRouteImport.update({
   path: '/aparencia',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminAvaliacoesRoute = AdminAvaliacoesRouteImport.update({
+  id: '/avaliacoes',
+  path: '/avaliacoes',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminBannersRoute = AdminBannersRouteImport.update({
   id: '/banners',
   path: '/banners',
@@ -188,6 +194,7 @@ export interface FileRoutesByFullPath {
   '/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/pedidos': typeof AuthenticatedPedidosRoute
   '/admin/aparencia': typeof AdminAparenciaRoute
+  '/admin/avaliacoes': typeof AdminAvaliacoesRoute
   '/admin/banners': typeof AdminBannersRoute
   '/admin/categorias': typeof AdminCategoriasRoute
   '/admin/essencias': typeof AdminEssenciasRoute
@@ -215,6 +222,7 @@ export interface FileRoutesByTo {
   '/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/pedidos': typeof AuthenticatedPedidosRoute
   '/admin/aparencia': typeof AdminAparenciaRoute
+  '/admin/avaliacoes': typeof AdminAvaliacoesRoute
   '/admin/banners': typeof AdminBannersRoute
   '/admin/categorias': typeof AdminCategoriasRoute
   '/admin/essencias': typeof AdminEssenciasRoute
@@ -222,6 +230,7 @@ export interface FileRoutesByTo {
   '/admin/pedidos': typeof AdminPedidosRoute
   '/admin/portais': typeof AdminPortaisRoute
   '/admin/produtos': typeof AdminProdutosRoute
+  '/admin/promocoes': typeof AdminPromocoesRoute
   '/admin/sobre': typeof AdminSobreRoute
   '/portal/$slug': typeof PortalSlugRoute
   '/produto/$slug': typeof ProdutoSlugRoute
@@ -244,6 +253,7 @@ export interface FileRoutesById {
   '/_authenticated/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/_authenticated/pedidos': typeof AuthenticatedPedidosRoute
   '/admin/aparencia': typeof AdminAparenciaRoute
+  '/admin/avaliacoes': typeof AdminAvaliacoesRoute
   '/admin/banners': typeof AdminBannersRoute
   '/admin/categorias': typeof AdminCategoriasRoute
   '/admin/essencias': typeof AdminEssenciasRoute
@@ -251,6 +261,7 @@ export interface FileRoutesById {
   '/admin/pedidos': typeof AdminPedidosRoute
   '/admin/portais': typeof AdminPortaisRoute
   '/admin/produtos': typeof AdminProdutosRoute
+  '/admin/promocoes': typeof AdminPromocoesRoute
   '/admin/sobre': typeof AdminSobreRoute
   '/portal/$slug': typeof PortalSlugRoute
   '/produto/$slug': typeof ProdutoSlugRoute
@@ -273,6 +284,7 @@ export interface FileRouteTypes {
     | '/configuracoes'
     | '/pedidos'
     | '/admin/aparencia'
+    | '/admin/avaliacoes'
     | '/admin/banners'
     | '/admin/categorias'
     | '/admin/essencias'
@@ -280,6 +292,7 @@ export interface FileRouteTypes {
     | '/admin/pedidos'
     | '/admin/portais'
     | '/admin/produtos'
+    | '/admin/promocoes'
     | '/admin/sobre'
     | '/portal/$slug'
     | '/produto/$slug'
@@ -299,6 +312,7 @@ export interface FileRouteTypes {
     | '/configuracoes'
     | '/pedidos'
     | '/admin/aparencia'
+    | '/admin/avaliacoes'
     | '/admin/banners'
     | '/admin/categorias'
     | '/admin/essencias'
@@ -306,6 +320,7 @@ export interface FileRouteTypes {
     | '/admin/pedidos'
     | '/admin/portais'
     | '/admin/produtos'
+    | '/admin/promocoes'
     | '/admin/sobre'
     | '/portal/$slug'
     | '/produto/$slug'
@@ -327,6 +342,7 @@ export interface FileRouteTypes {
     | '/_authenticated/configuracoes'
     | '/_authenticated/pedidos'
     | '/admin/aparencia'
+    | '/admin/avaliacoes'
     | '/admin/banners'
     | '/admin/categorias'
     | '/admin/essencias'
@@ -334,6 +350,7 @@ export interface FileRouteTypes {
     | '/admin/pedidos'
     | '/admin/portais'
     | '/admin/produtos'
+    | '/admin/promocoes'
     | '/admin/sobre'
     | '/portal/$slug'
     | '/produto/$slug'
@@ -470,6 +487,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminAparenciaRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/avaliacoes': {
+      id: '/admin/avaliacoes'
+      path: '/avaliacoes'
+      fullPath: '/admin/avaliacoes'
+      preLoaderRoute: typeof AdminAvaliacoesRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/banners': {
       id: '/admin/banners'
       path: '/banners'
@@ -519,6 +543,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminProdutosRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/promocoes': {
+      id: '/admin/promocoes'
+      path: '/promocoes'
+      fullPath: '/admin/promocoes'
+      preLoaderRoute: typeof AdminPromocoesRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/sobre': {
       id: '/admin/sobre'
       path: '/sobre'
@@ -560,6 +591,7 @@ const AuthenticatedRouteRouteWithChildren =
 
 interface AdminRouteChildren {
   AdminAparenciaRoute: typeof AdminAparenciaRoute
+  AdminAvaliacoesRoute: typeof AdminAvaliacoesRoute
   AdminBannersRoute: typeof AdminBannersRoute
   AdminCategoriasRoute: typeof AdminCategoriasRoute
   AdminEssenciasRoute: typeof AdminEssenciasRoute
@@ -574,6 +606,7 @@ interface AdminRouteChildren {
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminAparenciaRoute: AdminAparenciaRoute,
+  AdminAvaliacoesRoute: AdminAvaliacoesRoute,
   AdminBannersRoute: AdminBannersRoute,
   AdminCategoriasRoute: AdminCategoriasRoute,
   AdminEssenciasRoute: AdminEssenciasRoute,
