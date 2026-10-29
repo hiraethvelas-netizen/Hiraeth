@@ -141,7 +141,7 @@ useEffect(() => {
         </div>}
         {!selectedCategory && pageSettings.showBanner && pageSettings.bannerImage && <img src={pageSettings.bannerImage} alt="Banner da loja Hiraeth" className="mb-8 max-h-[28rem] w-full object-cover" />}
         {!selectedCategory && pageSettings.eyebrow && pageSettings.eyebrow.trim().toLocaleLowerCase("pt-BR") !== pageSettings.title.trim().toLocaleLowerCase("pt-BR") && <p className="eyebrow">{pageSettings.eyebrow}</p>}
-        {!selectedCategory && <h1 className="hiraeth-editorial-title mt-4 text-left md:!mx-0">{pageSettings.title}</h1><div className="hiraeth-ornament !mx-0 justify-start" aria-hidden="true"><span>✧</span></div>}
+        {!selectedCategory && <><h1 className="hiraeth-editorial-title mt-4 text-left md:!mx-0">{pageSettings.title}</h1><div className="hiraeth-ornament !mx-0 justify-start" aria-hidden="true"><span>✧</span></div></>}
         {!selectedCategory && pageSettings.intro && <p className="mt-3 max-w-2xl text-muted-foreground">{pageSettings.intro}</p>}
 
         {selectedCategory && <section className="hiraeth-category-hero hiraeth-reveal relative mt-7 mb-10 overflow-hidden rounded-xl border border-primary/40">
