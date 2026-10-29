@@ -141,13 +141,13 @@ useEffect(() => {
         </div>}
         {!selectedCategory && pageSettings.showBanner && pageSettings.bannerImage && <img src={pageSettings.bannerImage} alt="Banner da loja Hiraeth" className="mb-8 max-h-[28rem] w-full object-cover" />}
         {!selectedCategory && pageSettings.eyebrow && pageSettings.eyebrow.trim().toLocaleLowerCase("pt-BR") !== pageSettings.title.trim().toLocaleLowerCase("pt-BR") && <p className="eyebrow">{pageSettings.eyebrow}</p>}
-        {!selectedCategory && <h1 className="mt-2 text-4xl text-foreground md:text-5xl">{pageSettings.title}</h1>}
+        {!selectedCategory && <h1 className="hiraeth-editorial-title mt-4 text-left md:!mx-0">{pageSettings.title}</h1><div className="hiraeth-ornament !mx-0 justify-start" aria-hidden="true"><span>✧</span></div>}
         {!selectedCategory && pageSettings.intro && <p className="mt-3 max-w-2xl text-muted-foreground">{pageSettings.intro}</p>}
 
-        {selectedCategory && <section className="relative mt-7 mb-8 overflow-hidden rounded-lg border border-primary/20">
-          {selectedCategory.image_url ? <img src={selectedCategory.image_url} alt={selectedCategory.name} className="h-48 w-full object-cover sm:h-64 md:h-80" /> : <div className="h-48 w-full bg-[radial-gradient(ellipse_at_center,_var(--color-secondary),_var(--color-background)_70%)] sm:h-64 md:h-80" aria-hidden="true" />}
-          <div className="absolute inset-0 flex items-end bg-gradient-to-t from-black/75 via-black/15 to-transparent p-5 sm:p-8">
-            <div><h2 className="mt-1 text-3xl text-white sm:text-4xl md:text-5xl">{selectedCategory.name}</h2>
+        {selectedCategory && <section className="hiraeth-category-hero hiraeth-reveal relative mt-7 mb-10 overflow-hidden rounded-xl border border-primary/40">
+          {selectedCategory.image_url ? <img src={selectedCategory.image_url} alt={selectedCategory.name} className="h-64 w-full object-cover sm:h-80 md:h-[26rem]" /> : <div className="h-48 w-full bg-[radial-gradient(ellipse_at_center,_var(--color-secondary),_var(--color-background)_70%)] sm:h-64 md:h-80" aria-hidden="true" />}
+          <div className="absolute inset-0 flex items-end bg-gradient-to-t from-[#07110b]/95 via-[#07110b]/25 to-transparent p-6 sm:p-10">
+            <div><p className="eyebrow !text-[#e2c477]">Entre neste universo</p><h2 className="hiraeth-editorial-title !mx-0 mt-2 !text-left text-4xl text-white sm:text-5xl md:text-6xl">{selectedCategory.name}</h2>
               {selectedCategory.is_temporary && <span className="mt-2 inline-flex border border-amber-200/80 bg-black/25 px-2 py-1 text-[10px] uppercase tracking-widest text-amber-100">Coleção temporária{selectedCategory.ends_at ? ` · até ${new Date(selectedCategory.ends_at + "T12:00:00").toLocaleDateString("pt-BR")}` : ""}</span>}
             </div>
           </div>
@@ -160,11 +160,11 @@ useEffect(() => {
         </section>}
 
         {!categoryId && featuredCollections.length > 0 && <section className="mt-8">
-          <div className="mb-4 flex items-end justify-between gap-3"><div><p className="eyebrow">Coleções fixas</p><h2 className="mt-1 text-3xl text-foreground">Explore o Acervo</h2></div><span className="text-xs text-muted-foreground">7 universos</span></div>
+          <div className="mb-4 flex items-end justify-between gap-3"><div><p className="eyebrow">Coleções fixas</p><h2 className="hiraeth-editorial-title !mx-0 mt-2 !text-left !text-4xl md:!text-5xl">Explore <em>o Acervo</em></h2></div><span className="text-xs text-muted-foreground">7 universos</span></div>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
-            {featuredCollections.map((collection) => <button key={collection.id} type="button" onClick={() => { const enter = () => { setCategoryId(collection.id); const url = new URL(window.location.href); url.searchParams.set("categoria", collection.slug); window.history.replaceState({}, "", url.toString()); window.scrollTo({ top: 0, behavior: "smooth" }); }; if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) enter(); else { setEnteringCategory(collection); window.setTimeout(() => { enter(); setEnteringCategory(null); }, 620); } }} className="group relative aspect-square overflow-hidden rounded-full border border-primary/25 text-center transition-transform duration-500 hover:scale-[1.03] focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">
+            {featuredCollections.map((collection) => <button key={collection.id} type="button" onClick={() => { const enter = () => { setCategoryId(collection.id); const url = new URL(window.location.href); url.searchParams.set("categoria", collection.slug); window.history.replaceState({}, "", url.toString()); window.scrollTo({ top: 0, behavior: "smooth" }); }; if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) enter(); else { setEnteringCategory(collection); window.setTimeout(() => { enter(); setEnteringCategory(null); }, 620); } }} className="hiraeth-collection-card group relative aspect-square overflow-hidden rounded-full text-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">
               <div className="absolute inset-0 bg-muted">{collection.image_url ? <img src={collection.image_url} alt="" className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110" loading="lazy" /> : <div className="flex h-full items-center justify-center bg-gradient-to-br from-card to-muted p-3 text-center font-display text-xl text-primary">{collection.name}</div>}</div>
-              <div className="absolute inset-0 flex items-end justify-center rounded-full bg-gradient-to-t from-black/80 via-black/5 to-transparent p-4 pb-6"><span className="font-display text-lg text-white sm:text-xl">{collection.name}</span>{collection.is_temporary && <span className="ml-auto border border-amber-100/80 px-1.5 py-0.5 text-[9px] uppercase tracking-wide text-amber-50">Temporária</span>}</div>
+              <div className="absolute inset-0 flex items-end justify-center rounded-full bg-gradient-to-t from-black/80 via-black/5 to-transparent p-4 pb-6"><span className="hiraeth-collection-label font-display text-lg text-white sm:text-xl">{collection.name}</span>{collection.is_temporary && <span className="ml-auto border border-amber-100/80 px-1.5 py-0.5 text-[9px] uppercase tracking-wide text-amber-50">Temporária</span>}</div>
               <span className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100 group-hover:shadow-[inset_0_0_35px_rgba(198,166,91,0.55)]" />
             </button>)}
           </div>
