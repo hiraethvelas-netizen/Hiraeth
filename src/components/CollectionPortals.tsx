@@ -59,18 +59,18 @@ export function CollectionPortals() {
   if (!categories.length) return null;
 
   return <>
-    <section className="mx-auto max-w-6xl px-5 py-10 md:px-8 md:py-14">
-      <h2 className="mt-2 text-center text-3xl text-foreground md:text-4xl">Conheça o Acervo Hiraeth</h2>
+    <section className="hiraeth-collection-portals mx-auto max-w-6xl px-5 py-12 md:px-8 md:py-16">
+      <h2 className="hiraeth-editorial-title mt-3 text-center !text-4xl md:!text-6xl">Conheça o <em>Acervo Hiraeth</em></h2><div className="hiraeth-ornament" aria-hidden="true"><span className="hiraeth-flame">✦</span></div>
       <p className="mx-auto mt-2 max-w-xl text-center text-sm text-muted-foreground">Escolha um universo e atravesse o portal.</p>
       {isAdmin && editMode && <p className="mx-auto mt-3 max-w-xl text-center text-xs text-primary">Use as setas para definir a ordem das bolinhas. A primeira será exibida primeiro na página.</p>}
       <div className="mt-7 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
         {categories.map((category) => <div key={category.id} className="flex flex-col items-center gap-3 text-center">
           <button type="button" onClick={() => enter(category)} className="group flex w-full flex-col items-center gap-3 text-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">
-          <span className="relative block aspect-square w-full max-w-44 overflow-hidden rounded-full border border-primary/40 bg-card p-1 shadow-[var(--glow)] transition-transform duration-500 group-hover:scale-105 group-active:scale-95">
-            {category.image_url ? <img src={category.image_url} alt="" className="h-full w-full rounded-full object-cover transition-transform duration-700 group-hover:scale-110" loading="lazy" /> : <span className="flex h-full w-full items-center justify-center rounded-full bg-gradient-to-br from-card via-muted to-card px-3 font-display text-xl text-primary">{category.name}</span>}
+          <span className="hiraeth-collection-card relative block aspect-square w-full max-w-44 overflow-hidden rounded-full bg-card p-1.5 group-active:scale-95">
+            {category.image_url ? <img src={category.image_url} alt="" className="h-full w-full rounded-full object-cover transition-transform duration-700 group-hover:scale-110" loading="lazy" /> : <span className="flex h-full w-full items-center justify-center rounded-full bg-[radial-gradient(ellipse_at_35%_25%,#40523b,#17271c_72%)] px-3 font-display text-xl text-[#d8bd7a]">{category.name}</span>}
             <span className="pointer-events-none absolute inset-0 rounded-full opacity-0 shadow-[inset_0_0_30px_rgba(198,166,91,0.65)] transition-opacity duration-500 group-hover:opacity-100" />
           </span>
-          <span className="font-display text-xl text-foreground transition-colors group-hover:text-primary">{category.name}</span>
+          <span className="hiraeth-collection-label font-display text-xl text-foreground transition-colors group-hover:text-primary">{category.name}</span>
           </button>
           {category.is_temporary && <span className="border border-amber-600/60 px-2 py-0.5 text-[9px] uppercase tracking-widest text-amber-700">Temporária</span>}
           {isAdmin && editMode && <div className="mt-1 flex flex-wrap items-center justify-center gap-1" onClick={event => event.stopPropagation()}>
