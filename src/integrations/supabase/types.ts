@@ -71,6 +71,7 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          image_url: string | null
           interest_type: string
           title: string
           user_id: string
@@ -78,6 +79,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          image_url?: string | null
           interest_type: string
           title: string
           user_id: string
@@ -85,7 +87,35 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          image_url?: string | null
           interest_type?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      community_library: {
+        Row: {
+          aroma: string | null
+          created_at: string
+          id: string
+          image_url: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          aroma?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          aroma?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
           title?: string
           user_id?: string
         }
