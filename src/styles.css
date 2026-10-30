@@ -402,8 +402,8 @@ h1, h2, h3, h4, .font-display {
   overflow: hidden;
   border: 1px solid rgba(198,166,91,.48);
   border-radius: 1rem;
-  background: #f0e4cc;
-  color: #20382b;
+  background: var(--card);
+  color: var(--card-foreground);
   box-shadow: 0 24px 70px rgba(0,0,0,.22);
 }
 .hiraeth-care-panel::before {
@@ -476,9 +476,9 @@ h1, h2, h3, h4, .font-display {
 .hiraeth-care-atmosphere::before { left: -18rem; top: 8%; box-shadow: 0 -16px 30px rgba(198,166,91,.07); }
 .hiraeth-care-atmosphere::after { right: -20rem; bottom: 2%; transform: rotate(164deg); box-shadow: 0 -16px 30px rgba(198,166,91,.07); }
 .hiraeth-care-phoenix { opacity: .19; filter: sepia(.35) saturate(.75) drop-shadow(0 0 24px rgba(198,166,91,.22)); mix-blend-mode: screen; }
-.hiraeth-care-panel { background: #f0e4cc; color: #20382b; }
-.hiraeth-care-panel .eyebrow { color: #94753c; }
-.hiraeth-care-panel h2 { color: #20382b; }
+.hiraeth-care-panel { background: var(--card); color: var(--card-foreground); }
+.hiraeth-care-panel .eyebrow { color: var(--primary); }
+.hiraeth-care-panel h2 { color: var(--card-foreground); }
 .hiraeth-care-panel .hiraeth-ornament { color: #94753c; }
 .hiraeth-care-panel .hiraeth-ornament::before,
 .hiraeth-care-panel .hiraeth-ornament::after { background: linear-gradient(90deg, transparent, #94753c); }
@@ -489,12 +489,12 @@ h1, h2, h3, h4, .font-display {
 
 /* Avaliações Hiraeth: convite compacto em baunilha e foguinhos vivos. */
 .hiraeth-review-invite {
-  background: #f0e4cc;
-  border-color: rgba(182,151,87,.7);
-  color: #20382b;
+  background: var(--card);
+  border-color: var(--border);
+  color: var(--card-foreground);
   box-shadow: 0 14px 38px rgba(30,35,23,.12);
 }
-.hiraeth-review-invite .eyebrow { color: #94753c; }
+.hiraeth-review-invite .eyebrow { color: var(--primary); }
 .hiraeth-review-flame.is-active {
   color: #e87527;
   fill: #f4a33b;
@@ -541,29 +541,7 @@ h1, h2, h3, h4, .font-display {
 }
 
 
-/* Hiraeth — refinamento místico da identidade visual.
-   O modo escuro mantém sua paleta original; o modo claro ganha mais verde.
-   Os mesmos arabescos aparecem nos dois temas, sem ilustrações de produtos. */
-:root {
-  /* Modo claro Hiraeth: verde profundo nas áreas externas e baunilha nos cartões. */
-  --background: #20382b;
-  --foreground: #f4ecd8;
-  --card: #f4ecd8;
-  --card-foreground: #20382b;
-  --popover: #f4ecd8;
-  --popover-foreground: #20382b;
-  --primary: #80652f;
-  --primary-foreground: #fff9eb;
-  --secondary: #e7ddc4;
-  --secondary-foreground: #263a2b;
-  --muted: #e9e1ce;
-  --muted-foreground: #625d4c;
-  --border: #b9a77b80;
-  --input: #b9a77b99;
-  --ring: #9a7a3c;
-  --glow: 0 0 32px #80652f20;
-}
-
+/* Fundos responsivos aos dois temas, sem sobrescrever os tokens de cor. */
 body {
   background:
     radial-gradient(ellipse at 8% 0%, rgba(112, 137, 87, .19), transparent 42%),
@@ -627,11 +605,6 @@ body > div {
   }
 }
 
-
-/* Superfícies claras preservadas em baunilha no tema claro; exceções editoriais continuam próprias. */
-:root:not(.dark) .hiraeth-care-panel,
-:root:not(.dark) .hiraeth-review-invite { background: #f4ecd8; color: #20382b; }
-:root:not(.dark) .hiraeth-care-panel h2 { color: #20382b; }
 
 
 /* Mundos NFC: identidade independente por portal, carrossel horizontal e revelação ao rolar. */
