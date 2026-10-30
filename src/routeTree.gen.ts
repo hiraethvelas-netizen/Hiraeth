@@ -15,6 +15,8 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as CarrinhoRouteImport } from './routes/carrinho'
 import { Route as CuidadosRouteImport } from './routes/cuidados'
+import { Route as ClubeDoLivroRouteImport } from './routes/clube-do-livro'
+import { Route as AuthenticatedComunidadeRouteImport } from './routes/_authenticated/comunidade'
 import { Route as InicioRouteImport } from './routes/inicio'
 import { Route as LojaRouteImport } from './routes/loja'
 import { Route as PrivacidadeRouteImport } from './routes/privacidade'
@@ -62,6 +64,8 @@ const CarrinhoRoute = CarrinhoRouteImport.update({
   path: '/carrinho',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ClubeDoLivroRoute = ClubeDoLivroRouteImport.update({ id: '/clube-do-livro', path: '/clube-do-livro', getParentRoute: () => rootRouteImport } as any)
+const AuthenticatedComunidadeRoute = AuthenticatedComunidadeRouteImport.update({ id: '/comunidade', path: '/comunidade', getParentRoute: () => AuthenticatedRouteRoute } as any)
 const CuidadosRoute = CuidadosRouteImport.update({
   id: '/cuidados',
   path: '/cuidados',
@@ -185,6 +189,8 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/carrinho': typeof CarrinhoRoute
   '/cuidados': typeof CuidadosRoute
+  '/clube-do-livro': typeof ClubeDoLivroRoute
+  '/comunidade': typeof AuthenticatedComunidadeRoute
   '/inicio': typeof InicioRoute
   '/loja': typeof LojaRoute
   '/privacidade': typeof PrivacidadeRoute
@@ -575,12 +581,14 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedComunidadeRoute: typeof AuthenticatedComunidadeRoute
   AuthenticatedBibliotecaRoute: typeof AuthenticatedBibliotecaRoute
   AuthenticatedConfiguracoesRoute: typeof AuthenticatedConfiguracoesRoute
   AuthenticatedPedidosRoute: typeof AuthenticatedPedidosRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedComunidadeRoute: AuthenticatedComunidadeRoute
   AuthenticatedBibliotecaRoute: AuthenticatedBibliotecaRoute,
   AuthenticatedConfiguracoesRoute: AuthenticatedConfiguracoesRoute,
   AuthenticatedPedidosRoute: AuthenticatedPedidosRoute,
@@ -628,6 +636,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   CarrinhoRoute: CarrinhoRoute,
   CuidadosRoute: CuidadosRoute,
+  ClubeDoLivroRoute: ClubeDoLivroRoute,
   InicioRoute: InicioRoute,
   LojaRoute: LojaRoute,
   PrivacidadeRoute: PrivacidadeRoute,
