@@ -632,3 +632,53 @@ body > div {
 :root:not(.dark) .hiraeth-care-panel,
 :root:not(.dark) .hiraeth-review-invite { background: #f4ecd8; color: #20382b; }
 :root:not(.dark) .hiraeth-care-panel h2 { color: #20382b; }
+
+
+/* Mundos NFC: identidade independente por portal, carrossel horizontal e revelação ao rolar. */
+.portal-world {
+  background: var(--portal-bg);
+  color: var(--portal-text);
+}
+.portal-world .eyebrow,
+.portal-world h2,
+.portal-world h3 { color: var(--portal-text); }
+.portal-world .portal-reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 720ms ease, transform 820ms cubic-bezier(.2,.75,.25,1);
+}
+.portal-world .portal-reveal.is-visible { opacity: 1; transform: translateY(0); }
+.portal-world .portal-carousel-section { background: var(--portal-surface); }
+.portal-world .portal-hanger { scrollbar-width: thin; scrollbar-color: var(--portal-accent) transparent; }
+.portal-world .portal-hanger-item {
+  position: relative;
+  padding-top: 18px;
+}
+.portal-world .portal-hanger-item::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  height: 18px;
+  border-left: 1px solid var(--portal-accent);
+}
+.portal-world .portal-hanger-item img {
+  border: 1px solid color-mix(in srgb, var(--portal-accent) 55%, transparent);
+  box-shadow: 0 12px 30px rgba(0,0,0,.2);
+}
+.portal-world .portal-app-invitation {
+  background: var(--portal-surface);
+  border: 1px solid color-mix(in srgb, var(--portal-accent) 50%, transparent);
+}
+.portal-world .portal-app-button {
+  background: var(--portal-accent);
+  color: var(--portal-button-text);
+}
+@media (prefers-reduced-motion: reduce) {
+  .portal-world .portal-reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .portal-world .portal-app-button { transition: none; }
+}
