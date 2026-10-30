@@ -1,0 +1,1 @@
+alter table public.community_library add column if not exists favorite boolean not null default false;
