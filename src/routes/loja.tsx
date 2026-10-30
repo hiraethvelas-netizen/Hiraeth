@@ -205,7 +205,7 @@ useEffect(() => {
                 <span className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100 group-hover:shadow-[inset_0_0_35px_rgba(198,166,91,0.55)]" />
               </button>
               <InlineEditor label={`bolinha de ${collection.name}`} fields={[{ name: "image_url", label: "Imagem da bolinha", type: "image", help: "Envie JPG, PNG ou WebP, até 5 MB. A imagem será atualizada na bolinha desta coleção." }]} values={{ image_url: collection.image_url ?? "" }} onSave={async (values) => {
-                const image_url = String(values.image_url ?? "").trim() || null;
+                const image_url = String(values["image_url"] ?? "").trim() || null;
                 const { error } = await supabase.from("categories").update({ image_url }).eq("id", collection.id);
                 if (error) throw error;
                 setCategories(current => current.map(item => item.id === collection.id ? { ...item, image_url } : item));

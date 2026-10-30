@@ -1,3 +1,4 @@
+import type { Json } from "@/integrations/supabase/types";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -128,7 +129,7 @@ function AdminPortais() {
       status: form.status,
       updated_at: new Date().toISOString(),
     };
-    let parsedTheme: unknown;
+    let parsedTheme: Json;
     try { parsedTheme = JSON.parse(form.theme_json || "{}"); }
     catch { toast.error("O JSON do tema está inválido. Revise a paleta e os itens do carrossel."); return; }
     const safePayload = { ...payload, theme: parsedTheme };
