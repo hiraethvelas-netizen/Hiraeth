@@ -111,10 +111,11 @@ function AuthPage() {
             </div>
           </section>
         ) : <>
-        <p className="eyebrow">Círculo do Fogo</p>
+        <p className="eyebrow">{isAdminLogin ? "Acesso reservado" : "Círculo do Fogo"}</p>
         <h1 className="mt-2 text-4xl text-foreground">
-          {mode === "login" ? "Entrar" : mode === "signup" ? "Criar conta" : "Recuperar senha"}
+          {isAdminLogin ? "Administração Hiraeth" : mode === "login" ? "Entrar" : mode === "signup" ? "Criar conta" : "Recuperar senha"}
         </h1>
+        {isAdminLogin && <p className="mt-3 text-sm leading-relaxed text-muted-foreground">Entre com as credenciais da conta administrativa autorizada.</p>}
 
         <form onSubmit={handleSubmit} className="mt-8 space-y-4">
           {mode === "signup" && (
@@ -174,9 +175,9 @@ function AuthPage() {
               <button onClick={() => setMode("forgot")} className="block w-full hover:text-primary">
                 Esqueci minha senha
               </button>
-              <button onClick={() => setMode("signup")} className="block w-full hover:text-primary">
+              {!isAdminLogin && <button onClick={() => setMode("signup")} className="block w-full hover:text-primary">
                 Ainda não tenho conta
-              </button>
+              </button>}
             </>
           )}
           {mode !== "login" && (
