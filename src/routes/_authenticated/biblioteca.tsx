@@ -8,7 +8,7 @@ import { InlineEditor } from "@/components/InlineEditor";
 import { useSiteContent } from "@/lib/admin-edit";
 import type { Tables } from "@/integrations/supabase/types";
 
-type LibraryItem = Tables<"library_items"> & { products: Tables<"products"> | null };
+type LibraryItem = any;
 type WishlistItem = Tables<"wishlist_items"> & { products: Tables<"products"> | null };
 
 export const Route = createFileRoute("/_authenticated/biblioteca")({
@@ -37,7 +37,7 @@ function Biblioteca() {
     if (!userData.user) return;
     setUserId(userData.user.id);
     const [{ data: lib }, { data: wish }] = await Promise.all([
-      supabase.from("library_items").select("*, products(*)").eq("user_id", userData.user.id).order("created_at", { ascending: false }),
+      (supabase as any).from("community_library").select("*, products(*)").eq("user_id", userData.user.id).order("created_at", { ascending: false }),
       supabase.from("wishlist_items").select("*, products(*)").eq("user_id", userData.user.id).order("created_at", { ascending: false }),
     ]);
     setLibrary((lib as LibraryItem[]) ?? []);
@@ -67,9 +67,9 @@ function Biblioteca() {
   async function addManual(e: React.FormEvent) {
     e.preventDefault();
     if (!userId) return;
-    const { error } = await supabase.from("library_items").insert({
+    const { error } = await (supabase as any).from("community_library").insert({
       user_id: userId,
-      custom_name: customName,
+      title: customName,
       acquired_at: acquiredAt || null,
       notes: notes || null,
     });
@@ -86,12 +86,12 @@ function Biblioteca() {
   }
 
   async function toggleFavorite(item: LibraryItem) {
-    await supabase.from("library_items").update({ favorite: !item.favorite }).eq("id", item.id);
+    await (supabase as any).from("community_library").update({ favorite: !item.favorite }).eq("id", item.id);
     load();
   }
 
   async function removeLibraryItem(id: string) {
-    await supabase.from("library_items").delete().eq("id", id);
+    await (supabase as any).from("community_library").delete().eq("id", id);
     toast.success("Removido da estante.");
     load();
   }
@@ -103,7 +103,7 @@ function Biblioteca() {
 
   async function moveToCollection(item: WishlistItem) {
     if (!userId) return;
-    await supabase.from("library_items").insert({ user_id: userId, product_id: item.product_id });
+    await (supabase as any).from("community_library").insert({ user_id: userId, product_id: item.product_id, title: item.products?.name ?? "Vela Hiraeth", aroma: item.products?.fragrance ?? null, image_url: item.products?.images?.[0] ?? null });
     await supabase.from("wishlist_items").delete().eq("id", item.id);
     toast.success("Movido para sua coleção.");
     load();
@@ -111,7 +111,7 @@ function Biblioteca() {
 
   const filteredLibrary = library.filter((i) => {
     if (!query) return true;
-    const name = (i.products?.name ?? i.custom_name ?? "").toLowerCase();
+    const name = (i.products?.name ?? i.title ?? "").toLowerCase();
     return name.includes(query.toLowerCase());
   });
 
@@ -210,7 +210,7 @@ function Biblioteca() {
                   <div key={item.id} className="border bg-card p-5">
                     <div className="aspect-square overflow-hidden bg-muted">
                       {item.products?.images?.[0] ? (
-                        <img src={item.products.images[0]} alt="" className="h-full w-full object-cover" loading="lazy" />
+                        <img src={item.image_url || item.products?.images?.[0]} alt="" className="h-full w-full object-cover" loading="lazy" />
                       ) : (
                         <div className="flex h-full items-center justify-center font-display italic text-muted-foreground">✦</div>
                       )}
@@ -234,7 +234,7 @@ function Biblioteca() {
                           {item.products.name}
                         </Link>
                       ) : (
-                        item.custom_name
+                        item.title
                       )}
                     </h3>
                     {item.acquired_at && (
