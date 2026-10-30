@@ -682,3 +682,20 @@ body > div {
   }
   .portal-world .portal-app-button { transition: none; }
 }
+
+/* Círculo do Fogo: reações delicadas e acessíveis. */
+@keyframes hiraeth-heart-pulse {
+  0%, 100% { transform: scale(1); }
+  35% { transform: scale(1.22); }
+  65% { transform: scale(.96); }
+}
+@keyframes hiraeth-fire-rise {
+  0% { opacity: 0; transform: translateY(5px) scale(.85); }
+  35% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-7px) scale(1.08); }
+}
+.community-heart-active svg { animation: hiraeth-heart-pulse 520ms ease; }
+.community-fire-active svg { animation: hiraeth-fire-rise 650ms ease; }
+@media (prefers-reduced-motion: reduce) {
+  .community-heart-active svg, .community-fire-active svg { animation: none; }
+}
