@@ -67,9 +67,9 @@ export function CustomerReviews() {
         </div>
         <p className="eyebrow font-bold">A chama continua acesa</p>
         <h2 className="mt-2 font-body text-3xl font-bold tracking-tight sm:text-4xl">Avaliações dos clientes</h2>
-        <p className="mt-2 font-display text-xl font-semibold sm:text-2xl">Sua história também faz parte da Hiraeth</p>
-        <p className="mx-auto mt-2 max-w-xl text-sm font-medium leading-relaxed opacity-90">Conte como foi sua experiência com nossos produtos. Seu carinho ajuda nossa chama a continuar acesa.</p>
-        <button type="button" onClick={() => { setFormOpen(true); setNotice(""); }} className="mt-5 inline-flex items-center rounded-full border border-[#80652f] bg-[#20382b] px-6 py-3 font-display text-lg text-[#fff5df] transition-transform hover:-translate-y-0.5">Compartilhar minha experiência <span className="ml-2" aria-hidden="true">＋</span></button>
+        <p className="mt-2 font-body text-xl font-semibold leading-snug sm:text-2xl">Sua história também faz parte da Hiraeth</p>
+        <p className="mx-auto mt-2 max-w-xl font-body text-sm font-semibold leading-relaxed opacity-90">Conte como foi sua experiência com nossos produtos. Seu carinho ajuda nossa chama a continuar acesa.</p>
+        <button type="button" onClick={() => { setFormOpen(true); setNotice(""); }} className="mt-5 inline-flex items-center rounded-full border border-[#80652f] bg-[#20382b] px-6 py-3 font-body text-base font-semibold text-[#fff5df] transition-transform hover:-translate-y-0.5">Compartilhar minha experiência <span className="ml-2" aria-hidden="true">＋</span></button>
       </div>
 
       {notice && <p role="status" className="mx-auto mt-4 max-w-2xl text-center text-sm text-primary">{notice}</p>}
@@ -77,9 +77,9 @@ export function CustomerReviews() {
       {loading ? <p className="mt-8 text-center text-sm font-medium text-muted-foreground">Carregando relatos...</p> : reviews.length ? <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {reviews.map((review) => <article key={review.id} className="border border-primary/20 bg-background/70 p-5">
           <div className="flex gap-1" aria-label={`Avaliação de ${review.rating} de 5 foguinhos`}>{[1,2,3,4,5].map((flame) => <Flame key={flame} size={18} className={flame <= review.rating ? "hiraeth-review-flame is-active" : "hiraeth-review-flame text-muted-foreground/30"} />)}</div>
-          <p className="mt-3 whitespace-pre-wrap font-medium leading-relaxed text-foreground">“{review.message}”</p>
+          <p className="mt-3 whitespace-pre-wrap font-body font-semibold leading-relaxed text-foreground">“{review.message}”</p>
           {review.media_urls?.length ? <div className="mt-4 grid grid-cols-2 gap-2">{review.media_urls.map((url) => /\.(mp4|webm|mov|m4v)(\?|$)/i.test(url) ? <video key={url} src={url} controls playsInline className="aspect-square w-full rounded object-cover" /> : <img key={url} src={url} alt="Registro compartilhado por cliente da Hiraeth" loading="lazy" className="aspect-square w-full rounded object-cover" />)}</div> : null}
-          <p className="mt-4 text-sm font-semibold text-primary">{review.display_name || "Cliente Hiraeth"} · <span className="text-[10px] uppercase tracking-widest">Experiência compartilhada</span></p>
+          <p className="mt-4 font-body text-sm font-bold text-primary">{review.display_name || "Cliente Hiraeth"} · <span className="text-[10px] uppercase tracking-widest">Experiência compartilhada</span></p>
         </article>)}
       </div> : <p className="mt-8 text-center text-sm text-muted-foreground">As primeiras histórias do Acervo aparecerão aqui em breve.</p>}
 
