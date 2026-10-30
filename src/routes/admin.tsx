@@ -35,7 +35,7 @@ function AdminLayout() {
   const [darkMode, setDarkMode] = useState(() => typeof document !== "undefined" && document.documentElement.classList.contains("dark"));
 
   useEffect(() => {
-    const savedTheme = window.localStorage.getItem("hiraeth-admin-theme");
+    const savedTheme = window.localStorage.getItem("hiraeth-theme");
     const shouldUseDark = savedTheme ? savedTheme === "dark" : document.documentElement.classList.contains("dark");
     document.documentElement.classList.toggle("dark", shouldUseDark);
     setDarkMode(shouldUseDark);
@@ -44,7 +44,7 @@ function AdminLayout() {
   function toggleTheme() {
     const nextDarkMode = !darkMode;
     document.documentElement.classList.toggle("dark", nextDarkMode);
-    window.localStorage.setItem("hiraeth-admin-theme", nextDarkMode ? "dark" : "light");
+    window.localStorage.setItem("hiraeth-theme", nextDarkMode ? "dark" : "light");
     setDarkMode(nextDarkMode);
   }
 
