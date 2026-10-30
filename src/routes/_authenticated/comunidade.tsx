@@ -410,8 +410,19 @@ function Comunidade() {
     try {
       const { data, error } = await (supabase as any).from("community_profiles").select("user_id,username,avatar_url,bio,instagram_url,tiktok_url,other_social_url").eq("user_id", memberId).maybeSingle();
       if (error) throw error;
-      if (!data) { toast.error("Este integrante ainda não configurou o perfil."); return; }
-      setPublicMember(data as PublicMember);
+      const fallbackName = posts.find(post => post.user_id === memberId)?.author
+        || messages.find(message => message.user_id === memberId)?.community_profiles?.username
+        || "Integrante";
+      const resolvedProfile: PublicMember = data as PublicMember ?? {
+        user_id: memberId,
+        username: fallbackName,
+        avatar_url: posts.find(post => post.user_id === memberId)?.avatar_url ?? null,
+        bio: null,
+        instagram_url: null,
+        tiktok_url: null,
+        other_social_url: null,
+      };
+      setPublicMember(resolvedProfile);
       setPublicSection("profile");
       const [{ data: interestsData, error: interestsError }, { data: libraryData, error: libraryError }] = await Promise.all([
         (supabase as any).from("community_interests").select("id,interest_type,title,image_url").eq("user_id", memberId).order("created_at", { ascending: false }),
