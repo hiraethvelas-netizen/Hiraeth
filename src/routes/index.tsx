@@ -100,7 +100,14 @@ export function ExistingHomepage() {
   const [content, saveContent] = useSiteContent<HomeContent>("homepage", DEFAULT_HOME_CONTENT);
   useEffect(() => {
     (supabase as any).from("site_shortcuts").select("*").eq("active", true).order("position")
-      .then(({ data }: { data: Shortcut[] | null }) => setShortcuts(data ?? []));
+      .then(({ data }: { data: Shortcut[] | null }) => {
+        const existing = data ?? [];
+        const additions: Shortcut[] = [
+          { id: "builtin-community", title: "Círculo do Fogo", description: "Nossa comunidade", href: "/comunidade", image_key: "phoenix", position: 90, active: true },
+          { id: "builtin-book-club", title: "Clube do Livro", description: "Leituras que nos conectam", href: "/clube-do-livro", image_key: "book", position: 91, active: true },
+        ].filter(item => !existing.some(current => current.href === item.href));
+        setShortcuts([...existing, ...additions]);
+      });
     (supabase as any).from("site_banners").select("*").eq("active", true).order("position")
       .then(({ data }: { data: HomeBanner[] | null }) => setBanners(data ?? []));
   }, []);
@@ -125,7 +132,7 @@ export function ExistingHomepage() {
         <p className="eyebrow hiraeth-reveal relative z-10">{content.portalsEyebrow}</p>
         <h1 className="hiraeth-editorial-title hiraeth-reveal relative z-10 mt-4">{content.portalsTitle}</h1>
         <div className="hiraeth-ornament relative z-10" aria-hidden="true"><span>✧</span></div>
-        <div className="relative z-10 mx-auto mt-8 grid max-w-5xl grid-cols-2 gap-x-4 gap-y-7 sm:grid-cols-3 md:grid-cols-4">
+        <div className="relative z-10 mx-auto mt-8 grid max-w-3xl grid-cols-2 gap-x-5 gap-y-8">
           {(shortcuts.length ? shortcuts : [
             { id: "default-about", title: "Conheça a Hiraeth", description: "Conheça nossa história", href: "/sobre", image_key: "hiraeth", position: 1, active: true },
             { id: "default-store", title: "Nossa Loja", description: "Velas e camisetas literárias", href: "/loja", image_key: "candle", position: 2, active: true },
