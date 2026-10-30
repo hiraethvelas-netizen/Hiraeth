@@ -10,6 +10,7 @@ type MemberProfile = { username: string; avatar_url: string | null; instagram_ur
 type Message = { id: string; user_id: string; body: string; created_at: string; is_admin?: boolean; community_profiles?: { username: string; avatar_url: string | null } | null };
 type FeedPost = { id: string; user_id: string; body: string; image_urls: string[]; created_at: string; author: string; avatar_url: string | null; heartCount: number; fireCount: number; myReaction: "heart" | "fire" | null; commentCount: number };
 type FeedComment = { id: string; post_id: string; user_id: string; body: string; created_at: string; author: string };
+type PublicMember = MemberProfile & { user_id: string };
 
 export const Route = createFileRoute("/_authenticated/comunidade")({
   head: () => ({ meta: [{ title: "Círculo do Fogo — Hiraeth" }] }),
@@ -34,13 +35,16 @@ function Comunidade() {
   const [comments, setComments] = useState<Record<string, FeedComment[]>>({});
   const [commentDrafts, setCommentDrafts] = useState<Record<string, string>>({});
   const [reacting, setReacting] = useState<string | null>(null);
-  const [interests, setInterests] = useState<{ id: string; interest_type: "book" | "movie" | "series" | "other"; title: string }[]>([]);
+  const [interests, setInterests] = useState<{ id: string; interest_type: "book" | "movie" | "series" | "other"; title: string; image_url?: string | null }[]>([]);
   const [interestTitle, setInterestTitle] = useState("");
   const [interestType, setInterestType] = useState<"book" | "movie" | "series" | "other">("book");
+  const [interestCover, setInterestCover] = useState<File | null>(null);
+  const [interestUploading, setInterestUploading] = useState(false);
+  const [publicMember, setPublicMember] = useState<PublicMember | null>(null);
   const [avatarUploading, setAvatarUploading] = useState(false);
 
   async function loadInterests(currentUserId = userId) {
-    const { data, error } = await (supabase as any).from("community_interests").select("id,interest_type,title").eq("user_id", currentUserId).order("created_at", { ascending: false });
+    const { data, error } = await (supabase as any).from("community_interests").select("id,interest_type,title,image_url").eq("user_id", currentUserId).order("created_at", { ascending: false });
     if (error) { toast.error("Não foi possível carregar seus interesses."); return; }
     setInterests((data ?? []) as typeof interests);
   }
@@ -225,8 +229,23 @@ function Comunidade() {
 
   async function addInterest(e: React.FormEvent) {
     e.preventDefault(); const title = interestTitle.trim(); if (!title) return;
-    const { data, error } = await (supabase as any).from("community_interests").insert({ user_id: userId, interest_type: interestType, title }).select("id,interest_type,title").single();
-    if (error) toast.error("Não foi possível adicionar esse interesse."); else { setInterests(current => [data, ...current]); setInterestTitle(""); }
+    setInterestUploading(true);
+    try {
+      let image_url: string | null = null;
+      if (interestCover) {
+        if (!interestCover.type.startsWith("image/") || interestCover.size > 8 * 1024 * 1024) throw new Error("Escolha uma capa de até 8 MB.");
+        const ext = interestCover.name.split(".").pop()?.replace(/[^a-zA-Z0-9]/g, "") || "jpg";
+        const path = "public/universe-" + userId + "-" + crypto.randomUUID() + "." + ext;
+        const { error: uploadError } = await supabase.storage.from("review-media").upload(path, interestCover, { contentType: interestCover.type, upsert: false });
+        if (uploadError) throw uploadError;
+        image_url = supabase.storage.from("review-media").getPublicUrl(path).data.publicUrl;
+      }
+      const { data, error } = await (supabase as any).from("community_interests").insert({ user_id: userId, interest_type: interestType, title, image_url }).select("id,interest_type,title,image_url").single();
+      if (error) throw error;
+      setInterests(current => [data, ...current]); setInterestTitle(""); setInterestCover(null);
+      const picker = document.getElementById("community-interest-cover") as HTMLInputElement | null; if (picker) picker.value = "";
+    } catch (error) { toast.error(error instanceof Error ? error.message : "Não foi possível adicionar esse interesse."); }
+    finally { setInterestUploading(false); }
   }
 
   async function removeInterest(id: string) {
