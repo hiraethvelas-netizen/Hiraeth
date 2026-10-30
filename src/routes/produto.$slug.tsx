@@ -114,8 +114,8 @@ function ProdutoPage() {
         <div className="mt-8 grid gap-10 md:grid-cols-2">
           <div>
             <div className="aspect-square overflow-hidden border bg-muted">
-              {product.images[activeImage] ? (
-                <img src={product.images[activeImage]} alt={product.name} className="h-full w-full object-cover" />
+              {currentImages[activeImage] ? (
+                <img src={currentImages[activeImage]} alt={product.name} className="h-full w-full object-cover" />
               ) : (
                 <div className="flex h-full items-center justify-center font-display text-lg italic text-muted-foreground">
                   Foto em breve
