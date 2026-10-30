@@ -110,6 +110,21 @@ useEffect(() => {
 }, []);
 
 
+  useEffect(() => {
+    if (loading || typeof IntersectionObserver === "undefined") return;
+    const cards = document.querySelectorAll<HTMLElement>(".hiraeth-product-card[data-product-badge]");
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("is-in-view");
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.42, rootMargin: "0px 0px -8% 0px" });
+    cards.forEach((card) => observer.observe(card));
+    return () => observer.disconnect();
+  }, [loading, filtered.length]);
+
   const selectedCategory = categories.find((category) => category.id === categoryId) ?? null;
   async function toggleWishlist(productId: string, event: React.MouseEvent) {
     event.preventDefault(); event.stopPropagation();
@@ -219,18 +234,18 @@ useEffect(() => {
                 key={p.id}
                 to="/produto/$slug"
                 params={{ slug: p.slug }}
-                className="group block border-0 bg-transparent text-center shadow-none transition-transform duration-300 hover:-translate-y-1"
+                className="hiraeth-product-card group block border-0 bg-transparent text-center shadow-none transition-transform duration-300 hover:-translate-y-1" data-product-badge={(p as any).product_badge ?? undefined}
               >
-                <div className="relative aspect-square overflow-hidden bg-transparent">
+                <div className="hiraeth-product-visual relative aspect-square overflow-hidden bg-transparent">
                   {p.images[0] ? (
-                    <img src={p.images[0]} alt={p.name} className="h-full w-full object-contain p-3 transition-transform duration-500 group-hover:scale-[1.03]" loading="lazy" />
+                    <img src={p.images[0]} alt={p.name} className="hiraeth-product-image h-full w-full object-contain p-3 transition-transform duration-500 group-hover:scale-[1.03]" loading="lazy" />
                   ) : (
                     <div className="flex h-full items-center justify-center font-display text-lg italic text-muted-foreground">Foto em breve</div>
                   )}
                   <button type="button" onClick={(event) => void toggleWishlist(p.id, event)} aria-label={wishlistIds.has(p.id) ? "Remover dos favoritos" : "Adicionar aos favoritos"} aria-pressed={wishlistIds.has(p.id)} className="absolute right-3 top-3 z-10 rounded-full bg-[#f5efe5]/90 p-2.5 text-[#68764f] shadow-sm transition hover:scale-105">
                     <Heart size={19} strokeWidth={1.8} fill={wishlistIds.has(p.id) ? "currentColor" : "none"} />
                   </button>
-                  {(p as any).product_badge && <span className={`absolute left-3 top-3 z-10 rounded-full px-3 py-1 text-[9px] font-semibold uppercase tracking-[.16em] shadow-sm ${(p as any).product_badge === "limited" ? "bg-[#8b6b45] text-[#fff8ed]" : (p as any).product_badge === "bestseller" ? "bg-[#66513f] text-[#fff8ed]" : "bg-[#65744d] text-white"}`}>{(p as any).product_badge === "limited" ? "Edição limitada" : (p as any).product_badge === "bestseller" ? "Mais vendido" : "Novidade"}</span>}
+                  {(p as any).product_badge && <span className={`hiraeth-product-badge absolute left-3 top-3 z-10 rounded-full px-3 py-1 text-[9px] font-semibold uppercase tracking-[.16em] shadow-sm ${(p as any).product_badge === "limited" ? "bg-[#8b6b45] text-[#fff8ed]" : (p as any).product_badge === "bestseller" ? "bg-[#66513f] text-[#fff8ed]" : "bg-[#65744d] text-white"}`}>{(p as any).product_badge === "limited" ? "Edição limitada" : (p as any).product_badge === "bestseller" ? "Mais vendido" : "Novidade"}</span>}
                 </div>
 
                 <div className="px-2 pb-3 pt-3">
