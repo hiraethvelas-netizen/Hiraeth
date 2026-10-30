@@ -592,3 +592,52 @@ body > div {
     background-size: 100% 100%;
   }
 }
+
+
+/* Vitrine viva — animações discretas acionadas pela rolagem. */
+.hiraeth-product-card[data-product-badge] .hiraeth-product-image {
+  transform-origin: 50% 58%;
+  will-change: transform;
+}
+.hiraeth-product-card[data-product-badge] .hiraeth-product-badge {
+  opacity: 0;
+  transform: translateY(7px) scale(.94);
+}
+.hiraeth-product-card.is-in-view[data-product-badge] .hiraeth-product-image {
+  animation: hiraeth-product-arrive 760ms cubic-bezier(.2,.78,.22,1) both;
+}
+.hiraeth-product-card.is-in-view[data-product-badge] .hiraeth-product-badge {
+  animation: hiraeth-badge-arrive 420ms ease-out 260ms both;
+}
+.hiraeth-product-card[data-product-badge="bestseller"] .hiraeth-product-image {
+  transform-origin: 50% 62%;
+}
+.hiraeth-product-card.is-in-view[data-product-badge="bestseller"] .hiraeth-product-image {
+  animation: hiraeth-bestseller-show 1150ms cubic-bezier(.2,.78,.22,1) both;
+}
+.hiraeth-product-card.is-in-view[data-product-badge="bestseller"] .hiraeth-product-badge {
+  animation-delay: 520ms;
+}
+@keyframes hiraeth-product-arrive {
+  0% { opacity: 0; transform: translateY(20px) scale(.94); }
+  65% { opacity: 1; transform: translateY(-3px) scale(1.025); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes hiraeth-bestseller-show {
+  0% { opacity: 0; transform: translateY(24px) scale(.86) rotateZ(-2deg) rotateY(-7deg); }
+  58% { opacity: 1; transform: translateY(-5px) scale(1.09) rotateZ(1.5deg) rotateY(8deg); }
+  78% { transform: translateY(0) scale(1.025) rotateZ(-.6deg) rotateY(-3deg); }
+  100% { opacity: 1; transform: translateY(0) scale(1) rotateZ(0) rotateY(0); }
+}
+@keyframes hiraeth-badge-arrive {
+  from { opacity: 0; transform: translateY(7px) scale(.94); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hiraeth-product-card.is-in-view[data-product-badge] .hiraeth-product-image,
+  .hiraeth-product-card.is-in-view[data-product-badge] .hiraeth-product-badge {
+    animation: none !important;
+    opacity: 1;
+    transform: none;
+  }
+}
