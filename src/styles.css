@@ -672,3 +672,22 @@ body > div {
 @media (prefers-reduced-motion: reduce) {
   .community-heart-active svg, .community-fire-active svg { animation: none; }
 }
+
+
+/* Atalhos e painel de cuidados: contraste complementar em cada tema. */
+:root:not(.dark) .hiraeth-care-panel,
+:root:not(.dark) .hiraeth-collection-card {
+  background-color: #263a2b;
+  color: #f4ecd8;
+}
+:root:not(.dark) .hiraeth-care-panel h2,
+:root:not(.dark) .hiraeth-care-panel p,
+:root:not(.dark) .hiraeth-care-panel .eyebrow { color: #f4ecd8; }
+:root.dark .hiraeth-care-panel,
+:root.dark .hiraeth-collection-card {
+  background-color: #f4ecd8;
+  color: #263a2b;
+}
+:root.dark .hiraeth-care-panel h2,
+:root.dark .hiraeth-care-panel p,
+:root.dark .hiraeth-care-panel .eyebrow { color: #263a2b; }
