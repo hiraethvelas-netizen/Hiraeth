@@ -593,7 +593,7 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
-  AuthenticatedComunidadeRoute: AuthenticatedComunidadeRoute
+  AuthenticatedComunidadeRoute: AuthenticatedComunidadeRoute,
   AuthenticatedBibliotecaRoute: AuthenticatedBibliotecaRoute,
   AuthenticatedConfiguracoesRoute: AuthenticatedConfiguracoesRoute,
   AuthenticatedPedidosRoute: AuthenticatedPedidosRoute,
