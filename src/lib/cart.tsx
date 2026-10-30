@@ -24,7 +24,7 @@ type CartContextValue = {
 const CartContext = createContext<CartContextValue | null>(null);
 const STORAGE_KEY = "hiraeth-cart";
 
-function itemKey(item: Pick<CartItem, "productId" | "variantKey">) {
+function itemKey(item: { productId: string; variantKey?: string | undefined }) {
   return `${item.productId}::${item.variantKey ?? "default"}`;
 }
 

@@ -19,7 +19,7 @@ export function StoreBanners() {
   }, []);
 
   async function save(banner: Banner, values: Record<string, unknown>) {
-    const payload = { title: String(values.title ?? "").trim() || null, image_url: String(values.image_url ?? banner.image_url), href: String(values.href ?? banner.href) };
+    const payload = { title: String(values["title"] ?? "").trim() || null, image_url: String(values["image_url"] ?? banner.image_url), href: String(values["href"] ?? banner.href) };
     const { error } = await (supabase as any).from("site_banners").update(payload).eq("id", banner.id);
     if (error) throw error;
     setBanners((current) => current.map((item) => item.id === banner.id ? { ...item, ...payload } : item));
@@ -40,7 +40,7 @@ export function StoreBanners() {
       const cards = container.querySelectorAll<HTMLElement>("[data-store-banner]");
       if (!cards.length) return;
       index = (index + 1) % cards.length;
-      container.scrollTo({ left: cards[index].offsetLeft - container.offsetLeft, behavior: "smooth" });
+      container.scrollTo({ left: (cards[index]?.offsetLeft ?? 0) - container.offsetLeft, behavior: "smooth" });
     }, 5000);
     return () => window.clearInterval(interval);
   }, [visibleBanners.length]);

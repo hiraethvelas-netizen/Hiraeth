@@ -26,7 +26,7 @@ export function CollectionPortals() {
   }, []);
 
   async function saveCategory(category: Category, values: Record<string, unknown>) {
-    const payload = { name: String(values.name ?? category.name).trim(), image_url: String(values.image_url ?? category.image_url ?? "").trim() || null };
+    const payload = { name: String(values["name"] ?? category.name).trim(), image_url: String(values["image_url"] ?? category.image_url ?? "").trim() || null };
     const { error } = await (supabase as any).from("categories").update(payload).eq("id", category.id);
     if (error) throw error;
     setCategories(current => current.map(item => item.id === category.id ? { ...item, ...payload } : item));
@@ -36,7 +36,8 @@ export function CollectionPortals() {
     const target = index + direction;
     if (target < 0 || target >= categories.length) return;
     const reordered = [...categories];
-    [reordered[index], reordered[target]] = [reordered[target], reordered[index]];
+    const a = reordered[index]!, b = reordered[target]!;
+    reordered[index] = b; reordered[target] = a;
     const updates = reordered.map((item, position) => ({ id: item.id, position: position + 1 }));
     const results = await Promise.all(updates.map(item => (supabase as any).from("categories").update({ position: item.position }).eq("id", item.id)));
     const failed = results.find((result: { error: unknown }) => result.error);
