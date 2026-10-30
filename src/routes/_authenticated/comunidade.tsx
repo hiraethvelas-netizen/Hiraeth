@@ -269,6 +269,14 @@ function Comunidade() {
     else toast.success("Perfil atualizado.");
   }
 
+  useEffect(() => {
+    if (!joined) return;
+    const channel = supabase.channel("circulo-do-fogo-chat")
+      .on("postgres_changes", { event: "*", schema: "public", table: "community_messages" }, () => { void loadMessages(); })
+      .subscribe();
+    return () => { void supabase.removeChannel(channel); };
+  }, [joined]);
+
   const tabs: { id: Tab; label: string }[] = [{ id: "inicio", label: "Início" }, { id: "chat", label: "Chat" }, { id: "feed", label: "Feed" }, { id: "perfil", label: "Meu perfil" }];
 
   return <div className="min-h-screen bg-background"><SiteHeader />
