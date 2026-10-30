@@ -89,7 +89,7 @@ export function InlineEditor({ label, fields, values, onSave, className = "" }: 
               const list: string[] = multiple ? ((v as string[]) ?? []) : (v ? [v as string] : []);
               return (
                 <div key={f.name} className="grid gap-1.5 text-sm">{f.label}
-                  <input type="file" multiple={multiple} accept="image/jpeg,image/png,image/webp,image/gif" onChange={(e) => addImages(f.name, e.target.files, multiple)} className="border px-3 py-2" />
+                  <input type="file" multiple={multiple} accept="image/jpeg,image/png,image/webp" aria-label={`Selecionar ${f.label.toLowerCase()}`} onClick={(e) => e.stopPropagation()} onChange={(e) => { const files = e.currentTarget.files; void addImages(f.name, files, multiple); e.currentTarget.value = ""; }} className="block w-full cursor-pointer rounded border bg-background px-3 py-2 text-sm file:mr-3 file:cursor-pointer file:rounded-full file:border file:border-primary/40 file:bg-primary/10 file:px-4 file:py-2 file:font-medium file:text-primary hover:file:bg-primary/20" />
                   <div className="flex flex-wrap gap-2">
                     {list.map((url, i) => (
                       <div key={url + i} className="relative">
