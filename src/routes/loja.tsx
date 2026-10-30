@@ -110,20 +110,7 @@ useEffect(() => {
 }, []);
 
 
-  useEffect(() => {
-    if (loading || typeof IntersectionObserver === "undefined") return;
-    const cards = document.querySelectorAll<HTMLElement>(".hiraeth-product-card[data-product-badge]");
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add("is-in-view");
-          observer.unobserve(entry.target);
-        }
-      });
-    }, { threshold: 0.42, rootMargin: "0px 0px -8% 0px" });
-    cards.forEach((card) => observer.observe(card));
-    return () => observer.disconnect();
-  }, [loading, filtered.length]);
+
 
   const selectedCategory = categories.find((category) => category.id === categoryId) ?? null;
   async function toggleWishlist(productId: string, event: React.MouseEvent) {
@@ -164,6 +151,21 @@ useEffect(() => {
       return true;
     });
   }, [products, query, categoryId, categories]);
+
+  useEffect(() => {
+    if (loading || typeof IntersectionObserver === "undefined") return;
+    const cards = document.querySelectorAll<HTMLElement>(".hiraeth-product-card[data-product-badge]");
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("is-in-view");
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.42, rootMargin: "0px 0px -8% 0px" });
+    cards.forEach((card) => observer.observe(card));
+    return () => observer.disconnect();
+  }, [loading, filtered.length]);
 
   return (
     <div className="min-h-screen">
