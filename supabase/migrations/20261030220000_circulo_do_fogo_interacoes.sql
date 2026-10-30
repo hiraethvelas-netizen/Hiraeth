@@ -29,25 +29,47 @@ create policy "members manage own message reactions" on public.community_message
 drop policy if exists "authors or admins edit community messages" on public.community_messages;
 create policy "authors or admins edit community messages" on public.community_messages
   for update to authenticated
-  using (auth.uid() = user_id or public.has_role(auth.uid(), 'admin'))
-  with check (auth.uid() = user_id or public.has_role(auth.uid(), 'admin'));
+  using (auth.uid() = user_id or public.has_role(auth.uid(), 'admin'::app_role))
+  with check (auth.uid() = user_id or public.has_role(auth.uid(), 'admin'::app_role));
 
 drop policy if exists "authors or admins delete community messages" on public.community_messages;
 create policy "authors or admins delete community messages" on public.community_messages
   for delete to authenticated
-  using (auth.uid() = user_id or public.has_role(auth.uid(), 'admin'));
+  using (auth.uid() = user_id or public.has_role(auth.uid(), 'admin'::app_role));
 
 drop policy if exists "admins pin community messages" on public.community_messages;
 create policy "admins pin community messages" on public.community_messages
   for update to authenticated
-  using (public.has_role(auth.uid(), 'admin'))
-  with check (public.has_role(auth.uid(), 'admin'));
+  using (public.has_role(auth.uid(), 'admin'::app_role))
+  with check (public.has_role(auth.uid(), 'admin'::app_role));
+
+-- RLS UPDATE policies are permissive (OR). This trigger independently prevents
+-- a non-admin author from changing is_pinned while still allowing body edits.
+create or replace function public.guard_community_message_pin()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if new.is_pinned is distinct from old.is_pinned
+     and not public.has_role(auth.uid(), 'admin'::app_role) then
+    raise exception 'Only community administrators can pin messages';
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists guard_community_message_pin on public.community_messages;
+create trigger guard_community_message_pin
+  before update on public.community_messages
+  for each row execute function public.guard_community_message_pin();
 
 drop policy if exists "authors or admins edit community posts" on public.community_posts;
 create policy "authors or admins edit community posts" on public.community_posts
   for update to authenticated
-  using (auth.uid() = user_id or public.has_role(auth.uid(), 'admin'))
-  with check (auth.uid() = user_id or public.has_role(auth.uid(), 'admin'));
+  using (auth.uid() = user_id or public.has_role(auth.uid(), 'admin'::app_role))
+  with check (auth.uid() = user_id or public.has_role(auth.uid(), 'admin'::app_role));
 
 create index if not exists community_messages_pinned_created_idx
   on public.community_messages (is_pinned desc, created_at asc);
