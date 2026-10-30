@@ -363,9 +363,9 @@ function Comunidade() {
 
 
 
-    <main className="w-full px-0 pb-0 pt-16">
+    <main className="w-full px-0 pb-0 pt-0">
       <div className="min-h-[calc(100dvh-4rem)] w-full overflow-hidden border-y border-primary/25 bg-card">
-        {!loading && joined &&           <nav className="sticky top-16 z-20 grid grid-cols-4 border-b border-primary/20 bg-card/95 shadow-sm backdrop-blur" aria-label="Áreas da comunidade">{tabs.map(item => <button key={item.id} onClick={() => setTab(item.id)} className={`min-h-14 border-b-2 px-3 py-4 text-sm font-medium transition-colors md:min-h-16 md:text-base ${tab === item.id ? "border-primary bg-primary/5 text-primary" : "border-transparent text-muted-foreground hover:bg-primary/5"}`}>{item.label}</button>)}</nav>}
+        {!loading && joined &&           <nav className="sticky top-0 z-20 grid grid-cols-4 border-b border-primary/20 bg-card/95 shadow-sm backdrop-blur" aria-label="Áreas da comunidade">{tabs.map(item => <button key={item.id} onClick={() => setTab(item.id)} className={`min-h-14 border-b-2 px-3 py-4 text-sm font-medium transition-colors md:min-h-16 md:text-base ${tab === item.id ? "border-primary bg-primary/5 text-primary" : "border-transparent text-muted-foreground hover:bg-primary/5"}`}>{item.label}</button>)}</nav>}
         {(!joined || tab === "inicio") && <div className="relative flex min-h-[260px] items-end overflow-hidden bg-[radial-gradient(ellipse_at_top_right,_rgba(190,151,83,0.25),_transparent_45%),linear-gradient(125deg,#101b14,#263d2c_58%,#111b15)] px-6 py-10 md:min-h-[320px] md:px-14 md:py-14">
           <div className="relative max-w-3xl"><p className="text-xs uppercase tracking-[0.38em] text-[#d5bd82]">✦ Comunidade Hiraeth ✦</p><h1 className="mt-4 font-display text-5xl leading-none text-[#f5edda] md:text-7xl">Círculo do Fogo</h1><p className="mt-5 max-w-xl text-base leading-7 text-[#eee5d3]/85 md:text-lg">Histórias aproximam. Conversas acendem novas ideias. Encontre pessoas que sentem o mundo através dos livros, filmes e universos que amam.</p><p className="mt-7 text-xs uppercase tracking-[0.2em] text-[#d5bd82]">Um espaço para pertencer</p></div>
         </div>}
