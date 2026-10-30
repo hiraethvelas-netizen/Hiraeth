@@ -62,8 +62,12 @@ export function CustomerReviews() {
   return <section className="border-y border-primary/20 bg-card/50 px-5 py-10 md:px-8 md:py-14">
     <div className="mx-auto max-w-6xl">
       <div className="hiraeth-review-invite mx-auto max-w-3xl rounded-2xl border px-6 py-7 text-center sm:px-10">
-        <p className="eyebrow">A chama continua acesa</p>
-        <h2 className="mt-2 font-display text-3xl font-semibold sm:text-4xl">Sua história também faz parte da Hiraeth</h2>
+        <div className="mb-3 flex items-center justify-center gap-2.5" aria-label="Cinco foguinhos em destaque">
+          {[1, 2, 3, 4, 5].map((flame) => <Flame key={flame} size={23} aria-hidden="true" className="hiraeth-review-flame is-active" />)}
+        </div>
+        <p className="eyebrow font-bold">A chama continua acesa</p>
+        <h2 className="mt-2 font-body text-3xl font-bold tracking-tight sm:text-4xl">Avaliações dos clientes</h2>
+        <p className="mt-2 font-display text-xl font-semibold sm:text-2xl">Sua história também faz parte da Hiraeth</p>
         <p className="mx-auto mt-2 max-w-xl text-sm font-medium leading-relaxed opacity-90">Conte como foi sua experiência com nossos produtos. Seu carinho ajuda nossa chama a continuar acesa.</p>
         <button type="button" onClick={() => { setFormOpen(true); setNotice(""); }} className="mt-5 inline-flex items-center rounded-full border border-[#80652f] bg-[#20382b] px-6 py-3 font-display text-lg text-[#fff5df] transition-transform hover:-translate-y-0.5">Compartilhar minha experiência <span className="ml-2" aria-hidden="true">＋</span></button>
       </div>
