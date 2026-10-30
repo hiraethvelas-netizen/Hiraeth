@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { SiteFooter, SiteHeader } from "@/components/SiteLayout";
 import { toast } from "sonner";
-import { Flame, Heart, ImagePlus, MessageCircle, Send, Trash2, X } from "lucide-react";
+import { Flame, Heart, ImagePlus, MessageCircle, Send, Trash2, X, UserRound, BookOpen, Film, Tv } from "lucide-react";
 
 type Tab = "chat" | "feed" | "perfil";
 type MemberProfile = { username: string; avatar_url: string | null; instagram_url: string | null; tiktok_url: string | null; other_social_url: string | null; bio: string | null };
@@ -33,6 +33,17 @@ function Comunidade() {
   const [comments, setComments] = useState<Record<string, FeedComment[]>>({});
   const [commentDrafts, setCommentDrafts] = useState<Record<string, string>>({});
   const [reacting, setReacting] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [interests, setInterests] = useState<{ id: string; interest_type: "book" | "movie" | "series" | "other"; title: string }[]>([]);
+  const [interestTitle, setInterestTitle] = useState("");
+  const [interestType, setInterestType] = useState<"book" | "movie" | "series" | "other">("book");
+  const [avatarUploading, setAvatarUploading] = useState(false);
+
+  async function loadInterests(currentUserId = userId) {
+    const { data, error } = await (supabase as any).from("community_interests").select("id,interest_type,title").eq("user_id", currentUserId).order("created_at", { ascending: false });
+    if (error) { toast.error("Não foi possível carregar seus interesses."); return; }
+    setInterests((data ?? []) as typeof interests);
+  }
 
   async function loadMessages() {
     const { data, error } = await (supabase as any).from("community_messages")
@@ -74,12 +85,14 @@ function Comunidade() {
       const { data } = await supabase.auth.getUser();
       if (!data.user) { setLoading(false); return; }
       setUserId(data.user.id);
+      const { data: adminResult } = await supabase.rpc("has_role", { _user_id: data.user.id, _role: "admin" });
+      setIsAdmin(adminResult === true);
       const { data: membership } = await (supabase as any).from("community_memberships").select("user_id").eq("user_id", data.user.id).maybeSingle();
       if (membership) {
         setJoined(true);
         const { data: p } = await (supabase as any).from("community_profiles").select("*").eq("user_id", data.user.id).maybeSingle();
         if (p) setProfile(p);
-        await Promise.all([loadMessages(), loadFeed(data.user.id)]);
+        await Promise.all([loadMessages(), loadFeed(data.user.id), loadInterests(data.user.id)]);
       }
       setLoading(false);
     })();
@@ -97,7 +110,7 @@ function Comunidade() {
     if (profileError) toast.error("Você entrou, mas ainda precisamos configurar seu perfil.");
     else setProfile(current => ({ ...current, username: String(suggested).slice(0, 30) }));
     setSaving(false);
-    await Promise.all([loadMessages(), loadFeed()]);
+    await Promise.all([loadMessages(), loadFeed(), loadInterests()]);
   }
 
   async function sendMessage(e: React.FormEvent) {
@@ -185,6 +198,34 @@ function Comunidade() {
     else { toast.success("Publicação excluída."); await loadFeed(); }
   }
 
+  async function uploadAvatar(file?: File) {
+    if (!file || !userId) return;
+    if (!file.type.startsWith("image/") || file.size > 8 * 1024 * 1024) { toast.error("Escolha uma imagem de até 8 MB."); return; }
+    setAvatarUploading(true);
+    const extension = file.name.split(".").pop()?.replace(/[^a-zA-Z0-9]/g, "") || "jpg";
+    const path = `public/avatar-${userId}-${crypto.randomUUID()}.${extension}`;
+    const { error } = await supabase.storage.from("review-media").upload(path, file, { contentType: file.type, upsert: false });
+    if (error) toast.error("Não foi possível enviar sua foto.");
+    else {
+      const url = supabase.storage.from("review-media").getPublicUrl(path).data.publicUrl;
+      setProfile(current => ({ ...current, avatar_url: url }));
+      const { error: saveError } = await (supabase as any).from("community_profiles").upsert({ user_id: userId, avatar_url: url }, { onConflict: "user_id" });
+      if (saveError) toast.error("A foto foi enviada, mas não foi possível atualizar o perfil."); else toast.success("Foto de perfil atualizada!");
+    }
+    setAvatarUploading(false);
+  }
+
+  async function addInterest(e: React.FormEvent) {
+    e.preventDefault(); const title = interestTitle.trim(); if (!title) return;
+    const { data, error } = await (supabase as any).from("community_interests").insert({ user_id: userId, interest_type: interestType, title }).select("id,interest_type,title").single();
+    if (error) toast.error("Não foi possível adicionar esse interesse."); else { setInterests(current => [data, ...current]); setInterestTitle(""); }
+  }
+
+  async function removeInterest(id: string) {
+    const { error } = await (supabase as any).from("community_interests").delete().eq("id", id).eq("user_id", userId);
+    if (error) toast.error("Não foi possível remover esse interesse."); else setInterests(current => current.filter(item => item.id !== id));
+  }
+
   async function saveProfile(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
@@ -208,7 +249,7 @@ function Comunidade() {
           <button onClick={() => void joinCommunity()} disabled={saving} className="btn-gold mt-8">{saving ? "Entrando..." : "Participar da comunidade"}</button>
         </section> : <>
           <nav className="flex overflow-x-auto border-b border-primary/20" aria-label="Áreas da comunidade">{tabs.map(item => <button key={item.id} onClick={() => setTab(item.id)} className={`shrink-0 border-b-2 px-6 py-4 text-sm ${tab === item.id ? "border-primary text-primary" : "border-transparent text-muted-foreground"}`}>{item.label}</button>)}</nav>
-          {tab === "chat" && <section className="p-5 md:p-8"><div className="mb-5"><h2 className="font-display text-2xl">Conversa ao redor da chama</h2><p className="text-sm text-muted-foreground">Um chat público para os integrantes do Círculo.</p></div><div className="max-h-[55vh] min-h-64 space-y-3 overflow-y-auto border border-primary/15 bg-background/50 p-4">{messages.map(message => <article key={message.id} className={`max-w-[90%] rounded-md border p-3 ${message.user_id === userId ? "ml-auto border-primary/30 bg-primary/5" : "border-border bg-card"}`}><p className="mb-1 text-xs font-semibold text-primary">{message.community_profiles?.username || "Integrante"}</p><p className="whitespace-pre-wrap text-sm">{message.body}</p><time className="mt-2 block text-right text-[10px] text-muted-foreground">{new Date(message.created_at).toLocaleString("pt-BR")}</time></article>)}{messages.length === 0 && <p className="py-12 text-center text-sm text-muted-foreground">A conversa começa com você. Deixe a primeira mensagem!</p>}</div><form onSubmit={sendMessage} className="mt-4 flex gap-2"><input value={body} onChange={e => setBody(e.target.value)} maxLength={3000} placeholder="Escreva sua mensagem..." className="min-w-0 flex-1 border bg-transparent px-4 py-3 text-sm" /><button className="btn-gold" type="submit">Enviar</button></form></section>}
+          {tab === "chat" && <section className="p-5 md:p-8"><div className="mb-5"><h2 className="font-display text-2xl">Conversa ao redor da chama</h2><p className="text-sm text-muted-foreground">Um chat público para os integrantes do Círculo.</p></div><div className="max-h-[55vh] min-h-64 space-y-3 overflow-y-auto border border-primary/15 bg-background/50 p-4">{messages.map(message => <article key={message.id} className={`max-w-[90%] rounded-md border p-3 ${message.user_id === userId ? (isAdmin ? "ml-auto border-emerald-700/40 bg-emerald-50/70" : "ml-auto border-primary/30 bg-primary/5") : "border-border bg-card"}`}><p className={`mb-1 text-xs font-semibold ${isAdmin && message.user_id === userId ? "text-emerald-700" : "text-primary"}`}>{isAdmin && message.user_id === userId ? "Hiraeth — Mari" : message.community_profiles?.username || "Integrante"}</p><p className="whitespace-pre-wrap text-sm">{message.body}</p><time className="mt-2 block text-right text-[10px] text-muted-foreground">{new Date(message.created_at).toLocaleString("pt-BR")}</time></article>)}{messages.length === 0 && <p className="py-12 text-center text-sm text-muted-foreground">A conversa começa com você. Deixe a primeira mensagem!</p>}</div><form onSubmit={sendMessage} className="mt-4 flex gap-2"><input value={body} onChange={e => setBody(e.target.value)} maxLength={3000} placeholder="Escreva sua mensagem..." className="min-w-0 flex-1 border bg-transparent px-4 py-3 text-sm" /><button className="btn-gold" type="submit">Enviar</button></form></section>}
           {tab === "feed" && <section className="mx-auto max-w-3xl space-y-6 p-4 md:p-8">
             <header><h2 className="font-display text-2xl">Feed da comunidade</h2><p className="mt-1 text-sm text-muted-foreground">Compartilhe uma leitura, uma descoberta ou um momento que merece ser dividido.</p></header>
             <form onSubmit={publishPost} className="space-y-3 border border-primary/20 bg-background/60 p-4 md:p-5">
@@ -240,7 +281,7 @@ function Comunidade() {
               </div>}
             </article>)}
           </section>}
-          {tab === "perfil" && <form onSubmit={saveProfile} className="mx-auto grid max-w-2xl gap-4 p-6 md:p-10"><h2 className="font-display text-2xl">Meu perfil no Círculo</h2><label className="grid gap-2 text-sm">Nome de usuário<input required maxLength={30} value={profile.username} onChange={e => setProfile({ ...profile, username: e.target.value })} className="border bg-transparent p-3" /></label><label className="grid gap-2 text-sm">Sobre mim<textarea maxLength={500} value={profile.bio ?? ""} onChange={e => setProfile({ ...profile, bio: e.target.value })} className="border bg-transparent p-3" rows={3} /></label><label className="grid gap-2 text-sm">Instagram<input value={profile.instagram_url ?? ""} onChange={e => setProfile({ ...profile, instagram_url: e.target.value })} className="border bg-transparent p-3" placeholder="https://instagram.com/..." /></label><label className="grid gap-2 text-sm">TikTok<input value={profile.tiktok_url ?? ""} onChange={e => setProfile({ ...profile, tiktok_url: e.target.value })} className="border bg-transparent p-3" placeholder="https://tiktok.com/@..." /></label><label className="grid gap-2 text-sm">Outra rede social<input value={profile.other_social_url ?? ""} onChange={e => setProfile({ ...profile, other_social_url: e.target.value })} className="border bg-transparent p-3" /></label><button disabled={saving} className="btn-gold justify-self-start">Salvar perfil</button><p className="text-xs text-muted-foreground">A foto de perfil e os interesses pessoais serão adicionados na próxima etapa.</p></form>}
+          {tab === "perfil" && <div className="mx-auto grid max-w-2xl gap-5 p-6 md:p-10"><form onSubmit={saveProfile} className="grid gap-4"><h2 className="font-display text-2xl">Meu perfil no Círculo</h2><div className="flex items-center gap-4"><div className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-primary/40 bg-[#20382b] text-[#e8d8b4]">{profile.avatar_url ? <img src={profile.avatar_url} alt="Sua foto de perfil" className="h-full w-full object-cover"/> : <UserRound size={34}/>}</div><label className="cursor-pointer text-sm text-primary underline">{avatarUploading ? "Enviando foto..." : "Alterar foto de perfil"}<input type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="sr-only" disabled={avatarUploading} onChange={e => void uploadAvatar(e.target.files?.[0])}/></label></div><label className="grid gap-2 text-sm">Nome de usuário<input required maxLength={30} value={profile.username} onChange={e => setProfile({ ...profile, username: e.target.value })} className="border bg-transparent p-3" /></label><label className="grid gap-2 text-sm">Sobre mim<textarea maxLength={500} value={profile.bio ?? ""} onChange={e => setProfile({ ...profile, bio: e.target.value })} className="border bg-transparent p-3" rows={3} /></label><label className="grid gap-2 text-sm">Instagram<input value={profile.instagram_url ?? ""} onChange={e => setProfile({ ...profile, instagram_url: e.target.value })} className="border bg-transparent p-3" placeholder="https://instagram.com/..." /></label><label className="grid gap-2 text-sm">TikTok<input value={profile.tiktok_url ?? ""} onChange={e => setProfile({ ...profile, tiktok_url: e.target.value })} className="border bg-transparent p-3" placeholder="https://tiktok.com/@..." /></label><label className="grid gap-2 text-sm">Outra rede social<input value={profile.other_social_url ?? ""} onChange={e => setProfile({ ...profile, other_social_url: e.target.value })} className="border bg-transparent p-3" /></label><button disabled={saving} className="btn-gold justify-self-start">Salvar perfil</button></form><section className="border-t border-primary/20 pt-5"><h3 className="font-display text-xl">Meu Universo</h3><p className="mt-1 text-sm text-muted-foreground">Conte à comunidade quais livros, filmes e séries fazem parte do seu mundo.</p><form onSubmit={addInterest} className="mt-4 flex flex-wrap gap-2"><select value={interestType} onChange={e => setInterestType(e.target.value as typeof interestType)} className="border bg-background px-3 py-2 text-sm"><option value="book">Livro</option><option value="movie">Filme</option><option value="series">Série</option><option value="other">Outro</option></select><input value={interestTitle} onChange={e => setInterestTitle(e.target.value)} maxLength={160} placeholder="Nome do livro, filme ou série" className="min-w-0 flex-1 border bg-background px-3 py-2 text-sm"/><button type="submit" className="btn-gold">Adicionar</button></form><div className="mt-4 flex flex-wrap gap-2">{interests.map(item => <span key={item.id} className="inline-flex items-center gap-2 rounded-full border border-primary/25 px-3 py-2 text-sm">{item.interest_type === "book" ? <BookOpen size={14}/> : item.interest_type === "movie" ? <Film size={14}/> : item.interest_type === "series" ? <Tv size={14}/> : <Flame size={14}/>} {item.title}<button type="button" onClick={() => void removeInterest(item.id)} aria-label={`Remover ${item.title}`} className="text-muted-foreground hover:text-destructive"><X size={14}/></button></span>)}</div>{interests.length === 0 && <p className="mt-3 text-xs text-muted-foreground">Seus interesses aparecerão aqui conforme você os adicionar.</p>}</section></div>}
         </>}
       </div>
     </main><SiteFooter /></div>;
