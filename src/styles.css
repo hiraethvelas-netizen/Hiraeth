@@ -545,20 +545,23 @@ h1, h2, h3, h4, .font-display {
    O modo escuro mantém sua paleta original; o modo claro ganha mais verde.
    Os mesmos arabescos aparecem nos dois temas, sem ilustrações de produtos. */
 :root {
-  --background: #e8eddf;
-  --foreground: #26392d;
-  --card: #f3f4e9;
-  --card-foreground: #26392d;
-  --popover: #f3f4e9;
-  --popover-foreground: #26392d;
-  --secondary: #d8e2d2;
-  --secondary-foreground: #2d4434;
-  --muted: #e0e8dc;
-  --muted-foreground: #596653;
-  --border: #8a956f66;
-  --input: #82906d80;
-  --ring: #87966e;
-  --glow: 0 0 32px #647b4a24;
+  /* Modo claro Hiraeth: verde profundo nas áreas externas e baunilha nos cartões. */
+  --background: #20382b;
+  --foreground: #f4ecd8;
+  --card: #f4ecd8;
+  --card-foreground: #20382b;
+  --popover: #f4ecd8;
+  --popover-foreground: #20382b;
+  --primary: #80652f;
+  --primary-foreground: #fff9eb;
+  --secondary: #e7ddc4;
+  --secondary-foreground: #263a2b;
+  --muted: #e9e1ce;
+  --muted-foreground: #625d4c;
+  --border: #b9a77b80;
+  --input: #b9a77b99;
+  --ring: #9a7a3c;
+  --glow: 0 0 32px #80652f20;
 }
 
 body {
@@ -623,3 +626,9 @@ body > div {
     transform: none;
   }
 }
+
+
+/* Superfícies claras preservadas em baunilha no tema claro; exceções editoriais continuam próprias. */
+:root:not(.dark) .hiraeth-care-panel,
+:root:not(.dark) .hiraeth-review-invite { background: #f4ecd8; color: #20382b; }
+:root:not(.dark) .hiraeth-care-panel h2 { color: #20382b; }
