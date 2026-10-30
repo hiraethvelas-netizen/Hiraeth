@@ -188,7 +188,7 @@ useEffect(() => {
             </div>
           </div>
           <InlineEditor label={"banner da coleção " + selectedCategory.name} fields={[{ name: "name", label: "Nome da coleção", type: "text" }, { name: "image_url", label: "Foto do banner da coleção", type: "image", help: "Essa imagem também será usada na bolinha da subcategoria. JPG, PNG ou WebP." }]} values={{ name: selectedCategory.name, image_url: selectedCategory.image_url ?? "" }} onSave={async values => {
-            const payload = { name: String(values.name ?? selectedCategory.name).trim(), image_url: String(values.image_url ?? selectedCategory.image_url ?? "").trim() || null };
+            const payload = { name: String(values["name"] ?? selectedCategory.name).trim(), image_url: String(values["image_url"] ?? selectedCategory.image_url ?? "").trim() || null };
             const { error } = await supabase.from("categories").update(payload).eq("id", selectedCategory.id);
             if (error) throw error;
             setCategories(current => current.map(item => item.id === selectedCategory.id ? { ...item, ...payload } as Category : item));

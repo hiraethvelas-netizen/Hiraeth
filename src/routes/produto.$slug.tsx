@@ -73,8 +73,17 @@ function ProdutoPage() {
 
   if (!product) throw notFound();
 
-  const price = product.sale_price != null ? Number(product.sale_price) : Number(product.price);
-  const outOfStock = product.stock <= 0;
+  const variants: any[] = Array.isArray(product.variants) ? (product.variants as any[]) : [];
+  const sizeVariants = variants.filter((v) => v?.type !== "house");
+  const houseVariants = variants.filter((v) => v?.type === "house");
+  const activeVariant = selectedVariant ?? sizeVariants[0] ?? null;
+  const chosenHouse = houseVariants.find((v) => v.label === selectedHouse);
+  const variantImage: string | undefined = chosenHouse?.image || activeVariant?.image || undefined;
+  const currentImages: string[] = variantImage ? [variantImage, ...product.images.filter((i) => i !== variantImage)] : product.images;
+  const basePrice = activeVariant?.price != null ? Number(activeVariant.price) : Number(product.price);
+  const baseSale = activeVariant ? (activeVariant.sale_price != null ? Number(activeVariant.sale_price) : null) : (product.sale_price != null ? Number(product.sale_price) : null);
+  const price = baseSale ?? basePrice;
+  const outOfStock = (activeVariant?.stock != null ? Number(activeVariant.stock) : product.stock) <= 0;
 
   async function toggleWishlist() {
     if (!userId) {
@@ -105,8 +114,8 @@ function ProdutoPage() {
         <div className="mt-8 grid gap-10 md:grid-cols-2">
           <div>
             <div className="aspect-square overflow-hidden border bg-muted">
-              {product.images[activeImage] ? (
-                <img src={product.images[activeImage]} alt={product.name} className="h-full w-full object-cover" />
+              {currentImages[activeImage] ? (
+                <img src={currentImages[activeImage]} alt={product.name} className="h-full w-full object-cover" />
               ) : (
                 <div className="flex h-full items-center justify-center font-display text-lg italic text-muted-foreground">
                   Foto em breve
