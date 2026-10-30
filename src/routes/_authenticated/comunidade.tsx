@@ -90,23 +90,41 @@ function Comunidade() {
 
   async function loadMessages(currentUserId = userId) {
     const { data, error } = await (supabase as any).from("community_messages")
-      .select("id,user_id,body,created_at,edited_at,is_pinned,community_profiles(username,avatar_url)")
+      .select("id,user_id,body,created_at,edited_at,is_pinned")
       .order("created_at", { ascending: true }).limit(150);
-    if (!error) {
-      const rows = (data ?? []) as Message[];
-      const ids = [...new Set(rows.map(message => message.user_id))];
-      const roles = await Promise.all(ids.map(async id => {
+    if (error) {
+      console.error("Erro ao carregar mensagens do Círculo do Fogo:", error);
+      toast.error("Não foi possível carregar o histórico do chat. Tente atualizar a página.");
+      return;
+    }
+    const rows = (data ?? []) as Message[];
+    if (!rows.length) { setMessages([]); return; }
+    const ids = [...new Set(rows.map(message => message.user_id))];
+    const messageIds = rows.map(message => message.id);
+    const [{ data: profiles, error: profilesError }, { data: reactions, error: reactionsError }, roles] = await Promise.all([
+      (supabase as any).from("community_profiles").select("user_id,username,avatar_url").in("user_id", ids),
+      (supabase as any).from("community_message_reactions").select("message_id,user_id,reaction_type").in("message_id", messageIds),
+      Promise.all(ids.map(async id => {
         const { data: admin } = await supabase.rpc("has_role", { _user_id: id, _role: "admin" });
         return [id, admin === true] as const;
-      }));
-      const adminMap = new Map(roles);
-      const { data: reactions } = await (supabase as any).from("community_message_reactions").select("message_id,user_id,reaction_type").in("message_id", rows.map(message => message.id));
-      setMessages(rows.map(message => {
-        const own = (reactions ?? []).find((reaction: any) => reaction.message_id === message.id && reaction.user_id === currentUserId);
-        const messageReactions = (reactions ?? []).filter((reaction: any) => reaction.message_id === message.id);
-        return { ...message, is_admin: adminMap.get(message.user_id) === true, myReaction: own?.reaction_type ?? null, heartCount: messageReactions.filter((reaction: any) => reaction.reaction_type === "heart").length, fireCount: messageReactions.filter((reaction: any) => reaction.reaction_type === "fire").length };
-      }));
-    }
+      })),
+    ]);
+    if (profilesError) console.warn("Perfis do chat não carregaram:", profilesError);
+    if (reactionsError) console.warn("Reações do chat não carregaram:", reactionsError);
+    const profileMap = new Map<string, any>((profiles ?? []).map((profile: any) => [profile.user_id, profile]));
+    const adminMap = new Map(roles);
+    setMessages(rows.map(message => {
+      const messageReactions = (reactions ?? []).filter((reaction: any) => reaction.message_id === message.id);
+      const own = messageReactions.find((reaction: any) => reaction.user_id === currentUserId);
+      return {
+        ...message,
+        community_profiles: profileMap.get(message.user_id) ?? null,
+        is_admin: adminMap.get(message.user_id) === true,
+        myReaction: own?.reaction_type ?? null,
+        heartCount: messageReactions.filter((reaction: any) => reaction.reaction_type === "heart").length,
+        fireCount: messageReactions.filter((reaction: any) => reaction.reaction_type === "fire").length,
+      };
+    }));
   }
 
   async function loadFeed(currentUserId = userId) {
@@ -177,10 +195,27 @@ function Comunidade() {
     e.preventDefault();
     const text = body.trim();
     if (!text || !userId) return;
-    const { error } = await (supabase as any).from("community_messages").insert({ user_id: userId, body: text });
-    if (error) { toast.error("Não foi possível enviar sua mensagem."); return; }
+    const { data: saved, error } = await (supabase as any).from("community_messages")
+      .insert({ user_id: userId, body: text })
+      .select("id,user_id,body,created_at,edited_at,is_pinned")
+      .single();
+    if (error) {
+      console.error("Erro ao salvar mensagem do chat:", error);
+      toast.error(error.message || "Não foi possível salvar sua mensagem. Verifique sua participação na comunidade.");
+      return;
+    }
     setBody("");
-    await loadMessages();
+    const { data: ownProfile } = await (supabase as any).from("community_profiles")
+      .select("user_id,username,avatar_url").eq("user_id", userId).maybeSingle();
+    setMessages(current => current.some(message => message.id === saved.id) ? current : [...current, {
+      ...saved,
+      community_profiles: ownProfile ?? null,
+      is_admin: isAdmin,
+      myReaction: null,
+      heartCount: 0,
+      fireCount: 0,
+    }]);
+    await loadMessages(userId);
   }
 
   async function saveMessageEdit(message: Message) {
@@ -419,7 +454,7 @@ function Comunidade() {
         {publicSection === "profile" && <section className="mx-auto max-w-3xl py-10 text-center"><p className="eyebrow">Círculo do Fogo</p><h3 className="mt-2 font-display text-2xl">Um pouco sobre {publicMember.username}</h3><p className="mt-3 text-sm text-muted-foreground">Explore os interesses, a coleção Hiraeth e as publicações pelas abas acima.</p></section>}
         {publicSection === "universe" && <section className="py-6"><p className="eyebrow">Livros, telas e paixões</p><h3 className="mb-5 font-display text-3xl">Meu Universo</h3><InterestBookshelf items={publicInterests}/></section>}
         {publicSection === "library" && <section className="py-6"><p className="eyebrow">Coleção de velas</p><h3 className="mb-5 font-display text-3xl">Minha Biblioteca</h3><LibraryGallery items={publicLibrary}/></section>}
-        {publicSection === "posts" && <section className="mx-auto max-w-3xl space-y-5 py-6"><h3 className="font-display text-3xl">Publicações</h3>{posts.filter(post => post.user_id === publicMember.user_id).map(post => <article key={post.id} className={`border p-4 ${post.is_admin ? "border-[#b99a5b] bg-[#b99a5b]/15 shadow-md" : "border-primary/20 bg-background/60"}`}>{post.body && <p className="whitespace-pre-wrap text-sm">{post.body}</p>}{post.image_urls?.length > 0 && <div className="mt-3 grid grid-cols-2 gap-2">{post.image_urls.map(url => <img key={url} src={url} alt="Foto publicada" className="aspect-square w-full object-cover"/>)}</div>}<time className="mt-3 block text-xs text-muted-foreground">{new Date(post.created_at).toLocaleString("pt-BR")}</time></article>)}{posts.filter(post => post.user_id === publicMember.user_id).length === 0 && <p className="text-sm text-muted-foreground">Ainda não há publicações por aqui.</p>}</section>}
+        {publicSection === "posts" && <section className="mx-auto max-w-3xl space-y-5 py-6"><h3 className="font-display text-3xl">Publicações</h3>{posts.filter(post => post.user_id === publicMember.user_id).map(post => <article key={post.id} className={`rounded-xl border p-4 ${post.is_admin ? "border-[3px] border-[#b58a3b] bg-[linear-gradient(145deg,#f4dfaa_0%,#ead09a_48%,#f6e9c9_100%)] text-[#20382b] shadow-[0_8px_28px_rgba(125,89,28,0.28),inset_0_0_0_2px_rgba(255,255,255,0.55)]" : "border-primary/20 bg-gradient-to-br from-background via-background to-primary/[0.04]"}`}>{post.body && <p className="whitespace-pre-wrap text-sm">{post.body}</p>}{post.image_urls?.length > 0 && <div className="mt-3 grid grid-cols-2 gap-2">{post.image_urls.map(url => <img key={url} src={url} alt="Foto publicada" className="aspect-square w-full object-cover"/>)}</div>}<time className="mt-3 block text-xs text-muted-foreground">{new Date(post.created_at).toLocaleString("pt-BR")}</time></article>)}{posts.filter(post => post.user_id === publicMember.user_id).length === 0 && <p className="text-sm text-muted-foreground">Ainda não há publicações por aqui.</p>}</section>}
       </section>
     </div>}
 
@@ -464,10 +499,10 @@ function Comunidade() {
               {postFiles.length > 0 && <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground"><span>{postFiles.length} foto(s) selecionada(s): {postFiles.map(file => file.name).join(", ")}</span><button type="button" onClick={() => { setPostFiles([]); const el = document.getElementById("community-post-images") as HTMLInputElement | null; if (el) el.value = ""; }} aria-label="Remover fotos selecionadas"><X size={15}/></button></div>}
               <p className="text-[11px] text-muted-foreground">Até 4 fotos por publicação, com limite de 8 MB por imagem.</p>
             </form></div></div>}<div className="mx-auto w-full max-w-3xl space-y-5 px-3 md:px-6">
-            {posts.length === 0 ? <div className="border border-dashed border-primary/30 px-5 py-12 text-center"><Flame className="mx-auto text-primary" size={30}/><p className="mt-3 font-display text-xl">A primeira chama do Feed pode ser sua</p><p className="mt-1 text-sm text-muted-foreground">Compartilhe uma foto ou escreva algo para começar.</p></div> : posts.map(post => <article key={post.id} className={`overflow-hidden border ${post.is_admin ? "border-[#b99a5b] bg-[#b99a5b]/15 shadow-md" : "border-primary/20 bg-background/60"}`}>
+            {posts.length === 0 ? <div className="border border-dashed border-primary/30 px-5 py-12 text-center"><Flame className="mx-auto text-primary" size={30}/><p className="mt-3 font-display text-xl">A primeira chama do Feed pode ser sua</p><p className="mt-1 text-sm text-muted-foreground">Compartilhe uma foto ou escreva algo para começar.</p></div> : posts.map(post => <article key={post.id} className={`overflow-hidden rounded-xl border transition-shadow ${post.is_admin ? "border-[3px] border-[#b58a3b] bg-[linear-gradient(145deg,#f4dfaa_0%,#ead09a_48%,#f6e9c9_100%)] text-[#20382b] shadow-[0_8px_28px_rgba(125,89,28,0.28),inset_0_0_0_2px_rgba(255,255,255,0.55)] dark:bg-[linear-gradient(145deg,#4b3b20_0%,#66502b_48%,#3b3827_100%)] dark:text-[#f7edcf]" : "border border-primary/20 bg-gradient-to-br from-background via-background to-primary/[0.04] shadow-sm"}`}>
               <div className="flex items-start gap-3 p-4">
                 <button type="button" onClick={() => void openPublicProfile(post.user_id)} aria-label={"Abrir perfil de " + post.author} className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#20382b] text-[#e8d8b4]">{post.avatar_url ? <img src={post.avatar_url} alt="" className="h-full w-full object-cover"/> : post.author.slice(0,1).toUpperCase()}</button>
-                <div className="min-w-0 flex-1"><button type="button" onClick={() => void openPublicProfile(post.user_id)} className="text-sm font-semibold hover:text-primary hover:underline">{post.author}</button><time className="block text-xs text-muted-foreground">{new Date(post.created_at).toLocaleString("pt-BR")}</time></div>
+                <div className="min-w-0 flex-1"><button type="button" onClick={() => void openPublicProfile(post.user_id)} className="block text-sm font-semibold hover:underline">{post.author}</button>{post.is_admin && <span className="mt-1 inline-flex items-center gap-1 rounded-full border border-[#806126]/60 bg-[#20382b] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#f5dfaa]">✦ Hiraeth oficial</span>}<time className={`block text-xs ${post.is_admin ? "text-[#66502b] dark:text-[#f0dfb5]" : "text-muted-foreground"}`}>{new Date(post.created_at).toLocaleString("pt-BR")}</time></div>
                 {(post.user_id === userId || isAdmin) && <div className="flex gap-1">{post.user_id === userId && <button type="button" onClick={() => void editPost(post)} aria-label="Editar publicação" className="rounded p-2 text-muted-foreground hover:text-primary"><span className="text-xs">Editar</span></button>}<button type="button" onClick={() => void deletePost(post)} aria-label="Excluir publicação" className="rounded p-2 text-muted-foreground hover:text-destructive"><Trash2 size={16}/></button></div>}
               </div>
               {post.body && <p className="whitespace-pre-wrap px-4 pb-4 text-sm leading-relaxed">{post.body}</p>}
