@@ -33,7 +33,6 @@ function Comunidade() {
   const [comments, setComments] = useState<Record<string, FeedComment[]>>({});
   const [commentDrafts, setCommentDrafts] = useState<Record<string, string>>({});
   const [reacting, setReacting] = useState<string | null>(null);
-  const [isAdmin, setIsAdmin] = useState(false);
   const [interests, setInterests] = useState<{ id: string; interest_type: "book" | "movie" | "series" | "other"; title: string }[]>([]);
   const [interestTitle, setInterestTitle] = useState("");
   const [interestType, setInterestType] = useState<"book" | "movie" | "series" | "other">("book");
@@ -94,8 +93,6 @@ function Comunidade() {
       const { data } = await supabase.auth.getUser();
       if (!data.user) { setLoading(false); return; }
       setUserId(data.user.id);
-      const { data: adminResult } = await supabase.rpc("has_role", { _user_id: data.user.id, _role: "admin" });
-      setIsAdmin(adminResult === true);
       const { data: membership } = await (supabase as any).from("community_memberships").select("user_id").eq("user_id", data.user.id).maybeSingle();
       if (membership) {
         setJoined(true);
