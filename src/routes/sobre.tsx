@@ -56,15 +56,28 @@ function Sobre() {
           if (error) throw error;
           setBlocks(updated);
         }} />
-        <div className={block.layout === "image-left" || block.layout === "image-right" ? "grid items-center gap-8 md:grid-cols-2" : "space-y-5"}>
+        {block.images?.length >= 2 ? <div className="grid items-center gap-10 md:grid-cols-[1.1fr_.9fr]">
+          <div className="relative mx-auto w-full max-w-xl pb-8 pr-5 sm:pb-10 sm:pr-8">
+            <img src={block.images[0]} alt="Uma vela da Hiraeth em seu ambiente" className="aspect-[4/5] max-h-[38rem] w-full rounded-sm object-cover shadow-2xl" />
+            <figure className="absolute bottom-0 right-0 w-[42%] max-w-56 rotate-3 border-[10px] border-b-[42px] border-white bg-white p-1 shadow-2xl sm:border-[12px] sm:border-b-[50px]">
+              <img src={block.images[1]} alt="Mari, criadora da Hiraeth" className="aspect-[4/5] w-full object-cover" />
+              <figcaption className="absolute inset-x-0 bottom-[-34px] text-center font-display text-sm italic tracking-wide text-[#354333] sm:bottom-[-42px] sm:text-base">Com carinho, Mari</figcaption>
+            </figure>
+          </div>
+          <div className="space-y-4">
+            {block.title && <h2 className="font-display text-3xl text-foreground">{block.title}</h2>}
+            {block.text && <p className="whitespace-pre-line leading-8 text-foreground/90">{block.text}</p>}
+            {block.links?.length > 0 && <div className="flex flex-wrap gap-3">{block.links.filter(link => link.label && link.url).map((link, i) => <a key={link.url + i} href={link.url} target={/^https?:\\/\\//i.test(link.url) ? "_blank" : undefined} rel={/^https?:\\/\\//i.test(link.url) ? "noreferrer" : undefined} className="inline-flex border border-primary px-4 py-2 text-sm text-primary transition-colors hover:bg-primary hover:text-primary-foreground">{link.label}</a>)}</div>}
+          </div>
+        </div> : <div className={block.layout === "image-left" || block.layout === "image-right" ? "grid items-center gap-8 md:grid-cols-2" : "space-y-5"}>
           {block.layout === "image-left" && block.images?.length > 0 && <div className="space-y-3">{block.images.map((url, i) => <img key={url + i} src={url} alt={block.title || "Hiraeth"} className="max-h-[34rem] w-full object-cover" />)}</div>}
           <div className="space-y-4">
             {block.title && <h2 className="font-display text-3xl text-foreground">{block.title}</h2>}
             {block.text && <p className="whitespace-pre-line leading-8 text-foreground/90">{block.text}</p>}
-            {block.links?.length > 0 && <div className="flex flex-wrap gap-3">{block.links.filter(link => link.label && link.url).map((link, i) => <a key={link.url + i} href={link.url} target={/^https?:\/\//i.test(link.url) ? "_blank" : undefined} rel={/^https?:\/\//i.test(link.url) ? "noreferrer" : undefined} className="inline-flex border border-primary px-4 py-2 text-sm text-primary transition-colors hover:bg-primary hover:text-primary-foreground">{link.label}</a>)}</div>}
+            {block.links?.length > 0 && <div className="flex flex-wrap gap-3">{block.links.filter(link => link.label && link.url).map((link, i) => <a key={link.url + i} href={link.url} target={/^https?:\\/\\//i.test(link.url) ? "_blank" : undefined} rel={/^https?:\\/\\//i.test(link.url) ? "noreferrer" : undefined} className="inline-flex border border-primary px-4 py-2 text-sm text-primary transition-colors hover:bg-primary hover:text-primary-foreground">{link.label}</a>)}</div>}
           </div>
           {(block.layout === "image-right" || block.layout === "gallery") && block.images?.length > 0 && <div className={block.layout === "gallery" ? "grid grid-cols-2 gap-3 md:grid-cols-3" : "space-y-3"}>{block.images.map((url, i) => <img key={url + i} src={url} alt={block.title || "Hiraeth"} className={block.layout === "gallery" ? "aspect-[4/5] w-full object-cover" : "max-h-[34rem] w-full object-cover"} />)}</div>}
-        </div>
+        </div>}
       </section>)}
       <p className="border-t pt-6 italic text-primary">{pageSettings.closing}</p>
     </div>
