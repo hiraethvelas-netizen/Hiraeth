@@ -30,6 +30,7 @@ const emptyForm = {
   spotify_description: "",
   spotify_visible: true,
   status: "draft",
+  theme_json: '{ "palette": { "background": "#17251d", "surface": "#26382d", "text": "#f5edda", "accent": "#c6a65b", "buttonText": "#17251d" }, "carousel_items": [] }',
 };
 
 function AdminPortais() {
@@ -96,6 +97,7 @@ function AdminPortais() {
       spotify_description: p.spotify_description ?? "",
       spotify_visible: p.spotify_visible,
       status: p.status,
+      theme_json: JSON.stringify(p.theme ?? {}, null, 2),
     });
     setShowForm(true);
   }
@@ -126,9 +128,13 @@ function AdminPortais() {
       status: form.status,
       updated_at: new Date().toISOString(),
     };
+    let parsedTheme: unknown;
+    try { parsedTheme = JSON.parse(form.theme_json || "{}"); }
+    catch { toast.error("O JSON do tema está inválido. Revise a paleta e os itens do carrossel."); return; }
+    const safePayload = { ...payload, theme: parsedTheme };
     const { error } = editing
-      ? await supabase.from("portals").update(payload).eq("id", editing.id)
-      : await supabase.from("portals").insert({ ...payload, slug: slugify(form.name) });
+      ? await supabase.from("portals").update(safePayload).eq("id", editing.id)
+      : await supabase.from("portals").insert({ ...safePayload, slug: slugify(form.name) });
     if (error) {
       toast.error(error.message.includes("unique") ? "Já existe um portal com esse nome." : "Erro ao salvar.");
     } else {
@@ -240,6 +246,12 @@ function AdminPortais() {
             <input placeholder="Título da seção de playlist" value={form.spotify_title} onChange={(e) => setForm({ ...form, spotify_title: e.target.value })} className={inputCls} />
           </div>
           <div className="relative z-10"><label className="mb-2 block text-sm text-amber-100/80">Descrição da playlist</label><textarea placeholder="Descrição da playlist" rows={2} value={form.spotify_description} onChange={(e) => setForm({ ...form, spotify_description: e.target.value })} className={inputCls} /></div>
+          <div className="relative z-10">
+            <label className="mb-2 block text-sm text-amber-100/80">Paleta visual e carrossel temático (JSON)</label>
+            <textarea rows={9} spellCheck={false} value={form.theme_json} onChange={(e) => setForm({ ...form, theme_json: e.target.value })} className={inputCls} />
+            <p className="mt-2 text-xs text-amber-100/60">Use palette.background, palette.surface, palette.text, palette.accent e palette.buttonText para personalizar as cores. carousel_items aceita objetos com title, description, image_url e url.</p>
+            <p className="mt-1 text-xs text-amber-100/60">Exemplo: {"{\"palette\":{\"background\":\"#17251d\",\"surface\":\"#26382d\",\"text\":\"#f5edda\",\"accent\":\"#c6a65b\",\"buttonText\":\"#17251d\"},\"carousel_items\":[{\"title\":\"Item especial\",\"description\":\"Uma peça deste universo\",\"image_url\":\"https://...\",\"url\":\"\"}]}"}</p>
+          </div>
           <label className="flex items-center gap-2 text-sm text-muted-foreground">
             <input type="checkbox" checked={form.spotify_visible} onChange={(e) => setForm({ ...form, spotify_visible: e.target.checked })} />
             Mostrar seção de playlist
