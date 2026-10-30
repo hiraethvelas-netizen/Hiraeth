@@ -41,7 +41,7 @@ function Comunidade() {
     if (!error) setMessages((data ?? []) as Message[]);
   }
 
-  async function loadFeed() {
+  async function loadFeed(currentUserId = userId) {
     const { data: postRows, error } = await (supabase as any).from("community_posts").select("id,user_id,body,image_urls,created_at").order("created_at", { ascending: false }).limit(60);
     if (error) { toast.error("Não foi possível carregar o Feed."); return; }
     const rows = postRows ?? [];
@@ -56,7 +56,7 @@ function Comunidade() {
     const profileMap = new Map((profiles ?? []).map((p: any) => [p.user_id, p]));
     setPosts(rows.map((p: any) => {
       const postReactions = (reactions ?? []).filter((r: any) => r.post_id === p.id);
-      const own = postReactions.find((r: any) => r.user_id === userId);
+      const own = postReactions.find((r: any) => r.user_id === currentUserId);
       return {
         ...p,
         author: profileMap.get(p.user_id)?.username || "Integrante",
@@ -79,7 +79,7 @@ function Comunidade() {
         setJoined(true);
         const { data: p } = await (supabase as any).from("community_profiles").select("*").eq("user_id", data.user.id).maybeSingle();
         if (p) setProfile(p);
-        await Promise.all([loadMessages(), loadFeed()]);
+        await Promise.all([loadMessages(), loadFeed(data.user.id)]);
       }
       setLoading(false);
     })();
