@@ -66,9 +66,38 @@ function PortalPage() {
   if (!portal) throw notFound();
 
   const embed = portal.spotify_playlist_url ? spotifyEmbed(portal.spotify_playlist_url) : null;
+  const portalTheme = (portal.theme && typeof portal.theme === "object" ? portal.theme : {}) as Record<string, any>;
+  const palette = portalTheme.palette ?? {};
+  const carouselItems = Array.isArray(portalTheme.carousel_items) ? portalTheme.carousel_items : [];
+  const appUrl = "https://hiraeth-oficial.lovable.app/inicio";
+
+  useEffect(() => {
+    if (!portal || intro) return;
+    const elements = Array.from(document.querySelectorAll<HTMLElement>("[data-portal-reveal]"));
+    if (!("IntersectionObserver" in window)) {
+      elements.forEach((element) => element.classList.add("is-visible"));
+      return;
+    }
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("is-visible");
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.12, rootMargin: "0px 0px -35px 0px" });
+    elements.forEach((element) => observer.observe(element));
+    return () => observer.disconnect();
+  }, [portal, intro]);
 
   return (
-    <div className="min-h-screen">
+    <div className="portal-world min-h-screen" style={{
+      ["--portal-bg" as string]: palette.background || "#17251d",
+      ["--portal-surface" as string]: palette.surface || "#26382d",
+      ["--portal-text" as string]: palette.text || "#f5edda",
+      ["--portal-accent" as string]: palette.accent || "#c6a65b",
+      ["--portal-button-text" as string]: palette.buttonText || "#17251d",
+    }}>
       {intro && portal.intro_enabled && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-background">
           {portal.intro_video_url ? (
@@ -116,7 +145,7 @@ function PortalPage() {
         </div>
       )}
 
-      <header className="relative flex min-h-[60vh] items-center justify-center overflow-hidden">
+      <header data-portal-reveal className="portal-reveal relative flex min-h-[60vh] items-center justify-center overflow-hidden">
         {portal.cover_url && (
           <img src={portal.cover_url} alt={portal.name} className="absolute inset-0 h-full w-full object-cover" />
         )}
@@ -134,7 +163,7 @@ function PortalPage() {
       </header>
 
       {portal.spotify_visible && (embed || portal.spotify_playlist_url) && (
-        <section className="mx-auto max-w-2xl px-6 py-16">
+        <section data-portal-reveal className="portal-reveal mx-auto max-w-2xl px-6 py-16">
           <p className="eyebrow">Trilha do universo</p>
           <h2 className="mt-2 text-3xl">{portal.spotify_title ?? "Playlist"}</h2>
           {portal.spotify_description && (
@@ -158,7 +187,7 @@ function PortalPage() {
       )}
 
       {fragments.length > 0 && (
-        <section className="mx-auto max-w-2xl px-6 pb-16">
+        <section data-portal-reveal className="portal-reveal mx-auto max-w-2xl px-6 pb-16">
           <p className="eyebrow">Fragmentos</p>
           <h2 className="mt-2 text-3xl">Cartas deste universo</h2>
           <div className="mt-8 space-y-8">
@@ -179,6 +208,32 @@ function PortalPage() {
           </div>
         </section>
       )}
+
+      {carouselItems.length > 0 && (
+        <section data-portal-reveal className="portal-reveal portal-carousel-section mx-auto max-w-6xl px-6 py-14">
+          <p className="eyebrow">Peças deste universo</p>
+          <h2 className="mt-2 text-3xl">Um pequeno acervo para explorar</h2>
+          <div className="portal-hanger mt-8 flex snap-x gap-5 overflow-x-auto pb-5" aria-label="Carrossel de itens temáticos">
+            {carouselItems.map((item: any, index: number) => (
+              <article key={item.id ?? index} className="portal-hanger-item min-w-[190px] max-w-[220px] flex-none snap-start">
+                {item.image_url && <img src={item.image_url} alt={item.title || "Item do universo"} loading="lazy" className="aspect-[4/5] w-full object-cover" />}
+                <h3 className="mt-3 font-display text-xl">{item.title}</h3>
+                {item.description && <p className="mt-1 text-sm opacity-80">{item.description}</p>}
+                {item.url && <a href={item.url} target="_blank" rel="noreferrer" className="mt-2 inline-block text-sm underline">Explorar</a>}
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
+
+      <section data-portal-reveal className="portal-reveal portal-app-invitation mx-auto mb-14 max-w-3xl px-6 py-12 text-center">
+        <p className="eyebrow">Há outros universos esperando</p>
+        <h2 className="mt-3 font-display text-3xl md:text-4xl">Gostou de explorar este universo?</h2>
+        <p className="mx-auto mt-3 max-w-xl text-base opacity-85">Há muitos outros esperando por você no aplicativo Hiraeth.</p>
+        <a href={appUrl} className="portal-app-button mt-7 inline-flex items-center justify-center rounded-full px-8 py-4 text-sm font-semibold uppercase tracking-[.12em] transition-transform hover:-translate-y-1">
+          Conhecer o app Hiraeth
+        </a>
+      </section>
 
       <p className="pb-8 text-center text-sm italic text-muted-foreground">
         Hiraeth — Onde a Chama Acesa te Espera
