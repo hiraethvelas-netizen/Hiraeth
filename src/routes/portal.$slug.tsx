@@ -55,22 +55,6 @@ function PortalPage() {
     load();
   }, [slug]);
 
-  if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <p className="font-display text-xl italic text-muted-foreground">Abrindo o portal...</p>
-      </div>
-    );
-  }
-
-  if (!portal) throw notFound();
-
-  const embed = portal.spotify_playlist_url ? spotifyEmbed(portal.spotify_playlist_url) : null;
-  const portalTheme = (portal.theme && typeof portal.theme === "object" ? portal.theme : {}) as Record<string, any>;
-  const palette = portalTheme.palette ?? {};
-  const carouselItems = Array.isArray(portalTheme.carousel_items) ? portalTheme.carousel_items : [];
-  const appUrl = "https://hiraeth-oficial.lovable.app/inicio";
-
   useEffect(() => {
     if (!portal || intro) return;
     const elements = Array.from(document.querySelectorAll<HTMLElement>("[data-portal-reveal]"));
@@ -89,6 +73,24 @@ function PortalPage() {
     elements.forEach((element) => observer.observe(element));
     return () => observer.disconnect();
   }, [portal, intro]);
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <p className="font-display text-xl italic text-muted-foreground">Abrindo o portal...</p>
+      </div>
+    );
+  }
+
+  if (!portal) throw notFound();
+
+  const embed = portal.spotify_playlist_url ? spotifyEmbed(portal.spotify_playlist_url) : null;
+  const portalTheme = (portal.theme && typeof portal.theme === "object" ? portal.theme : {}) as Record<string, any>;
+  const palette = portalTheme.palette ?? {};
+  const carouselItems = Array.isArray(portalTheme.carousel_items) ? portalTheme.carousel_items : [];
+  const appUrl = "https://hiraeth-oficial.lovable.app/inicio";
+
+
 
   return (
     <div className="portal-world min-h-screen" style={{
