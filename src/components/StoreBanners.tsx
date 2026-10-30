@@ -3,7 +3,6 @@ import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { InlineEditor } from "@/components/InlineEditor";
 import { useAdminEdit } from "@/lib/admin-edit";
-import phoenix from "@/assets/fenix.png";
 
 type Banner = { id: string; title: string | null; image_url: string; href: string; position: number; active: boolean };
 
@@ -45,13 +44,10 @@ export function StoreBanners() {
     return () => window.clearInterval(interval);
   }, [visibleBanners.length]);
   return <section className="mx-auto max-w-6xl px-5 py-6 md:px-8" aria-label="Novidades da loja">
-    <div className="hiraeth-store-heading relative mb-6 flex min-h-28 items-center justify-center overflow-hidden rounded-xl px-5 py-5 sm:min-h-36 md:mb-8">
-      <div className="relative z-10 text-center">
-        <p className="eyebrow">Um universo de histórias espera por você</p>
-        <h2 className="hiraeth-editorial-title hiraeth-acervo-heading mt-2 !text-4xl sm:!text-5xl md:!text-6xl">Conheça <em>o Acervo Hiraeth</em></h2>
-        <div className="hiraeth-ornament" aria-hidden="true"><span>✧</span></div>
-      </div>
-      <img src={phoenix} alt="" aria-hidden="true" className="pointer-events-none absolute right-0 top-1/2 z-0 h-32 w-32 -translate-y-1/2 object-contain opacity-80 sm:h-44 sm:w-44 md:h-52 md:w-52" />
+    <div className="mb-6 flex justify-center px-2 py-4 text-center md:mb-8 md:py-6">
+      <h2 className="hiraeth-editorial-title hiraeth-acervo-heading !mx-0 !w-auto !text-4xl sm:!text-5xl md:!text-6xl">
+        Conheça <em>o Acervo Hiraeth</em>
+      </h2>
     </div>
     <div ref={carouselRef} className="flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth pb-4" aria-roledescription="carrossel de banners">
       {visibleBanners.map((banner) => <article data-store-banner key={banner.id} className="w-[88%] min-w-[88%] snap-start sm:w-[60%] sm:min-w-[60%] md:w-[calc(33.333%-11px)] md:min-w-[calc(33.333%-11px)]">
