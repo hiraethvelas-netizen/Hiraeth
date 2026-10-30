@@ -8,7 +8,7 @@ import { Flame, Heart, ImagePlus, MessageCircle, Send, Trash2, X, UserRound, Boo
 type Tab = "inicio" | "chat" | "feed" | "perfil";
 type MemberProfile = { username: string; avatar_url: string | null; instagram_url: string | null; tiktok_url: string | null; other_social_url: string | null; bio: string | null };
 type Message = { id: string; user_id: string; body: string; created_at: string; edited_at?: string | null; is_pinned?: boolean; is_admin?: boolean; myReaction?: "heart" | "fire" | null; heartCount?: number; fireCount?: number; community_profiles?: { username: string; avatar_url: string | null } | null };
-type FeedPost = { id: string; user_id: string; body: string; image_urls: string[]; created_at: string; author: string; avatar_url: string | null; heartCount: number; fireCount: number; myReaction: "heart" | "fire" | null; commentCount: number };
+type FeedPost = { id: string; user_id: string; body: string; image_urls: string[]; created_at: string; author: string; avatar_url: string | null; is_admin?: boolean; heartCount: number; fireCount: number; myReaction: "heart" | "fire" | null; commentCount: number };
 type FeedComment = { id: string; post_id: string; user_id: string; body: string; created_at: string; author: string };
 type PublicMember = MemberProfile & { user_id: string };
 type LibraryCandle = { id: string; title: string; aroma: string | null; image_url: string | null; category?: string | null; acquired_at?: string | null; notes?: string | null; rating?: number | null };
@@ -88,7 +88,7 @@ function Comunidade() {
     setLibrary((data ?? []) as LibraryCandle[]);
   }
 
-  async function loadMessages() {
+  async function loadMessages(currentUserId = userId) {
     const { data, error } = await (supabase as any).from("community_messages")
       .select("id,user_id,body,created_at,edited_at,is_pinned,community_profiles(username,avatar_url)")
       .order("created_at", { ascending: true }).limit(150);
@@ -102,7 +102,7 @@ function Comunidade() {
       const adminMap = new Map(roles);
       const { data: reactions } = await (supabase as any).from("community_message_reactions").select("message_id,user_id,reaction_type").in("message_id", rows.map(message => message.id));
       setMessages(rows.map(message => {
-        const own = (reactions ?? []).find((reaction: any) => reaction.message_id === message.id && reaction.user_id === userId);
+        const own = (reactions ?? []).find((reaction: any) => reaction.message_id === message.id && reaction.user_id === currentUserId);
         const messageReactions = (reactions ?? []).filter((reaction: any) => reaction.message_id === message.id);
         return { ...message, is_admin: adminMap.get(message.user_id) === true, myReaction: own?.reaction_type ?? null, heartCount: messageReactions.filter((reaction: any) => reaction.reaction_type === "heart").length, fireCount: messageReactions.filter((reaction: any) => reaction.reaction_type === "fire").length };
       }));
@@ -122,6 +122,8 @@ function Comunidade() {
       (supabase as any).from("community_post_comments").select("post_id").in("post_id", ids),
     ]);
     const profileMap = new Map<string, any>((profiles ?? []).map((p: any) => [p.user_id, p]));
+    const adminRoles = await Promise.all(users.map(async (id: string) => { const { data: admin } = await supabase.rpc("has_role", { _user_id: id, _role: "admin" }); return [id, admin === true] as const; }));
+    const adminMap = new Map(adminRoles);
     setPosts(rows.map((p: any) => {
       const postReactions = (reactions ?? []).filter((r: any) => r.post_id === p.id);
       const own = postReactions.find((r: any) => r.user_id === currentUserId);
@@ -129,6 +131,7 @@ function Comunidade() {
         ...p,
         author: profileMap.get(p.user_id)?.username || "Integrante",
         avatar_url: profileMap.get(p.user_id)?.avatar_url || null,
+        is_admin: adminMap.get(p.user_id) === true,
         heartCount: postReactions.filter((r: any) => r.reaction_type === "heart").length,
         fireCount: postReactions.filter((r: any) => r.reaction_type === "fire").length,
         myReaction: own?.reaction_type ?? null,
@@ -149,7 +152,7 @@ function Comunidade() {
         setJoined(true);
         const { data: p } = await (supabase as any).from("community_profiles").select("*").eq("user_id", data.user.id).maybeSingle();
         if (p) setProfile(p);
-        await Promise.all([loadMessages(), loadFeed(data.user.id), loadInterests(data.user.id), loadLibrary(data.user.id)]);
+        await Promise.all([loadMessages(data.user.id), loadFeed(data.user.id), loadInterests(data.user.id), loadLibrary(data.user.id)]);
       }
       setLoading(false);
     })();
@@ -167,7 +170,7 @@ function Comunidade() {
     if (profileError) toast.error("Você entrou, mas ainda precisamos configurar seu perfil.");
     else setProfile(current => ({ ...current, username: String(suggested).slice(0, 30) }));
     setSaving(false);
-    await Promise.all([loadMessages(), loadFeed(), loadInterests(), loadLibrary()]);
+    await Promise.all([loadMessages(userId), loadFeed(), loadInterests(), loadLibrary()]);
   }
 
   async function sendMessage(e: React.FormEvent) {
@@ -451,10 +454,10 @@ function Comunidade() {
               {postFiles.length > 0 && <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground"><span>{postFiles.length} foto(s) selecionada(s): {postFiles.map(file => file.name).join(", ")}</span><button type="button" onClick={() => { setPostFiles([]); const el = document.getElementById("community-post-images") as HTMLInputElement | null; if (el) el.value = ""; }} aria-label="Remover fotos selecionadas"><X size={15}/></button></div>}
               <p className="text-[11px] text-muted-foreground">Até 4 fotos por publicação, com limite de 8 MB por imagem.</p>
             </form></div></div>}<div className="mx-auto w-full max-w-3xl space-y-5 px-3 md:px-6">
-            {posts.length === 0 ? <div className="border border-dashed border-primary/30 px-5 py-12 text-center"><Flame className="mx-auto text-primary" size={30}/><p className="mt-3 font-display text-xl">A primeira chama do Feed pode ser sua</p><p className="mt-1 text-sm text-muted-foreground">Compartilhe uma foto ou escreva algo para começar.</p></div> : posts.map(post => <article key={post.id} className={`overflow-hidden border ${post.user_id === userId && isAdmin ? "border-[#b99a5b]/70 bg-[#20382b]/10 shadow-md" : "border-primary/20 bg-background/60"}`}>
+            {posts.length === 0 ? <div className="border border-dashed border-primary/30 px-5 py-12 text-center"><Flame className="mx-auto text-primary" size={30}/><p className="mt-3 font-display text-xl">A primeira chama do Feed pode ser sua</p><p className="mt-1 text-sm text-muted-foreground">Compartilhe uma foto ou escreva algo para começar.</p></div> : posts.map(post => <article key={post.id} className={`overflow-hidden border ${post.is_admin ? "border-[#b99a5b]/70 bg-[#20382b]/10 shadow-md" : "border-primary/20 bg-background/60"}`}>
               <div className="flex items-start gap-3 p-4">
                 {post.avatar_url ? <button type="button" onClick={() => void openPublicProfile(post.user_id)} aria-label={"Abrir perfil de " + post.author}><img src={post.avatar_url} alt="" className="h-10 w-10 rounded-full object-cover"/></button> : <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#20382b] text-[#e8d8b4]">{post.author.slice(0,1).toUpperCase()}</div>}
-                <div className="min-w-0 flex-1"><button type="button" onClick={() => void openPublicProfile(post.user_id)} className="text-sm font-semibold hover:text-primary hover:underline">{post.author}</button><time className="text-xs text-muted-foreground">{new Date(post.created_at).toLocaleString("pt-BR")}</time></div>
+                <div className="min-w-0 flex-1"><button type="button" onClick={() => void openPublicProfile(post.user_id)} className="text-sm font-semibold hover:text-primary hover:underline">{post.author}</button>{post.is_admin && <span className="ml-2 rounded-full border border-[#b99a5b]/60 bg-[#20382b] px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-[#e8d8b4]">Hiraeth</span>}<time className="text-xs text-muted-foreground">{new Date(post.created_at).toLocaleString("pt-BR")}</time></div>
                 {(post.user_id === userId || isAdmin) && <div className="flex gap-1">{post.user_id === userId && <button type="button" onClick={() => void editPost(post)} aria-label="Editar publicação" className="rounded p-2 text-muted-foreground hover:text-primary"><span className="text-xs">Editar</span></button>}<button type="button" onClick={() => void deletePost(post)} aria-label="Excluir publicação" className="rounded p-2 text-muted-foreground hover:text-destructive"><Trash2 size={16}/></button></div>}
               </div>
               {post.body && <p className="whitespace-pre-wrap px-4 pb-4 text-sm leading-relaxed">{post.body}</p>}
