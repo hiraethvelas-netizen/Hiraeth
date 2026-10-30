@@ -14,15 +14,15 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as CarrinhoRouteImport } from './routes/carrinho'
-import { Route as CuidadosRouteImport } from './routes/cuidados'
 import { Route as ClubeDoLivroRouteImport } from './routes/clube-do-livro'
-import { Route as AuthenticatedComunidadeRouteImport } from './routes/_authenticated/comunidade'
+import { Route as CuidadosRouteImport } from './routes/cuidados'
 import { Route as InicioRouteImport } from './routes/inicio'
 import { Route as LojaRouteImport } from './routes/loja'
 import { Route as PrivacidadeRouteImport } from './routes/privacidade'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SobreRouteImport } from './routes/sobre'
 import { Route as AuthenticatedBibliotecaRouteImport } from './routes/_authenticated/biblioteca'
+import { Route as AuthenticatedComunidadeRouteImport } from './routes/_authenticated/comunidade'
 import { Route as AuthenticatedConfiguracoesRouteImport } from './routes/_authenticated/configuracoes'
 import { Route as AuthenticatedPedidosRouteImport } from './routes/_authenticated/pedidos'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
@@ -64,8 +64,11 @@ const CarrinhoRoute = CarrinhoRouteImport.update({
   path: '/carrinho',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ClubeDoLivroRoute = ClubeDoLivroRouteImport.update({ id: '/clube-do-livro', path: '/clube-do-livro', getParentRoute: () => rootRouteImport } as any)
-const AuthenticatedComunidadeRoute = AuthenticatedComunidadeRouteImport.update({ id: '/comunidade', path: '/comunidade', getParentRoute: () => AuthenticatedRouteRoute } as any)
+const ClubeDoLivroRoute = ClubeDoLivroRouteImport.update({
+  id: '/clube-do-livro',
+  path: '/clube-do-livro',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CuidadosRoute = CuidadosRouteImport.update({
   id: '/cuidados',
   path: '/cuidados',
@@ -99,6 +102,11 @@ const SobreRoute = SobreRouteImport.update({
 const AuthenticatedBibliotecaRoute = AuthenticatedBibliotecaRouteImport.update({
   id: '/biblioteca',
   path: '/biblioteca',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedComunidadeRoute = AuthenticatedComunidadeRouteImport.update({
+  id: '/comunidade',
+  path: '/comunidade',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedConfiguracoesRoute =
@@ -188,15 +196,15 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
   '/carrinho': typeof CarrinhoRoute
-  '/cuidados': typeof CuidadosRoute
   '/clube-do-livro': typeof ClubeDoLivroRoute
-  '/comunidade': typeof AuthenticatedComunidadeRoute
+  '/cuidados': typeof CuidadosRoute
   '/inicio': typeof InicioRoute
   '/loja': typeof LojaRoute
   '/privacidade': typeof PrivacidadeRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sobre': typeof SobreRoute
   '/biblioteca': typeof AuthenticatedBibliotecaRoute
+  '/comunidade': typeof AuthenticatedComunidadeRoute
   '/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/pedidos': typeof AuthenticatedPedidosRoute
   '/admin/aparencia': typeof AdminAparenciaRoute
@@ -218,15 +226,15 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/carrinho': typeof CarrinhoRoute
-  '/cuidados': typeof CuidadosRoute
   '/clube-do-livro': typeof ClubeDoLivroRoute
-  '/comunidade': typeof AuthenticatedComunidadeRoute
+  '/cuidados': typeof CuidadosRoute
   '/inicio': typeof InicioRoute
   '/loja': typeof LojaRoute
   '/privacidade': typeof PrivacidadeRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sobre': typeof SobreRoute
   '/biblioteca': typeof AuthenticatedBibliotecaRoute
+  '/comunidade': typeof AuthenticatedComunidadeRoute
   '/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/pedidos': typeof AuthenticatedPedidosRoute
   '/admin/aparencia': typeof AdminAparenciaRoute
@@ -251,18 +259,17 @@ export interface FileRoutesById {
   '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
   '/carrinho': typeof CarrinhoRoute
-  '/cuidados': typeof CuidadosRoute
   '/clube-do-livro': typeof ClubeDoLivroRoute
+  '/cuidados': typeof CuidadosRoute
   '/inicio': typeof InicioRoute
   '/loja': typeof LojaRoute
   '/privacidade': typeof PrivacidadeRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sobre': typeof SobreRoute
   '/_authenticated/biblioteca': typeof AuthenticatedBibliotecaRoute
+  '/_authenticated/comunidade': typeof AuthenticatedComunidadeRoute
   '/_authenticated/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/_authenticated/pedidos': typeof AuthenticatedPedidosRoute
-  '/_authenticated/comunidade': typeof AuthenticatedComunidadeRoute
-  '/_authenticated/comunidade': typeof AuthenticatedComunidadeRoute
   '/admin/aparencia': typeof AdminAparenciaRoute
   '/admin/avaliacoes': typeof AdminAvaliacoesRoute
   '/admin/banners': typeof AdminBannersRoute
@@ -285,6 +292,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/auth'
     | '/carrinho'
+    | '/clube-do-livro'
     | '/cuidados'
     | '/inicio'
     | '/loja'
@@ -292,6 +300,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/sobre'
     | '/biblioteca'
+    | '/comunidade'
     | '/configuracoes'
     | '/pedidos'
     | '/admin/aparencia'
@@ -313,6 +322,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/carrinho'
+    | '/clube-do-livro'
     | '/cuidados'
     | '/inicio'
     | '/loja'
@@ -320,6 +330,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/sobre'
     | '/biblioteca'
+    | '/comunidade'
     | '/configuracoes'
     | '/pedidos'
     | '/admin/aparencia'
@@ -343,6 +354,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/auth'
     | '/carrinho'
+    | '/clube-do-livro'
     | '/cuidados'
     | '/inicio'
     | '/loja'
@@ -350,6 +362,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/sobre'
     | '/_authenticated/biblioteca'
+    | '/_authenticated/comunidade'
     | '/_authenticated/configuracoes'
     | '/_authenticated/pedidos'
     | '/admin/aparencia'
@@ -374,6 +387,7 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRouteWithChildren
   AuthRoute: typeof AuthRoute
   CarrinhoRoute: typeof CarrinhoRoute
+  ClubeDoLivroRoute: typeof ClubeDoLivroRoute
   CuidadosRoute: typeof CuidadosRoute
   InicioRoute: typeof InicioRoute
   LojaRoute: typeof LojaRoute
@@ -419,6 +433,13 @@ declare module '@tanstack/react-router' {
       path: '/carrinho'
       fullPath: '/carrinho'
       preLoaderRoute: typeof CarrinhoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/clube-do-livro': {
+      id: '/clube-do-livro'
+      path: '/clube-do-livro'
+      fullPath: '/clube-do-livro'
+      preLoaderRoute: typeof ClubeDoLivroRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/cuidados': {
@@ -468,6 +489,13 @@ declare module '@tanstack/react-router' {
       path: '/biblioteca'
       fullPath: '/biblioteca'
       preLoaderRoute: typeof AuthenticatedBibliotecaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/comunidade': {
+      id: '/_authenticated/comunidade'
+      path: '/comunidade'
+      fullPath: '/comunidade'
+      preLoaderRoute: typeof AuthenticatedComunidadeRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/configuracoes': {
@@ -586,15 +614,15 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
-  AuthenticatedComunidadeRoute: typeof AuthenticatedComunidadeRoute
   AuthenticatedBibliotecaRoute: typeof AuthenticatedBibliotecaRoute
+  AuthenticatedComunidadeRoute: typeof AuthenticatedComunidadeRoute
   AuthenticatedConfiguracoesRoute: typeof AuthenticatedConfiguracoesRoute
   AuthenticatedPedidosRoute: typeof AuthenticatedPedidosRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
-  AuthenticatedComunidadeRoute: AuthenticatedComunidadeRoute,
   AuthenticatedBibliotecaRoute: AuthenticatedBibliotecaRoute,
+  AuthenticatedComunidadeRoute: AuthenticatedComunidadeRoute,
   AuthenticatedConfiguracoesRoute: AuthenticatedConfiguracoesRoute,
   AuthenticatedPedidosRoute: AuthenticatedPedidosRoute,
 }
@@ -640,8 +668,8 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRouteWithChildren,
   AuthRoute: AuthRoute,
   CarrinhoRoute: CarrinhoRoute,
-  CuidadosRoute: CuidadosRoute,
   ClubeDoLivroRoute: ClubeDoLivroRoute,
+  CuidadosRoute: CuidadosRoute,
   InicioRoute: InicioRoute,
   LojaRoute: LojaRoute,
   PrivacidadeRoute: PrivacidadeRoute,
