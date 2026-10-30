@@ -67,14 +67,14 @@ function Sobre() {
           <div className="space-y-4">
             {block.title && <h2 className="font-display text-3xl text-foreground">{block.title}</h2>}
             {block.text && <p className="whitespace-pre-line leading-8 text-foreground/90">{block.text}</p>}
-            {block.links?.length > 0 && <div className="flex flex-wrap gap-3">{block.links.filter(link => link.label && link.url).map((link, i) => <a key={link.url + i} href={link.url} target={/^https?:\\/\\//i.test(link.url) ? "_blank" : undefined} rel={/^https?:\\/\\//i.test(link.url) ? "noreferrer" : undefined} className="inline-flex border border-primary px-4 py-2 text-sm text-primary transition-colors hover:bg-primary hover:text-primary-foreground">{link.label}</a>)}</div>}
+            {block.links?.length > 0 && <div className="flex flex-wrap gap-3">{block.links.filter(link => link.label && link.url).map((link, i) => <a key={link.url + i} href={link.url} target={link.url.startsWith("http") ? "_blank" : undefined} rel={link.url.startsWith("http") ? "noreferrer" : undefined} className="inline-flex border border-primary px-4 py-2 text-sm text-primary transition-colors hover:bg-primary hover:text-primary-foreground">{link.label}</a>)}</div>}
           </div>
         </div> : <div className={block.layout === "image-left" || block.layout === "image-right" ? "grid items-center gap-8 md:grid-cols-2" : "space-y-5"}>
           {block.layout === "image-left" && block.images?.length > 0 && <div className="space-y-3">{block.images.map((url, i) => <img key={url + i} src={url} alt={block.title || "Hiraeth"} className="max-h-[34rem] w-full object-cover" />)}</div>}
           <div className="space-y-4">
             {block.title && <h2 className="font-display text-3xl text-foreground">{block.title}</h2>}
             {block.text && <p className="whitespace-pre-line leading-8 text-foreground/90">{block.text}</p>}
-            {block.links?.length > 0 && <div className="flex flex-wrap gap-3">{block.links.filter(link => link.label && link.url).map((link, i) => <a key={link.url + i} href={link.url} target={/^https?:\\/\\//i.test(link.url) ? "_blank" : undefined} rel={/^https?:\\/\\//i.test(link.url) ? "noreferrer" : undefined} className="inline-flex border border-primary px-4 py-2 text-sm text-primary transition-colors hover:bg-primary hover:text-primary-foreground">{link.label}</a>)}</div>}
+            {block.links?.length > 0 && <div className="flex flex-wrap gap-3">{block.links.filter(link => link.label && link.url).map((link, i) => <a key={link.url + i} href={link.url} target={link.url.startsWith("http") ? "_blank" : undefined} rel={link.url.startsWith("http") ? "noreferrer" : undefined} className="inline-flex border border-primary px-4 py-2 text-sm text-primary transition-colors hover:bg-primary hover:text-primary-foreground">{link.label}</a>)}</div>}
           </div>
           {(block.layout === "image-right" || block.layout === "gallery") && block.images?.length > 0 && <div className={block.layout === "gallery" ? "grid grid-cols-2 gap-3 md:grid-cols-3" : "space-y-3"}>{block.images.map((url, i) => <img key={url + i} src={url} alt={block.title || "Hiraeth"} className={block.layout === "gallery" ? "aspect-[4/5] w-full object-cover" : "max-h-[34rem] w-full object-cover"} />)}</div>}
         </div>}
