@@ -17,7 +17,7 @@ export const Route = createFileRoute("/admin/produtos")({
 const emptyForm = {
   name: "", description: "", category_id: "", price: "", sale_price: "",
   stock: "0", sku: "", fragrance: "", images: [] as string[], status: "draft",
-  dimensions: "", variantsJson: "[]",
+  dimensions: "", variantsJson: "[]", product_badge: "",
 };
 
 function AdminProdutos() {
@@ -68,7 +68,7 @@ function AdminProdutos() {
       price: String(p.price), sale_price: p.sale_price != null ? String(p.sale_price) : "",
       stock: String(p.stock), sku: p.sku ?? "", fragrance: p.fragrance ?? "",
       images: p.images ?? [], status: p.status,
-      dimensions: p.dimensions ?? "", variantsJson: JSON.stringify((p as any).variants ?? [], null, 2),
+      dimensions: p.dimensions ?? "", variantsJson: JSON.stringify((p as any).variants ?? [], null, 2), product_badge: (p as any).product_badge ?? "",
     });
     const { data } = await db.from("product_essences").select("essence_id,quantity_ml,essences(name)").eq("product_id", p.id);
     setProductAromas((data ?? []).map((r:any) => ({essence_id:r.essence_id,quantity_ml:Number(r.quantity_ml),name:r.essences?.name ?? "Aroma"})));
@@ -114,7 +114,7 @@ function AdminProdutos() {
       price: Number(form.price) || 0, sale_price: form.sale_price ? Number(form.sale_price) : null,
       stock: Math.max(0, Number(form.stock) || 0), sku: form.sku || null,
       fragrance: form.fragrance || null, images: form.images, status: form.status,
-      dimensions: form.dimensions || null, variants,
+      dimensions: form.dimensions || null, variants, product_badge: form.product_badge || null,
     };
     const { error } = editing
       ? await db.from("products").update(payload).eq("id", editing.id)
@@ -161,6 +161,7 @@ function AdminProdutos() {
         <label className="text-sm text-muted-foreground">SKU<input placeholder="Código interno (opcional)" value={form.sku} onChange={(e) => setForm({ ...form, sku: e.target.value })} className={`mt-1 ${inputCls}`} /></label>
         
         <label className="text-sm text-muted-foreground">Família olfativa<input list="fragrance-families" placeholder="Ex.: Floral ambarado" value={form.fragrance} onChange={(e) => setForm({ ...form, fragrance: e.target.value })} className={`mt-1 ${inputCls}`} /><datalist id="fragrance-families"><option value="Floral" /><option value="Floral ambarado" /><option value="Amadeirado" /><option value="Amadeirado aromático" /><option value="Oriental / ambarado" /><option value="Cítrico" /><option value="Frutado" /><option value="Gourmand" /><option value="Fresco" /><option value="Floral frutado" /><option value="Chipre" /><option value="Aromático" /></datalist></label>
+        <label className="text-sm text-muted-foreground">Selo do produto<select value={form.product_badge} onChange={(e) => setForm({ ...form, product_badge: e.target.value })} className={`mt-1 ${inputCls}`}><option value="">Sem selo</option><option value="new">Novidade</option><option value="limited">Edição limitada</option><option value="bestseller">Mais vendido</option></select></label>
         <label className="text-sm text-muted-foreground">Status<select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })} className={`mt-1 ${inputCls}`}><option value="draft">Rascunho</option><option value="published">Publicado</option><option value="archived">Arquivado</option></select></label>
       </div>
       <section className="space-y-4 border border-primary/20 p-4">

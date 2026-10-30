@@ -9,6 +9,9 @@ import { useSiteContent } from "@/lib/admin-edit";
 import { StoreBanners } from "@/components/StoreBanners";
 import { AcervoNavigation } from "@/components/AcervoNavigation";
 import { CustomerReviews } from "@/components/CustomerReviews";
+import { SecretFlamesPromotion } from "@/components/SecretFlamesPromotion";
+import { Heart } from "lucide-react";
+import { toast } from "sonner";
 
 
 type Product = Tables<"products">;
@@ -44,6 +47,8 @@ const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
   const [categoryId, setCategoryId] = useState<string | null>(null);
   const [enteringCategory, setEnteringCategory] = useState<Category | null>(null);
+  const [wishlistIds, setWishlistIds] = useState<Set<string>>(new Set());
+  const [wishlistUserId, setWishlistUserId] = useState<string | null>(null);
 
   async function saveProduct(product: Product, values: Record<string, unknown>) {
     const payload = { name: String(values["name"] ?? product.name), description: String(values["description"] ?? "") || null, price: Number(values["price"] ?? product.price), sale_price: values["sale_price"] === "" || values["sale_price"] == null ? null : Number(values["sale_price"]), fragrance: String(values["fragrance"] ?? "") || null, images: Array.isArray(values["images"]) ? values["images"] as string[] : product.images };
@@ -70,6 +75,12 @@ useEffect(() => {
       ]);
 
     setProducts(prods ?? []);
+    const { data: authData } = await supabase.auth.getUser();
+    if (authData.user) {
+      setWishlistUserId(authData.user.id);
+      const { data: saved } = await supabase.from("wishlist_items").select("product_id").eq("user_id", authData.user.id);
+      setWishlistIds(new Set((saved ?? []).map((item) => item.product_id)));
+    }
     const initialQuery = new URLSearchParams(window.location.search).get("q");
     if (initialQuery) setQuery(initialQuery);
     const now = new Date();
@@ -100,6 +111,17 @@ useEffect(() => {
 
 
   const selectedCategory = categories.find((category) => category.id === categoryId) ?? null;
+  async function toggleWishlist(productId: string, event: React.MouseEvent) {
+    event.preventDefault(); event.stopPropagation();
+    if (!wishlistUserId) { toast.info("Entre na sua conta para salvar seus favoritos."); return; }
+    const alreadySaved = wishlistIds.has(productId);
+    const result = alreadySaved
+      ? await supabase.from("wishlist_items").delete().eq("user_id", wishlistUserId).eq("product_id", productId)
+      : await supabase.from("wishlist_items").insert({ user_id: wishlistUserId, product_id: productId });
+    if (result.error) { toast.error("Não foi possível atualizar seus favoritos."); return; }
+    setWishlistIds(current => { const next = new Set(current); if (alreadySaved) next.delete(productId); else next.add(productId); return next; });
+    toast.success(alreadySaved ? "Removido dos favoritos." : "Adicionado aos favoritos.");
+  }
   const featuredCollectionSlugs = ["harry-potter", "universo-sarah-j-maas", "friends", "the-vampire-diaries", "crepusculo", "taylor-swift", "gilmore-girls"];
   const featuredCollections = featuredCollectionSlugs.map((slug) => categories.find((category) => category.slug === slug)).filter((category): category is Category => Boolean(category));
 
@@ -191,19 +213,16 @@ useEffect(() => {
                 params={{ slug: p.slug }}
                 className="group block border-0 bg-transparent text-center shadow-none transition-transform duration-300 hover:-translate-y-1"
               >
-                <div className="aspect-square overflow-hidden bg-transparent">
+                <div className="relative aspect-square overflow-hidden bg-transparent">
                   {p.images[0] ? (
-                    <img
-                      src={p.images[0]}
-                      alt={p.name}
-                      className="h-full w-full object-contain p-3 transition-transform duration-500 group-hover:scale-[1.03]"
-                      loading="lazy"
-                    />
+                    <img src={p.images[0]} alt={p.name} className="h-full w-full object-contain p-3 transition-transform duration-500 group-hover:scale-[1.03]" loading="lazy" />
                   ) : (
-                    <div className="flex h-full items-center justify-center font-display text-lg italic text-muted-foreground">
-                      Foto em breve
-                    </div>
+                    <div className="flex h-full items-center justify-center font-display text-lg italic text-muted-foreground">Foto em breve</div>
                   )}
+                  <button type="button" onClick={(event) => void toggleWishlist(p.id, event)} aria-label={wishlistIds.has(p.id) ? "Remover dos favoritos" : "Adicionar aos favoritos"} aria-pressed={wishlistIds.has(p.id)} className="absolute right-3 top-3 z-10 rounded-full bg-[#f5efe5]/90 p-2.5 text-[#68764f] shadow-sm transition hover:scale-105">
+                    <Heart size={19} strokeWidth={1.8} fill={wishlistIds.has(p.id) ? "currentColor" : "none"} />
+                  </button>
+                  {(p as any).product_badge && <span className={`absolute left-3 top-3 z-10 rounded-full px-3 py-1 text-[9px] font-semibold uppercase tracking-[.16em] shadow-sm ${(p as any).product_badge === "limited" ? "bg-[#8b6b45] text-[#fff8ed]" : (p as any).product_badge === "bestseller" ? "bg-[#66513f] text-[#fff8ed]" : "bg-[#65744d] text-white"}`}>{(p as any).product_badge === "limited" ? "Edição limitada" : (p as any).product_badge === "bestseller" ? "Mais vendido" : "Novidade"}</span>}
                 </div>
 
                 <div className="px-2 pb-3 pt-3">
@@ -244,7 +263,7 @@ useEffect(() => {
             ))}
           </div>
         )}
-        <CustomerReviews />
+        <CustomerReviews />\n      <SecretFlamesPromotion />
         {enteringCategory && <div className="portal-entry-overlay" aria-hidden="true">{enteringCategory.image_url ? <img src={enteringCategory.image_url} alt="" className="portal-entry-image" /> : <div className="portal-entry-placeholder"><span>{enteringCategory.name}</span></div>}</div>}
       </main>
 
