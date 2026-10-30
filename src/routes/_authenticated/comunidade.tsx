@@ -317,7 +317,12 @@ function Comunidade() {
     if (memberId === userId) { setPublicMember(null); setTab("perfil"); return; }
     const { data, error } = await (supabase as any).from("community_profiles").select("user_id,username,avatar_url,bio,instagram_url,tiktok_url,other_social_url").eq("user_id", memberId).maybeSingle();
     if (error || !data) { toast.error("Não foi possível abrir este perfil."); return; }
-    setPublicMember(data as PublicMember); setPublicSection("profile");\n    const [{ data: interestsData }, { data: libraryData }] = await Promise.all([\n      (supabase as any).from("community_interests").select("id,interest_type,title,image_url").eq("user_id", memberId).order("created_at", { ascending: false }),\n      (supabase as any).from("community_library").select("id,title,aroma,image_url").eq("user_id", memberId).order("created_at", { ascending: false }),\n    ]);\n    setPublicInterests((interestsData ?? []) as typeof interests); setPublicLibrary((libraryData ?? []) as LibraryCandle[]);
+    setPublicMember(data as PublicMember); setPublicSection("profile");
+    const [{ data: interestsData }, { data: libraryData }] = await Promise.all([
+      (supabase as any).from("community_interests").select("id,interest_type,title,image_url").eq("user_id", memberId).order("created_at", { ascending: false }),
+      (supabase as any).from("community_library").select("id,title,aroma,image_url").eq("user_id", memberId).order("created_at", { ascending: false }),
+    ]);
+    setPublicInterests((interestsData ?? []) as typeof interests); setPublicLibrary((libraryData ?? []) as LibraryCandle[]);
   }
 
   async function saveProfile(e: React.FormEvent) {
