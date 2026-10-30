@@ -119,6 +119,11 @@ function RootShell({ children }: { children: ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
+  useEffect(() => {
+    const savedTheme = window.localStorage.getItem("hiraeth-theme");
+    document.documentElement.classList.toggle("dark", savedTheme === "dark");
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <CartProvider>
