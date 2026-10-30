@@ -86,8 +86,8 @@ function PortalPage() {
 
   const embed = portal.spotify_playlist_url ? spotifyEmbed(portal.spotify_playlist_url) : null;
   const portalTheme = (portal.theme && typeof portal.theme === "object" ? portal.theme : {}) as Record<string, any>;
-  const palette = portalTheme.palette ?? {};
-  const carouselItems = Array.isArray(portalTheme.carousel_items) ? portalTheme.carousel_items : [];
+  const palette = portalTheme["palette"] ?? {};
+  const carouselItems = Array.isArray(portalTheme["carousel_items"]) ? portalTheme["carousel_items"] : [];
   const appUrl = "https://hiraeth-oficial.lovable.app/inicio";
 
 

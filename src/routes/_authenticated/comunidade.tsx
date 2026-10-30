@@ -109,7 +109,7 @@ function Comunidade() {
       (supabase as any).from("community_post_reactions").select("post_id,user_id,reaction_type").in("post_id", ids),
       (supabase as any).from("community_post_comments").select("post_id").in("post_id", ids),
     ]);
-    const profileMap = new Map((profiles ?? []).map((p: any) => [p.user_id, p]));
+    const profileMap = new Map<string, any>((profiles ?? []).map((p: any) => [p.user_id, p]));
     setPosts(rows.map((p: any) => {
       const postReactions = (reactions ?? []).filter((r: any) => r.post_id === p.id);
       const own = postReactions.find((r: any) => r.user_id === currentUserId);
@@ -148,7 +148,7 @@ function Comunidade() {
     if (error && error.code !== "23505") { toast.error("Não foi possível concluir sua participação."); setSaving(false); return; }
     setJoined(true);
     const { data: auth } = await supabase.auth.getUser();
-    const suggested = auth.user?.user_metadata?.display_name || auth.user?.email?.split("@")[0] || "integrante";
+    const suggested = auth.user?.user_metadata?.["display_name"] || auth.user?.email?.split("@")[0] || "integrante";
     const { error: profileError } = await (supabase as any).from("community_profiles").upsert({ user_id: userId, username: String(suggested).slice(0, 30) }, { onConflict: "user_id" });
     if (profileError) toast.error("Você entrou, mas ainda precisamos configurar seu perfil.");
     else setProfile(current => ({ ...current, username: String(suggested).slice(0, 30) }));
