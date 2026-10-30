@@ -371,14 +371,23 @@ function Comunidade() {
 
   async function openPublicProfile(memberId: string) {
     if (memberId === userId) { setPublicMember(null); setTab("perfil"); return; }
-    const { data, error } = await (supabase as any).from("community_profiles").select("user_id,username,avatar_url,bio,instagram_url,tiktok_url,other_social_url").eq("user_id", memberId).maybeSingle();
-    if (error || !data) { toast.error("Não foi possível abrir este perfil."); return; }
-    setPublicMember(data as PublicMember); setPublicSection("profile");
-    const [{ data: interestsData }, { data: libraryData }] = await Promise.all([
-      (supabase as any).from("community_interests").select("id,interest_type,title,image_url").eq("user_id", memberId).order("created_at", { ascending: false }),
-      (supabase as any).from("community_library").select("id,title,aroma,image_url,category,acquired_at,notes,rating").eq("user_id", memberId).order("created_at", { ascending: false }),
-    ]);
-    setPublicInterests((interestsData ?? []) as typeof interests); setPublicLibrary((libraryData ?? []) as LibraryCandle[]);
+    try {
+      const { data, error } = await (supabase as any).from("community_profiles").select("user_id,username,avatar_url,bio,instagram_url,tiktok_url,other_social_url").eq("user_id", memberId).maybeSingle();
+      if (error) throw error;
+      const fallbackName = posts.find(post => post.user_id === memberId)?.author || "Integrante";
+      setPublicMember((data ?? { user_id: memberId, username: fallbackName, avatar_url: null, bio: null, instagram_url: null, tiktok_url: null, other_social_url: null }) as PublicMember);
+      setPublicSection("profile");
+      const [{ data: interestsData, error: interestsError }, { data: libraryData, error: libraryError }] = await Promise.all([
+        (supabase as any).from("community_interests").select("id,interest_type,title,image_url").eq("user_id", memberId).order("created_at", { ascending: false }),
+        (supabase as any).from("community_library").select("id,title,aroma,image_url,category,acquired_at,notes,rating").eq("user_id", memberId).order("created_at", { ascending: false }),
+      ]);
+      if (interestsError || libraryError) console.warn("Não foi possível carregar todas as áreas do perfil público.", interestsError || libraryError);
+      setPublicInterests((interestsData ?? []) as typeof interests);
+      setPublicLibrary((libraryData ?? []) as LibraryCandle[]);
+    } catch (error) {
+      console.error("Erro ao abrir perfil público:", error);
+      toast.error("Não foi possível abrir este perfil. Tente novamente.");
+    }
   }
 
   async function saveProfile(e: React.FormEvent) {
@@ -454,10 +463,10 @@ function Comunidade() {
               {postFiles.length > 0 && <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground"><span>{postFiles.length} foto(s) selecionada(s): {postFiles.map(file => file.name).join(", ")}</span><button type="button" onClick={() => { setPostFiles([]); const el = document.getElementById("community-post-images") as HTMLInputElement | null; if (el) el.value = ""; }} aria-label="Remover fotos selecionadas"><X size={15}/></button></div>}
               <p className="text-[11px] text-muted-foreground">Até 4 fotos por publicação, com limite de 8 MB por imagem.</p>
             </form></div></div>}<div className="mx-auto w-full max-w-3xl space-y-5 px-3 md:px-6">
-            {posts.length === 0 ? <div className="border border-dashed border-primary/30 px-5 py-12 text-center"><Flame className="mx-auto text-primary" size={30}/><p className="mt-3 font-display text-xl">A primeira chama do Feed pode ser sua</p><p className="mt-1 text-sm text-muted-foreground">Compartilhe uma foto ou escreva algo para começar.</p></div> : posts.map(post => <article key={post.id} className={`overflow-hidden border ${post.is_admin ? "border-[#b99a5b]/70 bg-[#20382b]/10 shadow-md" : "border-primary/20 bg-background/60"}`}>
+            {posts.length === 0 ? <div className="border border-dashed border-primary/30 px-5 py-12 text-center"><Flame className="mx-auto text-primary" size={30}/><p className="mt-3 font-display text-xl">A primeira chama do Feed pode ser sua</p><p className="mt-1 text-sm text-muted-foreground">Compartilhe uma foto ou escreva algo para começar.</p></div> : posts.map(post => <article key={post.id} className={\`overflow-hidden border \${post.is_admin ? "border-[#b99a5b] bg-[#ead9ad]/45 shadow-md dark:bg-[#6f592f]/20" : "border-primary/20 bg-background/60"}\`}>
               <div className="flex items-start gap-3 p-4">
-                {post.avatar_url ? <button type="button" onClick={() => void openPublicProfile(post.user_id)} aria-label={"Abrir perfil de " + post.author}><img src={post.avatar_url} alt="" className="h-10 w-10 rounded-full object-cover"/></button> : <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#20382b] text-[#e8d8b4]">{post.author.slice(0,1).toUpperCase()}</div>}
-                <div className="min-w-0 flex-1"><button type="button" onClick={() => void openPublicProfile(post.user_id)} className="text-sm font-semibold hover:text-primary hover:underline">{post.author}</button>{post.is_admin && <span className="ml-2 rounded-full border border-[#b99a5b]/60 bg-[#20382b] px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-[#e8d8b4]">Hiraeth</span>}<time className="text-xs text-muted-foreground">{new Date(post.created_at).toLocaleString("pt-BR")}</time></div>
+                <button type="button" onClick={() => void openPublicProfile(post.user_id)} aria-label={"Abrir perfil de " + post.author} className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#20382b] text-[#e8d8b4]">{post.avatar_url ? <img src={post.avatar_url} alt="" className="h-full w-full object-cover"/> : <UserRound size={20}/>}</button>
+                <div className="min-w-0 flex-1"><button type="button" onClick={() => void openPublicProfile(post.user_id)} className="text-sm font-semibold hover:text-primary hover:underline">{post.author}</button><time className="block text-xs text-muted-foreground">{new Date(post.created_at).toLocaleString("pt-BR")}</time></div>
                 {(post.user_id === userId || isAdmin) && <div className="flex gap-1">{post.user_id === userId && <button type="button" onClick={() => void editPost(post)} aria-label="Editar publicação" className="rounded p-2 text-muted-foreground hover:text-primary"><span className="text-xs">Editar</span></button>}<button type="button" onClick={() => void deletePost(post)} aria-label="Excluir publicação" className="rounded p-2 text-muted-foreground hover:text-destructive"><Trash2 size={16}/></button></div>}
               </div>
               {post.body && <p className="whitespace-pre-wrap px-4 pb-4 text-sm leading-relaxed">{post.body}</p>}
