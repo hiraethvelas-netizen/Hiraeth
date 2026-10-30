@@ -7,7 +7,7 @@ import { Flame, Heart, ImagePlus, MessageCircle, Send, Trash2, X, UserRound, Boo
 
 type Tab = "chat" | "feed" | "perfil";
 type MemberProfile = { username: string; avatar_url: string | null; instagram_url: string | null; tiktok_url: string | null; other_social_url: string | null; bio: string | null };
-type Message = { id: string; user_id: string; body: string; created_at: string; community_profiles?: { username: string; avatar_url: string | null } | null };
+type Message = { id: string; user_id: string; body: string; created_at: string; is_admin?: boolean; community_profiles?: { username: string; avatar_url: string | null } | null };
 type FeedPost = { id: string; user_id: string; body: string; image_urls: string[]; created_at: string; author: string; avatar_url: string | null; heartCount: number; fireCount: number; myReaction: "heart" | "fire" | null; commentCount: number };
 type FeedComment = { id: string; post_id: string; user_id: string; body: string; created_at: string; author: string };
 
@@ -49,7 +49,16 @@ function Comunidade() {
     const { data, error } = await (supabase as any).from("community_messages")
       .select("id,user_id,body,created_at,community_profiles(username,avatar_url)")
       .order("created_at", { ascending: true }).limit(150);
-    if (!error) setMessages((data ?? []) as Message[]);
+    if (!error) {
+      const rows = (data ?? []) as Message[];
+      const ids = [...new Set(rows.map(message => message.user_id))];
+      const roles = await Promise.all(ids.map(async id => {
+        const { data: admin } = await supabase.rpc("has_role", { _user_id: id, _role: "admin" });
+        return [id, admin === true] as const;
+      }));
+      const adminMap = new Map(roles);
+      setMessages(rows.map(message => ({ ...message, is_admin: adminMap.get(message.user_id) === true })));
+    }
   }
 
   async function loadFeed(currentUserId = userId) {
@@ -249,7 +258,7 @@ function Comunidade() {
           <button onClick={() => void joinCommunity()} disabled={saving} className="btn-gold mt-8">{saving ? "Entrando..." : "Participar da comunidade"}</button>
         </section> : <>
           <nav className="flex overflow-x-auto border-b border-primary/20" aria-label="Áreas da comunidade">{tabs.map(item => <button key={item.id} onClick={() => setTab(item.id)} className={`shrink-0 border-b-2 px-6 py-4 text-sm ${tab === item.id ? "border-primary text-primary" : "border-transparent text-muted-foreground"}`}>{item.label}</button>)}</nav>
-          {tab === "chat" && <section className="p-5 md:p-8"><div className="mb-5"><h2 className="font-display text-2xl">Conversa ao redor da chama</h2><p className="text-sm text-muted-foreground">Um chat público para os integrantes do Círculo.</p></div><div className="max-h-[55vh] min-h-64 space-y-3 overflow-y-auto border border-primary/15 bg-background/50 p-4">{messages.map(message => <article key={message.id} className={`max-w-[90%] rounded-md border p-3 ${message.user_id === userId ? (isAdmin ? "ml-auto border-emerald-700/40 bg-emerald-50/70" : "ml-auto border-primary/30 bg-primary/5") : "border-border bg-card"}`}><p className={`mb-1 text-xs font-semibold ${isAdmin && message.user_id === userId ? "text-emerald-700" : "text-primary"}`}>{isAdmin && message.user_id === userId ? "Hiraeth — Mari" : message.community_profiles?.username || "Integrante"}</p><p className="whitespace-pre-wrap text-sm">{message.body}</p><time className="mt-2 block text-right text-[10px] text-muted-foreground">{new Date(message.created_at).toLocaleString("pt-BR")}</time></article>)}{messages.length === 0 && <p className="py-12 text-center text-sm text-muted-foreground">A conversa começa com você. Deixe a primeira mensagem!</p>}</div><form onSubmit={sendMessage} className="mt-4 flex gap-2"><input value={body} onChange={e => setBody(e.target.value)} maxLength={3000} placeholder="Escreva sua mensagem..." className="min-w-0 flex-1 border bg-transparent px-4 py-3 text-sm" /><button className="btn-gold" type="submit">Enviar</button></form></section>}
+          {tab === "chat" && <section className="p-5 md:p-8"><div className="mb-5"><h2 className="font-display text-2xl">Conversa ao redor da chama</h2><p className="text-sm text-muted-foreground">Um chat público para os integrantes do Círculo.</p></div><div className="max-h-[55vh] min-h-64 space-y-3 overflow-y-auto border border-primary/15 bg-background/50 p-4">{messages.map(message => <article key={message.id} className={`max-w-[90%] rounded-md border p-3 ${message.is_admin ? "border-emerald-700/40 bg-emerald-50/70" : message.user_id === userId ? "ml-auto border-primary/30 bg-primary/5" : "border-border bg-card"}`}><p className={`mb-1 text-xs font-semibold ${message.is_admin ? "text-emerald-700" : "text-primary"}`}>{message.is_admin ? "Hiraeth — Mari" : message.community_profiles?.username || "Integrante"}</p><p className="whitespace-pre-wrap text-sm">{message.body}</p><time className="mt-2 block text-right text-[10px] text-muted-foreground">{new Date(message.created_at).toLocaleString("pt-BR")}</time></article>)}{messages.length === 0 && <p className="py-12 text-center text-sm text-muted-foreground">A conversa começa com você. Deixe a primeira mensagem!</p>}</div><form onSubmit={sendMessage} className="mt-4 flex gap-2"><input value={body} onChange={e => setBody(e.target.value)} maxLength={3000} placeholder="Escreva sua mensagem..." className="min-w-0 flex-1 border bg-transparent px-4 py-3 text-sm" /><button className="btn-gold" type="submit">Enviar</button></form></section>}
           {tab === "feed" && <section className="mx-auto max-w-3xl space-y-6 p-4 md:p-8">
             <header><h2 className="font-display text-2xl">Feed da comunidade</h2><p className="mt-1 text-sm text-muted-foreground">Compartilhe uma leitura, uma descoberta ou um momento que merece ser dividido.</p></header>
             <form onSubmit={publishPost} className="space-y-3 border border-primary/20 bg-background/60 p-4 md:p-5">
