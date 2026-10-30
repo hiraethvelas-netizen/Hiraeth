@@ -199,16 +199,16 @@ export function ExistingHomepage() {
     <div className="min-h-screen bg-background">
       <SiteHeader />
       <main>
-        {isAdmin && editMode && <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-5 pt-3">
+        {isAdmin && <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-5 pt-3">
           <Link to="/admin" className="inline-flex items-center gap-2 border border-primary/50 px-4 py-2 text-sm text-primary transition-colors hover:bg-primary/10">
             ← Voltar ao dashboard
           </Link>
-          <InlineEditor
+          {editMode && <InlineEditor
             label="conteúdo da página inicial"
             fields={[...HOME_FIELDS]}
             values={mergedContent}
             onSave={async (next) => saveContent({ ...mergedContent, ...next } as HomeContent)}
-          />
+          />}
         </div>}
         {orderedKeys.map((key) => sections[key])}
       </main>
