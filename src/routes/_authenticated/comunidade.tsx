@@ -7,7 +7,7 @@ import { Flame, Heart, ImagePlus, MessageCircle, Send, Trash2, X, UserRound, Boo
 
 type Tab = "inicio" | "chat" | "feed" | "perfil";
 type MemberProfile = { username: string; avatar_url: string | null; instagram_url: string | null; tiktok_url: string | null; other_social_url: string | null; bio: string | null };
-type Message = { id: string; user_id: string; body: string; created_at: string; is_admin?: boolean; community_profiles?: { username: string; avatar_url: string | null } | null };
+type Message = { id: string; user_id: string; body: string; created_at: string; edited_at?: string | null; is_pinned?: boolean; is_admin?: boolean; myReaction?: "heart" | "fire" | null; heartCount?: number; fireCount?: number; community_profiles?: { username: string; avatar_url: string | null } | null };
 type FeedPost = { id: string; user_id: string; body: string; image_urls: string[]; created_at: string; author: string; avatar_url: string | null; heartCount: number; fireCount: number; myReaction: "heart" | "fire" | null; commentCount: number };
 type FeedComment = { id: string; post_id: string; user_id: string; body: string; created_at: string; author: string };
 type PublicMember = MemberProfile & { user_id: string };
@@ -41,6 +41,9 @@ function Comunidade() {
   const [composerOpen, setComposerOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [messages, setMessages] = useState<Message[]>([]);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
+  const [editingMessageBody, setEditingMessageBody] = useState("");
   const [body, setBody] = useState("");
   const [profile, setProfile] = useState<MemberProfile>({ username: "", avatar_url: null, instagram_url: null, tiktok_url: null, other_social_url: null, bio: null });
   const [saving, setSaving] = useState(false);
@@ -87,7 +90,7 @@ function Comunidade() {
 
   async function loadMessages() {
     const { data, error } = await (supabase as any).from("community_messages")
-      .select("id,user_id,body,created_at,community_profiles(username,avatar_url)")
+      .select("id,user_id,body,created_at,edited_at,is_pinned,community_profiles(username,avatar_url)")
       .order("created_at", { ascending: true }).limit(150);
     if (!error) {
       const rows = (data ?? []) as Message[];
@@ -97,7 +100,12 @@ function Comunidade() {
         return [id, admin === true] as const;
       }));
       const adminMap = new Map(roles);
-      setMessages(rows.map(message => ({ ...message, is_admin: adminMap.get(message.user_id) === true })));
+      const { data: reactions } = await (supabase as any).from("community_message_reactions").select("message_id,user_id,reaction_type").in("message_id", rows.map(message => message.id));
+      setMessages(rows.map(message => {
+        const own = (reactions ?? []).find((reaction: any) => reaction.message_id === message.id && reaction.user_id === userId);
+        const messageReactions = (reactions ?? []).filter((reaction: any) => reaction.message_id === message.id);
+        return { ...message, is_admin: adminMap.get(message.user_id) === true, myReaction: own?.reaction_type ?? null, heartCount: messageReactions.filter((reaction: any) => reaction.reaction_type === "heart").length, fireCount: messageReactions.filter((reaction: any) => reaction.reaction_type === "fire").length };
+      }));
     }
   }
 
@@ -134,6 +142,8 @@ function Comunidade() {
       const { data } = await supabase.auth.getUser();
       if (!data.user) { setLoading(false); return; }
       setUserId(data.user.id);
+      const { data: currentAdmin } = await supabase.rpc("has_role", { _user_id: data.user.id, _role: "admin" });
+      setIsAdmin(currentAdmin === true);
       const { data: membership } = await (supabase as any).from("community_memberships").select("user_id").eq("user_id", data.user.id).maybeSingle();
       if (membership) {
         setJoined(true);
@@ -167,6 +177,37 @@ function Comunidade() {
     const { error } = await (supabase as any).from("community_messages").insert({ user_id: userId, body: text });
     if (error) { toast.error("Não foi possível enviar sua mensagem."); return; }
     setBody("");
+    await loadMessages();
+  }
+
+  async function saveMessageEdit(message: Message) {
+    const text = editingMessageBody.trim();
+    if (!text || text.length > 3000) return;
+    const { error } = await (supabase as any).from("community_messages").update({ body: text, edited_at: new Date().toISOString() }).eq("id", message.id);
+    if (error) toast.error("Não foi possível editar a mensagem.");
+    else { setEditingMessageId(null); setEditingMessageBody(""); await loadMessages(); }
+  }
+
+  async function deleteMessage(message: Message) {
+    if (!(message.user_id === userId || isAdmin) || !window.confirm("Deseja apagar esta mensagem?")) return;
+    const { error } = await (supabase as any).from("community_messages").delete().eq("id", message.id);
+    if (error) toast.error("Não foi possível apagar a mensagem."); else await loadMessages();
+  }
+
+  async function togglePinMessage(message: Message) {
+    if (!isAdmin) return;
+    const { error } = await (supabase as any).from("community_messages").update({ is_pinned: !message.is_pinned }).eq("id", message.id);
+    if (error) toast.error("Não foi possível fixar a mensagem."); else await loadMessages();
+  }
+
+  async function reactToMessage(message: Message, type: "heart" | "fire") {
+    if (message.myReaction === type) {
+      const { error } = await (supabase as any).from("community_message_reactions").delete().eq("message_id", message.id).eq("user_id", userId);
+      if (error) toast.error("Não foi possível remover a reação.");
+    } else {
+      const { error } = await (supabase as any).from("community_message_reactions").upsert({ message_id: message.id, user_id: userId, reaction_type: type }, { onConflict: "message_id,user_id" });
+      if (error) toast.error("Não foi possível registrar a reação.");
+    }
     await loadMessages();
   }
 
@@ -240,10 +281,18 @@ function Comunidade() {
   }
 
   async function deletePost(post: FeedPost) {
-    if (post.user_id !== userId || !window.confirm("Deseja excluir esta publicação?")) return;
-    const { error } = await (supabase as any).from("community_posts").delete().eq("id", post.id).eq("user_id", userId);
+    if (!(post.user_id === userId || isAdmin) || !window.confirm("Deseja excluir esta publicação?")) return;
+    const query = (supabase as any).from("community_posts").delete().eq("id", post.id);
+    const { error } = await (post.user_id === userId ? query.eq("user_id", userId) : query);
     if (error) toast.error("Não foi possível excluir a publicação.");
     else { toast.success("Publicação excluída."); await loadFeed(); }
+  }
+
+  async function editPost(post: FeedPost) {
+    const updated = window.prompt("Edite o texto da publicação:", post.body);
+    if (updated === null) return;
+    const { error } = await (supabase as any).from("community_posts").update({ body: updated.trim(), updated_at: new Date().toISOString() }).eq("id", post.id);
+    if (error) toast.error("Não foi possível editar a publicação."); else { toast.success("Publicação atualizada."); await loadFeed(); }
   }
 
   async function uploadAvatar(file?: File) {
@@ -367,7 +416,7 @@ function Comunidade() {
       <div className="min-h-[calc(100dvh-4rem)] w-full overflow-hidden border-y border-primary/25 bg-card">
         {!loading && joined &&           <nav className="sticky top-0 z-20 grid grid-cols-4 border-b border-primary/20 bg-card/95 shadow-sm backdrop-blur" aria-label="Áreas da comunidade">{tabs.map(item => <button key={item.id} onClick={() => setTab(item.id)} className={`min-h-14 border-b-2 px-3 py-4 text-sm font-medium transition-colors md:min-h-16 md:text-base ${tab === item.id ? "border-primary bg-primary/5 text-primary" : "border-transparent text-muted-foreground hover:bg-primary/5"}`}>{item.label}</button>)}</nav>}
         {(!joined || tab === "inicio") && <div className="relative flex min-h-[260px] items-end overflow-hidden bg-[radial-gradient(ellipse_at_top_right,_rgba(190,151,83,0.25),_transparent_45%),linear-gradient(125deg,#101b14,#263d2c_58%,#111b15)] px-6 py-10 md:min-h-[320px] md:px-14 md:py-14">
-          <div className="relative max-w-3xl"><p className="text-xs uppercase tracking-[0.38em] text-[#d5bd82]">✦ Comunidade Hiraeth ✦</p><h1 className="mt-4 font-display text-5xl leading-none text-[#f5edda] md:text-7xl">Círculo do Fogo</h1><p className="mt-5 max-w-xl text-base leading-7 text-[#eee5d3]/85 md:text-lg">Histórias aproximam. Conversas acendem novas ideias. Encontre pessoas que sentem o mundo através dos livros, filmes e universos que amam.</p><p className="mt-7 text-xs uppercase tracking-[0.2em] text-[#d5bd82]">Um espaço para pertencer</p></div>
+          <div className="relative max-w-3xl"><h1 className="font-display text-5xl leading-none text-[#f5edda] md:text-7xl">Comunidade Círculo do Fogo</h1><p className="mt-6 text-sm uppercase tracking-[0.2em] text-[#d5bd82]">Um lugar para pertencer</p></div>
         </div>}
         {loading ? <p className="p-8 text-muted-foreground">Carregando...</p> : !joined ? <section className="mx-auto max-w-4xl px-6 py-16 text-center md:py-24">
           <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full border border-primary/30 bg-primary/10 text-primary"><Flame size={30}/></div><p className="eyebrow tracking-[0.3em]">Sua comunidade começa aqui</p><h2 className="mt-4 font-display text-4xl md:text-5xl">Sua próxima conexão começa aqui</h2>
@@ -392,7 +441,7 @@ function Comunidade() {
             </div>
             <div className="text-center"><p className="font-display text-2xl italic text-primary">Acenda uma conversa. Compartilhe uma história. Faça parte do Círculo.</p><button type="button" onClick={() => setTab("chat")} className="btn-gold mt-5">Ir para o Chat</button></div>
           </section>}
-          {tab === "chat" && <section className="flex h-[calc(100dvh-9.5rem)] min-h-[420px] flex-col bg-[#f4f0e7] dark:bg-[#172019]"><div className="flex items-center gap-3 border-b border-primary/15 bg-card px-4 py-3"><div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#20382b] text-[#e8d8b4]"><Flame size={20}/></div><div><h2 className="font-display text-lg">Chat</h2></div></div><div className="flex-1 space-y-3 overflow-y-auto bg-[radial-gradient(circle_at_20%_20%,rgba(179,148,91,0.08),transparent_30%)] px-3 py-5 md:px-8">{messages.map(message => <article key={message.id} className={`max-w-[90%] rounded-md border p-3 ${message.is_admin ? "border-emerald-700/40 bg-emerald-50/70" : message.user_id === userId ? "ml-auto border-primary/30 bg-primary/5" : "border-border bg-card"}`}><p className={`mb-1 text-xs font-semibold ${message.is_admin ? "text-emerald-700" : "text-primary"}`}>{message.is_admin ? "Hiraeth — Mari" : <button type="button" onClick={() => void openPublicProfile(message.user_id)} className="hover:underline">{message.community_profiles?.username || "Integrante"}</button>}</p><p className="whitespace-pre-wrap text-sm">{message.body}</p><time className="mt-2 block text-right text-[10px] text-muted-foreground">{new Date(message.created_at).toLocaleString("pt-BR")}</time></article>)}{messages.length === 0 && <p className="py-12 text-center text-sm text-muted-foreground">A conversa começa com você. Deixe a primeira mensagem!</p>}</div><form onSubmit={sendMessage} className="sticky bottom-0 flex items-center gap-2 border-t border-primary/15 bg-card px-3 py-3 md:px-6"><input value={body} onChange={e => setBody(e.target.value)} maxLength={3000} placeholder="Digite uma mensagem..." className="min-w-0 flex-1 rounded-full border border-primary/20 bg-background px-4 py-3 text-sm outline-none focus:border-primary" /><button className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#20382b] text-[#f5edda]" type="submit" aria-label="Enviar mensagem"><Send size={18}/></button></form></section>}
+          {tab === "chat" && <section className="flex h-[calc(100dvh-9.5rem)] min-h-[420px] flex-col bg-[#f4f0e7] dark:bg-[#172019]"><div className="flex items-center gap-3 border-b border-primary/15 bg-card px-4 py-3"><div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#20382b] text-[#e8d8b4]"><Flame size={20}/></div><div><h2 className="font-display text-lg">Chat</h2></div></div><div className="flex-1 space-y-3 overflow-y-auto bg-[radial-gradient(circle_at_20%_20%,rgba(179,148,91,0.08),transparent_30%)] px-3 py-5 md:px-8">{[...messages].sort((a,b) => Number(Boolean(b.is_pinned)) - Number(Boolean(a.is_pinned)) || new Date(a.created_at).getTime() - new Date(b.created_at).getTime()).map(message => <article key={message.id} className={`max-w-[90%] rounded-md border p-3 ${message.is_admin ? "border-[#b99a5b]/70 bg-[#20382b] text-[#f5edda] shadow-md" : message.user_id === userId ? "ml-auto border-primary/30 bg-primary/5" : "border-border bg-card"} ${message.is_pinned ? "ring-2 ring-[#b99a5b]/60" : ""}`}><p className={`mb-1 text-xs font-semibold ${message.is_admin ? "text-[#e0c783]" : "text-primary"}`}>{message.is_admin ? "Hiraeth — Mari" : <button type="button" onClick={() => void openPublicProfile(message.user_id)} className="hover:underline">{message.community_profiles?.username || "Integrante"}</button>}</p>{message.is_pinned && <p className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-[#c5a66b]">✦ Mensagem fixada</p>}{editingMessageId === message.id ? <div className="space-y-2"><textarea value={editingMessageBody} onChange={e => setEditingMessageBody(e.target.value)} maxLength={3000} className="w-full rounded border bg-background p-2 text-sm text-foreground"/><div className="flex gap-2"><button type="button" onClick={() => void saveMessageEdit(message)} className="text-xs underline">Salvar</button><button type="button" onClick={() => setEditingMessageId(null)} className="text-xs underline">Cancelar</button></div></div> : <p className="whitespace-pre-wrap text-sm">{message.body}</p>}<div className="mt-2 flex flex-wrap items-center gap-3"><time className="text-[10px] text-muted-foreground">{new Date(message.created_at).toLocaleString("pt-BR")}{message.edited_at ? " · editada" : ""}</time><button type="button" onClick={() => void reactToMessage(message, "heart")} className="text-xs text-emerald-700">❤️ {message.heartCount ?? 0}</button><button type="button" onClick={() => void reactToMessage(message, "fire")} className="text-xs text-orange-600">🔥 {message.fireCount ?? 0}</button>{(message.user_id === userId || isAdmin) && <><button type="button" onClick={() => { setEditingMessageId(message.id); setEditingMessageBody(message.body); }} className="text-xs underline">Editar</button><button type="button" onClick={() => void deleteMessage(message)} className="text-xs underline">Apagar</button></>}{isAdmin && <button type="button" onClick={() => void togglePinMessage(message)} className="text-xs underline">{message.is_pinned ? "Desafixar" : "Fixar"}</button>}</div></article>)}{messages.length === 0 && <p className="py-12 text-center text-sm text-muted-foreground">A conversa começa com você. Deixe a primeira mensagem!</p>}</div><form onSubmit={sendMessage} className="sticky bottom-0 flex items-center gap-2 border-t border-primary/15 bg-card px-3 py-3 md:px-6"><input value={body} onChange={e => setBody(e.target.value)} maxLength={3000} placeholder="Digite uma mensagem..." className="min-w-0 flex-1 rounded-full border border-primary/20 bg-background px-4 py-3 text-sm outline-none focus:border-primary" /><button className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#20382b] text-[#f5edda]" type="submit" aria-label="Enviar mensagem"><Send size={18}/></button></form></section>}
           {tab === "feed" && <section className="min-h-[calc(100dvh-9.5rem)] space-y-5 px-0 pb-8"><h2 className="px-4 pt-5 font-display text-2xl md:px-8">Feed</h2><div className="border-b border-primary/15 bg-background px-4 py-4 md:px-8"><button type="button" onClick={() => setComposerOpen(true)} className="flex w-full items-center gap-3 text-left"><span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#20382b] text-[#e8d8b4]"><ImagePlus size={20}/></span><span className="min-w-0 flex-1"><strong className="block text-sm font-medium">Criar uma publicação</strong><span className="text-xs text-muted-foreground">Compartilhe uma leitura, foto ou pensamento...</span></span><span className="rounded-full bg-primary/10 px-4 py-2 text-xs font-semibold text-primary">Criar post</span></button></div>{composerOpen && <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-3" role="dialog" aria-modal="true" aria-label="Criar publicação"><div className="max-h-[90dvh] w-full max-w-2xl overflow-y-auto rounded-xl border border-primary/25 bg-card shadow-2xl"><div className="flex items-center justify-between border-b border-primary/15 px-5 py-4"><h3 className="font-display text-2xl">Nova publicação</h3><button type="button" onClick={() => { if ((postBody.trim() || postFiles.length) && !window.confirm("Descartar esta publicação?")) return; setComposerOpen(false); setPostBody(""); setPostFiles([]); }} className="rounded-full p-2 hover:bg-primary/10" aria-label="Fechar"><X/></button></div><form onSubmit={async e => { await publishPost(e); }} className="mx-auto max-w-3xl space-y-3 border-t border-primary/10 p-4 md:p-6">
               <textarea value={postBody} onChange={e => setPostBody(e.target.value)} maxLength={5000} rows={4} placeholder="O que está passando pela sua cabeça?" className="w-full resize-y border border-primary/20 bg-card p-3 text-sm outline-none focus:border-primary" />
               <div className="flex flex-wrap items-center justify-between gap-3">
@@ -402,16 +451,16 @@ function Comunidade() {
               {postFiles.length > 0 && <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground"><span>{postFiles.length} foto(s) selecionada(s): {postFiles.map(file => file.name).join(", ")}</span><button type="button" onClick={() => { setPostFiles([]); const el = document.getElementById("community-post-images") as HTMLInputElement | null; if (el) el.value = ""; }} aria-label="Remover fotos selecionadas"><X size={15}/></button></div>}
               <p className="text-[11px] text-muted-foreground">Até 4 fotos por publicação, com limite de 8 MB por imagem.</p>
             </form></div></div>}<div className="mx-auto w-full max-w-3xl space-y-5 px-3 md:px-6">
-            {posts.length === 0 ? <div className="border border-dashed border-primary/30 px-5 py-12 text-center"><Flame className="mx-auto text-primary" size={30}/><p className="mt-3 font-display text-xl">A primeira chama do Feed pode ser sua</p><p className="mt-1 text-sm text-muted-foreground">Compartilhe uma foto ou escreva algo para começar.</p></div> : posts.map(post => <article key={post.id} className="overflow-hidden border border-primary/20 bg-background/60">
+            {posts.length === 0 ? <div className="border border-dashed border-primary/30 px-5 py-12 text-center"><Flame className="mx-auto text-primary" size={30}/><p className="mt-3 font-display text-xl">A primeira chama do Feed pode ser sua</p><p className="mt-1 text-sm text-muted-foreground">Compartilhe uma foto ou escreva algo para começar.</p></div> : posts.map(post => <article key={post.id} className={`overflow-hidden border ${post.user_id === userId && isAdmin ? "border-[#b99a5b]/70 bg-[#20382b]/10 shadow-md" : "border-primary/20 bg-background/60"}`}>
               <div className="flex items-start gap-3 p-4">
                 {post.avatar_url ? <button type="button" onClick={() => void openPublicProfile(post.user_id)} aria-label={"Abrir perfil de " + post.author}><img src={post.avatar_url} alt="" className="h-10 w-10 rounded-full object-cover"/></button> : <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#20382b] text-[#e8d8b4]">{post.author.slice(0,1).toUpperCase()}</div>}
                 <div className="min-w-0 flex-1"><button type="button" onClick={() => void openPublicProfile(post.user_id)} className="text-sm font-semibold hover:text-primary hover:underline">{post.author}</button><time className="text-xs text-muted-foreground">{new Date(post.created_at).toLocaleString("pt-BR")}</time></div>
-                {post.user_id === userId && <button type="button" onClick={() => void deletePost(post)} aria-label="Excluir publicação" className="rounded p-2 text-muted-foreground hover:text-destructive"><Trash2 size={16}/></button>}
+                {(post.user_id === userId || isAdmin) && <div className="flex gap-1">{post.user_id === userId && <button type="button" onClick={() => void editPost(post)} aria-label="Editar publicação" className="rounded p-2 text-muted-foreground hover:text-primary"><span className="text-xs">Editar</span></button>}<button type="button" onClick={() => void deletePost(post)} aria-label="Excluir publicação" className="rounded p-2 text-muted-foreground hover:text-destructive"><Trash2 size={16}/></button></div>}
               </div>
               {post.body && <p className="whitespace-pre-wrap px-4 pb-4 text-sm leading-relaxed">{post.body}</p>}
               {post.image_urls?.length > 0 && <div className={`grid gap-1 ${post.image_urls.length === 1 ? "grid-cols-1" : "grid-cols-2"}`}>{post.image_urls.map(url => <img key={url} src={url} alt="Foto compartilhada no Círculo do Fogo" loading="lazy" className={`w-full object-cover ${post.image_urls.length === 1 ? "max-h-[560px]" : "aspect-square"}`}/>)}</div>}
               <div className="flex flex-wrap items-center gap-2 border-t border-primary/10 px-3 py-3">
-                <button type="button" disabled={reacting === post.id} onClick={() => void reactToPost(post, "heart")} aria-pressed={post.myReaction === "heart"} className={`${post.myReaction === "heart" ? "community-heart-active " : ""}inline-flex items-center gap-1.5 rounded-full border px-3 py-2 text-sm transition-colors ${post.myReaction === "heart" ? "border-emerald-700 bg-emerald-50 text-emerald-800" : "border-transparent text-muted-foreground hover:bg-emerald-50 hover:text-emerald-800"}`}><Heart size={18} fill={post.myReaction === "heart" ? "currentColor" : "none"}/> <span>{post.heartCount}</span><span className="sr-only">corações verdes</span></button>
+                <button type="button" disabled={reacting === post.id} onClick={() => void reactToPost(post, "heart")} aria-pressed={post.myReaction === "heart"} className={`${post.myReaction === "heart" ? "community-heart-active " : ""}inline-flex items-center gap-1.5 rounded-full border px-3 py-2 text-sm transition-colors ${post.myReaction === "heart" ? "border-emerald-700 bg-emerald-50 text-emerald-800" : "border-emerald-200 text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800"}`}><Heart size={18} fill={post.myReaction === "heart" ? "currentColor" : "none"}/> <span>{post.heartCount}</span><span className="sr-only">corações verdes</span></button>
                 <button type="button" disabled={reacting === post.id} onClick={() => void reactToPost(post, "fire")} aria-pressed={post.myReaction === "fire"} className={`${post.myReaction === "fire" ? "community-fire-active " : ""}inline-flex items-center gap-1.5 rounded-full border px-3 py-2 text-sm transition-colors ${post.myReaction === "fire" ? "border-orange-500 bg-orange-50 text-orange-700" : "border-transparent text-muted-foreground hover:bg-orange-50 hover:text-orange-700"}`}><Flame size={19} fill={post.myReaction === "fire" ? "currentColor" : "none"}/> <span>{post.fireCount}</span><span className="sr-only">foguinhos</span></button>
                 <button type="button" onClick={() => void toggleComments(post.id)} className="ml-auto inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm text-muted-foreground hover:bg-primary/5 hover:text-primary"><MessageCircle size={17}/> {post.commentCount} comentários</button>
               </div>
