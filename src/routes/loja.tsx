@@ -263,7 +263,8 @@ useEffect(() => {
             ))}
           </div>
         )}
-        <CustomerReviews />\n      <SecretFlamesPromotion />
+        <CustomerReviews />
+        <SecretFlamesPromotion />
         {enteringCategory && <div className="portal-entry-overlay" aria-hidden="true">{enteringCategory.image_url ? <img src={enteringCategory.image_url} alt="" className="portal-entry-image" /> : <div className="portal-entry-placeholder"><span>{enteringCategory.name}</span></div>}</div>}
       </main>
 
