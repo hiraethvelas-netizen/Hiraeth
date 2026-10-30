@@ -44,7 +44,7 @@ export function SiteHeader() {
   const { isAdmin, editMode, toggle } = useAdminEdit();
 
   return (
-    <header className="relative z-20 w-full border-b border-primary/20 bg-background/95 px-5 py-4 md:px-10">
+    <header className="relative z-[80] w-full border-b border-primary/20 bg-background px-5 py-4 md:px-10">
       <div className="mx-auto grid max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-3">
         <div className="flex items-center gap-3">
         <button type="button" onClick={() => { const internalReferrer = document.referrer && new URL(document.referrer).origin === window.location.origin; if (internalReferrer && window.history.length > 1) window.history.back(); else window.location.assign("/inicio"); }} className="flex h-9 w-9 items-center justify-center rounded-full border border-primary/25 text-foreground transition-colors hover:bg-primary/10" aria-label="Voltar" title="Voltar"><span aria-hidden="true" className="text-xl leading-none">←</span></button>
@@ -60,7 +60,7 @@ export function SiteHeader() {
             </svg>
             <span className="hidden sm:inline">Minha conta</span>
           </summary>
-          <div className="absolute left-0 top-full z-50 mt-3 w-56 overflow-hidden rounded-md border border-primary/25 bg-background p-1.5 shadow-lg">
+          <div className="absolute left-0 top-full z-[90] mt-3 w-56 overflow-hidden rounded-md border border-primary/30 bg-background p-1.5 shadow-[0_12px_32px_rgba(0,0,0,0.22)] ring-1 ring-background">
             <Link to="/biblioteca" className="block rounded px-3 py-2.5 text-sm text-foreground/85 transition-colors hover:bg-primary/10 hover:text-primary">
               Minha conta
             </Link>
