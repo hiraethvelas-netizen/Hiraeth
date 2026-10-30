@@ -219,6 +219,8 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/carrinho': typeof CarrinhoRoute
   '/cuidados': typeof CuidadosRoute
+  '/clube-do-livro': typeof ClubeDoLivroRoute
+  '/comunidade': typeof AuthenticatedComunidadeRoute
   '/inicio': typeof InicioRoute
   '/loja': typeof LojaRoute
   '/privacidade': typeof PrivacidadeRoute
@@ -250,6 +252,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/carrinho': typeof CarrinhoRoute
   '/cuidados': typeof CuidadosRoute
+  '/clube-do-livro': typeof ClubeDoLivroRoute
   '/inicio': typeof InicioRoute
   '/loja': typeof LojaRoute
   '/privacidade': typeof PrivacidadeRoute
@@ -258,6 +261,8 @@ export interface FileRoutesById {
   '/_authenticated/biblioteca': typeof AuthenticatedBibliotecaRoute
   '/_authenticated/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/_authenticated/pedidos': typeof AuthenticatedPedidosRoute
+  '/_authenticated/comunidade': typeof AuthenticatedComunidadeRoute
+  '/_authenticated/comunidade': typeof AuthenticatedComunidadeRoute
   '/admin/aparencia': typeof AdminAparenciaRoute
   '/admin/avaliacoes': typeof AdminAvaliacoesRoute
   '/admin/banners': typeof AdminBannersRoute
