@@ -46,6 +46,8 @@ export function SiteHeader() {
   return (
     <header className="relative z-20 w-full border-b border-primary/20 bg-background/95 px-5 py-4 md:px-10">
       <div className="mx-auto grid max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-3">
+        <div className="flex items-center gap-3">
+        <button type="button" onClick={() => { const internalReferrer = document.referrer && new URL(document.referrer).origin === window.location.origin; if (internalReferrer && window.history.length > 1) window.history.back(); else window.location.assign("/inicio"); }} className="flex h-9 w-9 items-center justify-center rounded-full border border-primary/25 text-foreground transition-colors hover:bg-primary/10" aria-label="Voltar" title="Voltar"><span aria-hidden="true" className="text-xl leading-none">←</span></button>
         <details className="relative w-fit">
           <summary
             className="flex cursor-pointer list-none items-center gap-2 text-sm text-foreground/85 transition-colors hover:text-primary [&::-webkit-details-marker]:hidden"
@@ -72,6 +74,7 @@ export function SiteHeader() {
             </Link>
           </div>
         </details>
+        </div>
 
         <Link to="/inicio" className="justify-self-center font-display text-2xl italic font-medium tracking-[0.02em] text-foreground sm:text-3xl md:text-4xl" aria-label="Hiraeth - início">
           Hiraeth
