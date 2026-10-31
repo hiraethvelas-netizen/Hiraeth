@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { SiteHeader } from "@/components/SiteLayout";
+import { getCommunityMessageIdentity } from "@/lib/community-message-identity";
 import { toast } from "sonner";
 import { Flame, Heart, ImagePlus, MessageCircle, Send, Trash2, X, UserRound, BookOpen, Film, Tv, MoreVertical } from "lucide-react";
 
@@ -474,8 +475,8 @@ function Comunidade() {
 
 
     <main className="w-full px-0 pb-0 pt-0">
-      <div className="min-h-[calc(100dvh-4rem)] w-full overflow-hidden border-y border-primary/25 bg-card">
-        {!loading && joined &&           <nav className="sticky top-0 z-20 grid grid-cols-4 border-b border-primary/20 bg-card/95 shadow-sm backdrop-blur" aria-label="Áreas da comunidade">{tabs.map(item => <button key={item.id} onClick={() => setTab(item.id)} className={`min-h-14 border-b-2 px-3 py-4 text-sm font-medium transition-colors md:min-h-16 md:text-base ${tab === item.id ? "border-primary bg-primary/5 text-primary" : "border-transparent text-muted-foreground hover:bg-primary/5"}`}>{item.label}</button>)}</nav>}
+      <div className="community-shell min-h-[calc(100dvh-4rem)] w-full overflow-hidden border-y border-primary/25 bg-background">
+        {!loading && joined &&           <nav className="sticky top-0 z-20 grid grid-cols-4 border-b border-primary/20 bg-background/95 shadow-sm backdrop-blur" aria-label="Áreas da comunidade">{tabs.map(item => <button key={item.id} onClick={() => setTab(item.id)} className={`min-h-14 border-b-2 px-3 py-4 text-sm font-medium transition-colors md:min-h-16 md:text-base ${tab === item.id ? "border-primary bg-primary/5 text-primary" : "border-transparent text-muted-foreground hover:bg-primary/5"}`}>{item.label}</button>)}</nav>}
         {(!joined || tab === "inicio") && <div className="relative flex min-h-[260px] items-end overflow-hidden bg-[radial-gradient(ellipse_at_top_right,_rgba(190,151,83,0.25),_transparent_45%),linear-gradient(125deg,#101b14,#263d2c_58%,#111b15)] px-6 py-10 md:min-h-[320px] md:px-14 md:py-14">
           <div className="relative max-w-3xl"><h1 className="font-display text-5xl leading-none text-[#f5edda] md:text-7xl">Comunidade Círculo do Fogo</h1><p className="mt-6 text-sm uppercase tracking-[0.2em] text-[#d5bd82]">Um lugar para pertencer</p></div>
         </div>}
@@ -492,11 +493,11 @@ function Comunidade() {
               <p className="mt-5 text-base leading-8 text-muted-foreground md:text-lg">O Círculo do Fogo é o espaço de encontro da Hiraeth para quem encontra nas histórias um jeito de sentir, imaginar e se conectar. É um lugar para conversar sobre livros, filmes e séries, dividir descobertas, conhecer pessoas com gostos parecidos e criar novas lembranças em torno dos universos que amamos.</p>
             </div>
             <div className="grid gap-5 md:grid-cols-3">
-              <article className="rounded-xl border border-primary/20 bg-background p-6"><div className="mb-4 flex h-11 w-11 items-center justify-center rounded-full bg-primary/10 text-primary"><MessageCircle/></div><h3 className="font-display text-2xl">Converse no Chat</h3><p className="mt-3 text-sm leading-7 text-muted-foreground">Participe das conversas em tempo real, troque ideias, faça perguntas e fale sobre aquilo que está lendo ou assistindo. É o cantinho para uma conversa espontânea entre integrantes.</p></article>
-              <article className="rounded-xl border border-primary/20 bg-background p-6"><div className="mb-4 flex h-11 w-11 items-center justify-center rounded-full bg-primary/10 text-primary"><ImagePlus/></div><h3 className="font-display text-2xl">Compartilhe no Feed</h3><p className="mt-3 text-sm leading-7 text-muted-foreground">Publique fotos, opiniões, trechos de experiências e descobertas. Reaja às publicações com corações e foguinhos, comente e participe do que outras pessoas estão compartilhando.</p></article>
-              <article className="rounded-xl border border-primary/20 bg-background p-6"><div className="mb-4 flex h-11 w-11 items-center justify-center rounded-full bg-primary/10 text-primary"><BookOpen/></div><h3 className="font-display text-2xl">Mostre seu Universo</h3><p className="mt-3 text-sm leading-7 text-muted-foreground">No seu perfil, conte um pouco sobre você e monte seu Universo com capas e títulos de livros, filmes e séries que fazem parte da sua história. Descubra afinidades com outros integrantes.</p></article>
+              <article className="community-overview-card rounded-xl border p-6"><div className="mb-4 flex h-11 w-11 items-center justify-center rounded-full bg-primary/10 text-primary"><MessageCircle/></div><h3 className="font-display text-2xl">Converse no Chat</h3><p className="mt-3 text-sm leading-7 text-muted-foreground">Participe das conversas em tempo real, troque ideias, faça perguntas e fale sobre aquilo que está lendo ou assistindo. É o cantinho para uma conversa espontânea entre integrantes.</p></article>
+              <article className="community-overview-card rounded-xl border p-6"><div className="mb-4 flex h-11 w-11 items-center justify-center rounded-full bg-primary/10 text-primary"><ImagePlus/></div><h3 className="font-display text-2xl">Compartilhe no Feed</h3><p className="mt-3 text-sm leading-7 text-muted-foreground">Publique fotos, opiniões, trechos de experiências e descobertas. Reaja às publicações com corações e foguinhos, comente e participe do que outras pessoas estão compartilhando.</p></article>
+              <article className="community-overview-card rounded-xl border p-6"><div className="mb-4 flex h-11 w-11 items-center justify-center rounded-full bg-primary/10 text-primary"><BookOpen/></div><h3 className="font-display text-2xl">Mostre seu Universo</h3><p className="mt-3 text-sm leading-7 text-muted-foreground">No seu perfil, conte um pouco sobre você e monte seu Universo com capas e títulos de livros, filmes e séries que fazem parte da sua história. Descubra afinidades com outros integrantes.</p></article>
             </div>
-            <div className="grid gap-8 rounded-xl border border-primary/20 bg-background/70 p-6 md:grid-cols-2 md:p-9">
+            <div className="community-overview-panel grid gap-8 rounded-xl border p-6 md:grid-cols-2 md:p-9">
               <div><p className="eyebrow">Nosso propósito</p><h3 className="mt-2 font-display text-3xl">Um espaço feito de respeito e afeto.</h3><p className="mt-3 text-sm leading-7 text-muted-foreground">Cada pessoa vive uma história de um jeito. Aqui, opiniões diferentes são bem-vindas: converse com gentileza, respeite o gosto de cada integrante, dê crédito quando compartilhar algo de outra pessoa e ajude a manter um ambiente acolhedor.</p></div>
               <div><p className="eyebrow">Como começar</p><ol className="mt-3 space-y-3 text-sm leading-7 text-muted-foreground"><li><strong className="text-foreground">01. Apresente-se:</strong> personalize seu perfil e conte um pouco sobre você.</li><li><strong className="text-foreground">02. Abra uma conversa:</strong> passe pelo Chat e conheça quem está por aqui.</li><li><strong className="text-foreground">03. Compartilhe:</strong> publique no Feed e adicione seus favoritos ao Meu Universo.</li></ol></div>
             </div>
@@ -510,16 +511,17 @@ function Comunidade() {
             <div className="flex-1 space-y-4 overflow-y-auto bg-[radial-gradient(circle_at_20%_20%,rgba(179,148,91,0.08),transparent_30%)] px-3 py-5 md:px-8">
               {messages.map(message => {
                 const ownMessage = message.user_id === userId;
+                const messageIdentity = getCommunityMessageIdentity(message.is_admin === true);
                 const menuOpen = openMessageMenuId === message.id;
                 const reactions = [
                   { type: "heart" as const, emoji: "❤️", count: message.heartCount ?? 0 },
                   { type: "fire" as const, emoji: "🔥", count: message.fireCount ?? 0 },
                 ].filter(reaction => reaction.count > 0);
                 return <article key={message.id} className={`flex w-full flex-col ${ownMessage ? "items-end" : "items-start"}`}>
-                  <div className={`relative w-fit max-w-[88%] rounded-2xl px-3.5 py-2.5 shadow-sm ${ownMessage ? "rounded-tr-sm border border-[#c6d5bd] bg-[#e3edda] text-[#243629] dark:border-[#50664f] dark:bg-[#304532] dark:text-[#f1f0e7]" : "rounded-tl-sm border border-[#e4ddcf] bg-[#f7efda] text-[#33352f] dark:border-[#455047] dark:bg-[#26332a] dark:text-[#f1f0e7]"} ${message.is_pinned ? "ring-2 ring-[#b99a5b]/70" : ""}`}>
+                  <div className={`relative w-fit max-w-[88%] rounded-2xl px-3.5 py-2.5 shadow-sm ${ownMessage ? "rounded-tr-sm border border-[#c6d5bd] bg-[#e3edda] text-[#243629] dark:border-[#50664f] dark:bg-[#304532] dark:text-[#f1f0e7]" : "rounded-tl-sm border border-[#e4ddcf] bg-[#f7efda] text-[#33352f] dark:border-[#455047] dark:bg-[#26332a] dark:text-[#f1f0e7]"} ${messageIdentity.bubbleClassName} ${message.is_pinned ? "ring-2 ring-[#b99a5b]/70" : ""}`}>
                     <div className="mb-1 flex items-center gap-2 pr-6">
                       <button type="button" onClick={() => void openPublicProfile(message.user_id)} className="text-xs font-bold text-[#80653a] hover:underline dark:text-[#d6bd88]">{message.is_admin ? "Hiraeth" : message.community_profiles?.username || "Integrante"}</button>
-                      {message.is_pinned && <span className="text-[9px] font-semibold text-[#a27b35]">Fixada</span>}
+                      {messageIdentity.label && <span className="community-official-badge">{messageIdentity.label}</span>}{message.is_pinned && <span className="text-[9px] font-semibold text-[#a27b35]">Fixada</span>}
                     </div>
                     {editingMessageId === message.id ? <div className="min-w-[220px] space-y-2">
                       <textarea value={editingMessageBody} onChange={e => setEditingMessageBody(e.target.value)} maxLength={3000} className="w-full rounded-lg border border-primary/20 bg-background p-2 text-sm text-foreground"/>
