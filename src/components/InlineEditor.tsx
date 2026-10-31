@@ -12,7 +12,7 @@ export type Field =
 
 type Values = Record<string, unknown>;
 
-/** Pencil button shown only to admins in edit mode; opens a form panel. */
+/** Pencil button shown only to admins in edit mode; opens a viewport-centered form modal. */
 export function InlineEditor({ label, fields, values, onSave, className = "" }: {
   label: string; fields: Field[]; values: Values; onSave: (v: Values) => Promise<void>; className?: string;
 }) {
@@ -59,8 +59,11 @@ export function InlineEditor({ label, fields, values, onSave, className = "" }: 
         <Pencil size={13} aria-hidden="true" /> Editar {label}
       </button>
       {open && typeof document !== "undefined" && createPortal(
-        <div onClick={(event) => { event.preventDefault(); event.stopPropagation(); }} className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto bg-foreground/40 p-4 text-left" role="dialog" aria-modal="true" aria-label={`Editar ${label}`}>
-          <form onSubmit={submit} className="mt-10 w-full max-w-xl space-y-4 rounded-md border border-primary/30 bg-background p-5 text-foreground shadow-xl">
+        <div onClick={(event) => { event.preventDefault(); event.stopPropagation(); }}
+          className="fixed inset-0 z-[100] flex items-center justify-center overflow-hidden bg-foreground/40 p-3 text-left sm:p-4"
+          role="dialog" aria-modal="true" aria-label={`Editar ${label}`}>
+          <form onSubmit={submit}
+            className="my-auto max-h-[calc(100dvh-1.5rem)] w-full max-w-xl space-y-4 overflow-y-auto overscroll-contain rounded-md border border-primary/30 bg-background p-5 text-foreground shadow-xl sm:max-h-[calc(100dvh-2rem)]">
             <div className="flex items-center justify-between">
               <h2 className="font-display text-2xl">Editar {label}</h2>
               <button type="button" onClick={() => setOpen(false)} aria-label="Fechar"><X size={18} /></button>
@@ -105,7 +108,7 @@ export function InlineEditor({ label, fields, values, onSave, className = "" }: 
               );
             })}
             <div className="flex gap-3">
-              <button type="submit" onClick={(e) => { e.preventDefault(); void saveChanges(); }} disabled={busy} className="bg-primary px-5 py-2.5 text-primary-foreground disabled:opacity-50">{busy ? "Salvando..." : "Salvar"}</button>
+              <button type="submit" disabled={busy} className="bg-primary px-5 py-2.5 text-primary-foreground disabled:opacity-50">{busy ? "Salvando..." : "Salvar"}</button>
               <button type="button" onClick={() => setOpen(false)} className="border px-5 py-2.5">Cancelar</button>
             </div>
           </form>
