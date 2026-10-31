@@ -1,6 +1,7 @@
 // Chat do Círculo do Fogo: interface leve, com ações por mensagem e permissões do autor.
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { SiteHeader } from "@/components/SiteLayout";
 import { getCommunityMessageIdentity } from "@/lib/community-message-identity";
@@ -57,6 +58,7 @@ function Comunidade() {
   const [commentDrafts, setCommentDrafts] = useState<Record<string, string>>({});
   const [reacting, setReacting] = useState<string | null>(null);
   const [reactingMessageId, setReactingMessageId] = useState<string | null>(null);
+  const [messageMenuPosition, setMessageMenuPosition] = useState<{ top: number; left: number } | null>(null);
   const [interests, setInterests] = useState<{ id: string; interest_type: "book" | "movie" | "series" | "other"; title: string; image_url?: string | null }[]>([]);
   const [interestTitle, setInterestTitle] = useState("");
   const [interestType, setInterestType] = useState<"book" | "movie" | "series" | "other">("book");
@@ -70,6 +72,28 @@ function Comunidade() {
   const [publicInterests, setPublicInterests] = useState<typeof interests>([]);
   const [publicLibrary, setPublicLibrary] = useState<LibraryCandle[]>([]);
   const [avatarUploading, setAvatarUploading] = useState(false);
+
+  function closeMessageMenu() {
+    setOpenMessageMenuId(null);
+    setMessageMenuPosition(null);
+  }
+
+  function toggleMessageMenu(message: Message, trigger: HTMLButtonElement) {
+    if (openMessageMenuId === message.id) {
+      closeMessageMenu();
+      return;
+    }
+    const rect = trigger.getBoundingClientRect();
+    const menuHeight = (message.user_id === userId ? 112 : 0) + (isAdmin ? 58 : 0) + 12;
+    const menuWidth = 192;
+    const preferredTop = rect.top - menuHeight - 8;
+    const top = preferredTop >= 8 ? preferredTop : rect.bottom + 8;
+    setMessageMenuPosition({
+      top: Math.max(8, Math.min(top, window.innerHeight - menuHeight - 8)),
+      left: Math.max(8, Math.min(rect.right - menuWidth, window.innerWidth - menuWidth - 8)),
+    });
+    setOpenMessageMenuId(message.id);
+  }
 
   async function loadInterests(currentUserId = userId) {
     const { data, error } = await (supabase as any).from("community_interests").select("id,interest_type,title,image_url").eq("user_id", currentUserId).order("created_at", { ascending: false });
@@ -236,37 +260,41 @@ function Comunidade() {
   async function reactToMessage(message: Message, type: "heart" | "fire") {
     if (!userId || reactingMessageId) return;
     setReactingMessageId(message.id);
+    closeMessageMenu();
+    const operation = getMessageReactionOperation(message.myReaction ?? null, type);
     try {
       const reactionsTable = (supabase as any).from("community_message_reactions");
-      const { data: currentReaction, error: lookupError } = await reactionsTable
-        .select("id,reaction_type")
-        .eq("message_id", message.id)
-        .eq("user_id", userId)
-        .maybeSingle();
-      if (lookupError) throw lookupError;
-
-      const operation = getMessageReactionOperation(currentReaction?.reaction_type ?? null, type);
       if (operation === "delete") {
-        const { error } = await reactionsTable.delete().eq("id", currentReaction.id).eq("user_id", userId);
+        const { data, error } = await reactionsTable
+          .delete()
+          .eq("message_id", message.id)
+          .eq("user_id", userId)
+          .select("id")
+          .maybeSingle();
         if (error) throw error;
-      } else if (operation === "update") {
-        const { error } = await reactionsTable.update({ reaction_type: type }).eq("id", currentReaction.id).eq("user_id", userId);
-        if (error) throw error;
+        if (!data) throw new Error("A reação anterior não foi localizada. Atualize o chat e tente novamente.");
       } else {
-        const { error } = await reactionsTable.insert({ message_id: message.id, user_id: userId, reaction_type: type });
-        // Another active session may have reacted after the lookup. Recover that race by
-        // updating the unique (message_id, user_id) row instead of failing silently.
-        if (error?.code === "23505") {
-          const { error: retryError } = await reactionsTable
-            .update({ reaction_type: type })
-            .eq("message_id", message.id)
-            .eq("user_id", userId);
-          if (retryError) throw retryError;
-        } else if (error) {
-          throw error;
-        }
+        // The unique key (message_id, user_id) makes this safe for both first reactions and changes.
+        const { data, error } = await reactionsTable
+          .upsert({ message_id: message.id, user_id: userId, reaction_type: type }, { onConflict: "message_id,user_id" })
+          .select("id")
+          .single();
+        if (error) throw error;
+        if (!data) throw new Error("O servidor não confirmou o salvamento da reação.");
       }
 
+      setMessages(current => current.map(item => {
+        if (item.id !== message.id) return item;
+        const nextReaction = operation === "delete" ? null : type;
+        let heartCount = item.heartCount ?? 0;
+        let fireCount = item.fireCount ?? 0;
+        if (item.myReaction === "heart") heartCount = Math.max(0, heartCount - 1);
+        if (item.myReaction === "fire") fireCount = Math.max(0, fireCount - 1);
+        if (nextReaction === "heart") heartCount += 1;
+        if (nextReaction === "fire") fireCount += 1;
+        return { ...item, myReaction: nextReaction, heartCount, fireCount };
+      }));
+      toast.success(operation === "delete" ? "Reação removida." : "Reação registrada.");
       await loadMessages(userId);
     } catch (error) {
       console.error("Erro ao reagir à mensagem do chat:", error);
@@ -659,15 +687,11 @@ function Comunidade() {
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#20382b] text-[#e8d8b4]"><Flame size={20}/></div>
               <div><h2 className="font-display text-lg">Círculo do Fogo</h2><p className="text-xs text-muted-foreground">Conversa da comunidade</p></div>
             </div>
-            <div className="flex-1 space-y-4 overflow-y-auto bg-[radial-gradient(circle_at_20%_20%,rgba(179,148,91,0.08),transparent_30%)] px-3 py-5 md:px-8">
+            <div onScroll={closeMessageMenu} className="flex-1 space-y-4 overflow-y-auto bg-[radial-gradient(circle_at_20%_20%,rgba(179,148,91,0.08),transparent_30%)] px-3 py-5 md:px-8">
               {messages.map(message => {
                 const ownMessage = message.user_id === userId;
                 const messageIdentity = getCommunityMessageIdentity(message.is_admin === true);
                 const menuOpen = openMessageMenuId === message.id;
-                const reactions = [
-                  { type: "heart" as const, emoji: "❤️", count: message.heartCount ?? 0 },
-                  { type: "fire" as const, emoji: "🔥", count: message.fireCount ?? 0 },
-                ].filter(reaction => reaction.count > 0);
                 return <article key={message.id} className={`flex w-full flex-col ${ownMessage ? "items-end" : "items-start"}`}>
                   <div className={`relative w-fit max-w-[88%] rounded-2xl px-3.5 py-2.5 shadow-sm ${ownMessage ? "rounded-tr-sm border border-[#c6d5bd] bg-[#e3edda] text-[#243629] dark:border-[#50664f] dark:bg-[#304532] dark:text-[#f1f0e7]" : "rounded-tl-sm border border-[#e4ddcf] bg-[#f7efda] text-[#33352f] dark:border-[#455047] dark:bg-[#26332a] dark:text-[#f1f0e7]"} ${messageIdentity.bubbleClassName} ${message.is_pinned ? "ring-2 ring-[#b99a5b]/70" : ""}`}>
                     <div className="mb-1 flex items-center gap-2 pr-6">
@@ -680,27 +704,29 @@ function Comunidade() {
                     </div> : <p className="whitespace-pre-wrap break-words text-sm leading-relaxed">{message.body}</p>}
                     <div className="mt-1.5 flex items-center justify-end gap-1.5">
                       <time className="text-[10px] text-muted-foreground">{new Date(message.created_at).toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})}{message.edited_at ? " · editada" : ""}</time>
-                      <div className="relative">
-                        <button type="button" onClick={() => setOpenMessageMenuId(menuOpen ? null : message.id)} aria-label="Opções da mensagem" aria-expanded={menuOpen} className="rounded-full p-1 text-muted-foreground transition-colors hover:bg-black/10"><MoreVertical size={15}/></button>
-                        {menuOpen && <div className="absolute bottom-full right-0 z-30 mb-1 min-w-40 overflow-hidden rounded-xl border border-primary/20 bg-background p-1 text-foreground shadow-xl">
-                          <p className="px-3 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Reagir</p>
-                          <div className="flex items-center justify-around px-2 pb-2">
-                            <button type="button" disabled={reactingMessageId === message.id} onClick={() => { void reactToMessage(message,"heart"); setOpenMessageMenuId(null); }} aria-label="Reagir com coração" className="rounded-lg p-2 text-lg hover:bg-primary/10 disabled:cursor-wait disabled:opacity-50">❤️</button>
-                            <button type="button" disabled={reactingMessageId === message.id} onClick={() => { void reactToMessage(message,"fire"); setOpenMessageMenuId(null); }} aria-label="Reagir com fogo" className="rounded-lg p-2 text-lg hover:bg-primary/10 disabled:cursor-wait disabled:opacity-50">🔥</button>
-                          </div>
-                          {ownMessage && <>
-                            <div className="my-1 border-t border-primary/10"/>
-                            <button type="button" onClick={() => { setEditingMessageId(message.id); setEditingMessageBody(message.body); setOpenMessageMenuId(null); }} className="block w-full rounded-lg px-3 py-2 text-left text-xs hover:bg-primary/10">Editar mensagem</button>
-                            <button type="button" onClick={() => { setOpenMessageMenuId(null); void deleteMessage(message); }} className="block w-full rounded-lg px-3 py-2 text-left text-xs text-red-600 hover:bg-red-50">Apagar mensagem</button>
-                          </>}
-                          {isAdmin && <><div className="my-1 border-t border-primary/10"/><button type="button" onClick={() => { setOpenMessageMenuId(null); void togglePinMessage(message); }} className="block w-full rounded-lg px-3 py-2 text-left text-xs hover:bg-primary/10">{message.is_pinned ? "Desafixar mensagem" : "Fixar mensagem"}</button></>}
-                        </div>}
-                      </div>
+                      {(ownMessage || isAdmin) && <div className="relative">
+                        <button type="button" onClick={event => menuOpen ? closeMessageMenu() : toggleMessageMenu(message, event.currentTarget)} aria-label="Opções da mensagem" aria-expanded={menuOpen} aria-haspopup="menu" className="rounded-full p-1 text-muted-foreground transition-colors hover:bg-black/10"><MoreVertical size={15}/></button>
+                        {menuOpen && messageMenuPosition && createPortal(
+                          <div role="menu" style={{ top: messageMenuPosition.top, left: messageMenuPosition.left }} className="fixed z-[9999] max-h-[65dvh] w-48 overflow-y-auto rounded-xl border border-primary/20 bg-background p-1 text-foreground shadow-2xl">
+                            {ownMessage && <>
+                              <button type="button" role="menuitem" onClick={() => { setEditingMessageId(message.id); setEditingMessageBody(message.body); closeMessageMenu(); }} className="block w-full rounded-lg px-3 py-2.5 text-left text-sm hover:bg-primary/10">Editar mensagem</button>
+                              <button type="button" role="menuitem" onClick={() => { closeMessageMenu(); void deleteMessage(message); }} className="block w-full rounded-lg px-3 py-2.5 text-left text-sm text-red-600 hover:bg-red-50">Apagar mensagem</button>
+                            </>}
+                            {isAdmin && <><div className="my-1 border-t border-primary/10"/><button type="button" role="menuitem" onClick={() => { closeMessageMenu(); void togglePinMessage(message); }} className="block w-full rounded-lg px-3 py-2.5 text-left text-sm hover:bg-primary/10">{message.is_pinned ? "Desafixar mensagem" : "Fixar mensagem"}</button></>}
+                          </div>,
+                          document.body,
+                        )}
+                      </div>}
                     </div>
                   </div>
-                  {reactions.length > 0 && <div className={`mt-1 flex gap-1 ${ownMessage ? "mr-2" : "ml-2"}`}>
-                    {reactions.map(reaction => <button key={reaction.type} type="button" disabled={reactingMessageId === message.id} onClick={() => void reactToMessage(message,reaction.type)} aria-label={`Reagir com ${reaction.emoji}`} aria-pressed={message.myReaction === reaction.type} className={`rounded-full border px-2 py-0.5 text-xs shadow-sm disabled:cursor-wait disabled:opacity-50 ${message.myReaction === reaction.type ? "border-primary/50 bg-primary/15" : "border-primary/15 bg-background/90"}`}>{reaction.emoji} {reaction.count}</button>)}
-                  </div>}
+                  <div className={`mt-1 flex gap-1.5 ${ownMessage ? "mr-2" : "ml-2"}`}>
+                    <button type="button" disabled={reactingMessageId === message.id} onClick={() => void reactToMessage(message, "heart")} aria-label="Reagir com coração" aria-pressed={message.myReaction === "heart"} className={`inline-flex min-h-8 items-center gap-1 rounded-full border px-2.5 py-1 text-xs shadow-sm transition-colors disabled:cursor-wait disabled:opacity-50 ${message.myReaction === "heart" ? "border-[#9b4a43] bg-[#f8e4e0] text-[#7d2823]" : "border-primary/20 bg-background text-foreground hover:bg-primary/10"}`}>
+                      <Heart size={13} className={message.myReaction === "heart" ? "fill-current" : ""}/>{(message.heartCount ?? 0) > 0 && <span>{message.heartCount}</span>}
+                    </button>
+                    <button type="button" disabled={reactingMessageId === message.id} onClick={() => void reactToMessage(message, "fire")} aria-label="Reagir com fogo" aria-pressed={message.myReaction === "fire"} className={`inline-flex min-h-8 items-center gap-1 rounded-full border px-2.5 py-1 text-xs shadow-sm transition-colors disabled:cursor-wait disabled:opacity-50 ${message.myReaction === "fire" ? "border-[#b66a28] bg-[#fff0d9] text-[#824714]" : "border-primary/20 bg-background text-foreground hover:bg-primary/10"}`}>
+                      🔥{(message.fireCount ?? 0) > 0 && <span>{message.fireCount}</span>}
+                    </button>
+                  </div>
                 </article>;
               })}
               {messages.length === 0 && <p className="py-12 text-center text-sm text-muted-foreground">A conversa começa com você. Deixe a primeira mensagem!</p>}
