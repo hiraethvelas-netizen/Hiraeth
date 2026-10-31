@@ -225,19 +225,19 @@ useEffect(() => {
           </div>
         </section>}
 
-        {!categoryId && apparelProducts.length > 0 && <section className="mt-14 mb-10 overflow-hidden rounded-2xl bg-[#e9e4dc] text-[#292720]">
+        {!categoryId && apparelProducts.length > 0 && <section className="mt-14 mb-10 overflow-hidden rounded-2xl bg-card text-card-foreground">
           <div className="px-6 pb-5 pt-8 text-center sm:px-10 sm:pt-10">
-            <p className="text-xs font-semibold uppercase tracking-[.28em] text-[#82796d]">Vista seu universo</p>
+            <p className="text-xs font-semibold uppercase tracking-[.28em] text-primary">Artefatos · Camisetas</p>
             <h2 className="mt-3 font-display text-3xl sm:text-5xl">Camisetas Hiraeth</h2>
-            <p className="mx-auto mt-3 max-w-xl text-sm text-[#665f56] sm:text-base">Peças inspiradas nas histórias, músicas e universos que fazem parte de você.</p>
+            <p className="mx-auto mt-3 max-w-xl text-sm text-muted-foreground sm:text-base">Peças inspiradas nas histórias, músicas e universos que fazem parte de você.</p>
           </div>
           <div className="grid grid-cols-2 gap-3 px-4 pb-7 sm:grid-cols-3 sm:px-8">
             {apparelProducts.slice(0, 6).map((product) => <Link key={product.id} to="/produto/$slug" params={{ slug: product.slug }} className="group text-center">
-              <div className="relative aspect-[4/5] overflow-hidden bg-[#f4f0ea]">
-                {product.images?.[0] ? <img src={product.images[0]} alt={product.name} className="h-full w-full object-contain p-2 transition-transform duration-500 group-hover:scale-105" loading="lazy" /> : <div className="flex h-full flex-col items-center justify-center gap-3 text-[#8c8276]"><Shirt size={42} strokeWidth={1.1} /><span className="text-xs">Foto em breve</span></div>}
+              <div className="relative aspect-[4/5] overflow-hidden bg-background">
+                {product.images?.[0] ? <img src={product.images[0]} alt={product.name} className="h-full w-full object-contain p-2 transition-transform duration-500 group-hover:scale-105" loading="lazy" /> : <div className="flex h-full flex-col items-center justify-center gap-3 text-muted-foreground"><Shirt size={42} strokeWidth={1.1} /><span className="text-xs">Foto em breve</span></div>}
               </div>
               <p className="mt-3 font-display text-base sm:text-lg">{product.name}</p>
-              <p className="mt-1 text-sm text-[#746b60]">{brl(Number(product.sale_price ?? product.price))}</p>
+              <p className="mt-1 text-sm text-muted-foreground">{brl(Number(product.sale_price ?? product.price))}</p>
             </Link>)}
           </div>
         </section>}
