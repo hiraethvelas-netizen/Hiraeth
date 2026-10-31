@@ -117,6 +117,15 @@ function Biblioteca() {
     await load();
   }
 
+  async function toggleCandleFinished(item: CandleLibraryItem, finished: boolean) {
+    if (!userId) throw new Error("Entre na sua conta para atualizar a estante.");
+    if (item.order_item_id && item.purchase_status !== "delivered") throw new Error("Você poderá marcar esta vela depois que o pedido for entregue.");
+    const { error } = await (supabase as any).from("community_library").update({ finished, updated_at: new Date().toISOString() }).eq("id", item.id).eq("user_id", userId);
+    if (error) throw error;
+    setLibrary(current => current.map(entry => entry.id === item.id ? { ...entry, finished } : entry));
+    toast.success(finished ? "Vela movida para Acabaram." : "Vela voltou para a estante.");
+  }
+
   async function removeLibraryItem(item: CandleLibraryItem) {
     if (!userId || item.order_item_id) return;
     const { error } = await (supabase as any).from("community_library").delete().eq("id", item.id).eq("user_id", userId);
@@ -148,7 +157,7 @@ function Biblioteca() {
         <section className="mt-5">
           {loading
             ? <p className="py-12 text-center text-muted-foreground">Arrumando sua estante...</p>
-            : <CandleBookshelf items={library} editable onAdd={addManual} onUpdate={updateCandle} onFavorite={toggleFavorite} onRemove={removeLibraryItem} />}
+            : <CandleBookshelf items={library} editable onAdd={addManual} onUpdate={updateCandle} onFavorite={toggleFavorite} onRemove={removeLibraryItem} onMarkFinished={toggleCandleFinished} />}
         </section>
       </main>
       <SiteFooter />
