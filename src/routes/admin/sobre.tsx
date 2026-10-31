@@ -94,7 +94,7 @@ function AdminSobre() {
     {message && <p role="status" className="border border-primary/30 p-3 text-sm">{message}</p>}
     <form onSubmit={save} className="space-y-6">
       {blocks.map((block, index) => <section key={block.id} className="space-y-4 border bg-card p-5">
-        <div className="flex flex-wrap items-center justify-between gap-3"><h2 className="text-xl text-foreground">Bloco {index + 1}</h2><div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center justify-between gap-3"><h2 className="text-xl text-foreground">Bloco {index + 1}</h2><div className="flex flex-wrap items-center gap-2"><label htmlFor={`about-images-${block.id}`} className="inline-flex min-h-10 cursor-pointer items-center justify-center rounded-md border-2 border-primary bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-sm hover:opacity-90">＋ Adicionar fotos</label>
           <button type="button" disabled={index === 0} onClick={() => setBlocks(current => { const next = [...current]; [next[index - 1]!, next[index]!] = [next[index]!, next[index - 1]!]; return next; })} className="border px-3 py-2 text-sm disabled:opacity-40">↑ Subir</button>
           <button type="button" disabled={index === blocks.length - 1} onClick={() => setBlocks(current => { const next = [...current]; [next[index + 1]!, next[index]!] = [next[index]!, next[index + 1]!]; return next; })} className="border px-3 py-2 text-sm disabled:opacity-40">↓ Descer</button>
           <button type="button" onClick={() => setBlocks(current => current.filter((_, i) => i !== index))} className="border border-destructive px-3 py-2 text-sm text-destructive">Excluir bloco</button>
