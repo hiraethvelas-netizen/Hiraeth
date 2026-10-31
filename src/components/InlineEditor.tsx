@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Pencil, X } from "lucide-react";
 import { toast } from "sonner";
@@ -18,6 +18,14 @@ export function InlineEditor({ label, fields, values, onSave, className = "" }: 
 }) {
   const { editing } = useAdminEdit();
   const [open, setOpen] = useState(false);
+  const dialogRef = useRef<HTMLDialogElement>(null);
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    if (open && !dialog.open) dialog.showModal();
+    if (!open && dialog.open) dialog.close();
+  }, [open]);
   const [form, setForm] = useState<Values>(values);
   const [busy, setBusy] = useState(false);
   if (!editing) return null;
@@ -58,12 +66,15 @@ export function InlineEditor({ label, fields, values, onSave, className = "" }: 
         className={`inline-flex items-center gap-1.5 rounded-full border border-primary bg-background px-3 py-1.5 text-xs font-medium text-primary shadow-sm hover:bg-primary hover:text-primary-foreground ${className}`}>
         <Pencil size={13} aria-hidden="true" /> Editar {label}
       </button>
-      {open && typeof document !== "undefined" && createPortal(
-        <div onClick={(event) => { event.preventDefault(); event.stopPropagation(); }}
-          className="fixed inset-0 z-[100] flex items-center justify-center overflow-hidden bg-foreground/40 p-3 text-left sm:p-4"
-          role="dialog" aria-modal="true" aria-label={`Editar ${label}`}>
+      {typeof document !== "undefined" && createPortal(
+        <dialog
+          ref={dialogRef}
+          onCancel={(event) => { event.preventDefault(); setOpen(false); }}
+          aria-label={`Editar ${label}`}
+          className="fixed inset-0 m-auto max-h-[calc(100dvh-1.5rem)] w-[calc(100%-1.5rem)] max-w-xl overflow-hidden border-0 bg-transparent p-0 text-left text-foreground backdrop:bg-foreground/50 sm:max-h-[calc(100dvh-2rem)]"
+        >
           <form onSubmit={submit}
-            className="my-auto max-h-[calc(100dvh-1.5rem)] w-full max-w-xl space-y-4 overflow-y-auto overscroll-contain rounded-md border border-primary/30 bg-background p-5 text-foreground shadow-xl sm:max-h-[calc(100dvh-2rem)]">
+            className="max-h-[calc(100dvh-1.5rem)] w-full space-y-4 overflow-y-auto overscroll-contain rounded-md border border-primary/30 bg-background p-5 text-foreground shadow-xl sm:max-h-[calc(100dvh-2rem)]">
             <div className="flex items-center justify-between">
               <h2 className="font-display text-2xl">Editar {label}</h2>
               <button type="button" onClick={() => setOpen(false)} aria-label="Fechar"><X size={18} /></button>
@@ -112,7 +123,7 @@ export function InlineEditor({ label, fields, values, onSave, className = "" }: 
               <button type="button" onClick={() => setOpen(false)} className="border px-5 py-2.5">Cancelar</button>
             </div>
           </form>
-        </div>,
+        </dialog>,
         document.body
       )}
     </>
