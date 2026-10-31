@@ -35,7 +35,9 @@ security definer
 set search_path = public
 as $function$
 begin
-  if pg_trigger_depth() = 1 and (
+  if coalesce(current_setting('hiraeth.order_sync', true), 'false') <> 'true'
+     and pg_trigger_depth() = 1
+     and (
     new.order_item_id is distinct from old.order_item_id
     or new.purchase_status is distinct from old.purchase_status
     or new.product_id is distinct from old.product_id
@@ -146,6 +148,7 @@ begin
    limit 1;
 
   if v_existing_id is not null then
+    perform set_config('hiraeth.order_sync', 'true', true);
     update public.community_library
        set order_item_id = p_order_item_id,
            quantity = greatest(coalesce(v_quantity, 1), 1),
@@ -157,6 +160,7 @@ begin
            category = coalesce(category, v_category),
            updated_at = now()
      where id = v_existing_id;
+    perform set_config('hiraeth.order_sync', 'false', true);
   else
     insert into public.community_library (
       user_id, title, aroma, image_url, category, acquired_at,
