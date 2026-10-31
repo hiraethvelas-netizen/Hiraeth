@@ -19,38 +19,6 @@ jobs:
           bun-version: latest
       - name: Install dependencies
         run: bun install --frozen-lockfile
-      - name: Compare TypeScript baseline with Vimeo fix
-        env:
-          BASE_SHA: 3e4209bea958f70936dc0deda48e8d120931b094
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-        run: |
-          set +e
-          git fetch origin "$BASE_SHA" "$HEAD_SHA"
-          git checkout --detach "$BASE_SHA"
-          bunx tsc --noEmit --pretty false > /tmp/tsc-before.txt 2>&1
-          git checkout --detach "$HEAD_SHA"
-          bunx tsc --noEmit --pretty false > /tmp/tsc-after.txt 2>&1
-          node --input-type=module <<'NODE'
-          import fs from "node:fs";
-          function diagnostics(file) {
-            return fs.readFileSync(file, "utf8").split(/\r?\n/).filter((line) => /error TS\d+/.test(line)).map((line) => {
-              const match = line.match(/^(.+?)\(\d+,\d+\): error (TS\d+): (.*)$/);
-              return match ? `${match[1]} :: ${match[2]} :: ${match[3]}` : line.trim();
-            });
-          }
-          function counts(list) { const map = new Map(); for (const item of list) map.set(item, (map.get(item) ?? 0) + 1); return map; }
-          const before = counts(diagnostics("/tmp/tsc-before.txt"));
-          const after = counts(diagnostics("/tmp/tsc-after.txt"));
-          let beforeTotal = 0; let afterTotal = 0; let introduced = 0;
-          for (const n of before.values()) beforeTotal += n;
-          for (const n of after.values()) afterTotal += n;
-          console.log(`TypeScript diagnostics on main: ${beforeTotal}`);
-          console.log(`TypeScript diagnostics with Vimeo fix: ${afterTotal}`);
-          for (const [key, count] of after) { const delta = count - (before.get(key) ?? 0); if (delta > 0) { introduced += delta; console.log(`NEW TYPESCRIPT: ${delta} x ${key}`); } }
-          console.log(`New TypeScript diagnostics: ${introduced}`);
-          if (introduced > 0) process.exitCode = 1;
-          NODE
-          git checkout --detach "$GITHUB_SHA"
       - name: Run tests
         run: bun run test
       - name: Build production bundle
