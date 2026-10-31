@@ -3,6 +3,7 @@
 
 alter table public.community_library
   add column if not exists favorite boolean not null default false,
+  add column if not exists updated_at timestamptz not null default now(),
   add column if not exists order_item_id uuid references public.order_items(id) on delete cascade,
   add column if not exists quantity integer not null default 1,
   add column if not exists purchase_status text,
@@ -44,6 +45,50 @@ create policy "users delete own manual candle records"
 
 grant select, insert, update, delete on public.community_library to authenticated;
 grant all on public.community_library to service_role;
+
+-- Impede que alterações feitas pelo cliente falsifiquem vínculos ou estados de pedidos.
+-- Atualizações internas disparadas pela mudança de status do pedido passam por uma
+-- profundidade de trigger maior e podem sincronizar purchase_status normalmente.
+create or replace function public.guard_purchased_community_library_row()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $
+begin
+  if pg_trigger_depth() = 1 and (
+    new.order_item_id is distinct from old.order_item_id
+    or new.purchase_status is distinct from old.purchase_status
+    or new.product_id is distinct from old.product_id
+    or new.quantity is distinct from old.quantity
+    or new.variant_details is distinct from old.variant_details
+  ) then
+    raise exception 'Purchase links and statuses are managed by Hiraeth orders';
+  end if;
+
+  if old.order_item_id is not null
+     and old.purchase_status is distinct from 'delivered'
+     and pg_trigger_depth() = 1
+     and (
+       new.title is distinct from old.title
+       or new.aroma is distinct from old.aroma
+       or new.image_url is distinct from old.image_url
+       or new.category is distinct from old.category
+       or new.acquired_at is distinct from old.acquired_at
+       or new.notes is distinct from old.notes
+       or new.rating is distinct from old.rating
+     ) then
+    raise exception 'Candle details and rating can be edited after delivery';
+  end if;
+
+  return new;
+end;
+$;
+
+drop trigger if exists guard_purchased_community_library_row on public.community_library;
+create trigger guard_purchased_community_library_row
+  before update on public.community_library
+  for each row execute function public.guard_purchased_community_library_row();
 
 -- Cria uma entrada para cada item de pedido associado a uma conta.
 create or replace function public.add_order_item_to_community_library()
