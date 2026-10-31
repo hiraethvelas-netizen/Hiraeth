@@ -62,6 +62,7 @@ function Biblioteca() {
 
   async function addManual(values: CandleDraftInput) {
     if (!userId) throw new Error("Entre na sua conta para adicionar uma vela.");
+    if (!values.image) throw new Error("Adicione uma foto da vela para registrar uma coleção antiga.");
     const image_url = await uploadCandlePhoto(values.image);
     const { error } = await (supabase as any).from("community_library").insert({
       user_id: userId,
@@ -85,17 +86,24 @@ function Biblioteca() {
     if (current.order_item_id && current.purchase_status !== "delivered") {
       throw new Error("Os detalhes e a avaliação ficam disponíveis quando o pedido for marcado como entregue.");
     }
-    const uploadedImage = await uploadCandlePhoto(values.image);
-    const { error } = await (supabase as any).from("community_library").update({
-      title: values.title,
-      aroma: values.aroma.trim() || null,
-      category: values.category.trim() || null,
-      acquired_at: values.acquired_at || null,
-      notes: values.notes.trim() || null,
-      rating: values.rating || null,
-      ...(uploadedImage ? { image_url: uploadedImage } : {}),
-      updated_at: new Date().toISOString(),
-    }).eq("id", id).eq("user_id", userId);
+    const uploadedImage = current.order_item_id ? null : await uploadCandlePhoto(values.image);
+    const payload = current.order_item_id
+      ? {
+          notes: values.notes.trim() || null,
+          rating: values.rating || null,
+          updated_at: new Date().toISOString(),
+        }
+      : {
+          title: values.title,
+          aroma: values.aroma.trim() || null,
+          category: values.category.trim() || null,
+          acquired_at: values.acquired_at || null,
+          notes: values.notes.trim() || null,
+          rating: values.rating || null,
+          ...(uploadedImage ? { image_url: uploadedImage } : {}),
+          updated_at: new Date().toISOString(),
+        };
+    const { error } = await (supabase as any).from("community_library").update(payload).eq("id", id).eq("user_id", userId);
     if (error) throw error;
     toast.success("Detalhes da vela atualizados.");
     await load();
@@ -155,7 +163,7 @@ function Biblioteca() {
   return (
     <div className="min-h-screen">
       <SiteHeader />
-      <main className="mx-auto max-w-5xl px-5 pb-20 pt-10 sm:px-8 sm:pt-12">
+      <main className="mx-auto max-w-5xl px-5 pb-20 pt-6 sm:px-8 sm:pt-8">
         <div className="mb-3">
           <InlineEditor label="página Minha Biblioteca e Favoritos" fields={[
             { name: "eyebrow", label: "Texto pequeno acima do título", type: "text" },
