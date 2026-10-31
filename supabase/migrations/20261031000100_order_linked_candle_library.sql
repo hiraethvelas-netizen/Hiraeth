@@ -54,7 +54,7 @@ returns trigger
 language plpgsql
 security definer
 set search_path = public
-as $
+as $function$
 begin
   if pg_trigger_depth() = 1 and (
     new.order_item_id is distinct from old.order_item_id
@@ -83,7 +83,7 @@ begin
 
   return new;
 end;
-$;
+$function$;
 
 drop trigger if exists guard_purchased_community_library_row on public.community_library;
 create trigger guard_purchased_community_library_row
