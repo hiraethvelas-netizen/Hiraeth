@@ -516,7 +516,7 @@ function Comunidade() {
                   { type: "fire" as const, emoji: "🔥", count: message.fireCount ?? 0 },
                 ].filter(reaction => reaction.count > 0);
                 return <article key={message.id} className={`flex w-full flex-col ${ownMessage ? "items-end" : "items-start"}`}>
-                  <div className={`relative w-fit max-w-[88%] rounded-2xl px-3.5 py-2.5 shadow-sm ${ownMessage ? "rounded-tr-sm border border-[#c6d5bd] bg-[#e3edda] text-[#243629] dark:border-[#50664f] dark:bg-[#304532] dark:text-[#f1f0e7]" : "rounded-tl-sm border border-[#e4ddcf] bg-white text-[#33352f] dark:border-[#455047] dark:bg-[#26332a] dark:text-[#f1f0e7]"} ${message.is_pinned ? "ring-2 ring-[#b99a5b]/70" : ""}`}>
+                  <div className={`relative w-fit max-w-[88%] rounded-2xl px-3.5 py-2.5 shadow-sm ${ownMessage ? "rounded-tr-sm border border-[#c6d5bd] bg-[#e3edda] text-[#243629] dark:border-[#50664f] dark:bg-[#304532] dark:text-[#f1f0e7]" : "rounded-tl-sm border border-[#e4ddcf] bg-[#f7efda] text-[#33352f] dark:border-[#455047] dark:bg-[#26332a] dark:text-[#f1f0e7]"} ${message.is_pinned ? "ring-2 ring-[#b99a5b]/70" : ""}`}>
                     <div className="mb-1 flex items-center gap-2 pr-6">
                       <button type="button" onClick={() => void openPublicProfile(message.user_id)} className="text-xs font-bold text-[#80653a] hover:underline dark:text-[#d6bd88]">{message.is_admin ? "Hiraeth" : message.community_profiles?.username || "Integrante"}</button>
                       {message.is_pinned && <span className="text-[9px] font-semibold text-[#a27b35]">Fixada</span>}
