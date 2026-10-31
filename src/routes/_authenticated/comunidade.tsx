@@ -61,6 +61,7 @@ function Comunidade() {
   const [interestCover, setInterestCover] = useState<File | null>(null);
   const [interestUploading, setInterestUploading] = useState(false);
   const [publicMember, setPublicMember] = useState<PublicMember | null>(null);
+  const [publicProfileLoading, setPublicProfileLoading] = useState(false);
   const [library, setLibrary] = useState<LibraryCandle[]>([]);
   const [profileSection, setProfileSection] = useState<"info" | "universe" | "library" | "posts">("info");
   const [publicSection, setPublicSection] = useState<"profile" | "universe" | "library" | "posts">("profile");
@@ -442,6 +443,14 @@ function Comunidade() {
     await loadLibrary();
   }
 
+  async function toggleLibraryFinished(item: LibraryCandle, finished: boolean) {
+    if (item.order_item_id && item.purchase_status !== "delivered") throw new Error("Você poderá marcar esta vela depois que o pedido for entregue.");
+    const { error } = await (supabase as any).from("community_library").update({ finished, updated_at: new Date().toISOString() }).eq("id", item.id).eq("user_id", userId);
+    if (error) throw error;
+    setLibrary(current => current.map(entry => entry.id === item.id ? { ...entry, finished } : entry));
+    toast.success(finished ? "Vela movida para Acabaram." : "Vela voltou para a estante.");
+  }
+
   async function removeLibraryCandle(id: string) {
     const { data, error } = await (supabase as any).from("community_library")
       .delete()
@@ -458,37 +467,63 @@ function Comunidade() {
   async function openPublicProfile(memberId: string) {
     if (!memberId) { toast.error("Não foi possível identificar este integrante."); return; }
     if (memberId === userId) { setPublicMember(null); setTab("perfil"); setProfileSection("info"); return; }
+
+    const cachedPost = posts.find(post => post.user_id === memberId);
+    const cachedMessage = messages.find(message => message.user_id === memberId);
+    const fallbackProfile: PublicMember = {
+      user_id: memberId,
+      username: cachedPost?.author || cachedMessage?.community_profiles?.username || "Integrante",
+      avatar_url: cachedPost?.avatar_url ?? cachedMessage?.community_profiles?.avatar_url ?? null,
+      bio: null,
+      instagram_url: null,
+      tiktok_url: null,
+      other_social_url: null,
+      library_visible: true,
+    };
+    setPublicMember(fallbackProfile);
+    setPublicSection("profile");
+    setPublicProfileLoading(true);
+    setPublicInterests([]);
+    setPublicLibrary([]);
+
     try {
-      const { data, error } = await (supabase as any).from("community_profiles").select("user_id,username,avatar_url,bio,instagram_url,tiktok_url,other_social_url,library_visible").eq("user_id", memberId).maybeSingle();
-      if (error) throw error;
-      const fallbackName = posts.find(post => post.user_id === memberId)?.author
-        || messages.find(message => message.user_id === memberId)?.community_profiles?.username
-        || "Integrante";
-      const resolvedProfile: PublicMember = data as PublicMember ?? {
-        user_id: memberId,
-        username: fallbackName,
-        avatar_url: posts.find(post => post.user_id === memberId)?.avatar_url ?? null,
-        bio: null,
-        instagram_url: null,
-        tiktok_url: null,
-        other_social_url: null,
-        library_visible: true,
-      };
+      let profileData: any = null;
+      const profileResult = await (supabase as any).from("community_profiles")
+        .select("user_id,username,avatar_url,bio,instagram_url,tiktok_url,other_social_url,library_visible")
+        .eq("user_id", memberId).maybeSingle();
+      if (profileResult.error) {
+        // Compatibilidade com a implantação anterior à coluna opcional de privacidade da estante.
+        console.warn("Perfil público: tentando leitura compatível com o esquema anterior.", profileResult.error);
+        const legacyResult = await (supabase as any).from("community_profiles")
+          .select("user_id,username,avatar_url,bio,instagram_url,tiktok_url,other_social_url")
+          .eq("user_id", memberId).maybeSingle();
+        if (legacyResult.error) console.warn("Não foi possível carregar os detalhes adicionais do perfil.", legacyResult.error);
+        else profileData = legacyResult.data;
+      } else {
+        profileData = profileResult.data;
+      }
+
+      const resolvedProfile: PublicMember = profileData
+        ? { ...fallbackProfile, ...profileData, library_visible: profileData.library_visible !== false }
+        : fallbackProfile;
+      setPublicMember(resolvedProfile);
+
       const canViewLibrary = resolvedProfile.library_visible !== false;
-      setPublicMember({ ...resolvedProfile, library_visible: canViewLibrary });
-      setPublicSection("profile");
-      const [{ data: interestsData, error: interestsError }, libraryResult] = await Promise.all([
+      const [interestsResult, libraryResult] = await Promise.all([
         (supabase as any).from("community_interests").select("id,interest_type,title,image_url").eq("user_id", memberId).order("created_at", { ascending: false }),
         canViewLibrary
           ? (supabase as any).from("community_library").select("*").eq("user_id", memberId).order("created_at", { ascending: false })
           : Promise.resolve({ data: [], error: null }),
       ]);
-      if (interestsError || libraryResult.error) console.warn("Não foi possível carregar todas as áreas do perfil público.", interestsError || libraryResult.error);
-      setPublicInterests((interestsData ?? []) as typeof interests);
+      if (interestsResult.error) console.warn("Interesses do perfil não puderam ser carregados.", interestsResult.error);
+      if (libraryResult.error) console.warn("Biblioteca do perfil não pôde ser carregada.", libraryResult.error);
+      setPublicInterests((interestsResult.data ?? []) as typeof interests);
       setPublicLibrary((libraryResult.data ?? []) as LibraryCandle[]);
     } catch (error) {
-      console.error("Erro ao abrir perfil público:", error);
-      toast.error("Não foi possível abrir este perfil. Tente novamente.");
+      console.error("Erro ao carregar informações do perfil público:", error);
+      // O cartão público permanece aberto com os dados já disponíveis no chat ou no feed.
+    } finally {
+      setPublicProfileLoading(false);
     }
   }
 
@@ -517,6 +552,7 @@ function Comunidade() {
         <button type="button" onClick={() => setPublicMember(null)} className="absolute right-3 top-3 z-10 rounded-full p-2 hover:bg-primary/10" aria-label="Fechar perfil"><X size={18}/></button>
         <div className="flex flex-col items-center gap-3 border-b border-primary/15 pb-6 text-center"><div className="h-24 w-24 overflow-hidden rounded-full border-2 border-primary/30 bg-secondary">{publicMember.avatar_url ? <img src={publicMember.avatar_url} alt={"Foto de " + publicMember.username} className="h-full w-full object-cover"/> : <UserRound className="m-auto mt-7" size={34}/>}</div><h2 className="font-display text-3xl">{publicMember.username}</h2>{publicMember.bio && <p className="max-w-2xl whitespace-pre-wrap text-sm text-muted-foreground">{publicMember.bio}</p>}<div className="flex flex-wrap justify-center gap-4 text-sm">{publicMember.instagram_url && <a href={publicMember.instagram_url} target="_blank" rel="noreferrer" className="text-primary underline">Instagram</a>}{publicMember.tiktok_url && <a href={publicMember.tiktok_url} target="_blank" rel="noreferrer" className="text-primary underline">TikTok</a>}{publicMember.other_social_url && <a href={publicMember.other_social_url} target="_blank" rel="noreferrer" className="text-primary underline">Outra rede</a>}</div></div>
         <nav className={"sticky top-0 z-10 -mx-5 mt-5 grid border-b border-primary/20 bg-card/95 md:-mx-8 " + (publicMember.library_visible ? "grid-cols-4" : "grid-cols-3")}>{([{id:"profile",label:"Perfil"},{id:"universe",label:"Meu Universo"},...(publicMember.library_visible ? [{id:"library" as const,label:"Minha Biblioteca"}] : []),{id:"posts",label:"Publicações"}] as const).map(item => <button key={item.id} type="button" onClick={() => setPublicSection(item.id)} className={"border-b-2 px-1 py-3 text-xs font-medium md:text-sm " + (publicSection === item.id ? "border-primary text-primary" : "border-transparent text-muted-foreground")}>{item.label}</button>)}</nav>
+        {publicProfileLoading && <p className="py-3 text-center text-xs uppercase tracking-[.16em] text-muted-foreground">Carregando informações do perfil...</p>}
         {publicSection === "profile" && <section className="mx-auto max-w-3xl py-10 text-center"><p className="eyebrow">Círculo do Fogo</p><h3 className="mt-2 font-display text-2xl">Um pouco sobre {publicMember.username}</h3><p className="mt-3 text-sm text-muted-foreground">Explore os interesses, a coleção Hiraeth e as publicações pelas abas acima.</p></section>}
         {publicSection === "universe" && <section className="py-6"><p className="eyebrow">Livros, telas e paixões</p><h3 className="mb-5 font-display text-3xl">Meu Universo</h3><InterestBookshelf items={publicInterests}/></section>}
         {publicMember.library_visible && publicSection === "library" && <section className="py-6"><p className="eyebrow">Coleção de velas</p><h3 className="mb-5 font-display text-3xl">Minha Biblioteca</h3><CandleBookshelf items={publicLibrary}/></section>}
@@ -645,7 +681,7 @@ function Comunidade() {
             {profileSection === "info" && <form onSubmit={saveProfile} className="mx-auto grid max-w-2xl gap-4 rounded-xl border border-primary/20 bg-background/60 p-5 md:p-7"><div className="flex items-center gap-4"><div className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-primary/40 bg-[#20382b] text-[#e8d8b4]">{profile.avatar_url ? <img src={profile.avatar_url} alt="Sua foto de perfil" className="h-full w-full object-cover"/> : <UserRound size={34}/>}</div><label className="cursor-pointer text-sm text-primary underline">{avatarUploading ? "Enviando foto..." : "Alterar foto de perfil"}<input type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="sr-only" disabled={avatarUploading} onChange={e => void uploadAvatar(e.target.files?.[0])}/></label></div>
               <label className="grid gap-2 text-sm">Nome de usuário<input required maxLength={30} value={profile.username} onChange={e => setProfile({ ...profile, username: e.target.value })} className="border bg-transparent p-3"/></label><label className="grid gap-2 text-sm">Sobre mim<textarea maxLength={500} value={profile.bio ?? ""} onChange={e => setProfile({ ...profile, bio: e.target.value })} className="border bg-transparent p-3" rows={3}/></label><label className="flex items-start gap-3 rounded-lg border border-primary/20 p-3 text-sm"><input type="checkbox" checked={profile.library_visible !== false} onChange={e => setProfile({ ...profile, library_visible: e.target.checked })} className="mt-1 accent-[var(--primary)]"/><span><strong className="block text-foreground">Exibir minha Biblioteca na Comunidade</strong><span className="mt-1 block text-xs leading-relaxed text-muted-foreground">Quando ativado, outros integrantes poderão visualizar suas velas e os detalhes que você compartilhou. Somente você poderá editar sua coleção.</span></span></label><label className="grid gap-2 text-sm">Instagram<input value={profile.instagram_url ?? ""} onChange={e => setProfile({ ...profile, instagram_url: e.target.value })} className="border bg-transparent p-3" placeholder="https://instagram.com/..."/></label><label className="grid gap-2 text-sm">TikTok<input value={profile.tiktok_url ?? ""} onChange={e => setProfile({ ...profile, tiktok_url: e.target.value })} className="border bg-transparent p-3" placeholder="https://tiktok.com/@..."/></label><label className="grid gap-2 text-sm">Outra rede social<input value={profile.other_social_url ?? ""} onChange={e => setProfile({ ...profile, other_social_url: e.target.value })} className="border bg-transparent p-3"/></label><button disabled={saving} className="btn-gold justify-self-start">{saving ? "Salvando..." : "Salvar perfil"}</button></form>}
             {profileSection === "universe" && <section className="rounded-xl border border-primary/20 bg-background/60 p-5 md:p-7"><p className="eyebrow">Livros, telas e paixões</p><h3 className="mt-1 font-display text-3xl">Meu Universo</h3><p className="mt-1 text-sm text-muted-foreground">Adicione livros, filmes, séries e outros interesses. Eles ficam organizados em uma estante com três prateleiras.</p><form onSubmit={addInterest} className="mt-5 grid gap-2 sm:grid-cols-[auto_minmax(0,1fr)_auto]"><select value={interestType} onChange={e => setInterestType(e.target.value as typeof interestType)} className="border bg-background px-3 py-2 text-sm"><option value="book">Livro</option><option value="movie">Filme</option><option value="series">Série</option><option value="other">Outro</option></select><input value={interestTitle} onChange={e => setInterestTitle(e.target.value)} maxLength={160} placeholder="Nome do livro, filme, série..." className="min-w-0 border bg-background px-3 py-2 text-sm"/><button type="submit" disabled={interestUploading} className="btn-gold">{interestUploading ? "Salvando..." : "Adicionar"}</button><label className="sm:col-span-3 flex cursor-pointer items-center gap-2 text-xs text-primary underline">Adicionar capa (opcional)<input id="community-interest-cover" type="file" accept="image/*" className="sr-only" onChange={e => setInterestCover(e.target.files?.[0] ?? null)}/></label>{interestCover && <p className="sm:col-span-3 text-xs text-muted-foreground">{interestCover.name}</p>}</form><div className="mt-7"><InterestBookshelf items={interests}/></div><div className="mt-6 flex flex-wrap gap-2">{interests.map(item => <button key={item.id} type="button" onClick={() => void removeInterest(item.id)} className="rounded-full border border-primary/20 px-3 py-1.5 text-xs text-muted-foreground hover:text-destructive">Remover {item.title} ×</button>)}</div></section>}
-            {profileSection === "library" && <section className="rounded-xl border border-primary/20 bg-background/60 p-5 md:p-7"><p className="eyebrow">Sua coleção Hiraeth</p><h3 className="mt-1 font-display text-3xl">Minha Biblioteca</h3><p className="mt-1 text-sm text-muted-foreground">Suas compras aparecem automaticamente aqui. Registre também suas velas antigas, complete os detalhes e avalie com foguinhos depois que o pedido for entregue.</p><div className="mt-6"><CandleBookshelf items={library} editable onAdd={addLibraryCandle} onUpdate={updateLibraryCandle} onFavorite={toggleLibraryFavorite} onRemove={item => removeLibraryCandle(item.id)}/></div></section>}
+            {profileSection === "library" && <section className="rounded-xl border border-primary/20 bg-background/60 p-5 md:p-7"><p className="eyebrow">Sua coleção Hiraeth</p><h3 className="mt-1 font-display text-3xl">Minha Biblioteca</h3><p className="mt-1 text-sm text-muted-foreground">Suas compras aparecem automaticamente aqui. Registre também suas velas antigas, complete os detalhes e avalie com foguinhos depois que o pedido for entregue.</p><div className="mt-6"><CandleBookshelf items={library} editable onAdd={addLibraryCandle} onUpdate={updateLibraryCandle} onFavorite={toggleLibraryFavorite} onRemove={item => removeLibraryCandle(item.id)} onMarkFinished={toggleLibraryFinished}/></div></section>}
             {profileSection === "posts" && <section className="mx-auto max-w-3xl space-y-4"><h3 className="font-display text-3xl">Minhas publicações</h3>{posts.filter(post => post.user_id === userId).map(post => <article key={post.id} className="border border-primary/20 bg-background/60 p-4"><p className="whitespace-pre-wrap text-sm">{post.body}</p>{post.image_urls?.length > 0 && <div className="mt-3 grid grid-cols-2 gap-2">{post.image_urls.map(url => <img key={url} src={url} alt="Foto publicada" className="aspect-square w-full object-cover"/>)}</div>}<time className="mt-3 block text-xs text-muted-foreground">{new Date(post.created_at).toLocaleString("pt-BR")}</time></article>)}{posts.filter(post => post.user_id === userId).length === 0 && <p className="text-sm text-muted-foreground">Você ainda não publicou no Feed.</p>}</section>}
           </section>}
 
