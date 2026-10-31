@@ -134,8 +134,8 @@ function PortalPage() {
             className={`absolute inset-x-0 bottom-[9%] z-10 flex flex-col items-center px-6 pb-[max(env(safe-area-inset-bottom),1rem)] text-center transition-all duration-[1400ms] ease-out md:bottom-[12%] ${introReveal ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-5 opacity-0"}`}
             aria-hidden={!introReveal}
           >
-            <h1 className="max-w-4xl text-4xl text-white drop-shadow-[0_2px_18px_rgba(0,0,0,0.55)] md:text-6xl lg:text-7xl">{portal.intro_title ?? portal.name}</h1>
-            {portal.intro_subtitle && <p className="eyebrow mt-4 text-xl text-white drop-shadow-md">{portal.intro_subtitle}</p>}
+            <h1 className="max-w-4xl text-4xl text-[#f7efda] drop-shadow-[0_2px_18px_rgba(0,0,0,0.55)] md:text-6xl lg:text-7xl">{portal.intro_title ?? portal.name}</h1>
+            {portal.intro_subtitle && <p className="eyebrow mt-4 text-xl text-[#f7efda] drop-shadow-md">{portal.intro_subtitle}</p>}
             <button
               onClick={() => setIntro(false)}
               tabIndex={introReveal ? 0 : -1}
