@@ -238,12 +238,12 @@ export function CandleBookshelf({
 
       {dialogMode !== "view" || dialogItem ? (
         <div className="fixed inset-0 z-[130] flex items-center justify-center overflow-y-auto bg-black/70 p-3 sm:p-6" role="dialog" aria-modal="true" aria-label={dialogTitle}>
-          <section className="relative my-auto max-h-[92dvh] w-full max-w-2xl overflow-y-auto rounded-xl border border-primary/25 bg-card p-5 shadow-2xl sm:p-7">
+          <section className="relative my-auto max-h-[92dvh] w-full max-w-2xl overflow-y-auto rounded-xl border border-[#d6c9ae] bg-[#f7f1e5] p-5 text-[#29342c] shadow-2xl sm:p-7">
             <button type="button" onClick={closeDialog} disabled={saving} className="absolute right-3 top-3 rounded-full p-2 text-muted-foreground hover:bg-primary/10 hover:text-foreground" aria-label="Fechar">
               <X size={20} />
             </button>
             <p className="eyebrow">{dialogMode === "add" ? "Uma lembrança da sua coleção" : "Detalhes da sua vela"}</p>
-            <h3 className="mt-1 pr-8 font-display text-3xl text-foreground">{dialogTitle}</h3>
+            <h3 className="mt-1 pr-8 font-display text-3xl text-[#29342c]">{dialogTitle}</h3>
 
             {dialogMode === "view" && dialogItem ? (
               <div className="mt-5 grid gap-5 sm:grid-cols-[minmax(0,190px)_1fr]">
@@ -281,24 +281,24 @@ export function CandleBookshelf({
                   </div>
                 ) : (
                   <>
-                    <label className="block text-sm text-foreground">Nome da vela
-                      <input required maxLength={160} value={draft.title} onChange={event => setDraft(current => ({ ...current, title: event.target.value }))} className="mt-1 w-full border border-primary/20 bg-background px-3 py-3 text-foreground" />
+                    <label className="block text-sm font-semibold text-[#29342c]">Nome da vela
+                      <input required maxLength={160} value={draft.title} onChange={event => setDraft(current => ({ ...current, title: event.target.value }))} className="mt-1 w-full rounded-md border border-[#c9bea8] bg-white px-3 py-3 text-[#29342c] placeholder:text-[#756d60] shadow-sm outline-none transition focus:border-[#506b4f] focus:ring-2 focus:ring-[#506b4f]/20" />
                     </label>
                     <div className="grid gap-4 sm:grid-cols-2">
-                      <label className="block text-sm text-foreground">Categoria / universo
-                        <input maxLength={100} value={draft.category} onChange={event => setDraft(current => ({ ...current, category: event.target.value }))} placeholder="Ex.: Harry Potter, Friends" className="mt-1 w-full border border-primary/20 bg-background px-3 py-3 text-foreground" />
+                      <label className="block text-sm font-semibold text-[#29342c]">Categoria / universo
+                        <input maxLength={100} value={draft.category} onChange={event => setDraft(current => ({ ...current, category: event.target.value }))} placeholder="Ex.: Harry Potter, Friends" className="mt-1 w-full rounded-md border border-[#c9bea8] bg-white px-3 py-3 text-[#29342c] placeholder:text-[#756d60] shadow-sm outline-none transition focus:border-[#506b4f] focus:ring-2 focus:ring-[#506b4f]/20" />
                       </label>
-                      <label className="block text-sm text-foreground">Aroma
-                        <input maxLength={160} value={draft.aroma} onChange={event => setDraft(current => ({ ...current, aroma: event.target.value }))} placeholder="Nome do aroma" className="mt-1 w-full border border-primary/20 bg-background px-3 py-3 text-foreground" />
+                      <label className="block text-sm font-semibold text-[#29342c]">Aroma
+                        <input maxLength={160} value={draft.aroma} onChange={event => setDraft(current => ({ ...current, aroma: event.target.value }))} placeholder="Nome do aroma" className="mt-1 w-full rounded-md border border-[#c9bea8] bg-white px-3 py-3 text-[#29342c] placeholder:text-[#756d60] shadow-sm outline-none transition focus:border-[#506b4f] focus:ring-2 focus:ring-[#506b4f]/20" />
                       </label>
                     </div>
-                    <label className="block text-sm text-foreground">Data da compra
-                      <input type="date" value={draft.acquired_at} onChange={event => setDraft(current => ({ ...current, acquired_at: event.target.value }))} className="mt-1 w-full border border-primary/20 bg-background px-3 py-3 text-foreground" />
+                    <label className="block text-sm font-semibold text-[#29342c]">Data da compra
+                      <input type="date" value={draft.acquired_at} onChange={event => setDraft(current => ({ ...current, acquired_at: event.target.value }))} className="mt-1 w-full rounded-md border border-[#c9bea8] bg-white px-3 py-3 text-[#29342c] placeholder:text-[#756d60] shadow-sm outline-none transition focus:border-[#506b4f] focus:ring-2 focus:ring-[#506b4f]/20" />
                     </label>
                   </>
                 )}
-                <label className="block text-sm text-foreground">Detalhes / descrição pessoal
-                  <textarea maxLength={1500} rows={3} value={draft.notes} onChange={event => setDraft(current => ({ ...current, notes: event.target.value }))} placeholder="Conte o que esta vela representa para você..." className="mt-1 w-full border border-primary/20 bg-background px-3 py-3 text-foreground" />
+                <label className="block text-sm font-semibold text-[#29342c]">Detalhes / descrição pessoal
+                  <textarea maxLength={1500} rows={3} value={draft.notes} onChange={event => setDraft(current => ({ ...current, notes: event.target.value }))} placeholder="Conte o que esta vela representa para você..." className="mt-1 w-full rounded-md border border-[#c9bea8] bg-white px-3 py-3 text-[#29342c] placeholder:text-[#756d60] shadow-sm outline-none transition focus:border-[#506b4f] focus:ring-2 focus:ring-[#506b4f]/20" />
                 </label>
                 <div>
                   <p className="text-sm font-semibold text-foreground">Sua avaliação em foguinhos</p>
@@ -308,14 +308,14 @@ export function CandleBookshelf({
                     </button>)}
                   </div>
                 </div>
-                {!(dialogMode === "edit" && dialogItem?.order_item_id) && <label className="block text-sm text-foreground">
+                {!(dialogMode === "edit" && dialogItem?.order_item_id) && <label className="block text-sm font-semibold text-[#29342c]">
                   <span className="mb-2 flex items-center gap-2"><ImagePlus size={16}/> Foto da vela {dialogMode === "add" ? "(obrigatória)" : "(opcional)"}</span>
-                  <input required={dialogMode === "add"} type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={event => setImageFile(event.currentTarget.files?.[0] ?? null)} className="block w-full text-xs text-muted-foreground file:mr-3 file:rounded-full file:border file:border-primary/30 file:bg-background file:px-4 file:py-2 file:text-foreground" />
+                  <input required={dialogMode === "add"} type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={event => setImageFile(event.currentTarget.files?.[0] ?? null)} className="block w-full text-sm text-[#4e584c] file:mr-3 file:rounded-full file:border file:border-[#a99b7d] file:bg-[#ece4d3] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-[#29342c] hover:file:bg-[#e2d7c1]" />
                   {imageFile && <span className="mt-1 block text-xs text-muted-foreground">{imageFile.name}</span>}
                 </label>}
                 {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
                 <div className="flex flex-wrap justify-end gap-2">
-                  <button type="button" onClick={() => dialogMode === "edit" ? setDialogMode("view") : closeDialog()} disabled={saving} className="rounded-full border border-primary/30 px-4 py-2 text-sm text-foreground">Cancelar</button>
+                  <button type="button" onClick={() => dialogMode === "edit" ? setDialogMode("view") : closeDialog()} disabled={saving} className="rounded-full border border-[#b6aa92] px-4 py-2 text-sm font-medium text-[#29342c] hover:bg-[#ece4d3]">Cancelar</button>
                   <button type="submit" disabled={saving} className="btn-gold">{saving ? "Salvando..." : dialogMode === "add" ? "Adicionar à estante" : "Salvar alterações"}</button>
                 </div>
               </form>
