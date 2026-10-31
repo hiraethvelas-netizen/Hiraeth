@@ -62,8 +62,8 @@
 
 :root.dark {
   color-scheme: dark;
-  /* Modo noturno: verde oliva Hiraeth como fundo, vanilla em destaque e verde profundo apenas nos detalhes. */
-  --background: #878e47;
+  /* Modo noturno: verde oliva profundo e elegante, com superfícies vanilla. */
+  --background: #41492f;
   --foreground: #f7efda;
   --card: #f7efda;
   --card-foreground: #34402b;
@@ -71,19 +71,19 @@
   --popover-foreground: #34402b;
   --primary: #f7efda;
   --primary-foreground: #41492f;
-  --secondary: #41492f;
+  --secondary: #596344;
   --secondary-foreground: #f7efda;
-  --muted: #737a43;
-  --muted-foreground: #f1ead3;
+  --muted: #4b5538;
+  --muted-foreground: #e5dfc7;
   --accent: #d6d99a;
   --accent-foreground: #34402b;
   --destructive: #5b1d04;
   --destructive-foreground: #f7efda;
-  --border: #f7efda66;
-  --input: #f7efda80;
-  --ring: #f7efda;
-  --overlay: #34402bd9;
-  --glow: 0 0 28px #41492f30;
+  --border: #d6d99a66;
+  --input: #d6d99a80;
+  --ring: #d6d99a;
+  --overlay: #202719e6;
+  --glow: 0 0 28px #878e4738;
 }
 
 @layer base {
