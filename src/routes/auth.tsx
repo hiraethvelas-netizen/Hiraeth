@@ -3,6 +3,7 @@ import { useState } from "react";
 import { getPostLoginDestination, getSafeInternalRedirect } from "@/lib/auth-routing";
 import { supabase } from "@/integrations/supabase/client";
 import { SiteFooter, SiteHeader } from "@/components/SiteLayout";
+import { toast } from "sonner";
 
 type Search = { redirect?: string | undefined };
 
@@ -56,6 +57,28 @@ function AuthPage() {
           setError("Esta área é reservada à administração da Hiraeth. Entre com a conta administrativa autorizada.");
           return;
         }
+
+        const firstWelcome = data.user.user_metadata?.["hiraeth_welcome_pending"] === true;
+        if (firstWelcome) {
+          const { error: metadataError } = await supabase.auth.updateUser({ data: { hiraeth_welcome_pending: false } });
+          if (metadataError) console.warn("Não foi possível registrar a primeira saudação da conta.", metadataError);
+        }
+        if (isAdmin) {
+          toast.success("Bem-vinda à Administração Hiraeth!", {
+            description: "Seu painel está pronto. Que bom ter você de volta aos bastidores da nossa chama.",
+            duration: 7000,
+          });
+        } else if (firstWelcome) {
+          toast.success("Que bom ter você por aqui!", {
+            description: "Sua primeira chama na Hiraeth está acesa. Seja muito bem-vinda ao nosso círculo.",
+            duration: 7000,
+          });
+        } else {
+          toast.success("Bem-vinda de volta à Hiraeth!", {
+            description: "Sua estante e seus universos continuam esperando por você.",
+            duration: 7000,
+          });
+        }
         await navigate({ to: getPostLoginDestination(requested, isAdmin) as never });
         return;
       } else if (mode === "signup") {
@@ -63,17 +86,23 @@ function AuthPage() {
           email,
           password,
           options: {
-            data: { display_name: name },
+            data: { display_name: name, hiraeth_welcome_pending: true },
             emailRedirectTo: `${window.location.origin}/auth?redirect=${encodeURIComponent(requested === "/admin" ? "/inicio" : requested)}`,
           },
         });
         if (error) throw error;
         if (data.session) {
+          const { error: metadataError } = await supabase.auth.updateUser({ data: { hiraeth_welcome_pending: false } });
+          if (metadataError) console.warn("Não foi possível registrar a primeira saudação da conta.", metadataError);
+          toast.success("Que bom ter você por aqui!", {
+            description: "Sua primeira chama na Hiraeth está acesa. Seja muito bem-vinda ao nosso círculo.",
+            duration: 7000,
+          });
           await navigate({ to: getPostLoginDestination(requested, false) as never });
           return;
         }
         setMode("login");
-        setMessage("Sua conta foi criada. Confira seu e-mail para confirmar o acesso e depois entre com suas credenciais.");
+        setMessage("Sua conta foi criada. Confira seu e-mail para confirmar o acesso. No primeiro login, teremos uma mensagem especial de boas-vindas para você.");
       } else {
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
           redirectTo: `${window.location.origin}/reset-password`,
