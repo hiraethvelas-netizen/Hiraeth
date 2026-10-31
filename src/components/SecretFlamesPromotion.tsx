@@ -99,7 +99,7 @@ export function SecretFlamesPromotion() {
           })}
         </div>
         <p className="mt-5 text-xs text-[#85796f]">Você pode escolher apenas uma vela.</p>
-      </> : <div className="mt-7 rounded-2xl border border-[#d8c9b8] bg-white/70 p-6">
+      </> : <div className="mt-7 rounded-2xl border border-[#d8c9b8] bg-card/95 p-6 text-card-foreground">
         <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-[#e7eadf] text-[#66744f]"><Sparkles size={27}/></div>
         <p className="text-xs font-semibold uppercase tracking-[.18em] text-[#8b7650]">Sua surpresa foi revelada</p>
         <h3 className="mt-2 font-display text-2xl">{reward?.title || "Uma surpresa especial"}</h3>
