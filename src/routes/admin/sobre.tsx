@@ -51,14 +51,20 @@ function AdminSobre() {
   }
   async function addImages(index: number, files: FileList | null) {
     if (!files?.length) return;
+    const selected = Array.from(files);
+    const invalid = selected.find(file => !["image/jpeg", "image/png", "image/webp"].includes(file.type) || file.size > 5 * 1024 * 1024);
+    if (invalid) {
+      setMessage(`A foto "${invalid.name}" não foi enviada. Use JPG, PNG ou WebP de até 5 MB.`);
+      return;
+    }
     setMessage("Enviando imagens...");
     try {
       const urls: string[] = [];
-      for (const file of Array.from(files)) urls.push(await uploadSiteImage(file, "about-page"));
-      setBlocks(current => current.map((block, i) => i === index ? { ...block, images: [...block.images, ...urls] } : block));
-      setMessage("Imagens carregadas. Salve as alterações para publicá-las na página.");
+      for (const file of selected) urls.push(await uploadSiteImage(file, "about-page"));
+      setBlocks(current => current.map((block, i) => i === index ? { ...block, images: [...(block.images ?? []), ...urls] } : block));
+      setMessage("Fotos adicionadas à seção. Clique em “Salvar alterações” para publicá-las.");
     } catch (err) {
-      setMessage("Não foi possível enviar a imagem: " + (err instanceof Error ? err.message : "erro desconhecido"));
+      setMessage("Não foi possível enviar a foto: " + (err instanceof Error ? err.message : "erro desconhecido"));
     }
   }
   function updateLink(blockIndex: number, linkIndex: number, patch: Partial<AboutLink>) {
@@ -98,8 +104,14 @@ function AdminSobre() {
           <label className="grid gap-2 text-sm">Layout<select value={block.layout} onChange={e => updateBlock(index, { layout: e.target.value as AboutBlock["layout"] })} className="border bg-background px-3 py-3"><option value="text">Texto e links</option><option value="image-left">Imagem à esquerda</option><option value="image-right">Imagem à direita</option><option value="gallery">Galeria de fotos</option></select></label>
         </div>
         <label className="grid gap-2 text-sm">Texto<textarea rows={6} value={block.text} onChange={e => updateBlock(index, { text: e.target.value })} className="border bg-transparent px-3 py-3" placeholder="Escreva o conteúdo desta seção..." /></label>
-        <div className="space-y-3"><h3 className="text-sm font-medium">Fotos deste bloco</h3><input type="file" multiple accept="image/jpeg,image/png,image/webp" onChange={e => { void addImages(index, e.target.files); e.currentTarget.value = ""; }} className="block w-full border px-3 py-3 text-sm" /><p className="text-xs text-muted-foreground">JPG, PNG ou WebP; até 5 MB por imagem.</p>
-          {block.images.length > 0 && <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">{block.images.map((url, imageIndex) => <div key={url + imageIndex} className="space-y-2"><img src={url} alt="" className="aspect-[4/5] w-full object-cover" /><button type="button" onClick={() => updateBlock(index, { images: block.images.filter((_, i) => i !== imageIndex) })} className="text-xs text-destructive">Remover foto</button></div>)}</div>}
+        <div className="space-y-3 rounded-md border border-dashed p-4">
+          <div><h3 className="text-sm font-medium">Fotos desta seção</h3><p className="mt-1 text-xs text-muted-foreground">Escolha as fotos que deseja mostrar junto deste trecho da história.</p></div>
+          <label htmlFor={`about-images-${block.id}`} className="inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-md bg-primary px-5 py-3 text-sm font-medium text-primary-foreground hover:opacity-90">
+            + Adicionar fotos
+          </label>
+          <input id={`about-images-${block.id}`} type="file" multiple accept="image/jpeg,image/png,image/webp" onChange={e => { void addImages(index, e.currentTarget.files); e.currentTarget.value = ""; }} className="sr-only" />
+          <p className="text-xs text-muted-foreground">JPG, PNG ou WebP; até 5 MB por foto. Você pode selecionar mais de uma.</p>
+          {(block.images ?? []).length > 0 && <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">{block.images.map((url, imageIndex) => <div key={url + imageIndex} className="space-y-2"><img src={url} alt={`Foto ${imageIndex + 1} desta seção`} className="aspect-[4/5] w-full rounded object-cover" /><button type="button" onClick={() => updateBlock(index, { images: block.images.filter((_, i) => i !== imageIndex) })} className="text-xs text-destructive">Remover foto</button></div>)}</div>}
         </div>
         <div className="space-y-3"><div className="flex items-center justify-between gap-3"><h3 className="text-sm font-medium">Links e botões</h3><button type="button" onClick={() => updateBlock(index, { links: [...block.links, { label: "", url: "" }] })} className="border px-3 py-2 text-sm">+ Adicionar link</button></div>
           {block.links.map((link, linkIndex) => <div key={linkIndex} className="grid gap-3 border p-3 md:grid-cols-[1fr_2fr_auto]"><label className="grid gap-1 text-sm">Texto do botão<input value={link.label} onChange={e => updateLink(index, linkIndex, { label: e.target.value })} className="border bg-transparent px-3 py-2" placeholder="Ex.: Conheça a loja" /></label><label className="grid gap-1 text-sm">Destino / URL<input value={link.url} onChange={e => updateLink(index, linkIndex, { url: e.target.value })} className="border bg-transparent px-3 py-2" placeholder="/loja ou https://..." /></label><button type="button" onClick={() => updateBlock(index, { links: block.links.filter((_, i) => i !== linkIndex) })} className="self-end px-2 py-2 text-sm text-destructive">Remover</button></div>)}
