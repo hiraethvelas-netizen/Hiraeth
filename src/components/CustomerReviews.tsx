@@ -59,7 +59,7 @@ export function CustomerReviews() {
     } finally { setSending(false); }
   }
 
-  return <section className="border-y border-primary/20 bg-card/50 px-5 py-10 md:px-8 md:py-14">
+  return <section className="hiraeth-reviews-section border-y border-primary/20 px-5 py-10 md:px-8 md:py-14">
     <div className="mx-auto max-w-6xl">
       <div className="hiraeth-review-invite mx-auto max-w-3xl rounded-2xl border px-6 py-7 text-center sm:px-10">
         <div className="mb-3 flex items-center justify-center gap-2.5" aria-label="Cinco foguinhos em destaque">
@@ -75,7 +75,7 @@ export function CustomerReviews() {
       {notice && <p role="status" className="mx-auto mt-4 max-w-2xl text-center text-sm text-primary">{notice}</p>}
 
       {loading ? <p className="mt-8 text-center text-sm font-medium text-muted-foreground">Carregando relatos...</p> : reviews.length ? <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {reviews.map((review) => <article key={review.id} className="border border-primary/20 bg-background/70 p-5">
+        {reviews.map((review) => <article key={review.id} className="hiraeth-review-card rounded-xl border p-5">
           <div className="flex gap-1" aria-label={`Avaliação de ${review.rating} de 5 foguinhos`}>{[1,2,3,4,5].map((flame) => <Flame key={flame} size={18} className={flame <= review.rating ? "hiraeth-review-flame is-active" : "hiraeth-review-flame text-muted-foreground/30"} />)}</div>
           <p className="mt-3 whitespace-pre-wrap font-body font-semibold leading-relaxed text-foreground">“{review.message}”</p>
           {review.media_urls?.length ? <div className="mt-4 grid grid-cols-2 gap-2">{review.media_urls.map((url) => /\.(mp4|webm|mov|m4v)(\?|$)/i.test(url) ? <video key={url} src={url} controls playsInline className="aspect-square w-full rounded object-cover" /> : <img key={url} src={url} alt="Registro compartilhado por cliente da Hiraeth" loading="lazy" className="aspect-square w-full rounded object-cover" />)}</div> : null}
@@ -84,19 +84,19 @@ export function CustomerReviews() {
       </div> : <p className="mt-8 text-center text-sm text-muted-foreground">As primeiras histórias do Acervo aparecerão aqui em breve.</p>}
 
       {formOpen && <div className="fixed inset-0 z-[120] flex items-center justify-center overflow-y-auto bg-black/65 p-4" role="dialog" aria-modal="true" aria-labelledby="hiraeth-review-title">
-        <div className="relative my-auto max-h-[92dvh] w-full max-w-xl overflow-y-auto rounded-2xl border border-[#b69a5d] bg-[#f0e4cc] p-5 text-[#20382b] shadow-2xl sm:p-8">
+        <div className="hiraeth-review-dialog relative my-auto max-h-[92dvh] w-full max-w-xl overflow-y-auto rounded-2xl border p-5 shadow-2xl sm:p-8">
           <button type="button" onClick={() => setFormOpen(false)} aria-label="Fechar formulário" className="absolute right-4 top-4 rounded-full p-2 hover:bg-black/5"><X size={20}/></button>
           <p className="text-xs font-semibold uppercase tracking-[.22em] text-[#94753c]">Seu relato para o Acervo</p>
           <h3 id="hiraeth-review-title" className="mt-2 font-display text-3xl">Conte sua experiência</h3>
-          <p className="mt-1 text-sm font-medium text-[#514b3d]">Queremos saber como foi viver um pedacinho da Hiraeth.</p>
+          <p className="mt-1 text-sm font-medium text-current/80">Queremos saber como foi viver um pedacinho da Hiraeth.</p>
           <form onSubmit={submitReview} className="mt-5 space-y-4">
-            <label className="block text-sm font-semibold">Seu nome<input required minLength={2} maxLength={80} value={name} onChange={(e) => setName(e.target.value)} placeholder="Como podemos te chamar?" className="mt-1 w-full rounded border border-[#b8a77f] bg-[#f7efda] px-3 py-2.5 text-[#20382b] placeholder:text-[#857b67]" /></label>
+            <label className="block text-sm font-semibold">Seu nome<input required minLength={2} maxLength={80} value={name} onChange={(e) => setName(e.target.value)} placeholder="Como podemos te chamar?" className="hiraeth-review-field mt-1 w-full rounded border px-3 py-2.5 placeholder:opacity-60" /></label>
             <fieldset><legend className="text-sm font-medium">Quantos foguinhos merece sua experiência?</legend><div className="mt-2 flex gap-3">{[1,2,3,4,5].map((value) => <button key={value} type="button" onClick={() => setRating(value)} aria-label={`${value} foguinhos`} aria-pressed={rating === value} className="rounded p-1 transition-transform hover:scale-125 focus-visible:outline focus-visible:outline-[#94753c]"><Flame size={31} className={value <= rating ? "hiraeth-review-flame is-active" : "hiraeth-review-flame text-[#b9ad94]"} /></button>)}</div></fieldset>
-            <label className="block text-sm font-medium">O que você achou?<textarea required minLength={3} maxLength={1200} rows={4} value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Conte sobre o aroma, a embalagem, o momento em que acendeu..." className="mt-1 w-full rounded border border-[#b8a77f] bg-[#f7efda] px-3 py-2.5 text-[#20382b] placeholder:text-[#857b67]" /></label>
-            <label className="block text-sm font-medium">Fotos e vídeos dos seus produtos <span className="font-normal text-[#625d4c]">(opcional, até 5 arquivos de 25 MB)</span><span className="mt-2 flex items-center gap-2 text-xs text-[#625d4c]"><ImagePlus size={15}/> Fotos <Video size={15}/> Vídeos</span><input type="file" accept="image/*,video/mp4,video/webm,video/quicktime" multiple onChange={(e) => setPhotos(Array.from(e.target.files ?? []).slice(0, MAX_FILES))} className="mt-2 block w-full text-xs text-[#625d4c] file:mr-3 file:rounded-full file:border file:border-[#b8a77f] file:bg-[#f7efda] file:px-3 file:py-2 file:text-[#20382b]" /></label>
+            <label className="block text-sm font-medium">O que você achou?<textarea required minLength={3} maxLength={1200} rows={4} value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Conte sobre o aroma, a embalagem, o momento em que acendeu..." className="hiraeth-review-field mt-1 w-full rounded border px-3 py-2.5 placeholder:opacity-60" /></label>
+            <label className="block text-sm font-medium">Fotos e vídeos dos seus produtos <span className="font-normal text-[#625d4c]">(opcional, até 5 arquivos de 25 MB)</span><span className="mt-2 flex items-center gap-2 text-xs text-[#625d4c]"><ImagePlus size={15}/> Fotos <Video size={15}/> Vídeos</span><input type="file" accept="image/*,video/mp4,video/webm,video/quicktime" multiple onChange={(e) => setPhotos(Array.from(e.target.files ?? []).slice(0, MAX_FILES))} className="hiraeth-review-field mt-2 block w-full rounded border p-2 text-xs file:mr-3 file:rounded-full file:border file:px-3 file:py-2" /></label>
             {photos.length > 0 && <p className="text-xs text-[#625d4c]">{photos.length} arquivo(s) selecionado(s): {photos.map((file) => file.name).join(", ")}</p>}
             <p className="text-xs text-[#756b56]">Os relatos passam por revisão antes de aparecerem publicamente.</p>
-            <button disabled={sending} type="submit" className="inline-flex rounded-full border border-[#80652f] bg-[#20382b] px-6 py-3 font-display text-lg text-[#f7efda] disabled:opacity-50">{sending ? "Enviando..." : "Enviar minha experiência"}</button>
+            <button disabled={sending} type="submit" className="hiraeth-review-submit inline-flex rounded-full border px-6 py-3 font-display text-lg disabled:opacity-50">{sending ? "Enviando..." : "Enviar minha experiência"}</button>
           </form>
         </div>
       </div>}
