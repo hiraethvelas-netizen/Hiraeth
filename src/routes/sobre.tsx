@@ -81,12 +81,9 @@ function Sobre() {
       <section className="relative overflow-hidden rounded-sm border border-[#b6a77f]/40 bg-[#314333] px-6 py-9 text-[#f5efdf] dark:bg-[#eee8dc] dark:text-[#302b24] sm:px-12 sm:py-12">
         <p className="mb-3 text-[10px] font-semibold uppercase tracking-[.24em] text-[#d5c28b] dark:text-[#927b45]">A palavra por trás da chama</p>
         <h2 className="font-serif text-4xl font-medium leading-tight sm:text-5xl">O que significa <span className="font-bold italic">Hiraeth?</span></h2>
-        <p className="mt-5 max-w-3xl font-serif text-base leading-[1.9] sm:text-lg">Hiraeth é uma palavra galesa que traduz uma saudade profunda: a falta de um lugar, de uma pessoa ou de uma época — até mesmo de algo que nunca chegou a existir ou para onde já não podemos voltar. É uma nostalgia que mistura desejo, afeto e a sensação de que uma parte de nós ficou em algum lugar.</p>
-        <p className="mt-4 max-w-3xl font-serif text-base leading-[1.9] sm:text-lg">É aquele sentimento que aparece quando terminamos uma série que amamos ou fechamos a última página de um livro especial. A história acaba, os personagens deixam de nos acompanhar e, de repente, fica um vazio acompanhado daquela pergunta tão familiar: “Meu Deus, e agora? O que eu vou fazer da minha vida?”. Sentimos saudade de um universo que, embora tenha vivido apenas nas páginas ou na tela, parece ter sido também um pouco nosso.</p>
-        <p className="mt-4 max-w-3xl font-serif text-base leading-[1.9] sm:text-lg">Foi dessa identificação que nasceu a escolha do nome Hiraeth. Eu queria que a marca fosse uma forma de voltar a esses mundos: de reencontrar histórias, personagens e sensações que a gente não está pronto para deixar para trás.</p>
-        <div className="mt-7 border-t border-[#d5c28b]/40 pt-5 dark:border-[#a99b7b]/50">
-          <p className="max-w-3xl font-serif text-lg italic leading-relaxed text-[#f5efdf] dark:text-[#49443b] sm:text-xl">A Hiraeth existe para transportar você, por meio de aromas e experiências, de volta ao universo que tanto ama — e fazer essa história continuar um pouquinho mais.</p>
-        </div>
+        <p className="mt-5 max-w-3xl font-serif text-base leading-[1.9] sm:text-lg">De origem galesa, <em>Hiraeth</em> representa a saudade de um lugar, pessoa ou época que talvez nunca tenha existido — ou ao qual já não podemos voltar.</p>
+        <p className="mt-4 max-w-3xl font-serif text-base leading-[1.9] sm:text-lg">É também a saudade que sentimos ao terminar um livro ou uma série e perceber que ainda gostaríamos de permanecer naquele universo.</p>
+        <p className="mt-4 max-w-3xl font-serif text-base leading-[1.9] sm:text-lg">Escolhi esse nome porque quero que a Hiraeth seja uma forma de reencontrar esses mundos. Por meio de aromas e experiências, queremos trazer um pouco das histórias que você ama para perto — e prolongar a magia de cada uma delas.</p>
       </section>
       {shownBlocks.map((block, index) => {
         const isFeatureBlock = index % 2 === 0;
