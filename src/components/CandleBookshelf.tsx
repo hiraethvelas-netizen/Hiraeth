@@ -11,6 +11,7 @@ export type CandleLibraryItem = {
   notes?: string | null;
   rating?: number | null;
   favorite?: boolean;
+  finished?: boolean;
   order_item_id?: string | null;
   purchase_status?: string | null;
   quantity?: number | null;
@@ -35,6 +36,7 @@ type CandleBookshelfProps = {
   onUpdate?: (id: string, values: CandleDraftInput) => Promise<void>;
   onFavorite?: (item: CandleLibraryItem) => Promise<void>;
   onRemove?: (item: CandleLibraryItem) => Promise<void>;
+  onMarkFinished?: (item: CandleLibraryItem, finished: boolean) => Promise<void>;
 };
 
 const EMPTY_DRAFT: CandleDraft = {
@@ -77,6 +79,7 @@ export function CandleBookshelf({
   onUpdate,
   onFavorite,
   onRemove,
+  onMarkFinished,
 }: CandleBookshelfProps) {
   const [categoryFilter, setCategoryFilter] = useState("Todos");
   const [dialogItem, setDialogItem] = useState<CandleLibraryItem | null>(null);
@@ -87,14 +90,16 @@ export function CandleBookshelf({
   const [error, setError] = useState("");
 
   const categories = useMemo(
-    () => [...new Set(items.map(item => item.category?.trim()).filter((value): value is string => Boolean(value)))].sort((a, b) => a.localeCompare(b, "pt-BR")),
+    () => [...new Set(items.filter(item => !item.finished).map(item => item.category?.trim()).filter((value): value is string => Boolean(value) && value !== "Acabaram"))].sort((a, b) => a.localeCompare(b, "pt-BR")),
     [items],
   );
   const visibleItems = categoryFilter === "Todos"
     ? items
-    : categoryFilter === "Sem categoria"
-      ? items.filter(item => !item.category?.trim())
-      : items.filter(item => item.category?.trim() === categoryFilter);
+    : categoryFilter === "Acabaram"
+      ? items.filter(item => item.finished)
+      : categoryFilter === "Sem categoria"
+        ? items.filter(item => !item.finished && !item.category?.trim())
+        : items.filter(item => !item.finished && item.category?.trim() === categoryFilter);
   const rows = Array.from({ length: Math.ceil(visibleItems.length / 3) }, (_, index) => visibleItems.slice(index * 3, index * 3 + 3));
   const canEditSelected = Boolean(dialogItem && editable && (!dialogItem.order_item_id || dialogItem.purchase_status === "delivered"));
   const dialogTitle = dialogMode === "add" ? "Adicionar vela antiga" : dialogMode === "edit" ? "Editar vela" : dialogItem?.title ?? "";
@@ -163,7 +168,7 @@ export function CandleBookshelf({
     }
   }
 
-  const filterOptions = ["Todos", ...categories, ...(items.some(item => !item.category?.trim()) ? ["Sem categoria"] : [])];
+  const filterOptions = ["Todos", "Acabaram", ...categories, ...(items.some(item => !item.finished && !item.category?.trim()) ? ["Sem categoria"] : [])];
 
   return (
     <section className="space-y-5">
@@ -199,11 +204,11 @@ export function CandleBookshelf({
           </p>
         </div>
       ) : (
-        <div className="overflow-hidden rounded-lg border-[5px] border-[#68462e] bg-[linear-gradient(135deg,#5a3d2a_0%,#3f2b20_45%,#68462e_100%)] p-2 shadow-[inset_0_0_18px_rgba(0,0,0,0.35),0_12px_24px_rgba(42,28,18,0.16)] sm:p-4">
+        <div className="overflow-hidden rounded-lg border-[7px] border-[#3b2619] bg-[repeating-linear-gradient(90deg,rgba(238,190,128,0.07)_0px,rgba(238,190,128,0.07)_2px,rgba(20,10,5,0.10)_3px,transparent_9px),linear-gradient(135deg,#795235_0%,#513321_42%,#6c462c_100%)] p-2 shadow-[inset_0_0_22px_rgba(0,0,0,0.48),0_16px_30px_rgba(42,28,18,0.24)] sm:p-4">
           {rows.map((row, rowIndex) => (
             <div
               key={rowIndex}
-              className="grid grid-cols-3 gap-2 border-b-[11px] border-[#8a6240] px-1 pb-2 pt-4 shadow-[0_7px_6px_-5px_rgba(0,0,0,0.8)] sm:gap-4 sm:px-3 sm:pb-3 sm:pt-5"
+              className="relative grid grid-cols-3 gap-2 border-b-[14px] border-[#3e281a] bg-[repeating-linear-gradient(90deg,rgba(246,203,150,0.08)_0px,rgba(246,203,150,0.08)_2px,rgba(27,12,5,0.1)_3px,transparent_10px),linear-gradient(180deg,#b17a4c_0%,#704329_43%,#4a2f1e_100%)] px-1 pb-2 pt-4 shadow-[0_8px_7px_-5px_rgba(0,0,0,0.85),inset_0_2px_2px_rgba(255,230,185,0.22)] after:pointer-events-none after:absolute after:bottom-[-14px] after:left-0 after:h-[14px] after:w-full after:bg-[linear-gradient(180deg,#8b5b37_0%,#4a2e1d_100%)] after:shadow-[0_5px_5px_rgba(0,0,0,0.45)] sm:gap-4 sm:px-3 sm:pb-3 sm:pt-5"
             >
               {row.map(item => (
                 <button
@@ -215,13 +220,14 @@ export function CandleBookshelf({
                 >
                   <span className="relative block aspect-[4/5] w-full max-w-[120px] overflow-hidden rounded-sm border border-[#c2a47a] bg-[#e9dec8] shadow-[0_5px_12px_rgba(0,0,0,0.38)]">
                     {item.image_url
-                      ? <img src={item.image_url} alt={item.title} loading="lazy" className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
+                      ? <img src={item.image_url} alt={item.title} loading="lazy" className={"h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" + (item.finished ? " grayscale opacity-65" : "")} />
                       : <span className="flex h-full w-full items-center justify-center p-2 font-display text-xs italic text-[#634b35] sm:text-sm">{item.title}</span>}
                     {item.favorite && <span className="absolute right-1 top-1 rounded-full bg-[#f7efda] p-1 text-[#8b3426]"><Heart size={12} fill="currentColor" /></span>}
+                    {item.finished && <span className="absolute left-1 top-1 rounded bg-[#2c2924]/90 px-1.5 py-1 text-[8px] font-semibold tracking-[.12em] text-[#eee5d5]">ACABOU</span>}
                     {item.order_item_id && <span className="absolute bottom-1 left-1 rounded bg-[#18251d]/85 px-1.5 py-0.5 text-[8px] font-semibold text-[#f7efda] sm:text-[9px]">{item.purchase_status === "delivered" ? "ENTREGUE" : "COMPRA"}</span>}
                     {(item.quantity ?? 1) > 1 && <span className="absolute right-1 bottom-1 rounded bg-[#f7efda]/95 px-1.5 py-0.5 text-[9px] font-bold text-[#3f2b20]">×{item.quantity}</span>}
                   </span>
-                  <span className="mt-2 line-clamp-2 min-h-8 w-full break-words font-display text-xs font-medium text-[#f7efda] sm:text-sm">{item.title}</span>
+                  <span className={"mt-2 line-clamp-2 min-h-8 w-full break-words font-display text-xs font-medium sm:text-sm" + (item.finished ? " text-[#b9aa96]" : " text-[#f7efda]")}>{item.title}</span>
                   {item.aroma && <span className="mt-0.5 line-clamp-1 w-full text-[9px] text-[#e4d5b8] sm:text-[10px]">{item.aroma}</span>}
                 </button>
               ))}
@@ -260,6 +266,7 @@ export function CandleBookshelf({
                   </div>
                   {dialogItem.order_item_id && dialogItem.purchase_status !== "delivered" && <p className="rounded-md border border-primary/20 bg-primary/5 p-3 text-xs text-muted-foreground">Quando seu pedido for marcado como entregue, você poderá adicionar seus detalhes e avaliar esta vela com foguinhos.</p>}
                   {editable && onFavorite && <button type="button" onClick={async () => { try { await onFavorite(dialogItem); setDialogItem(current => current ? { ...current, favorite: !current.favorite } : current); setError(""); } catch (cause) { setError(cause instanceof Error ? cause.message : "Não foi possível atualizar seus favoritos."); } }} className="text-sm text-primary">{dialogItem.favorite ? "♥ Remover dos favoritos" : "♡ Favoritar esta vela"}</button>}
+                  {editable && onMarkFinished && (!dialogItem.order_item_id || dialogItem.purchase_status === "delivered") && <button type="button" onClick={async () => { try { await onMarkFinished(dialogItem, !dialogItem.finished); setDialogItem(current => current ? { ...current, finished: !dialogItem.finished } : current); setError(""); } catch (cause) { setError(cause instanceof Error ? cause.message : "Não foi possível atualizar o estado da vela."); } }} className="block rounded-full border border-primary/40 px-4 py-2 text-sm text-foreground transition hover:bg-primary/10">{dialogItem.finished ? "Voltar para a estante" : "Marcar que a vela acabou"}</button>}
                   {editable && canEditSelected && onUpdate && <button type="button" onClick={() => { setDraft(draftFromItem(dialogItem)); setImageFile(null); setDialogMode("edit"); setError(""); }} className="block rounded-full border border-primary/40 px-4 py-2 text-sm text-foreground transition hover:bg-primary/10">Editar detalhes</button>}
                   {editable && onRemove && !dialogItem.order_item_id && <button type="button" onClick={() => void removeSelected()} disabled={saving} className="text-xs text-destructive hover:underline">Remover da estante</button>}
                 </div>
