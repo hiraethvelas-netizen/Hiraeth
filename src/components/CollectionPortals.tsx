@@ -61,7 +61,7 @@ export function CollectionPortals() {
 
   return <>
     <section className="hiraeth-collection-portals mx-auto max-w-6xl px-5 py-12 md:px-8 md:py-16">
-      <h2 className="hiraeth-editorial-title hiraeth-acervo-heading mt-3 text-center !text-4xl md:!text-6xl">Conheça <em>o Acervo Hiraeth</em></h2><div className="hiraeth-ornament" aria-hidden="true"><span>✧</span></div>
+      <h2 className="hiraeth-editorial-title hiraeth-acervo-heading mt-3 text-center !text-4xl md:!text-6xl">Conheça <em>o Acervo Hiraeth</em></h2><div className="hiraeth-ornament hiraeth-ornament--flame" aria-hidden="true"><span>🔥</span></div>
       <p className="mx-auto mt-2 max-w-xl text-center text-sm text-muted-foreground">Escolha um universo e atravesse o portal.</p>
       {isAdmin && editMode && <p className="mx-auto mt-3 max-w-xl text-center text-xs text-primary">Use as setas para definir a ordem das bolinhas. A primeira será exibida primeiro na página.</p>}
       <div className="mt-7 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
