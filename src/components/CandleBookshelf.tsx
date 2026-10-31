@@ -203,37 +203,28 @@ export function CandleBookshelf({
           </p>
         </div>
       ) : (
-        <div className="relative overflow-hidden rounded-2xl border border-[#896a49] bg-[radial-gradient(ellipse_at_top,rgba(203,166,113,0.13),transparent_55%),linear-gradient(145deg,#493527_0%,#34251d_52%,#493426_100%)] p-2.5 shadow-[0_14px_32px_rgba(35,24,17,0.22),inset_0_1px_0_rgba(244,224,187,0.18)] sm:p-4">
-          <div aria-hidden="true" className="pointer-events-none absolute inset-2 rounded-xl border border-[#c09b69]/20 sm:inset-3" />
-          <div className="relative grid grid-cols-1 gap-3 min-[420px]:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 sm:gap-4">
-            {visibleItems.map((item, itemIndex) => (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => openItem(item)}
-                className="group relative flex min-w-0 flex-col items-center rounded-xl border border-[#b99568]/55 bg-[linear-gradient(155deg,#fbf6eb_0%,#f0e6d3_100%)] p-3 text-center shadow-[0_5px_14px_rgba(17,12,8,0.20),inset_0_1px_0_rgba(255,255,255,0.85)] transition duration-300 hover:-translate-y-1 hover:border-[#c49a60] hover:shadow-[0_10px_20px_rgba(17,12,8,0.28)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#e4c58e] sm:p-3.5"
-                aria-label={`Abrir detalhes da vela ${item.title}`}
-              >
-                <span aria-hidden="true" className="mb-2 flex w-full items-center justify-between text-[9px] font-semibold uppercase tracking-[.2em] text-[#88704e]">
-                  <span>Acervo Hiraeth</span>
-                  <span className="tabular-nums">{String(itemIndex + 1).padStart(2, "0")}</span>
-                </span>
-                <span className="relative block aspect-[4/5] w-full max-w-[190px] overflow-hidden rounded-lg border border-[#c6ad84] bg-[#e8ddc8] shadow-[0_4px_12px_rgba(46,32,19,0.18)]">
-                  {item.image_url
-                    ? <img src={item.image_url} alt={item.title} loading="lazy" className={"h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]" + (item.finished ? " grayscale opacity-65" : "")} />
-                    : <span className={"flex h-full w-full items-center justify-center p-4 font-display text-sm italic leading-snug text-[#5b4a35] sm:text-base" + (item.finished ? " grayscale opacity-65" : "")}>{item.title}</span>}
-                  {item.favorite && <span className="absolute right-2 top-2 rounded-full border border-[#d9c5a4] bg-[#fbf4e7] p-1.5 text-[#8b3426] shadow-sm"><Heart size={13} fill="currentColor" /></span>}
-                  {item.finished && <span className="absolute left-2 top-2 rounded-md border border-[#eadcc2]/40 bg-[#292820]/90 px-2 py-1 text-[8px] font-semibold tracking-[.14em] text-[#f4ead6] shadow-sm">ACABOU</span>}
-                  {item.order_item_id && <span className="absolute bottom-2 left-2 rounded-md border border-[#e4d6b9]/30 bg-[#203329]/90 px-2 py-1 text-[8px] font-semibold tracking-[.08em] text-[#f7efda] shadow-sm sm:text-[9px]">{item.purchase_status === "delivered" ? "ENTREGUE" : "COMPRA"}</span>}
-                  {(item.quantity ?? 1) > 1 && <span className="absolute bottom-2 right-2 rounded-md border border-[#d9c6a4] bg-[#fbf4e7]/95 px-2 py-1 text-[9px] font-bold text-[#3f2b20] shadow-sm">×{item.quantity}</span>}
-                </span>
-                <span className={"mt-3 line-clamp-2 min-h-10 w-full break-words font-display text-[15px] font-semibold leading-tight sm:text-base" + (item.finished ? " text-[#827760]" : " text-[#29382d]")}>{item.title}</span>
-                {item.aroma && <span className="mt-1 line-clamp-1 w-full text-[10px] tracking-[.04em] text-[#74664f] sm:text-[11px]">{item.aroma}</span>}
-                <span aria-hidden="true" className="mt-3 h-px w-10 bg-[#b58a52]/70 transition-all duration-300 group-hover:w-16" />
-              </button>
-            ))}
-          </div>
-          <div aria-hidden="true" className="pointer-events-none mt-3 h-px bg-gradient-to-r from-transparent via-[#c3a174]/45 to-transparent" />
+        <div className="space-y-3 rounded-xl border border-[#795638]/50 bg-[#eadfc9] p-3 shadow-inner dark:bg-[#30251d]">
+          {Array.from({ length: Math.ceil(visibleItems.length / 3) }, (_, row) => (
+            <div key={row} className="grid grid-cols-3 items-end gap-2 border-b-[9px] border-[#795638] px-1 pb-3 shadow-[0_5px_5px_-4px_rgba(0,0,0,0.7)] sm:gap-4 sm:px-2">
+              {visibleItems.slice(row * 3, row * 3 + 3).map(item => (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => openItem(item)}
+                  aria-label={`Abrir detalhes da vela ${item.title}`}
+                  className="mx-auto flex w-full min-w-0 max-w-[140px] flex-col items-center rounded-md px-1 pb-1 text-center outline-none transition-transform hover:-translate-y-1 focus-visible:ring-2 focus-visible:ring-[#c6a46a]"
+                >
+                  <span className="block aspect-[4/5] w-full overflow-hidden rounded-md border border-[#8c704d] bg-[#d9c8a9] shadow-md">
+                    {item.image_url
+                      ? <img src={item.image_url} alt={item.title} loading="lazy" className="h-full w-full object-cover" />
+                      : <span className="flex h-full w-full items-center justify-center p-2 font-display text-xs italic text-[#60472f]">{item.title}</span>}
+                  </span>
+                  <span className="mt-2 line-clamp-2 w-full break-words text-[11px] font-semibold leading-snug text-[#493725] dark:text-[#f0e4d0] sm:text-xs">{item.title}</span>
+                  {item.aroma && <span className="mt-1 line-clamp-2 w-full text-[10px] leading-snug text-[#6c5a43] dark:text-[#d8c9ae]">{item.aroma}</span>}
+                </button>
+              ))}
+            </div>
+          ))}
         </div>
       )}
 
@@ -243,33 +234,33 @@ export function CandleBookshelf({
             <button type="button" onClick={closeDialog} disabled={saving} className="absolute right-3 top-3 rounded-full p-2 text-[#29342c] transition-colors hover:bg-[#ece4d3] hover:text-[#17231b] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#506b4f]" aria-label="Fechar">
               <X size={20} />
             </button>
-            <p className="eyebrow">{dialogMode === "add" ? "Uma lembrança da sua coleção" : "Detalhes da sua vela"}</p>
+            <p className="eyebrow text-[#806b47]">{dialogMode === "add" ? "Uma lembrança da sua coleção" : "Detalhes da sua vela"}</p>
             <h3 className="mt-1 pr-8 font-display text-3xl text-[#29342c]">{dialogTitle}</h3>
 
             {dialogMode === "view" && dialogItem ? (
               <div className="mt-5 grid gap-5 sm:grid-cols-[minmax(0,190px)_1fr]">
-                <div className="overflow-hidden rounded-md border border-primary/15 bg-secondary">
+                <div className="overflow-hidden rounded-md border border-[#d6c9ae] bg-[#efe6d6]">
                   {dialogItem.image_url ? <img src={dialogItem.image_url} alt={dialogItem.title} className="aspect-[4/5] w-full object-cover" /> : <div className="flex aspect-[4/5] items-center justify-center p-4 text-center font-display text-primary">{dialogItem.title}</div>}
                 </div>
-                <div className="space-y-3 text-sm">
-                  {dialogItem.category && <p><span className="font-semibold text-foreground">Categoria:</span> <span className="text-muted-foreground">{dialogItem.category}</span></p>}
-                  {dialogItem.aroma && <p><span className="font-semibold text-foreground">Aroma:</span> <span className="text-muted-foreground">{dialogItem.aroma}</span></p>}
-                  {dialogItem.acquired_at && <p><span className="font-semibold text-foreground">Data da compra:</span> <span className="text-muted-foreground">{new Date(dialogItem.acquired_at + "T00:00:00").toLocaleDateString("pt-BR")}</span></p>}
-                  {dialogItem.order_item_id && <p><span className="font-semibold text-foreground">Pedido:</span> <span className="text-muted-foreground">{statusLabel(dialogItem.purchase_status)}</span></p>}
-                  {(dialogItem.quantity ?? 1) > 1 && <p><span className="font-semibold text-foreground">Quantidade:</span> <span className="text-muted-foreground">{dialogItem.quantity}</span></p>}
-                  {dialogItem.variant_details && Object.values(dialogItem.variant_details).some(value => typeof value === "string" && value.trim()) && <p><span className="font-semibold text-foreground">Variação:</span> <span className="text-muted-foreground">{Object.values(dialogItem.variant_details).filter(value => typeof value === "string" && value.trim()).join(" · ")}</span></p>}
-                  <div><p className="font-semibold text-foreground">Detalhes</p><p className="mt-1 whitespace-pre-wrap leading-relaxed text-muted-foreground">{dialogItem.notes || "Nenhuma descrição adicionada ainda."}</p></div>
+                <div className="space-y-3 text-sm text-[#4d493d]">
+                  {dialogItem.category && <p><span className="font-semibold text-[#29342c]">Categoria:</span> <span className="text-[#625d50]">{dialogItem.category}</span></p>}
+                  {dialogItem.aroma && <p><span className="font-semibold text-[#29342c]">Aroma:</span> <span className="text-[#625d50]">{dialogItem.aroma}</span></p>}
+                  {dialogItem.acquired_at && <p><span className="font-semibold text-[#29342c]">Data da compra:</span> <span className="text-[#625d50]">{new Date(dialogItem.acquired_at + "T00:00:00").toLocaleDateString("pt-BR")}</span></p>}
+                  {dialogItem.order_item_id && <p><span className="font-semibold text-[#29342c]">Pedido:</span> <span className="text-[#625d50]">{statusLabel(dialogItem.purchase_status)}</span></p>}
+                  {(dialogItem.quantity ?? 1) > 1 && <p><span className="font-semibold text-[#29342c]">Quantidade:</span> <span className="text-[#625d50]">{dialogItem.quantity}</span></p>}
+                  {dialogItem.variant_details && Object.values(dialogItem.variant_details).some(value => typeof value === "string" && value.trim()) && <p><span className="font-semibold text-[#29342c]">Variação:</span> <span className="text-[#625d50]">{Object.values(dialogItem.variant_details).filter(value => typeof value === "string" && value.trim()).join(" · ")}</span></p>}
+                  <div><p className="font-semibold text-[#29342c]">Detalhes</p><p className="mt-1 whitespace-pre-wrap leading-relaxed text-[#625d50]">{dialogItem.notes || "Nenhuma descrição adicionada ainda."}</p></div>
                   <div>
-                    <p className="font-semibold text-foreground">Avaliação</p>
+                    <p className="font-semibold text-[#29342c]">Avaliação</p>
                     <div className="mt-1 flex gap-1" aria-label={dialogItem.rating ? `${dialogItem.rating} de 5 foguinhos` : "Ainda sem avaliação"}>
-                      {[1,2,3,4,5].map(value => <Flame key={value} size={19} className={value <= (dialogItem.rating ?? 0) ? "fill-orange-500 text-orange-500" : "text-muted-foreground/30"} />)}
+                      {[1,2,3,4,5].map(value => <Flame key={value} size={19} className={value <= (dialogItem.rating ?? 0) ? "fill-orange-500 text-orange-500" : "text-[#c7bda9]"} />)}
                     </div>
                   </div>
-                  {dialogItem.order_item_id && dialogItem.purchase_status !== "delivered" && <p className="rounded-md border border-primary/20 bg-primary/5 p-3 text-xs text-muted-foreground">Quando seu pedido for marcado como entregue, você poderá adicionar seus detalhes e avaliar esta vela com foguinhos.</p>}
-                  {editable && onFavorite && <button type="button" onClick={async () => { try { await onFavorite(dialogItem); setDialogItem(current => current ? { ...current, favorite: !current.favorite } : current); setError(""); } catch (cause) { setError(cause instanceof Error ? cause.message : "Não foi possível atualizar seus favoritos."); } }} className="text-sm text-primary">{dialogItem.favorite ? "♥ Remover dos favoritos" : "♡ Favoritar esta vela"}</button>}
-                  {editable && onMarkFinished && (!dialogItem.order_item_id || dialogItem.purchase_status === "delivered") && <button type="button" onClick={async () => { setSaving(true); try { await onMarkFinished(dialogItem, !dialogItem.finished); setDialogItem(current => current ? { ...current, finished: !dialogItem.finished } : current); setError(""); } catch (cause) { setError(cause instanceof Error ? cause.message : "Não foi possível atualizar o estado da vela."); } finally { setSaving(false); } }} disabled={saving} className="block rounded-full border border-primary/40 px-4 py-2 text-sm text-foreground transition hover:bg-primary/10">{dialogItem.finished ? "Voltar para a estante" : "Marcar que a vela acabou"}</button>}
-                  {editable && canEditSelected && onUpdate && <button type="button" onClick={() => { setDraft(draftFromItem(dialogItem)); setImageFile(null); setDialogMode("edit"); setError(""); }} className="block rounded-full border border-primary/40 px-4 py-2 text-sm text-foreground transition hover:bg-primary/10">Editar detalhes</button>}
-                  {editable && onRemove && !dialogItem.order_item_id && <button type="button" onClick={() => void removeSelected()} disabled={saving} className="text-xs text-destructive hover:underline">Remover da estante</button>}
+                  {dialogItem.order_item_id && dialogItem.purchase_status !== "delivered" && <p className="rounded-md border border-[#d8c9aa] bg-[#efe6d6] p-3 text-xs leading-relaxed text-[#625d50]">Quando seu pedido for marcado como entregue, você poderá adicionar seus detalhes e avaliar esta vela com foguinhos.</p>}
+                  {editable && onFavorite && <button type="button" onClick={async () => { try { await onFavorite(dialogItem); setDialogItem(current => current ? { ...current, favorite: !current.favorite } : current); setError(""); } catch (cause) { setError(cause instanceof Error ? cause.message : "Não foi possível atualizar seus favoritos."); } }} className="text-sm font-medium text-[#526b47]">{dialogItem.favorite ? "♥ Remover dos favoritos" : "♡ Favoritar esta vela"}</button>}
+                  {editable && onMarkFinished && (!dialogItem.order_item_id || dialogItem.purchase_status === "delivered") && <button type="button" onClick={async () => { const nextFinished = !Boolean(dialogItem.finished); setSaving(true); setError(""); try { await onMarkFinished(dialogItem, nextFinished); setDialogItem(current => current ? { ...current, finished: nextFinished } : current); } catch (cause) { setError(cause instanceof Error ? cause.message : "Não foi possível atualizar o estado da vela."); } finally { setSaving(false); } }} disabled={saving} className="block rounded-full border border-[#aab59e] px-4 py-2 text-sm font-medium text-[#29342c] transition hover:bg-[#e9efdf]">{saving ? "Atualizando..." : dialogItem.finished ? "Voltar para a estante" : "Marcar que a vela acabou"}</button>}
+                  {editable && canEditSelected && onUpdate && <button type="button" onClick={() => { setDraft(draftFromItem(dialogItem)); setImageFile(null); setDialogMode("edit"); setError(""); }} className="block rounded-full border border-[#aab59e] px-4 py-2 text-sm font-medium text-[#29342c] transition hover:bg-[#e9efdf]">Editar detalhes</button>}
+                  {editable && onRemove && !dialogItem.order_item_id && <button type="button" onClick={() => void removeSelected()} disabled={saving} className="text-xs font-medium text-[#a33d35] hover:underline">Remover da estante</button>}
                 </div>
               </div>
             ) : (
@@ -321,7 +312,7 @@ export function CandleBookshelf({
                 </div>
               </form>
             )}
-            {dialogMode === "view" && error && <p role="alert" className="mt-4 text-sm text-destructive">{error}</p>}
+            {dialogMode === "view" && error && <p role="alert" className="mt-4 text-sm font-medium text-[#a32925]">{error}</p>}
           </section>
         </div>
       ) : null}
