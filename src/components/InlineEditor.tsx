@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { Pencil, X } from "lucide-react";
 import { toast } from "sonner";
 import { uploadSiteImage, useAdminEdit } from "@/lib/admin-edit";
@@ -57,7 +58,7 @@ export function InlineEditor({ label, fields, values, onSave, className = "" }: 
         className={`inline-flex items-center gap-1.5 rounded-full border border-primary bg-background px-3 py-1.5 text-xs font-medium text-primary shadow-sm hover:bg-primary hover:text-primary-foreground ${className}`}>
         <Pencil size={13} aria-hidden="true" /> Editar {label}
       </button>
-      {open && (
+      {open && typeof document !== "undefined" && createPortal(
         <div onClick={(event) => { event.preventDefault(); event.stopPropagation(); }} className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto bg-foreground/40 p-4 text-left" role="dialog" aria-modal="true" aria-label={`Editar ${label}`}>
           <form onSubmit={submit} className="mt-10 w-full max-w-xl space-y-4 rounded-md border border-primary/30 bg-background p-5 text-foreground shadow-xl">
             <div className="flex items-center justify-between">
@@ -108,7 +109,8 @@ export function InlineEditor({ label, fields, values, onSave, className = "" }: 
               <button type="button" onClick={() => setOpen(false)} className="border px-5 py-2.5">Cancelar</button>
             </div>
           </form>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );
