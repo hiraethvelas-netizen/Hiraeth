@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Flame, Heart, ImagePlus, X } from "lucide-react";
+import { Flame, ImagePlus, X } from "lucide-react";
 
 export type CandleLibraryItem = {
   id: string;
@@ -179,7 +179,7 @@ export function CandleBookshelf({
               type="button"
               onClick={() => setCategoryFilter(category)}
               aria-pressed={categoryFilter === category}
-              className={`rounded-full border px-4 py-2 text-xs transition-colors ${categoryFilter === category ? "border-primary bg-primary/10 text-primary" : "border-primary/20 text-muted-foreground hover:border-primary/50 hover:text-foreground"}`}
+              className={`rounded-full border px-4 py-2 text-xs transition-colors ${categoryFilter === category ? "border-primary bg-primary/10 text-primary dark:border-[#aa946c] dark:bg-[#b99a5b]/15 dark:text-[#f1dfb7]" : "border-primary/20 text-muted-foreground hover:border-primary/50 hover:text-foreground dark:text-[#e3d8c6] dark:hover:text-[#fff2d8]"}`}
             >
               {category}
             </button>
@@ -194,11 +194,11 @@ export function CandleBookshelf({
 
       {visibleItems.length === 0 ? (
         <div className="rounded-xl border border-dashed border-primary/30 px-5 py-12 text-center">
-          <Flame className="mx-auto text-primary" size={28} />
-          <p className="mt-3 font-display text-xl italic text-primary">
+          <Flame className="mx-auto text-[#806b47] dark:text-[#d8bd85]" size={28} />
+          <p className="mt-3 font-display text-xl italic text-[#526b47] dark:text-[#e4d2a8]">
             {items.length ? "Nenhuma vela nesta categoria" : "Sua estante aguarda suas histórias"}
           </p>
-          <p className="mt-2 text-sm text-muted-foreground">
+          <p className="mt-2 text-sm text-[#625d50] dark:text-[#e3d8c6]">
             {items.length ? "Escolha outra categoria para continuar explorando." : "Suas compras aparecerão aqui. Você também pode adicionar velas antigas à sua coleção."}
           </p>
         </div>
@@ -240,7 +240,7 @@ export function CandleBookshelf({
             {dialogMode === "view" && dialogItem ? (
               <div className="mt-5 grid gap-5 sm:grid-cols-[minmax(0,190px)_1fr]">
                 <div className="overflow-hidden rounded-md border border-[#d6c9ae] bg-[#efe6d6]">
-                  {dialogItem.image_url ? <img src={dialogItem.image_url} alt={dialogItem.title} className="aspect-[4/5] w-full object-cover" /> : <div className="flex aspect-[4/5] items-center justify-center p-4 text-center font-display text-primary">{dialogItem.title}</div>}
+                  {dialogItem.image_url ? <img src={dialogItem.image_url} alt={dialogItem.title} className="aspect-[4/5] w-full object-cover" /> : <div className="flex aspect-[4/5] items-center justify-center p-4 text-center font-display text-[#526b47]">{dialogItem.title}</div>}
                 </div>
                 <div className="space-y-3 text-sm text-[#4d493d]">
                   {dialogItem.category && <p><span className="font-semibold text-[#29342c]">Categoria:</span> <span className="text-[#625d50]">{dialogItem.category}</span></p>}
@@ -267,9 +267,9 @@ export function CandleBookshelf({
               <form onSubmit={submitDraft} className="mt-5 space-y-4">
                 {dialogMode === "edit" && dialogItem?.order_item_id ? (
                   <div className="rounded-lg border border-primary/20 bg-primary/5 p-3 text-sm">
-                    <p className="font-semibold text-foreground">Dados oficiais da compra</p>
-                    <p className="mt-1 text-muted-foreground">{dialogItem.title}{dialogItem.aroma ? " · " + dialogItem.aroma : ""}</p>
-                    <p className="mt-1 text-xs leading-relaxed text-muted-foreground">Nome, aroma, imagem, categoria, data e variação são preservados conforme o pedido da loja.</p>
+                    <p className="font-semibold text-[#29342c]">Dados oficiais da compra</p>
+                    <p className="mt-1 text-[#625d50]">{dialogItem.title}{dialogItem.aroma ? " · " + dialogItem.aroma : ""}</p>
+                    <p className="mt-1 text-xs leading-relaxed text-[#625d50]">Nome, aroma, imagem, categoria, data e variação são preservados conforme o pedido da loja.</p>
                   </div>
                 ) : (
                   <>
@@ -296,7 +296,7 @@ export function CandleBookshelf({
                   <p className="text-sm font-semibold text-[#29342c]">Sua avaliação em foguinhos</p>
                   <div className="mt-2 flex gap-2" role="group" aria-label="Avaliação de um a cinco foguinhos">
                     {[1,2,3,4,5].map(value => <button key={value} type="button" onClick={() => setDraft(current => ({ ...current, rating: current.rating === value ? 0 : value }))} aria-pressed={draft.rating === value} aria-label={`${value} foguinhos`} className="rounded p-1 transition hover:scale-110 focus-visible:outline focus-visible:outline-primary">
-                      <Flame size={27} className={value <= draft.rating ? "fill-orange-500 text-orange-500" : "text-muted-foreground/35"} />
+                      <Flame size={27} className={value <= draft.rating ? "fill-orange-500 text-orange-500" : "text-[#c7bda9]"} />
                     </button>)}
                   </div>
                 </div>
@@ -305,7 +305,7 @@ export function CandleBookshelf({
                   <input required={dialogMode === "add"} type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={event => setImageFile(event.currentTarget.files?.[0] ?? null)} className="block w-full text-sm text-[#4e584c] file:mr-3 file:rounded-full file:border file:border-[#a99b7d] file:bg-[#ece4d3] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-[#29342c] hover:file:bg-[#e2d7c1]" />
                   {imageFile && <span className="mt-1 block text-xs text-[#4e584c]">{imageFile.name}</span>}
                 </label>}
-                {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
+                {error && <p role="alert" className="text-sm font-medium text-[#a32925]">{error}</p>}
                 <div className="flex flex-wrap justify-end gap-2">
                   <button type="button" onClick={() => dialogMode === "edit" ? setDialogMode("view") : closeDialog()} disabled={saving} className="rounded-full border border-[#b6aa92] px-4 py-2 text-sm font-medium text-[#29342c] hover:bg-[#ece4d3]">Cancelar</button>
                   <button type="submit" disabled={saving} className="btn-gold">{saving ? "Salvando..." : dialogMode === "add" ? "Adicionar à estante" : "Salvar alterações"}</button>
