@@ -63,15 +63,14 @@ function Biblioteca() {
   async function addManual(values: CandleDraftInput) {
     if (!userId) throw new Error("Entre na sua conta para adicionar uma vela.");
     if (!values.image) throw new Error("Adicione uma foto da vela para registrar uma coleção antiga.");
-    const { data: duplicatePurchase, error: duplicateError } = await (supabase as any).from("community_library")
-      .select("id")
+    const { data: purchaseMatches, error: duplicateError } = await (supabase as any).from("community_library")
+      .select("id,acquired_at")
       .eq("user_id", userId)
       .ilike("title", values.title.trim())
-      .eq("acquired_at", values.acquired_at)
       .not("order_item_id", "is", null)
-      .limit(1)
-      .maybeSingle();
+      .limit(20);
     if (duplicateError) throw duplicateError;
+    const duplicatePurchase = (purchaseMatches ?? []).some((purchase: { acquired_at: string | null }) => !values.acquired_at || purchase.acquired_at === values.acquired_at);
     if (duplicatePurchase) throw new Error("Essa vela já aparece na sua Biblioteca por uma compra da loja. Abra o registro existente para completar seus detalhes após a entrega.");
     const image_url = await uploadCandlePhoto(values.image);
     const { error } = await (supabase as any).from("community_library").insert({
