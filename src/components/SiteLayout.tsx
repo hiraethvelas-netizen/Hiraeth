@@ -6,36 +6,23 @@ import fenixImage from "@/assets/fenix.png";
 import { supabase } from "@/integrations/supabase/client";
 import { InlineEditor } from "@/components/InlineEditor";
 import { useAdminEdit } from "@/lib/admin-edit";
+import { useTheme } from "@/lib/theme";
 import { Instagram, Music2, MessageCircle, Mail } from "lucide-react";
 
 function ThemeToggle() {
-  const [dark, setDark] = useState(false);
-
-  useEffect(() => {
-    const saved = window.localStorage.getItem("hiraeth-theme");
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    const initialDark = saved ? saved === "dark" : prefersDark;
-    document.documentElement.classList.toggle("dark", initialDark);
-    setDark(initialDark);
-  }, []);
-
-  function toggleTheme() {
-    const nextDark = !dark;
-    document.documentElement.classList.toggle("dark", nextDark);
-    window.localStorage.setItem("hiraeth-theme", nextDark ? "dark" : "light");
-    setDark(nextDark);
-  }
+  const { isDark, toggleTheme } = useTheme();
 
   return (
     <button
       type="button"
       onClick={toggleTheme}
       className="flex items-center gap-1.5 rounded-full border border-primary/30 px-2.5 py-2 text-xs text-foreground transition-colors hover:bg-primary/10 sm:px-3"
-      aria-label={dark ? "Ativar modo claro" : "Ativar modo escuro"}
-      title={dark ? "Ativar modo claro" : "Ativar modo escuro"}
+      aria-label={isDark ? "Ativar modo claro" : "Ativar modo escuro"}
+      title={isDark ? "Ativar modo claro" : "Ativar modo escuro"}
+      aria-pressed={isDark}
     >
-      <span aria-hidden="true">{dark ? "☼" : "☾"}</span>
-      <span className="hidden sm:inline">{dark ? "Modo claro" : "Modo escuro"}</span>
+      <span aria-hidden="true">{isDark ? "☼" : "☾"}</span>
+      <span className="hidden sm:inline">{isDark ? "Modo claro" : "Modo escuro"}</span>
     </button>
   );
 }

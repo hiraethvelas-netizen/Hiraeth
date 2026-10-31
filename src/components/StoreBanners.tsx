@@ -54,7 +54,7 @@ export function StoreBanners() {
         <Link to={banner.href as never} className="group relative block aspect-[4/3] overflow-hidden rounded-lg border border-primary/20 bg-card">
           {banner.image_url ? <img src={banner.image_url} alt={banner.title ?? "Novidade Hiraeth"} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110" loading="lazy" /> : <div className="flex h-full items-end bg-[radial-gradient(ellipse_at_top,_var(--color-secondary),_var(--color-background)_75%)] p-5 font-display text-2xl text-primary sm:text-3xl">{banner.title}</div>}
           <span className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-transparent" />
-          {banner.title && <span className="absolute inset-x-4 bottom-4 font-display text-2xl text-white">{banner.title}</span>}
+          {banner.title && <span className="absolute inset-x-4 bottom-4 font-display text-2xl text-[#f7efda]">{banner.title}</span>}
         </Link>
         {isAdmin && editMode && !banner.id.startsWith("placeholder-") && <InlineEditor label={`banner de novidade: ${banner.title ?? "sem título"}`} className="mt-2" fields={[{ name: "title", label: "Nome/título", type: "text" }, { name: "image_url", label: "Imagem do banner", type: "image" }, { name: "href", label: "Destino do clique", type: "text" }]} values={{ title: banner.title ?? "", image_url: banner.image_url, href: banner.href }} onSave={(values) => save(banner, values)} />}
       </article>)}

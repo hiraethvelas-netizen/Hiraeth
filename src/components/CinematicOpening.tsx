@@ -29,7 +29,7 @@ export function CinematicOpening() {
         <h1>O Portal Foi Aberto</h1>
 
         <p className="opening-description">
-          Produtos literários dos seus universos favoritos.
+          Velas literárias e camisetas inspiradas nos universos que fazem parte de você.
         </p>
 
         <Button asChild variant="outline" className="opening-enter">

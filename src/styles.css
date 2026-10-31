@@ -36,12 +36,12 @@
 :root {
   color-scheme: light;
   --radius: 0.7rem;
-  /* Identidade Hiraeth: vanilla, verde oliva e vermelho profundo. */
+  /* Identidade oficial Hiraeth: baunilha, verde-oliva e marrom profundo. */
   --background: #f7efda;
   --foreground: #34402b;
-  --card: #fffaf0;
+  --card: #f2ead7;
   --card-foreground: #34402b;
-  --popover: #fffaf0;
+  --popover: #f7efda;
   --popover-foreground: #34402b;
   --primary: #878e47;
   --primary-foreground: #f7efda;
@@ -49,41 +49,41 @@
   --secondary-foreground: #34402b;
   --muted: #eee8d7;
   --muted-foreground: #625f4b;
-  --accent: #878e47;
-  --accent-foreground: #f7efda;
+  --accent: #c6a65b;
+  --accent-foreground: #34402b;
   --destructive: #5b1d04;
   --destructive-foreground: #f7efda;
   --border: #878e4755;
   --input: #878e4770;
   --ring: #878e47;
   --overlay: #26301dcc;
-  --glow: 0 0 32px #878e4725;
+  --glow: 0 0 24px #878e4720;
 }
 
 :root.dark {
   color-scheme: dark;
-  /* Modo noturno: verde Hiraeth bem profundo, com superfícies vanilla. */
+  /* No tema escuro, o verde profundo sustenta superfícies e textos em vanilla. */
   --background: #18251d;
   --foreground: #f7efda;
   --card: #f7efda;
   --card-foreground: #34402b;
   --popover: #f7efda;
   --popover-foreground: #34402b;
-  --primary: #f7efda;
-  --primary-foreground: #18251d;
+  --primary: #878e47;
+  --primary-foreground: #f7efda;
   --secondary: #263a2b;
   --secondary-foreground: #f7efda;
   --muted: #203126;
   --muted-foreground: #e5dfc7;
-  --accent: #d6d99a;
-  --accent-foreground: #34402b;
+  --accent: #c6a65b;
+  --accent-foreground: #18251d;
   --destructive: #5b1d04;
   --destructive-foreground: #f7efda;
-  --border: #d6d99a66;
-  --input: #d6d99a80;
-  --ring: #d6d99a;
+  --border: #878e4775;
+  --input: #878e4780;
+  --ring: #c6a65b;
   --overlay: #101a13e6;
-  --glow: 0 0 28px #18251d70;
+  --glow: 0 0 24px #18251d65;
 }
 
 @layer base {
@@ -328,7 +328,7 @@
 /* Transição de travessia dos portais do Acervo */
 .portal-entry-overlay { position: fixed; inset: 0; z-index: 100; overflow: hidden; background: #120e0a; animation: portal-entry-screen 620ms cubic-bezier(.2,.75,.25,1) both; pointer-events: none; }
 .portal-entry-image { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; animation: portal-entry-zoom 620ms cubic-bezier(.2,.75,.25,1) both; }
-.portal-entry-placeholder { position: absolute; inset: 0; display: grid; place-items: center; background: radial-gradient(circle, hsl(var(--secondary)) 0%, hsl(var(--background)) 78%); color: hsl(var(--foreground)); font: italic 3rem var(--font-display); animation: portal-entry-zoom 620ms ease-in both; }
+.portal-entry-placeholder { position: absolute; inset: 0; display: grid; place-items: center; background: radial-gradient(circle, var(--secondary) 0%, var(--background) 78%); color: var(--foreground); font: italic 3rem var(--font-display); animation: portal-entry-zoom 620ms ease-in both; }
 /* The category photo itself supplies the transition colors; avoid a fixed gold overlay. */
 .portal-entry-glow { display: none; }
 @keyframes portal-entry-screen { from { opacity: 0; } 20% { opacity: 1; } to { opacity: 1; } }
@@ -351,7 +351,7 @@ h1, h2, h3, h4, .font-display {
   -webkit-text-stroke: .18px currentColor;
 }
 .eyebrow {
-  color: #c6a65b;
+  color: var(--color-primary);
   font-family: var(--font-body);
   font-size: .7rem;
   font-style: normal;
@@ -401,30 +401,22 @@ h1, h2, h3, h4, .font-display {
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  border: 1px solid rgba(198,166,91,.48);
+  border: 1px solid rgba(135,142,71,.42);
   border-radius: 1rem;
   background: var(--card);
   color: var(--card-foreground);
   box-shadow: 0 24px 70px rgba(0,0,0,.22);
 }
-.hiraeth-care-panel::before {
-  content: "✦";
-  position: absolute;
-  right: 1rem;
-  top: .5rem;
-  color: rgba(133,105,54,.38);
-  font-size: 2rem;
-}
 .hiraeth-collection-card {
   position: relative;
   isolation: isolate;
-  border: 1px solid rgba(198,166,91,.72);
-  box-shadow: 0 0 0 4px rgba(198,166,91,.07), 0 10px 28px rgba(0,0,0,.18);
+  border: 1px solid rgba(135,142,71,.55);
+  box-shadow: 0 0 0 3px rgba(135,142,71,.06), 0 8px 22px rgba(0,0,0,.14);
   transition: transform .55s cubic-bezier(.2,.75,.25,1), box-shadow .55s ease;
 }
 .hiraeth-collection-card:hover {
   transform: translateY(-5px) scale(1.025);
-  box-shadow: 0 0 28px rgba(198,166,91,.24), 0 18px 40px rgba(0,0,0,.3);
+  box-shadow: 0 0 20px rgba(135,142,71,.18), 0 14px 32px rgba(0,0,0,.22);
 }
 .hiraeth-collection-label {
   font-family: var(--font-display);
@@ -673,25 +665,6 @@ body > div {
 @media (prefers-reduced-motion: reduce) {
   .community-heart-active svg, .community-fire-active svg { animation: none; }
 }
-
-
-/* Atalhos e painel de cuidados: contraste complementar em cada tema. */
-:root:not(.dark) .hiraeth-care-panel,
-:root:not(.dark) .hiraeth-collection-card {
-  background-color: #263a2b;
-  color: #f4ecd8;
-}
-:root:not(.dark) .hiraeth-care-panel h2,
-:root:not(.dark) .hiraeth-care-panel p,
-:root:not(.dark) .hiraeth-care-panel .eyebrow { color: #f4ecd8; }
-:root.dark .hiraeth-care-panel,
-:root.dark .hiraeth-collection-card {
-  background-color: #f4ecd8;
-  color: #263a2b;
-}
-:root.dark .hiraeth-care-panel h2,
-:root.dark .hiraeth-care-panel p,
-:root.dark .hiraeth-care-panel .eyebrow { color: #263a2b; }
 
 
 /* Divisórias editoriais: variações discretas para títulos selecionados. */

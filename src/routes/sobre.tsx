@@ -23,7 +23,7 @@ function CaptionInlineEditor({ caption, onSave }: { caption: string; onSave: (ca
   if (!open) return <button type="button" onClick={() => { setValue(caption); setOpen(true); }} className="relative z-10 w-full rounded border border-[#8b7b5d] bg-[#f7efda] px-2 py-2 text-[11px] font-semibold text-[#263126] shadow-sm">Editar legenda</button>;
   return <div className="relative z-20 space-y-2 rounded border border-[#8b7b5d] bg-[#f7efda] p-2 text-left text-[#263126]">
     <label className="block text-[11px] font-semibold">Legenda da foto
-      <input autoFocus value={value} onChange={event => setValue(event.target.value)} className="mt-1 w-full min-w-0 border border-[#8b7b5d] bg-white px-2 py-2 text-sm text-[#263126]" placeholder="Digite a legenda..." />
+      <input autoFocus value={value} onChange={event => setValue(event.target.value)} className="mt-1 w-full min-w-0 border border-[#8b7b5d] bg-[#f7efda] px-2 py-2 text-sm text-[#263126]" placeholder="Digite a legenda..." />
     </label>
     <div className="flex gap-2">
       <button type="button" disabled={saving} onClick={async () => { setSaving(true); try { await onSave(value); setOpen(false); } catch (error) { window.alert("Não foi possível salvar a legenda: " + (error instanceof Error ? error.message : "erro desconhecido")); } finally { setSaving(false); } }} className="rounded bg-[#263126] px-3 py-2 text-[11px] font-semibold text-[#f7efda] disabled:opacity-50">{saving ? "Salvando..." : "Salvar"}</button>
@@ -118,7 +118,7 @@ function Sobre() {
               {block.images.map((url, photoIndex) => {
                 const isPolaroid = (index + photoIndex) % 3 !== 1;
                 return isPolaroid
-                  ? <figure key={url + photoIndex} className={`w-[clamp(112px,34vw,172px)] shrink-0 border-[7px] border-b-[34px] border-[#fffdf8] bg-[#fffdf8] p-1 shadow-[0_8px_22px_rgba(45,35,20,.18)] sm:border-[9px] sm:border-b-[38px] ${photoIndex % 2 === 0 ? "-rotate-2" : "rotate-2"}`}>
+                  ? <figure key={url + photoIndex} className={`w-[clamp(112px,34vw,172px)] shrink-0 border-[7px] border-b-[34px] border-[#f7efda] bg-[#f7efda] p-1 shadow-[0_8px_22px_rgba(45,35,20,.18)] sm:border-[9px] sm:border-b-[38px] ${photoIndex % 2 === 0 ? "-rotate-2" : "rotate-2"}`}>
                       <img src={url} alt={`Registro ${photoIndex + 1} da história da Hiraeth`} className="aspect-[4/5] w-full object-cover" loading="lazy" />
                       <figcaption className="mt-1 min-h-4 truncate text-center font-serif text-[10px] italic text-[#554b3d] sm:text-xs">{block.captions?.[photoIndex] || ""}</figcaption>
                       {editing && <div className="mt-2 space-y-1">
@@ -133,7 +133,7 @@ function Sobre() {
                         <button type="button" onClick={() => void removeStoryPhoto(index, photoIndex)} className="w-full text-[10px] text-red-700">Remover foto</button>
                       </div>}
                     </figure>
-                  : <figure key={url + photoIndex} className="w-full max-w-[290px] overflow-hidden bg-[#fffdf8] p-2 shadow-md">
+                  : <figure key={url + photoIndex} className="w-full max-w-[290px] overflow-hidden bg-[#f7efda] p-2 shadow-md">
                       <img src={url} alt={`Registro ${photoIndex + 1} da história da Hiraeth`} className="aspect-[5/4] w-full object-cover" loading="lazy" />
                       <figcaption className="px-2 py-2 font-serif text-xs italic text-[#554b3d]">{block.captions?.[photoIndex] || ""}</figcaption>
                       {editing && <div className="space-y-1 px-2 pb-2">
