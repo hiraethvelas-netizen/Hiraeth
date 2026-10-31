@@ -26,12 +26,12 @@ export type CandleDraft = {
   rating: number;
 };
 
-type CandleDraftWithImage = CandleDraft & { image: File | null };
+export type CandleDraftInput = CandleDraft & { image: File | null };
 
 type CandleBookshelfProps = {
   items: CandleLibraryItem[];
   editable?: boolean;
-  onAdd?: (values: CandleDraftWithImage) => Promise<void>;
+  onAdd?: (values: CandleDraftInput) => Promise<void>;
   onUpdate?: (id: string, values: CandleDraftWithImage) => Promise<void>;
   onFavorite?: (item: CandleLibraryItem) => Promise<void>;
   onRemove?: (item: CandleLibraryItem) => Promise<void>;
