@@ -253,6 +253,7 @@ export type Database = {
           avatar_url: string | null
           bio: string | null
           instagram_url: string | null
+          library_visible: boolean
           other_social_url: string | null
           tiktok_url: string | null
           updated_at: string
@@ -263,6 +264,7 @@ export type Database = {
           avatar_url?: string | null
           bio?: string | null
           instagram_url?: string | null
+          library_visible?: boolean
           other_social_url?: string | null
           tiktok_url?: string | null
           updated_at?: string
@@ -273,6 +275,7 @@ export type Database = {
           avatar_url?: string | null
           bio?: string | null
           instagram_url?: string | null
+          library_visible?: boolean
           other_social_url?: string | null
           tiktok_url?: string | null
           updated_at?: string
