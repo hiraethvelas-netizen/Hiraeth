@@ -1,8 +1,9 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { SiteFooter, SiteHeader } from "@/components/SiteLayout";
 import { toast } from "sonner";
+import { useTheme } from "@/lib/theme";
 
 type DeliveryAddress = {
   cep: string;
@@ -19,12 +20,18 @@ const emptyAddress: DeliveryAddress = {
 };
 
 export const Route = createFileRoute("/_authenticated/configuracoes")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    tab: search["tab"] === "configuracoes" ? "configuracoes" as const : "perfil" as const,
+  }),
   head: () => ({ meta: [{ title: "Configurações da conta — Hiraeth" }] }),
   component: AccountSettings,
 });
 
 function AccountSettings() {
   const navigate = useNavigate();
+  const { tab } = Route.useSearch();
+  const isSettings = tab === "configuracoes";
+  const { isDark, toggleTheme } = useTheme();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -32,6 +39,8 @@ function AccountSettings() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [lookingUpCep, setLookingUpCep] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [updatingPassword, setUpdatingPassword] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -111,6 +120,25 @@ function AccountSettings() {
     }
   }
 
+  async function updatePassword(e: React.FormEvent) {
+    e.preventDefault();
+    if (newPassword.length < 6) {
+      toast.error("A nova senha precisa ter pelo menos 6 caracteres.");
+      return;
+    }
+    setUpdatingPassword(true);
+    try {
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      if (error) throw error;
+      setNewPassword("");
+      toast.success("Senha atualizada com sucesso.");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Não foi possível atualizar sua senha.");
+    } finally {
+      setUpdatingPassword(false);
+    }
+  }
+
   async function logout() {
     const { error } = await supabase.auth.signOut({ scope: "local" });
     if (error) { toast.error("Não foi possível sair da conta."); return; }
@@ -127,11 +155,17 @@ function AccountSettings() {
     <main className="mx-auto max-w-3xl px-5 pb-20 pt-10 sm:px-8 sm:pt-12">
       <header className="mb-8 border-l-4 border-primary pl-5 text-left sm:pl-7">
         <p className="eyebrow text-base">Seu espaço pessoal</p>
-        <h1 className="mt-1 text-4xl leading-tight text-foreground sm:text-5xl">Configurações da conta</h1>
-        <p className="mt-3 max-w-2xl text-base leading-7 text-muted-foreground">Seus dados, do seu jeito. Mantenha suas informações de contato e entrega sempre em dia.</p>
+        <h1 className="mt-1 text-4xl leading-tight text-foreground sm:text-5xl">{isSettings ? "Configurações" : "Minha conta"}</h1>
+        <p className="mt-3 max-w-2xl text-base leading-7 text-muted-foreground">{isSettings ? "Ajuste a aparência e a segurança do seu espaço Hiraeth." : "Seus dados, do seu jeito. Mantenha suas informações de contato e entrega sempre em dia."}</p>
       </header>
 
-      <form onSubmit={save} className="space-y-8">
+      <nav aria-label="Seções da conta" className="mb-8 flex flex-wrap gap-2 border-b border-primary/20 pb-4">
+        <Link to="/configuracoes" search={{ tab: "perfil" }} className={`border px-4 py-2 text-sm transition-colors ${!isSettings ? "border-primary bg-primary/10 text-foreground" : "border-transparent text-muted-foreground hover:text-foreground"}`}>Minha conta</Link>
+        <Link to="/pedidos" className="border border-transparent px-4 py-2 text-sm text-muted-foreground transition-colors hover:text-foreground">Meus pedidos</Link>
+        <Link to="/configuracoes" search={{ tab: "configuracoes" }} className={`border px-4 py-2 text-sm transition-colors ${isSettings ? "border-primary bg-primary/10 text-foreground" : "border-transparent text-muted-foreground hover:text-foreground"}`}>Configurações</Link>
+      </nav>
+
+      {!isSettings && <form onSubmit={save} className="space-y-8">
         <section className="border border-primary/20 bg-card/40 p-5 sm:p-7">
           <h2 className="mb-5 text-2xl text-foreground">Dados pessoais</h2>
           <div className="grid gap-5 sm:grid-cols-2">
@@ -179,13 +213,32 @@ function AccountSettings() {
         </section>
 
         <button type="submit" disabled={saving} className="btn-gold w-full justify-center py-4 text-base">{saving ? "Salvando…" : "Salvar alterações"}</button>
-      </form>
+      </form>}
 
-      <section className="mt-10 border-t border-primary/20 pt-7">
-        <h2 className="text-2xl text-foreground">Sessão</h2>
-        <p className="mt-2 text-sm leading-6 text-muted-foreground">Saia para entrar em outra conta ou criar um novo cadastro neste dispositivo.</p>
-        <button type="button" onClick={logout} className="mt-4 border border-primary/40 px-5 py-3 text-sm text-foreground transition hover:bg-primary/10">Sair da conta / trocar de conta</button>
-      </section>
+      {isSettings && <div className="space-y-6">
+        <section className="border border-primary/20 bg-card/40 p-5 sm:p-7">
+          <h2 className="text-2xl text-foreground">Aparência do aplicativo</h2>
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">Escolha o tema que prefere usar. A alteração será aplicada em todo o aplicativo.</p>
+          <button type="button" onClick={toggleTheme} aria-pressed={isDark} className="mt-5 border border-primary/40 px-5 py-3 text-sm text-foreground transition hover:bg-primary/10">
+            {isDark ? "Ativar tema claro" : "Ativar tema escuro"}
+          </button>
+        </section>
+
+        <form onSubmit={updatePassword} className="border border-primary/20 bg-card/40 p-5 sm:p-7">
+          <h2 className="text-2xl text-foreground">Segurança da conta</h2>
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">Defina uma nova senha para proteger seu acesso à Hiraeth.</p>
+          <label className={labelClass + " mt-5 block"}>Nova senha
+            <input type="password" minLength={6} required value={newPassword} onChange={e => setNewPassword(e.target.value)} autoComplete="new-password" placeholder="Mínimo de 6 caracteres" className={fieldClass} />
+          </label>
+          <button type="submit" disabled={updatingPassword} className="btn-gold mt-5 w-full justify-center py-3 text-sm">{updatingPassword ? "Atualizando…" : "Atualizar senha"}</button>
+        </form>
+
+        <section className="border-t border-primary/20 pt-7">
+          <h2 className="text-2xl text-foreground">Sessão</h2>
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">Saia para entrar em outra conta ou criar um novo cadastro neste dispositivo.</p>
+          <button type="button" onClick={logout} className="mt-4 border border-primary/40 px-5 py-3 text-sm text-foreground transition hover:bg-primary/10">Sair da conta / trocar de conta</button>
+        </section>
+      </div>}
     </main>
     <SiteFooter />
   </div>;

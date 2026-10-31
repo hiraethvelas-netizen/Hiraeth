@@ -5,8 +5,11 @@ import { SiteFooter, SiteHeader } from "@/components/SiteLayout";
 import { useCart } from "@/lib/cart";
 import { brl } from "@/lib/format";
 import { toast } from "sonner";
+import { requireAuthenticatedUser } from "@/lib/require-auth";
 
 export const Route = createFileRoute("/carrinho")({
+  ssr: false,
+  beforeLoad: requireAuthenticatedUser,
   head: () => ({ meta: [{ title: "Carrinho — Hiraeth" }] }),
   component: Carrinho,
 });

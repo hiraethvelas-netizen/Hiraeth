@@ -1,7 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { SiteFooter, SiteHeader } from "@/components/SiteLayout";
+import { requireAuthenticatedUser } from "@/lib/require-auth";
 
 export const Route = createFileRoute("/clube-do-livro")({
+  ssr: false,
+  beforeLoad: requireAuthenticatedUser,
   head: () => ({ meta: [{ title: "Clube do Livro — Hiraeth" }] }),
   component: ClubeDoLivro,
 });

@@ -86,6 +86,25 @@
   --glow: 0 0 24px #18251d65;
 }
 
+/* Baunilha é a superfície dos cartões e menus no tema escuro.
+   Seus textos, títulos e estados devem herdar a paleta escura da própria superfície. */
+:root.dark [class*="bg-card"],
+:root.dark [class*="bg-popover"] {
+  --foreground: #34402b;
+  --muted-foreground: #625f4b;
+  --primary: #59612f;
+  --primary-foreground: #f7efda;
+  --secondary-foreground: #34402b;
+  --accent-foreground: #34402b;
+  --color-foreground: #34402b;
+  --color-muted-foreground: #625f4b;
+  --color-primary: #59612f;
+  --color-primary-foreground: #f7efda;
+  --color-secondary-foreground: #34402b;
+  --color-accent-foreground: #34402b;
+  color: #34402b;
+}
+
 @layer base {
   * { border-color: var(--color-border); }
   body {

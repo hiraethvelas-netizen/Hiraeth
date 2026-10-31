@@ -12,12 +12,15 @@ import { CustomerReviews } from "@/components/CustomerReviews";
 import { SecretFlamesPromotion } from "@/components/SecretFlamesPromotion";
 import { Heart, Shirt } from "lucide-react";
 import { toast } from "sonner";
+import { requireAuthenticatedUser } from "@/lib/require-auth";
 
 
 type Product = Tables<"products">;
 type Category = Tables<"categories">;
 
 export const Route = createFileRoute("/loja")({
+  ssr: false,
+  beforeLoad: requireAuthenticatedUser,
   validateSearch: (search: Record<string, unknown>) => ({
     ...(typeof search["q"] === "string" ? { q: search["q"] } : {}),
     ...(typeof search["categoria"] === "string" ? { categoria: search["categoria"] } : {}),
