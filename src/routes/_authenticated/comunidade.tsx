@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { SiteHeader } from "@/components/SiteLayout";
 import { getCommunityMessageIdentity } from "@/lib/community-message-identity";
+import { getMessageReactionOperation } from "@/lib/community-message-reactions";
 import { CandleBookshelf, type CandleDraftInput, type CandleLibraryItem } from "@/components/CandleBookshelf";
 import { toast } from "sonner";
 import { Flame, Heart, ImagePlus, MessageCircle, Send, Trash2, X, UserRound, BookOpen, Film, Tv, MoreVertical } from "lucide-react";
@@ -55,6 +56,7 @@ function Comunidade() {
   const [comments, setComments] = useState<Record<string, FeedComment[]>>({});
   const [commentDrafts, setCommentDrafts] = useState<Record<string, string>>({});
   const [reacting, setReacting] = useState<string | null>(null);
+  const [reactingMessageId, setReactingMessageId] = useState<string | null>(null);
   const [interests, setInterests] = useState<{ id: string; interest_type: "book" | "movie" | "series" | "other"; title: string; image_url?: string | null }[]>([]);
   const [interestTitle, setInterestTitle] = useState("");
   const [interestType, setInterestType] = useState<"book" | "movie" | "series" | "other">("book");
@@ -232,14 +234,47 @@ function Comunidade() {
   }
 
   async function reactToMessage(message: Message, type: "heart" | "fire") {
-    if (message.myReaction === type) {
-      const { error } = await (supabase as any).from("community_message_reactions").delete().eq("message_id", message.id).eq("user_id", userId);
-      if (error) toast.error("Não foi possível remover a reação.");
-    } else {
-      const { error } = await (supabase as any).from("community_message_reactions").upsert({ message_id: message.id, user_id: userId, reaction_type: type }, { onConflict: "message_id,user_id" });
-      if (error) toast.error("Não foi possível registrar a reação.");
+    if (!userId || reactingMessageId) return;
+    setReactingMessageId(message.id);
+    try {
+      const reactionsTable = (supabase as any).from("community_message_reactions");
+      const { data: currentReaction, error: lookupError } = await reactionsTable
+        .select("id,reaction_type")
+        .eq("message_id", message.id)
+        .eq("user_id", userId)
+        .maybeSingle();
+      if (lookupError) throw lookupError;
+
+      const operation = getMessageReactionOperation(currentReaction?.reaction_type ?? null, type);
+      if (operation === "delete") {
+        const { error } = await reactionsTable.delete().eq("id", currentReaction.id).eq("user_id", userId);
+        if (error) throw error;
+      } else if (operation === "update") {
+        const { error } = await reactionsTable.update({ reaction_type: type }).eq("id", currentReaction.id).eq("user_id", userId);
+        if (error) throw error;
+      } else {
+        const { error } = await reactionsTable.insert({ message_id: message.id, user_id: userId, reaction_type: type });
+        // Another active session may have reacted after the lookup. Recover that race by
+        // updating the unique (message_id, user_id) row instead of failing silently.
+        if (error?.code === "23505") {
+          const { error: retryError } = await reactionsTable
+            .update({ reaction_type: type })
+            .eq("message_id", message.id)
+            .eq("user_id", userId);
+          if (retryError) throw retryError;
+        } else if (error) {
+          throw error;
+        }
+      }
+
+      await loadMessages(userId);
+    } catch (error) {
+      console.error("Erro ao reagir à mensagem do chat:", error);
+      const detail = error instanceof Error ? error.message : "Erro inesperado ao salvar a reação.";
+      toast.error("Não foi possível registrar sua reação.", { description: detail });
+    } finally {
+      setReactingMessageId(null);
     }
-    await loadMessages();
   }
 
   async function publishPost(e: React.FormEvent) {
@@ -549,7 +584,9 @@ function Comunidade() {
   return <div className="min-h-screen bg-background"><SiteHeader />
     {publicMember && <div className="fixed inset-0 z-[110] overflow-y-auto bg-[#101a13]/75 p-2 backdrop-blur-sm sm:p-4 md:p-8" role="dialog" aria-modal="true" aria-label={"Perfil de " + publicMember.username}>
       <section className="relative mx-auto my-3 min-h-[80vh] w-full max-w-5xl overflow-hidden rounded-2xl border border-[#b99a66]/70 bg-[#f5efdf] text-[#29382d] shadow-[0_28px_100px_rgba(0,0,0,0.42)] sm:my-5 sm:rounded-3xl">
-        <button type="button" onClick={() => setPublicMember(null)} className="absolute right-3 top-3 z-20 rounded-full border border-[#dfd1b6] bg-[#fbf7eb]/95 p-2 text-[#314434] shadow-sm transition hover:bg-white" aria-label="Fechar perfil"><X size={18}/></button>
+        <div className="pointer-events-none sticky top-2 z-[130] -mb-14 flex justify-end px-3 pt-3">
+          <button type="button" onClick={() => setPublicMember(null)} className="pointer-events-auto flex h-11 w-11 items-center justify-center rounded-full border-2 border-[#e0c788] bg-[#20382b] text-[#f7efda] shadow-[0_5px_18px_rgba(0,0,0,0.35)] transition hover:scale-105 hover:bg-[#314b37] focus:outline-none focus:ring-4 focus:ring-[#d7bd83]/60" aria-label="Fechar perfil" title="Fechar perfil"><X size={22} strokeWidth={2.8}/><span className="sr-only">Fechar perfil</span></button>
+        </div>
         <header className="relative flex flex-col items-center gap-3 overflow-hidden border-b border-[#b99a66]/55 bg-[radial-gradient(ellipse_at_top,rgba(207,174,111,0.25),transparent_58%),linear-gradient(135deg,#263b2d_0%,#3b513b_56%,#1b2a20_100%)] px-5 py-9 text-center text-[#f7f0df] sm:px-10 sm:py-12">
           <div className="pointer-events-none absolute inset-3 rounded-xl border border-[#d7bd83]/25 sm:inset-5"/>
           <p className="relative text-[10px] font-semibold uppercase tracking-[.3em] text-[#d7bd83] sm:text-xs">Círculo do Fogo · Hiraeth</p>
@@ -648,8 +685,8 @@ function Comunidade() {
                         {menuOpen && <div className="absolute bottom-full right-0 z-30 mb-1 min-w-40 overflow-hidden rounded-xl border border-primary/20 bg-background p-1 text-foreground shadow-xl">
                           <p className="px-3 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Reagir</p>
                           <div className="flex items-center justify-around px-2 pb-2">
-                            <button type="button" onClick={() => { void reactToMessage(message,"heart"); setOpenMessageMenuId(null); }} aria-label="Reagir com coração" className="rounded-lg p-2 text-lg hover:bg-primary/10">❤️</button>
-                            <button type="button" onClick={() => { void reactToMessage(message,"fire"); setOpenMessageMenuId(null); }} aria-label="Reagir com fogo" className="rounded-lg p-2 text-lg hover:bg-primary/10">🔥</button>
+                            <button type="button" disabled={reactingMessageId === message.id} onClick={() => { void reactToMessage(message,"heart"); setOpenMessageMenuId(null); }} aria-label="Reagir com coração" className="rounded-lg p-2 text-lg hover:bg-primary/10 disabled:cursor-wait disabled:opacity-50">❤️</button>
+                            <button type="button" disabled={reactingMessageId === message.id} onClick={() => { void reactToMessage(message,"fire"); setOpenMessageMenuId(null); }} aria-label="Reagir com fogo" className="rounded-lg p-2 text-lg hover:bg-primary/10 disabled:cursor-wait disabled:opacity-50">🔥</button>
                           </div>
                           {ownMessage && <>
                             <div className="my-1 border-t border-primary/10"/>
@@ -662,7 +699,7 @@ function Comunidade() {
                     </div>
                   </div>
                   {reactions.length > 0 && <div className={`mt-1 flex gap-1 ${ownMessage ? "mr-2" : "ml-2"}`}>
-                    {reactions.map(reaction => <button key={reaction.type} type="button" onClick={() => void reactToMessage(message,reaction.type)} aria-label={`Reagir com ${reaction.emoji}`} className={`rounded-full border px-2 py-0.5 text-xs shadow-sm ${message.myReaction === reaction.type ? "border-primary/50 bg-primary/15" : "border-primary/15 bg-background/90"}`}>{reaction.emoji} {reaction.count}</button>)}
+                    {reactions.map(reaction => <button key={reaction.type} type="button" disabled={reactingMessageId === message.id} onClick={() => void reactToMessage(message,reaction.type)} aria-label={`Reagir com ${reaction.emoji}`} aria-pressed={message.myReaction === reaction.type} className={`rounded-full border px-2 py-0.5 text-xs shadow-sm disabled:cursor-wait disabled:opacity-50 ${message.myReaction === reaction.type ? "border-primary/50 bg-primary/15" : "border-primary/15 bg-background/90"}`}>{reaction.emoji} {reaction.count}</button>)}
                   </div>}
                 </article>;
               })}
