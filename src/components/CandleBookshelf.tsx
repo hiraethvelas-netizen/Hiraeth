@@ -239,7 +239,7 @@ export function CandleBookshelf({
       {dialogMode !== "view" || dialogItem ? (
         <div className="fixed inset-0 z-[130] flex items-center justify-center overflow-y-auto bg-black/70 p-3 sm:p-6" role="dialog" aria-modal="true" aria-label={dialogTitle}>
           <section className="relative my-auto max-h-[92dvh] w-full max-w-2xl overflow-y-auto rounded-xl border border-[#d6c9ae] bg-[#f7f1e5] p-5 text-[#29342c] shadow-2xl sm:p-7">
-            <button type="button" onClick={closeDialog} disabled={saving} className="absolute right-3 top-3 rounded-full p-2 text-muted-foreground hover:bg-primary/10 hover:text-foreground" aria-label="Fechar">
+            <button type="button" onClick={closeDialog} disabled={saving} className="absolute right-3 top-3 rounded-full p-2 text-[#29342c] transition-colors hover:bg-[#ece4d3] hover:text-[#17231b] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#506b4f]" aria-label="Fechar">
               <X size={20} />
             </button>
             <p className="eyebrow">{dialogMode === "add" ? "Uma lembrança da sua coleção" : "Detalhes da sua vela"}</p>
@@ -301,7 +301,7 @@ export function CandleBookshelf({
                   <textarea maxLength={1500} rows={3} value={draft.notes} onChange={event => setDraft(current => ({ ...current, notes: event.target.value }))} placeholder="Conte o que esta vela representa para você..." className="mt-1 w-full rounded-md border border-[#c9bea8] bg-white px-3 py-3 text-[#29342c] placeholder:text-[#756d60] shadow-sm outline-none transition focus:border-[#506b4f] focus:ring-2 focus:ring-[#506b4f]/20" />
                 </label>
                 <div>
-                  <p className="text-sm font-semibold text-foreground">Sua avaliação em foguinhos</p>
+                  <p className="text-sm font-semibold text-[#29342c]">Sua avaliação em foguinhos</p>
                   <div className="mt-2 flex gap-2" role="group" aria-label="Avaliação de um a cinco foguinhos">
                     {[1,2,3,4,5].map(value => <button key={value} type="button" onClick={() => setDraft(current => ({ ...current, rating: current.rating === value ? 0 : value }))} aria-pressed={draft.rating === value} aria-label={`${value} foguinhos`} className="rounded p-1 transition hover:scale-110 focus-visible:outline focus-visible:outline-primary">
                       <Flame size={27} className={value <= draft.rating ? "fill-orange-500 text-orange-500" : "text-muted-foreground/35"} />
@@ -311,7 +311,7 @@ export function CandleBookshelf({
                 {!(dialogMode === "edit" && dialogItem?.order_item_id) && <label className="block text-sm font-semibold text-[#29342c]">
                   <span className="mb-2 flex items-center gap-2"><ImagePlus size={16}/> Foto da vela {dialogMode === "add" ? "(obrigatória)" : "(opcional)"}</span>
                   <input required={dialogMode === "add"} type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={event => setImageFile(event.currentTarget.files?.[0] ?? null)} className="block w-full text-sm text-[#4e584c] file:mr-3 file:rounded-full file:border file:border-[#a99b7d] file:bg-[#ece4d3] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-[#29342c] hover:file:bg-[#e2d7c1]" />
-                  {imageFile && <span className="mt-1 block text-xs text-muted-foreground">{imageFile.name}</span>}
+                  {imageFile && <span className="mt-1 block text-xs text-[#4e584c]">{imageFile.name}</span>}
                 </label>}
                 {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
                 <div className="flex flex-wrap justify-end gap-2">
