@@ -672,3 +672,188 @@ body > div {
 .hiraeth-ornament--wide::after { width: clamp(52px, 13vw, 148px); }
 .hiraeth-ornament--flame { color: #d69a45; }
 .hiraeth-ornament--flame span { font-size: 1.05rem; filter: drop-shadow(0 1px 3px rgba(214,154,69,.24)); }
+
+
+/* Ajustes de superfície solicitados: os fundos acompanham o tema, sem criar painéis duplicados. */
+:root:not(.dark) .hiraeth-care-panel {
+  background: #20382b;
+  color: #f7efda;
+  border-color: rgba(135,142,71,.68);
+  box-shadow: 0 18px 48px rgba(32,56,43,.18);
+}
+:root:not(.dark) .hiraeth-care-panel h2,
+:root:not(.dark) .hiraeth-care-panel p,
+:root:not(.dark) .hiraeth-care-panel .text-foreground {
+  color: #f7efda;
+}
+:root:not(.dark) .hiraeth-care-panel .eyebrow {
+  color: #d6bd88;
+}
+:root.dark .hiraeth-care-panel {
+  background: #f7efda;
+  color: #34402b;
+  border-color: rgba(135,142,71,.55);
+  box-shadow: 0 18px 48px rgba(0,0,0,.18);
+}
+:root.dark .hiraeth-care-panel h2,
+:root.dark .hiraeth-care-panel p,
+:root.dark .hiraeth-care-panel .text-foreground {
+  color: #34402b;
+}
+:root.dark .hiraeth-care-panel .eyebrow {
+  color: #878e47;
+}
+.hiraeth-care-panel .hiraeth-ornament {
+  color: #c6a65b;
+}
+.hiraeth-care-panel .hiraeth-ornament::before,
+.hiraeth-care-panel .hiraeth-ornament::after {
+  background: linear-gradient(90deg, transparent, #c6a65b);
+}
+
+/* A área externa das avaliações fica integrada ao fundo; apenas o convite é o destaque. */
+.hiraeth-reviews-section {
+  background: var(--background);
+}
+:root:not(.dark) .hiraeth-review-invite,
+:root:not(.dark) .hiraeth-review-card,
+:root:not(.dark) .hiraeth-review-dialog {
+  background: #20382b;
+  color: #f7efda;
+  border-color: rgba(135,142,71,.68);
+}
+:root.dark .hiraeth-review-invite,
+:root.dark .hiraeth-review-card,
+:root.dark .hiraeth-review-dialog {
+  background: #f7efda;
+  color: #34402b;
+  border-color: rgba(135,142,71,.55);
+}
+.hiraeth-review-invite h2,
+.hiraeth-review-invite p,
+.hiraeth-review-card .text-foreground {
+  color: inherit;
+}
+:root:not(.dark) .hiraeth-review-invite .eyebrow {
+  color: #d6bd88;
+}
+:root.dark .hiraeth-review-invite .eyebrow {
+  color: #878e47;
+}
+.hiraeth-review-card {
+  box-shadow: 0 10px 24px rgba(32,56,43,.10);
+}
+:root:not(.dark) .hiraeth-review-card .text-primary {
+  color: #d6bd88;
+}
+:root.dark .hiraeth-review-card .text-primary {
+  color: #52613a;
+}
+.hiraeth-review-dialog {
+  box-shadow: 0 22px 70px rgba(0,0,0,.28);
+}
+.hiraeth-review-field {
+  outline: none;
+  transition: border-color .2s, box-shadow .2s;
+}
+:root:not(.dark) .hiraeth-review-field {
+  background: #263a2b;
+  color: #f7efda;
+  border-color: #878e47;
+}
+:root.dark .hiraeth-review-field {
+  background: #f0e7d2;
+  color: #34402b;
+  border-color: #a58b5a;
+}
+.hiraeth-review-field:focus {
+  border-color: #c6a65b;
+  box-shadow: 0 0 0 2px rgba(198,166,91,.22);
+}
+.hiraeth-review-field::file-selector-button {
+  margin-right: .75rem;
+  border: 1px solid #c6a65b;
+  border-radius: 999px;
+  padding: .45rem .8rem;
+  background: #c6a65b;
+  color: #5b1d04;
+}
+.hiraeth-review-submit {
+  border-color: #c6a65b;
+  background: #c6a65b;
+  color: #5b1d04;
+  font-weight: 600;
+  transition: filter .2s, transform .2s;
+}
+.hiraeth-review-submit:hover {
+  filter: brightness(1.04);
+  transform: translateY(-1px);
+}
+
+/* Círculo do Fogo: o fundo é o próprio fundo do app; os painéis de início são verde profundo. */
+.community-shell {
+  background: var(--background);
+}
+.community-overview-card,
+.community-overview-panel {
+  background: #20382b;
+  color: #f7efda;
+  border-color: rgba(135,142,71,.65);
+  box-shadow: 0 12px 30px rgba(20,35,26,.12);
+}
+.community-overview-card h3,
+.community-overview-card p,
+.community-overview-card .text-foreground,
+.community-overview-panel h3,
+.community-overview-panel p,
+.community-overview-panel li,
+.community-overview-panel .text-foreground {
+  color: #f7efda;
+}
+.community-overview-card .text-muted-foreground,
+.community-overview-panel .text-muted-foreground {
+  color: #e2dcc7;
+}
+.community-overview-card .eyebrow,
+.community-overview-panel .eyebrow {
+  color: #d6bd88;
+}
+
+/* Mensagens enviadas pela conta administrativa da marca recebem destaque dourado oficial. */
+.community-message-bubble--official {
+  border: 1px solid #b58a3b;
+  background: linear-gradient(140deg, #f4dfaa 0%, #ead09a 52%, #f6e9c9 100%);
+  color: #5b1d04;
+  box-shadow: 0 8px 24px rgba(125,89,28,.20), inset 0 0 0 1px rgba(255,255,255,.35);
+}
+.community-message-bubble--official .text-muted-foreground {
+  color: #80612c;
+}
+:root.dark .community-message-bubble--official {
+  border-color: #d6bd88;
+  background: linear-gradient(140deg, #80652f 0%, #725522 54%, #5c4928 100%);
+  color: #fff3d0;
+  box-shadow: 0 8px 24px rgba(0,0,0,.24), inset 0 0 0 1px rgba(255,239,195,.12);
+}
+:root.dark .community-message-bubble--official .text-muted-foreground {
+  color: #f0dfb5;
+}
+.community-official-badge {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid rgba(128,94,35,.62);
+  border-radius: 999px;
+  padding: .15rem .45rem;
+  background: rgba(255,247,222,.72);
+  color: #654715;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .10em;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+:root.dark .community-official-badge {
+  border-color: rgba(255,237,190,.62);
+  background: rgba(44,34,17,.42);
+  color: #fff1c8;
+}
