@@ -93,8 +93,8 @@ export function SecretFlamesPromotion() {
           {[0,1,2,3].map(index => {
             const item = images[index] || {};
             return <button key={index} type="button" disabled={busy} onClick={() => void choose(index)} className={`group relative aspect-[4/5] overflow-hidden rounded-2xl border border-[#d7c7b6] bg-[#e9dfd7] p-2 transition hover:-translate-y-1 hover:shadow-lg disabled:opacity-60 ${chosen === index ? "ring-2 ring-[#6d7955]" : ""}`}>
-              {item.image_url ? <img src={item.image_url} alt={item.label || `Vela misteriosa ${index+1}`} className="h-full w-full rounded-xl object-contain"/> : <div className="flex h-full flex-col items-center justify-center gap-3 rounded-xl bg-gradient-to-b from-[#d8c9bd] to-[#9b847d] text-[#fff7ed]"><span className="text-4xl">✧</span><span className="font-display text-lg">Chama {index+1}</span></div>}
-              <span className="absolute inset-x-2 bottom-2 rounded-lg bg-[#342c2a]/65 px-2 py-1 text-xs text-white">{busy && chosen === index ? "Revelando..." : "Escolher esta vela"}</span>
+              {item.image_url ? <img src={item.image_url} alt={item.label || `Vela misteriosa ${index+1}`} className="h-full w-full rounded-xl object-contain"/> : <div className="flex h-full flex-col items-center justify-center gap-3 rounded-xl bg-gradient-to-b from-[#d8c9bd] to-[#9b847d] text-[#f7efda]"><span className="text-4xl">✧</span><span className="font-display text-lg">Chama {index+1}</span></div>}
+              <span className="absolute inset-x-2 bottom-2 rounded-lg bg-[#342c2a]/65 px-2 py-1 text-xs text-[#f7efda]">{busy && chosen === index ? "Revelando..." : "Escolher esta vela"}</span>
             </button>;
           })}
         </div>
@@ -108,7 +108,7 @@ export function SecretFlamesPromotion() {
         {Number(settings.min_cart_value) > 0 && <p className="mt-3 text-xs text-[#85796f]">Válido em compras a partir de R$ {Number(settings.min_cart_value).toFixed(2).replace(".", ",")}.</p>}
         <p className="mt-4 text-xs text-[#85796f]">Esta participação já foi registrada e não poderá ser repetida.</p>
       </div>}
-      <button type="button" onClick={() => setOpen(false)} className="mt-6 w-full rounded-xl bg-[#66744f] px-5 py-3 text-sm font-semibold uppercase tracking-wide text-white">{claim ? "Continuar explorando" : "Escolher depois"}</button>
+      <button type="button" onClick={() => setOpen(false)} className="mt-6 w-full rounded-xl bg-[#66744f] px-5 py-3 text-sm font-semibold uppercase tracking-wide text-[#f7efda]">{claim ? "Continuar explorando" : "Escolher depois"}</button>
     </section>
   </div>;
 }
