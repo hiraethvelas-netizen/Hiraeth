@@ -10,12 +10,14 @@ function PromocoesAdmin(){
   const [flameSettings,setFlameSettings]=useState<any>({active:false,title:"O Segredo das Quatro Chamas",subtitle:"Escolha uma vela e descubra a surpresa que ela guarda.",candle_images:[{image_url:""},{image_url:""},{image_url:""},{image_url:""}],min_cart_value:"0",starts_at:"",ends_at:""});
   const [flameRewards,setFlameRewards]=useState<any[]>([0,1,2,3].map(candle_index=>({candle_index,reward_type:"message",reward_title:"",reward_description:"",coupon_code:""})));
   const [flameClaims,setFlameClaims]=useState<any[]>([]);
-  const [welcomeSettings,saveWelcomeSettings]=useSiteContent("customer-welcome-message",{
+  const [savedWelcomeSettings,saveWelcomeSettings]=useSiteContent("customer-welcome-message",{
     enabled:false,
     title:"A chama da Hiraeth te recebe",
     message:"Que bom ter você aqui. Este é o seu espaço para encontrar histórias, aromas e lembranças que merecem permanecer acesas.",
     buttonText:"Seguir para o início",
   });
+  const [welcomeSettings,setWelcomeSettings]=useState(savedWelcomeSettings);
+  useEffect(()=>{setWelcomeSettings(savedWelcomeSettings);},[savedWelcomeSettings]);
   const [welcomeSaving,setWelcomeSaving]=useState(false);
 
  async function load(){setLoading(true);const {data,error}=await db.from("promotions").select("*").order("created_at",{ascending:false});if(error){toast.error("Não foi possível carregar promoções. A migração do banco precisa ser aplicada.");setLoading(false);return;}setItems(data??[]);setLoading(false)}
@@ -91,13 +93,13 @@ function PromocoesAdmin(){
   <div className="border-b border-primary/15 p-5 sm:p-7">
    <div className="flex flex-wrap items-start justify-between gap-4">
     <div><p className="text-xs uppercase tracking-[.18em] text-primary">Mensagem para clientes</p><h2 className="mt-2 font-display text-2xl text-foreground">Boas-vindas Hiraeth</h2><p className="mt-1 max-w-2xl text-sm leading-6 text-muted-foreground">Exibida em uma tela especial depois que a pessoa cria a conta ou entra novamente. O botão leva diretamente ao Início.</p></div>
-    <label className="flex items-center gap-2 rounded-full border border-primary/20 px-4 py-2 text-sm text-foreground"><input type="checkbox" checked={!!welcomeSettings.enabled} onChange={e=>saveWelcomeSettings({...welcomeSettings,enabled:e.target.checked})}/>Mensagem ativa</label>
+    <label className="flex items-center gap-2 rounded-full border border-primary/20 px-4 py-2 text-sm text-foreground"><input type="checkbox" checked={!!welcomeSettings.enabled} onChange={e=>setWelcomeSettings({...welcomeSettings,enabled:e.target.checked})}/>Mensagem ativa</label>
    </div>
   </div>
   <form onSubmit={saveWelcome} className="space-y-4 p-5 sm:p-7">
-   <label className="block text-sm text-foreground">Título principal<input required maxLength={100} className={input+" mt-1"} value={String(welcomeSettings.title??"")} onChange={e=>saveWelcomeSettings({...welcomeSettings,title:e.target.value})}/></label>
-   <label className="block text-sm text-foreground">Mensagem<textarea required maxLength={1000} rows={4} className={input+" mt-1"} value={String(welcomeSettings.message??"")} onChange={e=>saveWelcomeSettings({...welcomeSettings,message:e.target.value})}/></label>
-   <label className="block text-sm text-foreground">Texto do botão<input required maxLength={50} className={input+" mt-1"} value={String(welcomeSettings.buttonText??"")} onChange={e=>saveWelcomeSettings({...welcomeSettings,buttonText:e.target.value})}/></label>
+   <label className="block text-sm text-foreground">Título principal<input required maxLength={100} className={input+" mt-1"} value={String(welcomeSettings.title??"")} onChange={e=>setWelcomeSettings({...welcomeSettings,title:e.target.value})}/></label>
+   <label className="block text-sm text-foreground">Mensagem<textarea required maxLength={1000} rows={4} className={input+" mt-1"} value={String(welcomeSettings.message??"")} onChange={e=>setWelcomeSettings({...welcomeSettings,message:e.target.value})}/></label>
+   <label className="block text-sm text-foreground">Texto do botão<input required maxLength={50} className={input+" mt-1"} value={String(welcomeSettings.buttonText??"")} onChange={e=>setWelcomeSettings({...welcomeSettings,buttonText:e.target.value})}/></label>
    <div className="overflow-hidden rounded-xl border border-[#9a7742]/50 bg-[radial-gradient(ellipse_at_top,rgba(181,139,67,0.22),transparent_55%),linear-gradient(135deg,#17251c,#263b2d_58%,#111b15)] px-6 py-10 text-center text-[#f7efda] shadow-inner sm:px-10 sm:py-14">
     <p className="text-[10px] uppercase tracking-[.32em] text-[#d7bd83]">Onde a Chama Acesa te Espera</p>
     <div className="my-4 text-3xl text-[#d7bd83]">✧</div>
