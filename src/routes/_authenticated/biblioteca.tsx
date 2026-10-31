@@ -111,7 +111,7 @@ function Biblioteca() {
   async function removeLibraryItem(item: CandleLibraryItem) {
     if (!userId || item.order_item_id) return;
     const { error } = await (supabase as any).from("community_library").delete().eq("id", item.id).eq("user_id", userId);
-    if (error) { toast.error("Não foi possível remover a vela."); return; }
+    if (error) throw error;
     toast.success("Vela removida da estante.");
     await load();
   }
