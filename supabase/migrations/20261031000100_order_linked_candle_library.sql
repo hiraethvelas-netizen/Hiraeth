@@ -138,7 +138,7 @@ begin
       where existing.user_id = o.user_id
         and existing.product_id = oi.product_id
         and existing.order_item_id is null
-        and (existing.acquired_at is null or existing.acquired_at = o.created_at::date)
+        and existing.acquired_at = o.created_at::date
     )
   on conflict (order_item_id) where order_item_id is not null do nothing;
 
@@ -177,7 +177,7 @@ create trigger sync_community_library_purchase_status
   after update of status on public.orders
   for each row execute function public.sync_community_library_purchase_status();
 
--- Importa compras anteriores sem duplicar velas antigas que já foram migradas
+-- Importa compras anteriores, evitando duplicar registros antigos com a mesma data de aquisição
 -- para a estante pessoal.
 insert into public.community_library (
   user_id,
@@ -218,6 +218,6 @@ where o.user_id is not null
     where existing.user_id = o.user_id
       and existing.product_id = oi.product_id
       and existing.order_item_id is null
-      and (existing.acquired_at is null or existing.acquired_at = o.created_at::date)
+      and existing.acquired_at = o.created_at::date
   )
 on conflict (order_item_id) where order_item_id is not null do nothing;
