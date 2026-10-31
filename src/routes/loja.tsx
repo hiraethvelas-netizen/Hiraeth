@@ -10,7 +10,7 @@ import { StoreBanners } from "@/components/StoreBanners";
 import { AcervoNavigation } from "@/components/AcervoNavigation";
 import { CustomerReviews } from "@/components/CustomerReviews";
 import { SecretFlamesPromotion } from "@/components/SecretFlamesPromotion";
-import { Heart } from "lucide-react";
+import { Heart, Shirt } from "lucide-react";
 import { toast } from "sonner";
 
 
@@ -39,7 +39,7 @@ export const Route = createFileRoute("/loja")({
 });
 
 
-function Loja() {
+function filteredProductsForApparel(products: Product[], categories: Category[]) {\n  return products.filter((product) => {\n    const category = categories.find((item) => item.id === product.category_id);\n    return /camiseta|t-shirt|roupa|vestuário/i.test(`${product.name} ${category?.name ?? ""}`);\n  });\n}\n\nfunction Loja() {
   const [pageSettings, savePageSettings] = useSiteContent("store-page-settings", { eyebrow: "O Acervo Hiraeth", title: "O Acervo Hiraeth", intro: "Encontre o universo que mora em você.", bannerImage: "", showBanner: false });
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -126,6 +126,7 @@ useEffect(() => {
   }
   const featuredCollectionSlugs = ["harry-potter", "universo-sarah-j-maas", "friends", "the-vampire-diaries", "crepusculo", "taylor-swift", "gilmore-girls"];
   const featuredCollections = featuredCollectionSlugs.map((slug) => categories.find((category) => category.slug === slug)).filter((category): category is Category => Boolean(category));
+  const apparelProducts = !categoryId ? filteredProductsForApparel(products, categories) : [];
 
   const filtered = useMemo(() => {
     const activeCategoryIds = new Set(categories.map((category) => category.id));
@@ -214,6 +215,22 @@ useEffect(() => {
           </div>
         </section>}
 
+        {!categoryId && apparelProducts.length > 0 && <section className="mt-14 mb-10 overflow-hidden rounded-2xl bg-[#e9e4dc] text-[#292720]">
+          <div className="px-6 pb-5 pt-8 text-center sm:px-10 sm:pt-10">
+            <p className="text-xs font-semibold uppercase tracking-[.28em] text-[#82796d]">Vista seu universo</p>
+            <h2 className="mt-3 font-display text-3xl sm:text-5xl">Camisetas Hiraeth</h2>
+            <p className="mx-auto mt-3 max-w-xl text-sm text-[#665f56] sm:text-base">Peças inspiradas nas histórias, músicas e universos que fazem parte de você.</p>
+          </div>
+          <div className="grid grid-cols-2 gap-3 px-4 pb-7 sm:grid-cols-3 sm:px-8">
+            {apparelProducts.slice(0, 6).map((product) => <Link key={product.id} to="/produto/$slug" params={{ slug: product.slug }} className="group text-center">
+              <div className="relative aspect-[4/5] overflow-hidden bg-[#f4f0ea]">
+                {product.images?.[0] ? <img src={product.images[0]} alt={product.name} className="h-full w-full object-contain p-2 transition-transform duration-500 group-hover:scale-105" loading="lazy" /> : <div className="flex h-full flex-col items-center justify-center gap-3 text-[#8c8276]"><Shirt size={42} strokeWidth={1.1} /><span className="text-xs">Foto em breve</span></div>}
+              </div>
+              <p className="mt-3 font-display text-base sm:text-lg">{product.name}</p>
+              <p className="mt-1 text-sm text-[#746b60]">{brl(Number(product.sale_price ?? product.price))}</p>
+            </Link>)}
+          </div>
+        </section>}
         {loading ? (
           <p className="mt-16 text-center text-muted-foreground">
             Abrindo o acervo...
@@ -231,7 +248,7 @@ useEffect(() => {
           </div>
         ) : (
           <div className="mt-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-            {filtered.map((p) => (
+            {filtered.filter((p) => !apparelProducts.some((apparel) => apparel.id === p.id)).map((p) => (
               <Link
                 key={p.id}
                 to="/produto/$slug"
