@@ -346,8 +346,9 @@ body {
 }
 h1, h2, h3, h4, .font-display {
   font-family: var(--font-display);
-  font-weight: 400;
-  letter-spacing: -.025em;
+  font-weight: 600;
+  letter-spacing: -.02em;
+  -webkit-text-stroke: .18px currentColor;
 }
 .eyebrow {
   color: #c6a65b;
