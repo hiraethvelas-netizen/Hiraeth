@@ -73,31 +73,26 @@ function Sobre() {
     </div>
     <div className="space-y-10 sm:space-y-16">
       {bannerSettings.enabled && bannerSettings.image_url && <a href={bannerSettings.href || "/loja"} target={/^(https?:)?\/\//i.test(bannerSettings.href) ? "_blank" : undefined} rel={/^(https?:)?\/\//i.test(bannerSettings.href) ? "noreferrer" : undefined} className="block overflow-hidden"><img src={bannerSettings.image_url} alt={bannerSettings.title || "Banner Hiraeth"} className="max-h-[28rem] w-full object-cover" /></a>}
-      <section className="rounded-sm bg-[#eee8dc] px-6 py-9 text-[#29271f] sm:px-12 sm:py-14">
-        <p className="mb-4 text-xs font-semibold uppercase tracking-[.24em] text-[#927b45]">Um pouco da nossa história</p>
-        <h2 className="max-w-3xl font-serif text-4xl font-medium leading-[1.08] tracking-tight sm:text-6xl">Algumas histórias merecem ser <span className="font-bold italic">sentidas.</span></h2>
-        <p className="mt-5 max-w-2xl font-serif text-base leading-relaxed text-[#49443b] sm:text-xl">Cada criação guarda uma lembrança, cada aroma abre uma passagem e cada detalhe faz parte de quem somos.</p>
+      <section className="px-2 py-8 text-foreground sm:px-6 sm:py-12">
+        <p className="mb-4 text-xs font-semibold uppercase tracking-[.24em] text-primary">Um pouco da nossa história</p>
+        <h2 className="max-w-3xl font-serif text-4xl font-medium leading-[1.08] tracking-tight text-foreground sm:text-6xl">Algumas histórias merecem ser <span className="font-bold italic">sentidas.</span></h2>
+        <p className="mt-5 max-w-2xl font-serif text-base leading-relaxed text-foreground/85 sm:text-xl">Cada criação guarda uma lembrança, cada aroma abre uma passagem e cada detalhe faz parte de quem somos.</p>
       </section>
-      <section className="relative overflow-hidden rounded-sm border border-[#b6a77f]/40 bg-[#e8e0d2] px-6 py-9 text-[#302b24] sm:px-12 sm:py-12">
-        <p className="mb-3 text-[10px] font-semibold uppercase tracking-[.24em] text-[#927b45]">A palavra por trás da chama</p>
+      <section className="relative overflow-hidden rounded-sm border border-[#b6a77f]/40 bg-[#314333] px-6 py-9 text-[#f5efdf] dark:bg-[#eee8dc] dark:text-[#302b24] sm:px-12 sm:py-12">
+        <p className="mb-3 text-[10px] font-semibold uppercase tracking-[.24em] text-[#d5c28b] dark:text-[#927b45]">A palavra por trás da chama</p>
         <h2 className="font-serif text-4xl font-medium leading-tight sm:text-5xl">O que significa <span className="font-bold italic">Hiraeth?</span></h2>
         <p className="mt-5 max-w-3xl font-serif text-base leading-[1.9] sm:text-lg">Hiraeth é uma palavra de origem galesa que expressa uma saudade profunda — o desejo de voltar a um lugar, a um tempo ou a uma sensação que marcou a nossa vida. É uma mistura de nostalgia, pertencimento e amor por algo que, mesmo distante, continua vivo dentro de nós.</p>
         <p className="mt-4 max-w-3xl font-serif text-base leading-[1.9] sm:text-lg">Não existe uma tradução perfeita. Talvez porque alguns sentimentos sejam grandes demais para caber em uma única palavra.</p>
-        <div className="mt-7 border-t border-[#a99b7b]/50 pt-5">
-          <p className="max-w-3xl font-serif text-lg italic leading-relaxed sm:text-xl">Foi nesse sentimento que encontramos a essência da Hiraeth: criar aromas que despertam lembranças, aproximam histórias e fazem você se sentir, por alguns instantes, exatamente onde gostaria de estar.</p>
+        <div className="mt-7 border-t border-[#d5c28b]/40 pt-5 dark:border-[#a99b7b]/50">
+          <p className="max-w-3xl font-serif text-lg italic leading-relaxed text-[#f5efdf] dark:text-[#49443b] sm:text-xl">Foi nesse sentimento que encontramos a essência da Hiraeth: criar aromas que despertam lembranças, aproximam histórias e fazem você se sentir, por alguns instantes, exatamente onde gostaria de estar.</p>
         </div>
       </section>
       {shownBlocks.map((block, index) => {
-        const palettes = [
-          { bg: "bg-[#f4f0e8]", ink: "text-[#302b24]", accent: "text-[#8b7446]" },
-          { bg: "bg-[#e4e8dc]", ink: "text-[#293126]", accent: "text-[#657354]" },
-          { bg: "bg-[#eee3dc]", ink: "text-[#392a27]", accent: "text-[#986c5e]" },
-          { bg: "bg-[#e8e3d8]", ink: "text-[#302c25]", accent: "text-[#88734d]" },
-          { bg: "bg-[#e1e6df]", ink: "text-[#293329]", accent: "text-[#63765f]" },
-          { bg: "bg-[#eee8dc]", ink: "text-[#302b24]", accent: "text-[#8b7446]" },
-        ];
-        const palette = palettes[index % palettes.length];
-        return <section key={block.id || index} className={`overflow-hidden rounded-sm ${palette.bg} ${palette.ink} shadow-sm`}>
+        const isFeatureBlock = index % 2 === 0;
+        const palette = isFeatureBlock
+          ? { bg: "bg-[#314333] dark:bg-[#eee8dc]", ink: "text-[#f5efdf] dark:text-[#302b24]", accent: "text-[#d5c28b] dark:text-[#927b45]" }
+          : { bg: "bg-transparent", ink: "text-foreground", accent: "text-primary" };
+        return <section key={block.id || index} className={`overflow-hidden rounded-sm ${palette.bg} ${palette.ink} ${isFeatureBlock ? "shadow-sm" : ""}`}>
           <div className="grid gap-6 px-5 py-7 sm:gap-9 sm:px-10 sm:py-11 md:grid-cols-[minmax(0,1fr)_minmax(220px,.82fr)] md:items-center">
             <div className="min-w-0">
               <p className={`mb-3 text-[10px] font-semibold uppercase tracking-[.22em] ${palette.accent}`}>Capítulo {String(index + 1).padStart(2, "0")} · Hiraeth</p>
