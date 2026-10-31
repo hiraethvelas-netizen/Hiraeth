@@ -63,6 +63,16 @@ function Biblioteca() {
   async function addManual(values: CandleDraftInput) {
     if (!userId) throw new Error("Entre na sua conta para adicionar uma vela.");
     if (!values.image) throw new Error("Adicione uma foto da vela para registrar uma coleção antiga.");
+    const { data: duplicatePurchase, error: duplicateError } = await (supabase as any).from("community_library")
+      .select("id")
+      .eq("user_id", userId)
+      .ilike("title", values.title.trim())
+      .eq("acquired_at", values.acquired_at)
+      .not("order_item_id", "is", null)
+      .limit(1)
+      .maybeSingle();
+    if (duplicateError) throw duplicateError;
+    if (duplicatePurchase) throw new Error("Essa vela já aparece na sua Biblioteca por uma compra da loja. Abra o registro existente para completar seus detalhes após a entrega.");
     const image_url = await uploadCandlePhoto(values.image);
     const { error } = await (supabase as any).from("community_library").insert({
       user_id: userId,
@@ -132,6 +142,21 @@ function Biblioteca() {
 
   async function moveToCollection(item: WishlistItem) {
     if (!userId || !item.products) return;
+    const { data: alreadyPurchased, error: purchaseLookupError } = await (supabase as any).from("community_library")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("product_id", item.product_id)
+      .not("order_item_id", "is", null)
+      .limit(1)
+      .maybeSingle();
+    if (purchaseLookupError) { toast.error("Não foi possível verificar sua Biblioteca."); return; }
+    if (alreadyPurchased) {
+      const { error: removeWishError } = await supabase.from("wishlist_items").delete().eq("id", item.id);
+      if (removeWishError) toast.error("A vela já está na Biblioteca, mas não foi possível retirá-la dos desejos.");
+      else toast.success("Essa vela já está na sua Biblioteca por uma compra anterior.");
+      await load();
+      return;
+    }
     const { error } = await (supabase as any).from("community_library").insert({
       user_id: userId,
       product_id: item.product_id,
