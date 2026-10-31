@@ -197,7 +197,6 @@ export function CandleBookshelf({
           <p className="mt-2 text-sm text-muted-foreground">
             {items.length ? "Escolha outra categoria para continuar explorando." : "Suas compras aparecerão aqui. Você também pode adicionar velas antigas à sua coleção."}
           </p>
-          {editable && onAdd && items.length === 0 && <button type="button" onClick={openAdd} className="btn-gold mt-5">Registrar uma vela antiga</button>}
         </div>
       ) : (
         <div className="overflow-hidden rounded-lg border-[5px] border-[#68462e] bg-[linear-gradient(135deg,#5a3d2a_0%,#3f2b20_45%,#68462e_100%)] p-2 shadow-[inset_0_0_18px_rgba(0,0,0,0.35),0_12px_24px_rgba(42,28,18,0.16)] sm:p-4">
