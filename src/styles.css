@@ -36,52 +36,52 @@
 :root {
   color-scheme: light;
   --radius: 0.7rem;
-  /* Identidade Hiraeth: vanilla, verde oliva e vermelho profundo. */
+  /* Tema claro: baunilha como base, verde Hiraeth e detalhes dourados e terrosos. */
   --background: #f7efda;
   --foreground: #34402b;
-  --card: #fffaf0;
+  --card: #f2e8d2;
   --card-foreground: #34402b;
-  --popover: #fffaf0;
+  --popover: #f7efda;
   --popover-foreground: #34402b;
-  --primary: #878e47;
+  --primary: #526b45;
   --primary-foreground: #f7efda;
-  --secondary: #e9e7d2;
+  --secondary: #e9e2cc;
   --secondary-foreground: #34402b;
-  --muted: #eee8d7;
-  --muted-foreground: #625f4b;
-  --accent: #878e47;
-  --accent-foreground: #f7efda;
-  --destructive: #5b1d04;
+  --muted: #eee7d4;
+  --muted-foreground: #62583f;
+  --accent: #c6a65b;
+  --accent-foreground: #263a2b;
+  --destructive: #6a3425;
   --destructive-foreground: #f7efda;
-  --border: #878e4755;
-  --input: #878e4770;
-  --ring: #878e47;
+  --border: #a58b5a66;
+  --input: #a58b5a80;
+  --ring: #c6a65b;
   --overlay: #26301dcc;
   --glow: 0 0 32px #878e4725;
 }
 
 :root.dark {
   color-scheme: dark;
-  /* Modo noturno: verde Hiraeth bem profundo, com superfícies vanilla. */
+  /* Tema escuro: verde profundo, superfícies vanilla e detalhes dourados. */
   --background: #18251d;
   --foreground: #f7efda;
   --card: #f7efda;
   --card-foreground: #34402b;
   --popover: #f7efda;
   --popover-foreground: #34402b;
-  --primary: #f7efda;
+  --primary: #c6a65b;
   --primary-foreground: #18251d;
   --secondary: #263a2b;
   --secondary-foreground: #f7efda;
   --muted: #203126;
   --muted-foreground: #e5dfc7;
-  --accent: #d6d99a;
-  --accent-foreground: #34402b;
-  --destructive: #5b1d04;
+  --accent: #d6bd88;
+  --accent-foreground: #18251d;
+  --destructive: #7b3b25;
   --destructive-foreground: #f7efda;
-  --border: #d6d99a66;
-  --input: #d6d99a80;
-  --ring: #d6d99a;
+  --border: #c6a65b66;
+  --input: #c6a65b80;
+  --ring: #d6bd88;
   --overlay: #101a13e6;
   --glow: 0 0 28px #18251d70;
 }
