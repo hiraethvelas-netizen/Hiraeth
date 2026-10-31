@@ -478,7 +478,7 @@ function Comunidade() {
       instagram_url: null,
       tiktok_url: null,
       other_social_url: null,
-      library_visible: true,
+      library_visible: false,
     };
     setPublicMember(fallbackProfile);
     setPublicSection("profile");
@@ -504,7 +504,7 @@ function Comunidade() {
       }
 
       const resolvedProfile: PublicMember = profileData
-        ? { ...fallbackProfile, ...profileData, library_visible: profileData.library_visible !== false }
+        ? { ...fallbackProfile, ...profileData, library_visible: profileData.library_visible === true }
         : fallbackProfile;
       setPublicMember(resolvedProfile);
 
