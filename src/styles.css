@@ -36,54 +36,54 @@
 :root {
   color-scheme: light;
   --radius: 0.7rem;
-  /* Modo claro: baunilha, verde-floresta e dourado envelhecido. */
-  --background: #f4ecd8;
-  --foreground: #203326;
-  --card: #fff9eb;
-  --card-foreground: #203326;
-  --popover: #fff9eb;
-  --popover-foreground: #203326;
-  --primary: #80652f;
-  --primary-foreground: #fff9eb;
-  --secondary: #e7ddc4;
-  --secondary-foreground: #263a2b;
-  --muted: #e9e1ce;
-  --muted-foreground: #625d4c;
-  --accent: #9a7a3c;
-  --accent-foreground: #fff9eb;
-  --destructive: #a74438;
-  --destructive-foreground: #fff4df;
-  --border: #8a744b55;
-  --input: #8a744b70;
-  --ring: #9a7a3c;
-  --overlay: #17271ccf;
-  --glow: 0 0 32px #80652f20;
+  /* Identidade Hiraeth: vanilla, verde oliva e vermelho profundo. */
+  --background: #f7efda;
+  --foreground: #34402b;
+  --card: #fffaf0;
+  --card-foreground: #34402b;
+  --popover: #fffaf0;
+  --popover-foreground: #34402b;
+  --primary: #878e47;
+  --primary-foreground: #f7efda;
+  --secondary: #e9e7d2;
+  --secondary-foreground: #34402b;
+  --muted: #eee8d7;
+  --muted-foreground: #625f4b;
+  --accent: #878e47;
+  --accent-foreground: #f7efda;
+  --destructive: #5b1d04;
+  --destructive-foreground: #f7efda;
+  --border: #878e4755;
+  --input: #878e4770;
+  --ring: #878e47;
+  --overlay: #26301dcc;
+  --glow: 0 0 32px #878e4725;
 }
 
 :root.dark {
   color-scheme: dark;
-  /* Modo escuro: verde profundo e dourado envelhecido. */
-  --background: #18251d;
-  --foreground: #f3e7c7;
-  --card: #223127;
-  --card-foreground: #f3e7c7;
-  --popover: #223127;
-  --popover-foreground: #f3e7c7;
-  --primary: #c6a65b;
-  --primary-foreground: #18251d;
-  --secondary: #2d4032;
-  --secondary-foreground: #f3e7c7;
-  --muted: #26372b;
-  --muted-foreground: #c4b995;
-  --accent: #c6a65b;
-  --accent-foreground: #18251d;
-  --destructive: #b85b4b;
-  --destructive-foreground: #fff4df;
-  --border: #c6a65b55;
-  --input: #c6a65b70;
-  --ring: #c6a65b;
-  --overlay: #08120bd9;
-  --glow: 0 0 28px #c6a65b30;
+  /* Modo noturno: verde Hiraeth mais suave, com superfícies vanilla. */
+  --background: #41492f;
+  --foreground: #f7efda;
+  --card: #f7efda;
+  --card-foreground: #34402b;
+  --popover: #f7efda;
+  --popover-foreground: #34402b;
+  --primary: #d6d99a;
+  --primary-foreground: #34402b;
+  --secondary: #596344;
+  --secondary-foreground: #f7efda;
+  --muted: #4b5538;
+  --muted-foreground: #e5dfc7;
+  --accent: #d6d99a;
+  --accent-foreground: #34402b;
+  --destructive: #5b1d04;
+  --destructive-foreground: #f7efda;
+  --border: #d6d99a66;
+  --input: #d6d99a80;
+  --ring: #d6d99a;
+  --overlay: #202719e6;
+  --glow: 0 0 28px #878e4738;
 }
 
 @layer base {
@@ -340,7 +340,7 @@
 /* Hiraeth — identidade editorial cinematográfica */
 body {
   background:
-    radial-gradient(ellipse at 50% -12%, rgba(91, 113, 70, .20), transparent 48%),
+    radial-gradient(ellipse at 50% -12%, rgba(135, 142, 71, .16), transparent 48%),
     var(--color-background);
   letter-spacing: .012em;
 }
@@ -545,8 +545,8 @@ h1, h2, h3, h4, .font-display {
 /* Fundos responsivos aos dois temas, sem sobrescrever os tokens de cor. */
 body {
   background:
-    radial-gradient(ellipse at 8% 0%, rgba(112, 137, 87, .19), transparent 42%),
-    radial-gradient(ellipse at 92% 100%, rgba(112, 137, 87, .12), transparent 38%),
+    radial-gradient(ellipse at 8% 0%, rgba(135, 142, 71, .15), transparent 42%),
+    radial-gradient(ellipse at 92% 100%, rgba(135, 142, 71, .10), transparent 38%),
     var(--color-background);
 }
 
