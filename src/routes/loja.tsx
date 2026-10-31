@@ -19,8 +19,8 @@ type Category = Tables<"categories">;
 
 export const Route = createFileRoute("/loja")({
   validateSearch: (search: Record<string, unknown>) => ({
-    q: typeof search["q"] === "string" ? search["q"] : undefined,
-    categoria: typeof search["categoria"] === "string" ? search["categoria"] : undefined,
+    ...(typeof search["q"] === "string" ? { q: search["q"] } : {}),
+    ...(typeof search["categoria"] === "string" ? { categoria: search["categoria"] } : {}),
   }),
   head: () => ({
     meta: [
@@ -210,7 +210,7 @@ useEffect(() => {
           <div className="mb-4 flex items-end justify-between gap-3"><div className="min-w-0"><p className="eyebrow">{pageSettings.eyebrow}</p><h2 className="hiraeth-editorial-title hiraeth-acervo-heading !mx-0 mt-2 !text-left !text-4xl md:!text-6xl">{pageSettings.title}</h2>{pageSettings.intro && <p className="mt-3 max-w-2xl text-sm text-muted-foreground md:text-base">{pageSettings.intro}</p>}</div><span className="shrink-0 text-xs text-muted-foreground">7 universos</span></div>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
             {featuredCollections.map((collection) => <div key={collection.id} className="flex min-w-0 flex-col items-center gap-2">
-              <button type="button" onClick={() => { const enter = () => { setCategoryId(collection.id); void navigate({ to: "/loja", search: (previous) => ({ ...previous, categoria: collection.slug }), replace: true }); window.scrollTo({ top: 0, behavior: "smooth" }); }; if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) enter(); else { setEnteringCategory(collection); window.setTimeout(() => { enter(); setEnteringCategory(null); }, 620); } }} className="hiraeth-collection-card group relative aspect-square w-full overflow-hidden rounded-full text-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">
+              <button type="button" onClick={() => { const enter = () => { setCategoryId(collection.id); void navigate({ to: "/loja", search: { q: search.q, categoria: collection.slug }, replace: true }); window.scrollTo({ top: 0, behavior: "smooth" }); }; if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) enter(); else { setEnteringCategory(collection); window.setTimeout(() => { enter(); setEnteringCategory(null); }, 620); } }} className="hiraeth-collection-card group relative aspect-square w-full overflow-hidden rounded-full text-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">
                 <div className="absolute inset-0 bg-muted">{collection.image_url ? <img src={collection.image_url} alt="" className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110" loading="lazy" /> : <div className="flex h-full items-center justify-center bg-gradient-to-br from-card to-muted p-3 text-center font-display text-xl text-primary">{collection.name}</div>}</div>
                 <div className="absolute inset-0 flex items-end justify-center rounded-full bg-gradient-to-t from-black/80 via-black/5 to-transparent p-4 pb-6"><span className="hiraeth-collection-label font-display text-lg text-white sm:text-xl">{collection.name}</span>{collection.is_temporary && <span className="ml-auto border border-amber-100/80 px-1.5 py-0.5 text-[9px] uppercase tracking-wide text-amber-50">Temporária</span>}</div>
                 <span className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100 group-hover:shadow-[inset_0_0_35px_rgba(198,166,91,0.55)]" />

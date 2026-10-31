@@ -93,6 +93,7 @@ function ProdutoPage() {
     ...(houseVariants.length > 0 ? { house: selectedHouse } : {}),
     stock: availableStock,
   };
+  const cartImage = currentImages[0] ?? product.images[0];
 
   async function toggleWishlist() {
     if (!userId) {
@@ -186,12 +187,12 @@ function ProdutoPage() {
                   cart.add(
                     {
                       productId: product.id,
-                      variantKey,
+                      ...(variantKey ? { variantKey } : {}),
                       variantDetails,
                       slug: product.slug,
                       name: product.name,
                       price,
-                      image: currentImages[0] ?? product.images[0],
+                      ...(cartImage ? { image: cartImage } : {}),
                     },
                     quantity,
                   );
