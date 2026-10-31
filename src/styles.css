@@ -88,8 +88,8 @@
 
 /* Baunilha é a superfície dos cartões e menus no tema escuro.
    Seus textos, títulos e estados devem herdar a paleta escura da própria superfície. */
-:root.dark .bg-card,
-:root.dark .bg-popover {
+:root.dark [class*="bg-card"],
+:root.dark [class*="bg-popover"] {
   --foreground: #34402b;
   --muted-foreground: #625f4b;
   --primary: #59612f;
