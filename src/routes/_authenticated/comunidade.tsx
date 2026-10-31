@@ -1,3 +1,4 @@
+// Chat do Círculo do Fogo: interface leve, com ações por mensagem e permissões do autor.
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
