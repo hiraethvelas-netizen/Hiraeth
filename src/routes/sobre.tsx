@@ -71,35 +71,61 @@ function Sobre() {
       <InlineEditor label="cabeçalho de Conheça a Hiraeth" fields={[{ name: "eyebrow", label: "Texto pequeno acima do título", type: "text" }, { name: "title", label: "Título da página", type: "text" }, { name: "closing", label: "Frase de encerramento", type: "text" }]} values={pageSettings} onSave={async (next) => savePageSettings({ ...pageSettings, ...next } as typeof pageSettings)} />
       <p className="text-sm text-muted-foreground">Para editar os textos, blocos, imagens e links da história, use a área administrativa <a href="/admin/sobre" className="text-primary underline">Sobre e contatos</a>.</p>
     </div>
-    <div className="space-y-12">
+    <div className="space-y-10 sm:space-y-16">
       {bannerSettings.enabled && bannerSettings.image_url && <a href={bannerSettings.href || "/loja"} target={/^(https?:)?\/\//i.test(bannerSettings.href) ? "_blank" : undefined} rel={/^(https?:)?\/\//i.test(bannerSettings.href) ? "noreferrer" : undefined} className="block overflow-hidden"><img src={bannerSettings.image_url} alt={bannerSettings.title || "Banner Hiraeth"} className="max-h-[28rem] w-full object-cover" /></a>}
-      {shownBlocks.map((block, index) => <section key={block.id || index} className="space-y-5">
-        {editing && <div className="flex flex-wrap items-center gap-3 rounded-lg border border-dashed border-primary/50 bg-primary/5 p-3">
-          <label htmlFor={`story-polaroid-upload-${block.id}`} className="inline-flex min-h-10 cursor-pointer items-center rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-sm">＋ Adicionar fotos tipo polaroid</label>
-          <input id={`story-polaroid-upload-${block.id}`} type="file" multiple accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={event => { void addStoryPhotos(index, event.currentTarget.files); event.currentTarget.value = ""; }} />
-          <span className="text-xs text-muted-foreground">JPG, PNG ou WebP · até 5 MB por foto</span>
-        </div>}
-        <div className={block.layout === "image-left" ? "grid gap-6 md:grid-cols-[auto_1fr] md:items-start" : block.layout === "image-right" ? "grid gap-6 md:grid-cols-[1fr_auto] md:items-start" : "space-y-5"}>
-          <div className={block.layout === "image-left" ? "md:order-1" : block.layout === "image-right" ? "md:order-2" : ""}>
-            <h2 className="mb-4 font-display text-2xl font-semibold leading-snug text-foreground sm:text-3xl">{block.title}</h2>
-            <p className="whitespace-pre-line text-base font-medium leading-relaxed text-foreground/90 sm:text-lg">{block.text}</p>
+      <section className="rounded-sm bg-[#eee8dc] px-6 py-9 text-[#29271f] sm:px-12 sm:py-14">
+        <p className="mb-4 text-xs font-semibold uppercase tracking-[.24em] text-[#927b45]">Um pouco da nossa história</p>
+        <h2 className="max-w-3xl font-serif text-4xl font-medium leading-[1.08] tracking-tight sm:text-6xl">Algumas histórias merecem ser <span className="font-bold italic">sentidas.</span></h2>
+        <p className="mt-5 max-w-2xl font-serif text-base leading-relaxed text-[#49443b] sm:text-xl">Cada criação guarda uma lembrança, cada aroma abre uma passagem e cada detalhe faz parte de quem somos.</p>
+      </section>
+      {shownBlocks.map((block, index) => {
+        const palettes = [
+          { bg: "bg-[#f4f0e8]", ink: "text-[#302b24]", accent: "text-[#8b7446]" },
+          { bg: "bg-[#e4e8dc]", ink: "text-[#293126]", accent: "text-[#657354]" },
+          { bg: "bg-[#eee3dc]", ink: "text-[#392a27]", accent: "text-[#986c5e]" },
+          { bg: "bg-[#e8e3d8]", ink: "text-[#302c25]", accent: "text-[#88734d]" },
+          { bg: "bg-[#e1e6df]", ink: "text-[#293329]", accent: "text-[#63765f]" },
+          { bg: "bg-[#eee8dc]", ink: "text-[#302b24]", accent: "text-[#8b7446]" },
+        ];
+        const palette = palettes[index % palettes.length];
+        return <section key={block.id || index} className={`overflow-hidden rounded-sm ${palette.bg} ${palette.ink} shadow-sm`}>
+          <div className="grid gap-6 px-5 py-7 sm:gap-9 sm:px-10 sm:py-11 md:grid-cols-[minmax(0,1fr)_minmax(220px,.82fr)] md:items-center">
+            <div className="min-w-0">
+              <p className={`mb-3 text-[10px] font-semibold uppercase tracking-[.22em] ${palette.accent}`}>Capítulo {String(index + 1).padStart(2, "0")} · Hiraeth</p>
+              <h2 className="mb-5 font-serif text-3xl font-semibold leading-[1.12] tracking-tight sm:text-4xl">{block.title}</h2>
+              <p className="whitespace-pre-line font-serif text-base leading-[1.85] sm:text-lg">{block.text}</p>
+            </div>
+            {block.images?.length > 0 && <div className="flex flex-wrap items-center justify-center gap-4 py-2 sm:gap-5">
+              {block.images.map((url, photoIndex) => {
+                const isPolaroid = (index + photoIndex) % 3 !== 1;
+                return isPolaroid
+                  ? <figure key={url + photoIndex} className={`w-[clamp(112px,34vw,172px)] shrink-0 border-[7px] border-b-[34px] border-[#fffdf8] bg-[#fffdf8] p-1 shadow-[0_8px_22px_rgba(45,35,20,.18)] sm:border-[9px] sm:border-b-[38px] ${photoIndex % 2 === 0 ? "-rotate-2" : "rotate-2"}`}>
+                      <img src={url} alt={`Registro ${photoIndex + 1} da história da Hiraeth`} className="aspect-[4/5] w-full object-cover" loading="lazy" />
+                      <figcaption className="mt-1 truncate text-center font-serif text-[10px] italic text-[#554b3d] sm:text-xs">{block.id === "primeira-colecao" ? "A vela do Chapéu Seletor" : block.id === "origem-hiraeth" ? "Onde tudo começou" : block.title.replace(/[.!?]+$/, "")}</figcaption>
+                      {editing && <button type="button" onClick={() => void removeStoryPhoto(index, photoIndex)} className="mt-1 w-full text-[10px] text-red-700">Remover foto</button>}
+                    </figure>
+                  : <figure key={url + photoIndex} className="w-full max-w-[290px] overflow-hidden bg-[#fffdf8] p-2 shadow-md">
+                      <img src={url} alt={`Registro ${photoIndex + 1} da história da Hiraeth`} className="aspect-[5/4] w-full object-cover" loading="lazy" />
+                      <figcaption className="px-2 py-2 font-serif text-xs italic text-[#554b3d]">{block.id === "primeira-colecao" ? "Uma criação que marcou nossa história" : "Um registro da trajetória Hiraeth"}</figcaption>
+                      {editing && <button type="button" onClick={() => void removeStoryPhoto(index, photoIndex)} className="px-2 pb-1 text-[10px] text-red-700">Remover foto</button>}
+                    </figure>;
+              })}
+            </div>}
           </div>
-          {block.images?.length > 0 && <div className={`flex flex-wrap items-start justify-center gap-4 py-3 sm:gap-5 ${block.layout === "image-left" ? "md:order-0" : block.layout === "image-right" ? "md:order-3" : ""}`}>
-            {block.images.map((url, photoIndex) => <figure key={url + photoIndex} className={`w-[clamp(104px,28vw,148px)] shrink-0 border-[7px] border-b-[28px] border-white bg-white p-1 shadow-lg sm:w-[150px] sm:border-[9px] sm:border-b-[32px] ${photoIndex % 4 === 0 ? "-rotate-2" : photoIndex % 4 === 1 ? "rotate-2" : photoIndex % 4 === 2 ? "rotate-1" : "-rotate-1"}`}>
-              <img src={url} alt={`Foto ${photoIndex + 1} da história da Hiraeth`} className="aspect-[4/5] w-full object-cover" loading="lazy" />
-              <figcaption className="mt-1 truncate text-center font-display text-[10px] italic text-[#354333] sm:text-xs">Hiraeth</figcaption>
-              {editing && <button type="button" onClick={() => void removeStoryPhoto(index, photoIndex)} className="mt-1 w-full text-[10px] text-red-700">Remover</button>}
-            </figure>)}
+          {editing && <div className="space-y-3 border-t border-black/10 px-5 py-4 sm:px-10">
+            <label htmlFor={`story-polaroid-upload-${block.id}`} className="inline-flex min-h-10 cursor-pointer items-center rounded-md border border-current/30 px-4 py-2 text-sm font-semibold">＋ Adicionar fotos a este capítulo</label>
+            <input id={`story-polaroid-upload-${block.id}`} type="file" multiple accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={event => { void addStoryPhotos(index, event.currentTarget.files); event.currentTarget.value = ""; }} />
+            <span className="ml-3 text-xs opacity-70">JPG, PNG ou WebP · até 5 MB por foto</span>
+            <InlineEditor label={`Editar texto de ${block.title || "bloco da história"}`} fields={[{ name: "title", label: "Título do bloco", type: "text" }, { name: "text", label: "Texto do bloco", type: "textarea" }]} values={{ title: block.title, text: block.text }} onSave={async (edited) => {
+              const updated = shownBlocks.map((item, i) => i === index ? { ...item, title: String(edited["title"] ?? ""), text: String(edited["text"] ?? "") } : item);
+              const { error } = await (supabase as any).from("site_content").upsert({ key: "about_page_blocks", value: { version: 2, blocks: updated }, updated_at: new Date().toISOString() }, { onConflict: "key" });
+              if (error) throw error;
+              setBlocks(updated);
+            }} />
           </div>}
-        </div>
-        {editing && <InlineEditor label={`Editar texto de ${block.title || "bloco da história"}`} fields={[{ name: "title", label: "Título do bloco", type: "text" }, { name: "text", label: "Texto do bloco", type: "textarea" }, { name: "layout", label: "Layout", type: "select", options: [{ value: "text", label: "Texto e links" }, { value: "image-left", label: "Imagem à esquerda" }, { value: "image-right", label: "Imagem à direita" }, { value: "gallery", label: "Galeria" }] }]} values={{ title: block.title, text: block.text, layout: block.layout }} onSave={async (next) => {
-          const updated = shownBlocks.map((item, i) => i === index ? { ...item, title: String(next["title"] ?? ""), text: String(next["text"] ?? ""), layout: String(next["layout"] ?? item.layout) as AboutBlock["layout"] } : item);
-          const { error } = await (supabase as any).from("site_content").upsert({ key: "about_page_blocks", value: { version: 2, blocks: updated }, updated_at: new Date().toISOString() }, { onConflict: "key" });
-          if (error) throw error;
-          setBlocks(updated);
-        }} />}
-      </section>)}
-      <p className="border-t pt-6 italic text-primary">{pageSettings.closing}</p>
+        </section>;
+      })}
+      <p className="border-t border-[#a99b7b]/40 pt-7 text-center font-serif text-xl italic text-primary sm:text-2xl">{pageSettings.closing}</p>
     </div>
   </PageShell>;
 }
