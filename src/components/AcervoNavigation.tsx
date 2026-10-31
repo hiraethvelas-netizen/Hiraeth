@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { Search, X, MoreHorizontal, ChevronDown, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -9,11 +9,16 @@ type Category = {
 };
 
 export function AcervoNavigation() {
+  const search = useSearch({ from: "/loja" });
   const [categories, setCategories] = useState<Category[]>([]);
   const [query, setQuery] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    setQuery(search.q ?? "");
+  }, [search.q]);
 
   useEffect(() => {
     let alive = true;

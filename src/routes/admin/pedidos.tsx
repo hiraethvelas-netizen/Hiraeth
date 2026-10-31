@@ -7,6 +7,15 @@ import type { Tables } from "@/integrations/supabase/types";
 
 type Order = Tables<"orders"> & { order_items: Tables<"order_items">[] };
 
+function variantLabel(details: Tables<"order_items">["variant_details"]) {
+  if (!details || typeof details !== "object" || Array.isArray(details)) return "";
+  const value = details as Record<string, unknown>;
+  return [
+    typeof value["size"] === "string" ? `Tamanho: ${value["size"]}` : "",
+    typeof value["house"] === "string" ? `Casa: ${value["house"]}` : "",
+  ].filter(Boolean).join(" · ");
+}
+
 const STATUS_LABEL: Record<string, string> = {
   pending: "Aguardando pagamento",
   paid: "Pago",
@@ -118,7 +127,10 @@ function AdminPedidos() {
               </div>
               <ul className="mt-3 text-sm text-foreground/85">
                 {o.order_items.map((i) => (
-                  <li key={i.id}>{i.quantity}× {i.product_name} — {brl(Number(i.unit_price) * i.quantity)}</li>
+                  <li key={i.id}>
+                    {i.quantity}× {i.product_name} — {brl(Number(i.unit_price) * i.quantity)}
+                    {variantLabel(i.variant_details) && <p className="text-xs text-muted-foreground">{variantLabel(i.variant_details)}</p>}
+                  </li>
                 ))}
               </ul>
             </article>

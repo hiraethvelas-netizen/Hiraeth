@@ -123,6 +123,8 @@ function Carrinho() {
                       {item.name}
                     </Link>
                     <p className="text-sm text-muted-foreground">{brl(item.price)} cada</p>
+                    {typeof item.variantDetails?.["size"] === "string" && <p className="text-xs text-muted-foreground">Tamanho: {item.variantDetails["size"]}</p>}
+                    {typeof item.variantDetails?.["house"] === "string" && <p className="text-xs text-muted-foreground">Casa: {item.variantDetails["house"]}</p>}
                   </div>
                   <div className="flex items-center border">
                     <button onClick={() => cart.setQuantity(item.productId, item.quantity - 1, item.variantKey)} className="px-3 py-1">−</button>

@@ -83,7 +83,16 @@ function ProdutoPage() {
   const basePrice = activeVariant?.price != null ? Number(activeVariant.price) : Number(product.price);
   const baseSale = activeVariant ? (activeVariant.sale_price != null ? Number(activeVariant.sale_price) : null) : (product.sale_price != null ? Number(product.sale_price) : null);
   const price = baseSale ?? basePrice;
-  const outOfStock = (activeVariant?.stock != null ? Number(activeVariant.stock) : product.stock) <= 0;
+  const availableStock = activeVariant?.stock != null ? Number(activeVariant.stock) : Number(product.stock);
+  const outOfStock = availableStock <= 0;
+  const sizeVariantKey = activeVariant ? String(activeVariant.key ?? activeVariant.id ?? activeVariant.label ?? "") : "";
+  const houseVariantKey = houseVariants.length > 0 ? String(chosenHouse?.key ?? chosenHouse?.id ?? selectedHouse) : "";
+  const variantKey = [sizeVariantKey, houseVariantKey].filter(Boolean).join("::") || undefined;
+  const variantDetails: Record<string, unknown> = {
+    ...(typeof activeVariant?.label === "string" ? { size: activeVariant.label } : {}),
+    ...(houseVariants.length > 0 ? { house: selectedHouse } : {}),
+    stock: availableStock,
+  };
 
   async function toggleWishlist() {
     if (!userId) {
@@ -146,8 +155,8 @@ function ProdutoPage() {
 
             <div className="mt-4 flex items-baseline gap-3">
               <span className="text-3xl text-primary">{brl(price)}</span>
-              {product.sale_price != null && (
-                <span className="text-lg text-muted-foreground line-through">{brl(Number(product.price))}</span>
+              {baseSale != null && (
+                <span className="text-lg text-muted-foreground line-through">{brl(basePrice)}</span>
               )}
             </div>
 
@@ -177,10 +186,12 @@ function ProdutoPage() {
                   cart.add(
                     {
                       productId: product.id,
+                      variantKey,
+                      variantDetails,
                       slug: product.slug,
                       name: product.name,
                       price,
-                      image: product.images[0],
+                      image: currentImages[0] ?? product.images[0],
                     },
                     quantity,
                   );
@@ -203,8 +214,8 @@ function ProdutoPage() {
             )}
 
             <p className="mt-6 text-sm text-muted-foreground">
-              {product.stock > 0 && product.stock <= 5
-                ? `Últimas ${product.stock} unidades.`
+              {availableStock > 0 && availableStock <= 5
+                ? `Últimas ${availableStock} unidades.`
                 : outOfStock
                   ? "Indisponível no momento."
                   : "Em estoque."}
