@@ -95,7 +95,7 @@ function Sobre() {
         <h2 className="max-w-3xl font-serif text-4xl font-medium leading-[1.08] tracking-tight text-foreground sm:text-6xl">Algumas histórias merecem ser <span className="font-bold italic">sentidas.</span></h2>
         <p className="mt-5 max-w-2xl font-serif text-base leading-relaxed text-foreground/85 sm:text-xl">Cada criação guarda uma lembrança, cada aroma abre uma passagem e cada detalhe faz parte de quem somos.</p>
       </section>
-      <section className="relative overflow-hidden rounded-sm border border-[#b6a77f]/40 bg-[#314333] px-6 py-9 text-[#f5efdf] dark:bg-[#eee8dc] dark:text-[#302b24] sm:px-12 sm:py-12">
+      <section className="relative overflow-hidden rounded-sm border border-[#b6a77f]/40 bg-[#314333] px-6 py-9 text-[#f5efdf] dark:bg-[#f7efda] dark:text-[#5b1d04] sm:px-12 sm:py-12">
         <p className="mb-3 text-[10px] font-semibold uppercase tracking-[.24em] text-[#d5c28b] dark:text-[#927b45]">A palavra por trás da chama</p>
         <h2 className="font-serif text-4xl font-medium leading-tight sm:text-5xl">O que significa <span className="font-bold italic">Hiraeth?</span></h2>
         <p className="mt-5 max-w-3xl font-serif text-base leading-[1.9] sm:text-lg">De origem galesa, <em>Hiraeth</em> representa a saudade de um lugar, pessoa ou época que talvez nunca tenha existido — ou ao qual já não podemos voltar.</p>
@@ -105,7 +105,7 @@ function Sobre() {
       {shownBlocks.map((block, index) => {
         const isFeatureBlock = index % 2 === 0;
         const palette = isFeatureBlock
-          ? { bg: "bg-[#314333] dark:bg-[#eee8dc]", ink: "text-[#f5efdf] dark:text-[#302b24]", accent: "text-[#d5c28b] dark:text-[#927b45]" }
+          ? { bg: "bg-[#314333] dark:bg-[#f7efda]", ink: "text-[#f5efdf] dark:text-[#5b1d04]", accent: "text-[#d5c28b] dark:text-[#927b45]" }
           : { bg: "bg-transparent", ink: "text-foreground", accent: "text-primary" };
         return <section key={block.id || index} className={`overflow-hidden rounded-sm ${palette.bg} ${palette.ink} ${isFeatureBlock ? "shadow-sm" : ""}`}>
           <div className="grid gap-6 px-5 py-7 sm:gap-9 sm:px-10 sm:py-11 md:grid-cols-[minmax(0,1fr)_minmax(220px,.82fr)] md:items-center">

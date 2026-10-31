@@ -52,7 +52,7 @@ const DEFAULT_HOME_CONTENT: HomeContent = {
   bannersTitle: "Novidades do Círculo",
   careEyebrow: "Para a chama durar",
   careTitle: "Cuidados com as velas",
-  careDescription: "Pequenos rituais que fazem sua vela queimar por igual, com segurança e por mais tempo.",
+  careDescription: "Alguns cuidados simples ajudam sua vela a queimar por igual, preservar o aroma e acompanhar seus momentos com segurança.",
   careButton: "Ver cuidados",
   careImage: "",
   featuredBannerImage: "",
@@ -188,8 +188,8 @@ export function ExistingHomepage() {
         <div className="hiraeth-care-panel hiraeth-reveal relative z-10 mx-auto flex max-w-3xl flex-col justify-center px-6 py-10 text-center sm:px-10 md:px-16 md:py-14">
             <p className="eyebrow">{content.careEyebrow}</p>
             <h2 className={`mt-4 text-4xl leading-[1.02] sm:text-5xl ${headingFont}`}>{content.careTitle}</h2>
+            <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-foreground">{content.careDescription}</p>
             <div className="hiraeth-ornament hiraeth-ornament--flame hiraeth-ornament--wide" aria-hidden="true"><span>🔥</span></div>
-            <p className="mx-auto max-w-xl text-base leading-relaxed text-foreground">{content.careDescription}</p>
             {typeof content.careImage === "string" && content.careImage && <img src={content.careImage} alt="" className="mx-auto mt-6 max-h-72 max-w-full object-cover" />}
             <div><Link to="/cuidados" className="mt-7 inline-flex items-center gap-2 rounded-full border border-primary bg-primary px-6 py-3 font-display text-lg text-primary-foreground transition-transform hover:-translate-y-0.5">{content.careButton}<span aria-hidden="true">＋</span></Link></div>
         </div>
