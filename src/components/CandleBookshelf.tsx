@@ -130,6 +130,7 @@ export function CandleBookshelf({
     try {
       const values = { ...draft, title: draft.title.trim(), image: imageFile };
       if (!values.title) throw new Error("Informe o nome da vela.");
+      if (dialogMode === "add" && !imageFile) throw new Error("Adicione uma foto da vela para registrar uma coleção antiga.");
       if (dialogMode === "add") {
         if (!onAdd) throw new Error("A inclusão de velas não está disponível agora.");
         await onAdd(values);
@@ -266,20 +267,30 @@ export function CandleBookshelf({
               </div>
             ) : (
               <form onSubmit={submitDraft} className="mt-5 space-y-4">
-                <label className="block text-sm text-foreground">Nome da vela
-                  <input required maxLength={160} value={draft.title} onChange={event => setDraft(current => ({ ...current, title: event.target.value }))} className="mt-1 w-full border border-primary/20 bg-background px-3 py-3 text-foreground" />
-                </label>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <label className="block text-sm text-foreground">Categoria / universo
-                    <input maxLength={100} value={draft.category} onChange={event => setDraft(current => ({ ...current, category: event.target.value }))} placeholder="Ex.: Harry Potter, Friends" className="mt-1 w-full border border-primary/20 bg-background px-3 py-3 text-foreground" />
-                  </label>
-                  <label className="block text-sm text-foreground">Aroma
-                    <input maxLength={160} value={draft.aroma} onChange={event => setDraft(current => ({ ...current, aroma: event.target.value }))} placeholder="Nome do aroma" className="mt-1 w-full border border-primary/20 bg-background px-3 py-3 text-foreground" />
-                  </label>
-                </div>
-                <label className="block text-sm text-foreground">Data da compra
-                  <input type="date" value={draft.acquired_at} onChange={event => setDraft(current => ({ ...current, acquired_at: event.target.value }))} className="mt-1 w-full border border-primary/20 bg-background px-3 py-3 text-foreground" />
-                </label>
+                {dialogMode === "edit" && dialogItem?.order_item_id ? (
+                  <div className="rounded-lg border border-primary/20 bg-primary/5 p-3 text-sm">
+                    <p className="font-semibold text-foreground">Dados oficiais da compra</p>
+                    <p className="mt-1 text-muted-foreground">{dialogItem.title}{dialogItem.aroma ? " · " + dialogItem.aroma : ""}</p>
+                    <p className="mt-1 text-xs leading-relaxed text-muted-foreground">Nome, aroma, imagem, categoria, data e variação são preservados conforme o pedido da loja.</p>
+                  </div>
+                ) : (
+                  <>
+                    <label className="block text-sm text-foreground">Nome da vela
+                      <input required maxLength={160} value={draft.title} onChange={event => setDraft(current => ({ ...current, title: event.target.value }))} className="mt-1 w-full border border-primary/20 bg-background px-3 py-3 text-foreground" />
+                    </label>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <label className="block text-sm text-foreground">Categoria / universo
+                        <input maxLength={100} value={draft.category} onChange={event => setDraft(current => ({ ...current, category: event.target.value }))} placeholder="Ex.: Harry Potter, Friends" className="mt-1 w-full border border-primary/20 bg-background px-3 py-3 text-foreground" />
+                      </label>
+                      <label className="block text-sm text-foreground">Aroma
+                        <input maxLength={160} value={draft.aroma} onChange={event => setDraft(current => ({ ...current, aroma: event.target.value }))} placeholder="Nome do aroma" className="mt-1 w-full border border-primary/20 bg-background px-3 py-3 text-foreground" />
+                      </label>
+                    </div>
+                    <label className="block text-sm text-foreground">Data da compra
+                      <input type="date" value={draft.acquired_at} onChange={event => setDraft(current => ({ ...current, acquired_at: event.target.value }))} className="mt-1 w-full border border-primary/20 bg-background px-3 py-3 text-foreground" />
+                    </label>
+                  </>
+                )}
                 <label className="block text-sm text-foreground">Detalhes / descrição pessoal
                   <textarea maxLength={1500} rows={3} value={draft.notes} onChange={event => setDraft(current => ({ ...current, notes: event.target.value }))} placeholder="Conte o que esta vela representa para você..." className="mt-1 w-full border border-primary/20 bg-background px-3 py-3 text-foreground" />
                 </label>
@@ -291,11 +302,11 @@ export function CandleBookshelf({
                     </button>)}
                   </div>
                 </div>
-                <label className="block text-sm text-foreground">
-                  <span className="mb-2 flex items-center gap-2"><ImagePlus size={16}/> Foto da vela (opcional)</span>
-                  <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={event => setImageFile(event.currentTarget.files?.[0] ?? null)} className="block w-full text-xs text-muted-foreground file:mr-3 file:rounded-full file:border file:border-primary/30 file:bg-background file:px-4 file:py-2 file:text-foreground" />
+                {!(dialogMode === "edit" && dialogItem?.order_item_id) && <label className="block text-sm text-foreground">
+                  <span className="mb-2 flex items-center gap-2"><ImagePlus size={16}/> Foto da vela {dialogMode === "add" ? "(obrigatória)" : "(opcional)"}</span>
+                  <input required={dialogMode === "add"} type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={event => setImageFile(event.currentTarget.files?.[0] ?? null)} className="block w-full text-xs text-muted-foreground file:mr-3 file:rounded-full file:border file:border-primary/30 file:bg-background file:px-4 file:py-2 file:text-foreground" />
                   {imageFile && <span className="mt-1 block text-xs text-muted-foreground">{imageFile.name}</span>}
-                </label>
+                </label>}
                 {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
                 <div className="flex flex-wrap justify-end gap-2">
                   <button type="button" onClick={() => dialogMode === "edit" ? setDialogMode("view") : closeDialog()} disabled={saving} className="rounded-full border border-primary/30 px-4 py-2 text-sm text-foreground">Cancelar</button>
