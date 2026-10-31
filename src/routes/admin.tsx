@@ -2,6 +2,7 @@ import { createFileRoute, Link, Outlet, useNavigate } from "@tanstack/react-rout
 import { useEffect, useState } from "react";
 import { Moon, Sun } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useTheme } from "@/lib/theme";
 
 export const Route = createFileRoute("/admin")({
   ssr: false,
@@ -32,21 +33,7 @@ const NAV = [
 function AdminLayout() {
   const navigate = useNavigate();
   const [allowed, setAllowed] = useState<boolean | null>(null);
-  const [darkMode, setDarkMode] = useState(() => typeof document !== "undefined" && document.documentElement.classList.contains("dark"));
-
-  useEffect(() => {
-    const savedTheme = window.localStorage.getItem("hiraeth-theme");
-    const shouldUseDark = savedTheme ? savedTheme === "dark" : document.documentElement.classList.contains("dark");
-    document.documentElement.classList.toggle("dark", shouldUseDark);
-    setDarkMode(shouldUseDark);
-  }, []);
-
-  function toggleTheme() {
-    const nextDarkMode = !darkMode;
-    document.documentElement.classList.toggle("dark", nextDarkMode);
-    window.localStorage.setItem("hiraeth-theme", nextDarkMode ? "dark" : "light");
-    setDarkMode(nextDarkMode);
-  }
+  const { isDark: darkMode, toggleTheme } = useTheme();
 
   useEffect(() => {
     async function check() {
