@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useSiteContent } from "@/lib/admin-edit";
 export const Route = createFileRoute("/admin/promocoes")({ component: PromocoesAdmin });
 const blank = {name:"",kind:"coupon",code:"",discount_type:"percent",discount_value:"10",buy_quantity:"3",pay_quantity:"2",min_cart_value:"0",gift_name:"",visible:false,active:false,starts_at:"",ends_at:"",usage_limit:"",all_products:true};
 function PromocoesAdmin(){
@@ -9,6 +10,13 @@ function PromocoesAdmin(){
   const [flameSettings,setFlameSettings]=useState<any>({active:false,title:"O Segredo das Quatro Chamas",subtitle:"Escolha uma vela e descubra a surpresa que ela guarda.",candle_images:[{image_url:""},{image_url:""},{image_url:""},{image_url:""}],min_cart_value:"0",starts_at:"",ends_at:""});
   const [flameRewards,setFlameRewards]=useState<any[]>([0,1,2,3].map(candle_index=>({candle_index,reward_type:"message",reward_title:"",reward_description:"",coupon_code:""})));
   const [flameClaims,setFlameClaims]=useState<any[]>([]);
+  const [welcomeSettings,saveWelcomeSettings]=useSiteContent("customer-welcome-message",{
+    enabled:false,
+    title:"A chama da Hiraeth te recebe",
+    message:"Que bom ter você aqui. Este é o seu espaço para encontrar histórias, aromas e lembranças que merecem permanecer acesas.",
+    buttonText:"Seguir para o início",
+  });
+  const [welcomeSaving,setWelcomeSaving]=useState(false);
 
  async function load(){setLoading(true);const {data,error}=await db.from("promotions").select("*").order("created_at",{ascending:false});if(error){toast.error("Não foi possível carregar promoções. A migração do banco precisa ser aplicada.");setLoading(false);return;}setItems(data??[]);setLoading(false)}
  useEffect(()=>{void load(); void loadFlames()},[]);
@@ -31,6 +39,12 @@ function PromocoesAdmin(){
    const {error:rewardError}=await db.from("secret_flame_rewards").upsert(rewards,{onConflict:"candle_index"});
    if(rewardError){toast.error("Configuração salva, mas houve erro nos benefícios: "+rewardError.message);return;}
    toast.success("O Segredo das Quatro Chamas foi salvo.");void loadFlames();
+ }
+ async function saveWelcome(e:React.FormEvent){
+   e.preventDefault();setWelcomeSaving(true);
+   try{await saveWelcomeSettings(welcomeSettings);toast.success("Mensagem de boas-vindas salva.");}
+   catch(error){toast.error(error instanceof Error?error.message:"Não foi possível salvar a mensagem.");}
+   finally{setWelcomeSaving(false);}
  }
  async function save(e:React.FormEvent){e.preventDefault();const payload={...form,discount_value:Number(form.discount_value)||0,min_cart_value:Number(form.min_cart_value)||0,buy_quantity:form.kind==="buy_x_pay_y"?Number(form.buy_quantity):null,pay_quantity:form.kind==="buy_x_pay_y"?Number(form.pay_quantity):null,usage_limit:form.usage_limit?Number(form.usage_limit):null,starts_at:form.starts_at?new Date(form.starts_at).toISOString():null,ends_at:form.ends_at?new Date(form.ends_at).toISOString():null,code:form.kind==="coupon"?form.code.trim().toUpperCase():null,updated_at:new Date().toISOString()};const res=editing?await db.from("promotions").update(payload).eq("id",editing):await db.from("promotions").insert(payload);if(res.error){toast.error(res.error.message);return;}toast.success("Promoção salva.");setForm(blank);setEditing(null);void load()}
  async function toggle(p:any){const {error}=await db.from("promotions").update({active:!p.active,updated_at:new Date().toISOString()}).eq("id",p.id);if(error)toast.error(error.message);else void load()}
@@ -72,5 +86,26 @@ function PromocoesAdmin(){
    <button type="submit" className="btn-gold">Salvar configuração das Quatro Chamas</button>
   </form>
   <div className="mt-8 border-t pt-5"><h3 className="font-display text-xl text-foreground">Participações registradas</h3><p className="mt-1 text-xs text-muted-foreground">Últimas 100 escolhas registradas.</p>{flameClaims.length===0?<p className="mt-3 text-sm text-muted-foreground">Nenhuma participação registrada.</p>:<div className="mt-3 space-y-2">{flameClaims.map((c:any)=><div key={c.id} className="flex flex-wrap justify-between gap-2 border-b py-2 text-sm"><span>Vela {c.candle_index+1} · {c.reward_snapshot?.title??"Benefício"}</span><span className="text-muted-foreground">{new Date(c.created_at).toLocaleString("pt-BR")}</span></div>)}</div>}</div>
+ </section>
+ <section className="mt-10 overflow-hidden rounded-xl border border-primary/30 bg-card shadow-sm">
+  <div className="border-b border-primary/15 p-5 sm:p-7">
+   <div className="flex flex-wrap items-start justify-between gap-4">
+    <div><p className="text-xs uppercase tracking-[.18em] text-primary">Mensagem para clientes</p><h2 className="mt-2 font-display text-2xl text-foreground">Boas-vindas Hiraeth</h2><p className="mt-1 max-w-2xl text-sm leading-6 text-muted-foreground">Exibida em uma tela especial depois que a pessoa cria a conta ou entra novamente. O botão leva diretamente ao Início.</p></div>
+    <label className="flex items-center gap-2 rounded-full border border-primary/20 px-4 py-2 text-sm text-foreground"><input type="checkbox" checked={!!welcomeSettings.enabled} onChange={e=>saveWelcomeSettings({...welcomeSettings,enabled:e.target.checked})}/>Mensagem ativa</label>
+   </div>
+  </div>
+  <form onSubmit={saveWelcome} className="space-y-4 p-5 sm:p-7">
+   <label className="block text-sm text-foreground">Título principal<input required maxLength={100} className={input+" mt-1"} value={String(welcomeSettings.title??"")} onChange={e=>saveWelcomeSettings({...welcomeSettings,title:e.target.value})}/></label>
+   <label className="block text-sm text-foreground">Mensagem<textarea required maxLength={1000} rows={4} className={input+" mt-1"} value={String(welcomeSettings.message??"")} onChange={e=>saveWelcomeSettings({...welcomeSettings,message:e.target.value})}/></label>
+   <label className="block text-sm text-foreground">Texto do botão<input required maxLength={50} className={input+" mt-1"} value={String(welcomeSettings.buttonText??"")} onChange={e=>saveWelcomeSettings({...welcomeSettings,buttonText:e.target.value})}/></label>
+   <div className="overflow-hidden rounded-xl border border-[#9a7742]/50 bg-[radial-gradient(ellipse_at_top,rgba(181,139,67,0.22),transparent_55%),linear-gradient(135deg,#17251c,#263b2d_58%,#111b15)] px-6 py-10 text-center text-[#f7efda] shadow-inner sm:px-10 sm:py-14">
+    <p className="text-[10px] uppercase tracking-[.32em] text-[#d7bd83]">Onde a Chama Acesa te Espera</p>
+    <div className="my-4 text-3xl text-[#d7bd83]">✧</div>
+    <h3 className="font-display text-3xl leading-tight sm:text-5xl">{String(welcomeSettings.title||"A chama da Hiraeth te recebe")}</h3>
+    <p className="mx-auto mt-5 max-w-2xl whitespace-pre-wrap text-sm leading-8 text-[#eee4ce] sm:text-base">{String(welcomeSettings.message||"")}</p>
+    <span className="mt-8 inline-flex rounded-full border border-[#d7bd83]/70 bg-[#d7bd83] px-8 py-3 text-xs font-semibold uppercase tracking-[.16em] text-[#1e2a20]">{String(welcomeSettings.buttonText||"Seguir para o início")}</span>
+   </div>
+   <button type="submit" disabled={welcomeSaving} className="btn-gold">{welcomeSaving?"Salvando...":"Salvar mensagem de boas-vindas"}</button>
+  </form>
  </section></div>
 }
