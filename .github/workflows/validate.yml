@@ -21,5 +21,9 @@ jobs:
         run: bun install --frozen-lockfile
       - name: Run tests
         run: bun run test
+      - name: Run ESLint
+        run: bun run lint
+      - name: TypeScript type check
+        run: bunx tsc --noEmit
       - name: Build production bundle
         run: bun run build
