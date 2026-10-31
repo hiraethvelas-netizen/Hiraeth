@@ -13,7 +13,9 @@ function variantLabel(details: Tables<"order_items">["variant_details"]) {
   return [
     typeof value["size"] === "string" ? `Tamanho: ${value["size"]}` : "",
     typeof value["house"] === "string" ? `Casa: ${value["house"]}` : "",
-  ].filter(Boolean).join(" · ");
+  ]
+    .filter(Boolean)
+    .join(" · ");
 }
 
 const STATUS_LABEL: Record<string, string> = {
