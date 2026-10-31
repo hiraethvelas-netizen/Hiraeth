@@ -118,7 +118,7 @@ function Comunidade() {
     }
     const rows = (data ?? []) as Message[];
     if (!rows.length) { setMessages([]); return; }
-    const ids = [...new Set(rows.map(message => message.user_id))];
+    const ids: string[] = [...new Set<string>(rows.map((message: Message) => message.user_id))];
     const messageIds = rows.map(message => message.id);
     const [{ data: profiles, error: profilesError }, { data: reactions, error: reactionsError }, roles] = await Promise.all([
       (supabase as any).from("community_profiles").select("user_id,username,avatar_url").in("user_id", ids),
