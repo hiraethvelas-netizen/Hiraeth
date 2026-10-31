@@ -84,10 +84,7 @@ function Sobre() {
     setBlocks(updated);
   }
   return <PageShell eyebrow={pageSettings.eyebrow} title={pageSettings.title}>
-    <div className="space-y-4">
-      <InlineEditor label="cabeçalho de Conheça a Hiraeth" fields={[{ name: "eyebrow", label: "Texto pequeno acima do título", type: "text" }, { name: "title", label: "Título da página", type: "text" }, { name: "closing", label: "Frase de encerramento", type: "text" }]} values={pageSettings} onSave={async (next) => savePageSettings({ ...pageSettings, ...next } as typeof pageSettings)} />
-      <p className="text-sm text-muted-foreground">Para editar os textos, blocos, imagens e links da história, use a área administrativa <a href="/admin/sobre" className="text-primary underline">Sobre e contatos</a>.</p>
-    </div>
+    {editing && <InlineEditor label="cabeçalho de Conheça a Hiraeth" fields={[{ name: "eyebrow", label: "Texto pequeno acima do título", type: "text" }, { name: "title", label: "Título da página", type: "text" }, { name: "closing", label: "Frase de encerramento", type: "text" }]} values={pageSettings} onSave={async (next) => savePageSettings({ ...pageSettings, ...next } as typeof pageSettings)} />}
     <div className="space-y-10 sm:space-y-16">
       {bannerSettings.enabled && bannerSettings.image_url && <a href={bannerSettings.href || "/loja"} target={/^(https?:)?\/\//i.test(bannerSettings.href) ? "_blank" : undefined} rel={/^(https?:)?\/\//i.test(bannerSettings.href) ? "noreferrer" : undefined} className="block overflow-hidden"><img src={bannerSettings.image_url} alt={bannerSettings.title || "Banner Hiraeth"} className="max-h-[28rem] w-full object-cover" /></a>}
       <section className="px-2 py-8 text-foreground sm:px-6 sm:py-12">

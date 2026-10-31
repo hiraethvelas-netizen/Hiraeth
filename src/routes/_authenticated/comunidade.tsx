@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { SiteHeader } from "@/components/SiteLayout";
 import { getCommunityMessageIdentity } from "@/lib/community-message-identity";
+import { CandleBookshelf, type CandleDraftInput, type CandleLibraryItem } from "@/components/CandleBookshelf";
 import { toast } from "sonner";
 import { Flame, Heart, ImagePlus, MessageCircle, Send, Trash2, X, UserRound, BookOpen, Film, Tv, MoreVertical } from "lucide-react";
 
@@ -13,7 +14,7 @@ type Message = { id: string; user_id: string; body: string; created_at: string; 
 type FeedPost = { id: string; user_id: string; body: string; image_urls: string[]; created_at: string; author: string; avatar_url: string | null; is_admin?: boolean; heartCount: number; fireCount: number; myReaction: "heart" | "fire" | null; commentCount: number };
 type FeedComment = { id: string; post_id: string; user_id: string; body: string; created_at: string; author: string };
 type PublicMember = MemberProfile & { user_id: string };
-type LibraryCandle = { id: string; title: string; aroma: string | null; image_url: string | null; category?: string | null; acquired_at?: string | null; notes?: string | null; rating?: number | null };
+type LibraryCandle = CandleLibraryItem;
 
 function InterestBookshelf({ items }: { items: { id: string; interest_type: "book" | "movie" | "series" | "other"; title: string; image_url?: string | null }[] }) {
   const [filter, setFilter] = useState<"all" | "movie" | "series" | "book" | "other">("all");
@@ -25,10 +26,6 @@ function InterestBookshelf({ items }: { items: { id: string; interest_type: "boo
       {[0,1,2].map(row => <div key={row} className="flex min-h-[150px] items-end gap-3 overflow-x-auto border-b-[9px] border-[#795638] px-2 pb-2 shadow-[0_5px_5px_-4px_rgba(0,0,0,0.7)]">{visible.filter((_,index) => index % 3 === row).map(item => <article key={item.id} className="w-[88px] shrink-0 text-center"><div className="h-[112px] w-[78px] overflow-hidden rounded-sm border border-[#8c704d] bg-[#d9c8a9] shadow-md">{item.image_url ? <img src={item.image_url} alt={"Capa de " + item.title} className="h-full w-full object-cover"/> : <div className="flex h-full items-center justify-center p-2 text-[10px] font-semibold text-[#60472f]">{item.title}</div>}</div><p className="mt-2 line-clamp-2 text-[11px] font-medium text-[#493725] dark:text-[#f0e4d0]">{item.title}</p></article>)}</div>)}
     </div>}
   </div>;
-}
-
-function LibraryGallery({ items }: { items: LibraryCandle[] }) {
-  return items.length ? <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">{items.map(item => <article key={item.id} className="overflow-hidden border border-primary/20 bg-background/70"><div className="aspect-[4/5] bg-secondary">{item.image_url ? <img src={item.image_url} alt={item.title} className="h-full w-full object-cover"/> : <div className="flex h-full items-center justify-center p-4 text-center font-display text-lg text-primary">{item.title}</div>}</div><div className="p-3"><p className="text-sm font-medium">{item.title}</p>{item.category && <p className="mt-1 text-[10px] uppercase tracking-widest text-primary">{item.category}</p>}{item.aroma && <p className="mt-1 text-xs text-muted-foreground">{item.aroma}</p>}{item.acquired_at && <p className="mt-1 text-xs text-muted-foreground">Adquirida em {new Date(item.acquired_at + "T00:00:00").toLocaleDateString("pt-BR")}</p>}{item.notes && <p className="mt-2 text-xs italic text-muted-foreground">{item.notes}</p>}{item.rating && <p className="mt-2 text-sm" aria-label={"Avaliação pessoal: " + item.rating + " de 5 foguinhos"}>{"🔥".repeat(item.rating)}<span className="text-muted-foreground">{"🔥".repeat(5-item.rating)}</span></p>}</div></article>)}</div> : <p className="py-8 text-center text-sm text-muted-foreground">Esta biblioteca ainda não tem velas cadastradas.</p>;
 }
 
 export const Route = createFileRoute("/_authenticated/comunidade")({
@@ -65,14 +62,6 @@ function Comunidade() {
   const [interestUploading, setInterestUploading] = useState(false);
   const [publicMember, setPublicMember] = useState<PublicMember | null>(null);
   const [library, setLibrary] = useState<LibraryCandle[]>([]);
-  const [libraryTitle, setLibraryTitle] = useState("");
-  const [libraryAroma, setLibraryAroma] = useState("");
-  const [libraryCategory, setLibraryCategory] = useState("");
-  const [libraryNotes, setLibraryNotes] = useState("");
-  const [libraryAcquiredAt, setLibraryAcquiredAt] = useState("");
-  const [libraryRating, setLibraryRating] = useState(0);
-  const [libraryImage, setLibraryImage] = useState<File | null>(null);
-  const [librarySaving, setLibrarySaving] = useState(false);
   const [profileSection, setProfileSection] = useState<"info" | "universe" | "library" | "posts">("info");
   const [publicSection, setPublicSection] = useState<"profile" | "universe" | "library" | "posts">("profile");
   const [publicInterests, setPublicInterests] = useState<typeof interests>([]);
@@ -86,7 +75,7 @@ function Comunidade() {
   }
 
   async function loadLibrary(currentUserId = userId) {
-    const { data, error } = await (supabase as any).from("community_library").select("id,title,aroma,image_url,category,acquired_at,notes,rating").eq("user_id", currentUserId).order("created_at", { ascending: false });
+    const { data, error } = await (supabase as any).from("community_library").select("*").eq("user_id", currentUserId).order("created_at", { ascending: false });
     if (error) { toast.error("Não foi possível carregar sua biblioteca Hiraeth."); return; }
     setLibrary((data ?? []) as LibraryCandle[]);
   }
@@ -379,32 +368,74 @@ function Comunidade() {
     if (error) toast.error("Não foi possível remover esse interesse."); else setInterests(current => current.filter(item => item.id !== id));
   }
 
-  async function addLibraryCandle(e: React.FormEvent) {
-    e.preventDefault(); const title = libraryTitle.trim(); if (!title) return;
-    setLibrarySaving(true);
-    try {
-      let image_url: string | null = null;
-      if (libraryImage) {
-        if (!libraryImage.type.startsWith("image/") || libraryImage.size > 8 * 1024 * 1024) throw new Error("Escolha uma foto de até 8 MB.");
-        const ext = libraryImage.name.split(".").pop()?.replace(/[^a-zA-Z0-9]/g, "") || "jpg";
-        const path = "public/library-" + userId + "-" + crypto.randomUUID() + "." + ext;
-        const { error: uploadError } = await supabase.storage.from("review-media").upload(path, libraryImage, { contentType: libraryImage.type, upsert: false });
-        if (uploadError) throw uploadError;
-        image_url = supabase.storage.from("review-media").getPublicUrl(path).data.publicUrl;
-      }
-      const { data, error } = await (supabase as any).from("community_library").insert({ user_id: userId, title, aroma: libraryAroma.trim() || null, image_url, category: libraryCategory.trim() || null, notes: libraryNotes.trim() || null, acquired_at: libraryAcquiredAt || null, rating: libraryRating || null }).select("id,title,aroma,image_url,category,acquired_at,notes,rating").single();
-      if (error) throw error;
-      setLibrary(current => [data, ...current]); setLibraryTitle(""); setLibraryAroma(""); setLibraryCategory(""); setLibraryNotes(""); setLibraryAcquiredAt(""); setLibraryRating(0); setLibraryImage(null);
-      const picker = document.getElementById("community-library-image") as HTMLInputElement | null; if (picker) picker.value = "";
-      toast.success("Vela adicionada à sua biblioteca!");
-    } catch (error) { toast.error(error instanceof Error ? error.message : "Não foi possível adicionar a vela."); }
-    finally { setLibrarySaving(false); }
+  async function uploadLibraryImage(file: File | null) {
+    if (!file) return null;
+    if (!file.type.startsWith("image/") || file.size > 8 * 1024 * 1024) throw new Error("Escolha uma foto de até 8 MB.");
+    const ext = file.name.split(".").pop()?.replace(/[^a-zA-Z0-9]/g, "") || "jpg";
+    const path = "public/library-" + userId + "-" + crypto.randomUUID() + "." + ext;
+    const { error: uploadError } = await supabase.storage.from("review-media").upload(path, file, { contentType: file.type, upsert: false });
+    if (uploadError) throw uploadError;
+    return supabase.storage.from("review-media").getPublicUrl(path).data.publicUrl;
+  }
+
+  async function addLibraryCandle(values: CandleDraftInput) {
+    if (!userId) throw new Error("Entre na sua conta para adicionar uma vela.");
+    const image_url = await uploadLibraryImage(values.image);
+    const { data, error } = await (supabase as any).from("community_library").insert({
+      user_id: userId,
+      title: values.title,
+      aroma: values.aroma.trim() || null,
+      image_url,
+      category: values.category.trim() || null,
+      notes: values.notes.trim() || null,
+      acquired_at: values.acquired_at || null,
+      rating: values.rating || null,
+    }).select("*").single();
+    if (error) throw error;
+    setLibrary(current => [data as LibraryCandle, ...current]);
+    toast.success("Vela adicionada à sua biblioteca!");
+  }
+
+  async function updateLibraryCandle(id: string, values: CandleDraftInput) {
+    if (!userId) throw new Error("Entre na sua conta para editar esta vela.");
+    const current = library.find(item => item.id === id);
+    if (!current) throw new Error("Esta vela não foi encontrada.");
+    if (current.order_item_id && current.purchase_status !== "delivered") {
+      throw new Error("Os detalhes e os foguinhos ficam disponíveis quando o pedido for marcado como entregue.");
+    }
+    const image_url = await uploadLibraryImage(values.image);
+    const { data, error } = await (supabase as any).from("community_library").update({
+      title: values.title,
+      aroma: values.aroma.trim() || null,
+      category: values.category.trim() || null,
+      acquired_at: values.acquired_at || null,
+      notes: values.notes.trim() || null,
+      rating: values.rating || null,
+      ...(image_url ? { image_url } : {}),
+      updated_at: new Date().toISOString(),
+    }).eq("id", id).eq("user_id", userId).select("*").single();
+    if (error) throw error;
+    setLibrary(currentItems => currentItems.map(item => item.id === id ? data as LibraryCandle : item));
+    toast.success("Detalhes da vela atualizados.");
+  }
+
+  async function toggleLibraryFavorite(item: LibraryCandle) {
+    const { error } = await (supabase as any).from("community_library").update({ favorite: !item.favorite }).eq("id", item.id).eq("user_id", userId);
+    if (error) throw error;
+    await loadLibrary();
   }
 
   async function removeLibraryCandle(id: string) {
-    const { error } = await (supabase as any).from("community_library").delete().eq("id", id).eq("user_id", userId);
-    if (error) toast.error("Não foi possível remover esta vela.");
-    else setLibrary(current => current.filter(item => item.id !== id));
+    const { data, error } = await (supabase as any).from("community_library")
+      .delete()
+      .eq("id", id)
+      .eq("user_id", userId)
+      .is("order_item_id", null)
+      .select("id")
+      .maybeSingle();
+    if (error) throw error;
+    if (!data) throw new Error("Esta vela não pode ser removida.");
+    setLibrary(current => current.filter(item => item.id !== id));
   }
 
   async function openPublicProfile(memberId: string) {
@@ -429,7 +460,7 @@ function Comunidade() {
       setPublicSection("profile");
       const [{ data: interestsData, error: interestsError }, { data: libraryData, error: libraryError }] = await Promise.all([
         (supabase as any).from("community_interests").select("id,interest_type,title,image_url").eq("user_id", memberId).order("created_at", { ascending: false }),
-        (supabase as any).from("community_library").select("id,title,aroma,image_url,category,acquired_at,notes,rating").eq("user_id", memberId).order("created_at", { ascending: false }),
+        (supabase as any).from("community_library").select("*").eq("user_id", memberId).order("created_at", { ascending: false }),
       ]);
       if (interestsError || libraryError) console.warn("Não foi possível carregar todas as áreas do perfil público.", interestsError || libraryError);
       setPublicInterests((interestsData ?? []) as typeof interests);
@@ -467,7 +498,7 @@ function Comunidade() {
         <nav className="sticky top-0 z-10 -mx-5 mt-5 grid grid-cols-4 border-b border-primary/20 bg-card/95 md:-mx-8">{([{id:"profile",label:"Perfil"},{id:"universe",label:"Meu Universo"},{id:"library",label:"Minha Biblioteca"},{id:"posts",label:"Publicações"}] as const).map(item => <button key={item.id} type="button" onClick={() => setPublicSection(item.id)} className={"border-b-2 px-1 py-3 text-xs font-medium md:text-sm " + (publicSection === item.id ? "border-primary text-primary" : "border-transparent text-muted-foreground")}>{item.label}</button>)}</nav>
         {publicSection === "profile" && <section className="mx-auto max-w-3xl py-10 text-center"><p className="eyebrow">Círculo do Fogo</p><h3 className="mt-2 font-display text-2xl">Um pouco sobre {publicMember.username}</h3><p className="mt-3 text-sm text-muted-foreground">Explore os interesses, a coleção Hiraeth e as publicações pelas abas acima.</p></section>}
         {publicSection === "universe" && <section className="py-6"><p className="eyebrow">Livros, telas e paixões</p><h3 className="mb-5 font-display text-3xl">Meu Universo</h3><InterestBookshelf items={publicInterests}/></section>}
-        {publicSection === "library" && <section className="py-6"><p className="eyebrow">Coleção de velas</p><h3 className="mb-5 font-display text-3xl">Minha Biblioteca</h3><LibraryGallery items={publicLibrary}/></section>}
+        {publicSection === "library" && <section className="py-6"><p className="eyebrow">Coleção de velas</p><h3 className="mb-5 font-display text-3xl">Minha Biblioteca</h3><CandleBookshelf items={publicLibrary}/></section>}
         {publicSection === "posts" && <section className="mx-auto max-w-3xl space-y-5 py-6"><h3 className="font-display text-3xl">Publicações</h3>{posts.filter(post => post.user_id === publicMember.user_id).map(post => <article key={post.id} className={`rounded-xl border p-4 ${post.is_admin ? "border-[3px] border-[#b58a3b] bg-[linear-gradient(145deg,#f4dfaa_0%,#ead09a_48%,#f6e9c9_100%)] text-[#20382b] shadow-[0_8px_28px_rgba(125,89,28,0.28),inset_0_0_0_2px_rgba(255,255,255,0.55)]" : "border-primary/20 bg-gradient-to-br from-background via-background to-primary/[0.04]"}`}>{post.body && <p className="whitespace-pre-wrap text-sm">{post.body}</p>}{post.image_urls?.length > 0 && <div className="mt-3 grid grid-cols-2 gap-2">{post.image_urls.map(url => <img key={url} src={url} alt="Foto publicada" className="aspect-square w-full object-cover"/>)}</div>}<time className="mt-3 block text-xs text-muted-foreground">{new Date(post.created_at).toLocaleString("pt-BR")}</time></article>)}{posts.filter(post => post.user_id === publicMember.user_id).length === 0 && <p className="text-sm text-muted-foreground">Ainda não há publicações por aqui.</p>}</section>}
       </section>
     </div>}
@@ -593,7 +624,7 @@ function Comunidade() {
             {profileSection === "info" && <form onSubmit={saveProfile} className="mx-auto grid max-w-2xl gap-4 rounded-xl border border-primary/20 bg-background/60 p-5 md:p-7"><div className="flex items-center gap-4"><div className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-primary/40 bg-[#20382b] text-[#e8d8b4]">{profile.avatar_url ? <img src={profile.avatar_url} alt="Sua foto de perfil" className="h-full w-full object-cover"/> : <UserRound size={34}/>}</div><label className="cursor-pointer text-sm text-primary underline">{avatarUploading ? "Enviando foto..." : "Alterar foto de perfil"}<input type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="sr-only" disabled={avatarUploading} onChange={e => void uploadAvatar(e.target.files?.[0])}/></label></div>
               <label className="grid gap-2 text-sm">Nome de usuário<input required maxLength={30} value={profile.username} onChange={e => setProfile({ ...profile, username: e.target.value })} className="border bg-transparent p-3"/></label><label className="grid gap-2 text-sm">Sobre mim<textarea maxLength={500} value={profile.bio ?? ""} onChange={e => setProfile({ ...profile, bio: e.target.value })} className="border bg-transparent p-3" rows={3}/></label><label className="grid gap-2 text-sm">Instagram<input value={profile.instagram_url ?? ""} onChange={e => setProfile({ ...profile, instagram_url: e.target.value })} className="border bg-transparent p-3" placeholder="https://instagram.com/..."/></label><label className="grid gap-2 text-sm">TikTok<input value={profile.tiktok_url ?? ""} onChange={e => setProfile({ ...profile, tiktok_url: e.target.value })} className="border bg-transparent p-3" placeholder="https://tiktok.com/@..."/></label><label className="grid gap-2 text-sm">Outra rede social<input value={profile.other_social_url ?? ""} onChange={e => setProfile({ ...profile, other_social_url: e.target.value })} className="border bg-transparent p-3"/></label><button disabled={saving} className="btn-gold justify-self-start">{saving ? "Salvando..." : "Salvar perfil"}</button></form>}
             {profileSection === "universe" && <section className="rounded-xl border border-primary/20 bg-background/60 p-5 md:p-7"><p className="eyebrow">Livros, telas e paixões</p><h3 className="mt-1 font-display text-3xl">Meu Universo</h3><p className="mt-1 text-sm text-muted-foreground">Adicione livros, filmes, séries e outros interesses. Eles ficam organizados em uma estante com três prateleiras.</p><form onSubmit={addInterest} className="mt-5 grid gap-2 sm:grid-cols-[auto_minmax(0,1fr)_auto]"><select value={interestType} onChange={e => setInterestType(e.target.value as typeof interestType)} className="border bg-background px-3 py-2 text-sm"><option value="book">Livro</option><option value="movie">Filme</option><option value="series">Série</option><option value="other">Outro</option></select><input value={interestTitle} onChange={e => setInterestTitle(e.target.value)} maxLength={160} placeholder="Nome do livro, filme, série..." className="min-w-0 border bg-background px-3 py-2 text-sm"/><button type="submit" disabled={interestUploading} className="btn-gold">{interestUploading ? "Salvando..." : "Adicionar"}</button><label className="sm:col-span-3 flex cursor-pointer items-center gap-2 text-xs text-primary underline">Adicionar capa (opcional)<input id="community-interest-cover" type="file" accept="image/*" className="sr-only" onChange={e => setInterestCover(e.target.files?.[0] ?? null)}/></label>{interestCover && <p className="sm:col-span-3 text-xs text-muted-foreground">{interestCover.name}</p>}</form><div className="mt-7"><InterestBookshelf items={interests}/></div><div className="mt-6 flex flex-wrap gap-2">{interests.map(item => <button key={item.id} type="button" onClick={() => void removeInterest(item.id)} className="rounded-full border border-primary/20 px-3 py-1.5 text-xs text-muted-foreground hover:text-destructive">Remover {item.title} ×</button>)}</div></section>}
-            {profileSection === "library" && <section className="rounded-xl border border-primary/20 bg-background/60 p-5 md:p-7"><p className="eyebrow">Sua coleção Hiraeth</p><h3 className="mt-1 font-display text-3xl">Minha Biblioteca</h3><p className="mt-1 text-sm text-muted-foreground">Este espaço é separado do Meu Universo e reúne as velas Hiraeth que fazem parte da sua coleção.</p><form onSubmit={addLibraryCandle} className="mt-5 grid gap-3 sm:grid-cols-2"><label className="grid gap-1 text-sm">Nome da vela<input required maxLength={160} value={libraryTitle} onChange={e => setLibraryTitle(e.target.value)} className="border bg-background p-3" placeholder="Ex.: Chapéu Seletor"/></label><label className="grid gap-1 text-sm">Categoria ou universo (opcional)<input maxLength={100} value={libraryCategory} onChange={e => setLibraryCategory(e.target.value)} className="border bg-background p-3" placeholder="Ex.: Harry Potter, Friends"/></label><label className="grid gap-1 text-sm">Aroma (opcional)<input maxLength={160} value={libraryAroma} onChange={e => setLibraryAroma(e.target.value)} className="border bg-background p-3" placeholder="Nome do aroma"/></label><label className="grid gap-1 text-sm">Data da compra (opcional)<input type="date" value={libraryAcquiredAt} onChange={e => setLibraryAcquiredAt(e.target.value)} className="border bg-background p-3"/></label><div className="sm:col-span-2"><p className="mb-1 text-sm">Sua avaliação pessoal</p><div className="flex gap-1" role="group" aria-label="Avalie o aroma com até cinco foguinhos">{[1,2,3,4,5].map(n => <button key={n} type="button" onClick={() => setLibraryRating(n)} aria-label={n + " foguinhos"} className={"text-2xl " + (n <= libraryRating ? "text-orange-500" : "text-muted-foreground/40")}>🔥</button>)}</div></div><label className="grid gap-1 text-sm sm:col-span-2">Anotação pessoal (visível no perfil)<textarea value={libraryNotes} onChange={e => setLibraryNotes(e.target.value)} rows={2} className="border bg-background p-3" placeholder="O que essa vela representa para você?"/></label><label className="sm:col-span-2 flex cursor-pointer items-center gap-2 text-xs text-primary underline">Adicionar foto da vela (opcional)<input id="community-library-image" type="file" accept="image/*" className="sr-only" onChange={e => setLibraryImage(e.target.files?.[0] ?? null)}/></label>{libraryImage && <p className="sm:col-span-2 text-xs text-muted-foreground">{libraryImage.name}</p>}<button type="submit" disabled={librarySaving} className="btn-gold justify-self-start">{librarySaving ? "Salvando..." : "Adicionar à biblioteca"}</button></form><div className="mt-7"><LibraryGallery items={library}/></div><div className="mt-4 flex flex-wrap gap-2">{library.map(item => <button key={item.id} type="button" onClick={() => void removeLibraryCandle(item.id)} className="rounded-full border border-primary/20 px-3 py-1.5 text-xs text-muted-foreground hover:text-destructive">Remover {item.title} ×</button>)}</div></section>}
+            {profileSection === "library" && <section className="rounded-xl border border-primary/20 bg-background/60 p-5 md:p-7"><p className="eyebrow">Sua coleção Hiraeth</p><h3 className="mt-1 font-display text-3xl">Minha Biblioteca</h3><p className="mt-1 text-sm text-muted-foreground">Suas compras aparecem automaticamente aqui. Registre também suas velas antigas, complete os detalhes e avalie com foguinhos depois que o pedido for entregue.</p><div className="mt-6"><CandleBookshelf items={library} editable onAdd={addLibraryCandle} onUpdate={updateLibraryCandle} onFavorite={toggleLibraryFavorite} onRemove={item => removeLibraryCandle(item.id)}/></div></section>}
             {profileSection === "posts" && <section className="mx-auto max-w-3xl space-y-4"><h3 className="font-display text-3xl">Minhas publicações</h3>{posts.filter(post => post.user_id === userId).map(post => <article key={post.id} className="border border-primary/20 bg-background/60 p-4"><p className="whitespace-pre-wrap text-sm">{post.body}</p>{post.image_urls?.length > 0 && <div className="mt-3 grid grid-cols-2 gap-2">{post.image_urls.map(url => <img key={url} src={url} alt="Foto publicada" className="aspect-square w-full object-cover"/>)}</div>}<time className="mt-3 block text-xs text-muted-foreground">{new Date(post.created_at).toLocaleString("pt-BR")}</time></article>)}{posts.filter(post => post.user_id === userId).length === 0 && <p className="text-sm text-muted-foreground">Você ainda não publicou no Feed.</p>}</section>}
           </section>}
 
