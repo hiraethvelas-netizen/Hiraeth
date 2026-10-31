@@ -85,27 +85,12 @@ function Sobre() {
           if (error) throw error;
           setBlocks(updated);
         }} />
-        {block.images?.length >= 2 ? <div className="grid items-center gap-10 md:grid-cols-[1.1fr_.9fr]">
-          <div className="relative mx-auto w-full max-w-xl pb-8 pr-5 sm:pb-10 sm:pr-8">
-            <figure className="-rotate-2 border-[10px] border-b-[42px] border-white bg-white p-1 shadow-xl"><img src={block.images[0]} alt="Uma lembrança da história da Hiraeth" className="aspect-[4/5] max-h-[38rem] w-full object-cover" />{editing && <button type="button" onClick={() => void removeStoryPhoto(index, 0)} className="mt-2 w-full text-xs text-destructive">Remover foto</button>}</figure>
-            <figure className="absolute bottom-0 right-0 w-[42%] max-w-56 rotate-3 border-[10px] border-b-[42px] border-white bg-white p-1 shadow-xl sm:border-[12px] sm:border-b-[50px]">
-              <img src={block.images[1]} alt="Mari, criadora da Hiraeth" className="aspect-[4/5] w-full object-cover" />
-              <figcaption className="absolute inset-x-0 bottom-[-34px] text-center font-display text-sm italic tracking-wide text-[#354333] sm:bottom-[-42px] sm:text-base">Com carinho, Mari</figcaption>{editing && <button type="button" onClick={() => void removeStoryPhoto(index, 1)} className="mt-2 w-full text-xs text-destructive">Remover foto</button>}
-            </figure>
-          </div>
-          <div className="space-y-4">
-            {block.title && <h2 className="font-display text-3xl text-foreground">{block.title}</h2>}
-            {block.text && <p className="whitespace-pre-line leading-8 text-foreground/90">{block.text}</p>}
-            {block.links?.length > 0 && <div className="flex flex-wrap gap-3">{block.links.filter(link => link.label && link.url).map((link, i) => <a key={link.url + i} href={link.url} target={link.url.startsWith("http") ? "_blank" : undefined} rel={link.url.startsWith("http") ? "noreferrer" : undefined} className="inline-flex border border-primary px-4 py-2 text-sm text-primary transition-colors hover:bg-primary hover:text-primary-foreground">{link.label}</a>)}</div>}
-          </div>
-        </div> : <div className={block.layout === "image-left" || block.layout === "image-right" ? "grid items-center gap-8 md:grid-cols-2" : "space-y-5"}>
-          {block.layout === "image-left" && block.images?.length > 0 && <div className="space-y-3">{block.images.map((url, i) => <img key={url + i} src={url} alt={block.title || "Hiraeth"} className="max-h-[34rem] w-full object-cover" />)}</div>}
-          <div className="space-y-4">
-            {block.title && <h2 className="font-display text-3xl text-foreground">{block.title}</h2>}
-            {block.text && <p className="whitespace-pre-line leading-8 text-foreground/90">{block.text}</p>}
-            {block.links?.length > 0 && <div className="flex flex-wrap gap-3">{block.links.filter(link => link.label && link.url).map((link, i) => <a key={link.url + i} href={link.url} target={link.url.startsWith("http") ? "_blank" : undefined} rel={link.url.startsWith("http") ? "noreferrer" : undefined} className="inline-flex border border-primary px-4 py-2 text-sm text-primary transition-colors hover:bg-primary hover:text-primary-foreground">{link.label}</a>)}</div>}
-          </div>
-          {(block.layout === "image-right" || block.layout === "gallery") && block.images?.length > 0 && <div className={block.layout === "gallery" ? "grid grid-cols-2 gap-3 md:grid-cols-3" : "space-y-3"}>{block.images.map((url, i) => <img key={url + i} src={url} alt={block.title || "Hiraeth"} className={block.layout === "gallery" ? "aspect-[4/5] w-full border-[9px] border-b-[34px] border-white bg-white p-1 object-cover shadow-xl" : "max-h-[34rem] w-full border-[10px] border-b-[38px] border-white bg-white p-1 object-cover shadow-xl"} />)}</div>}
+        {block.images?.length > 0 && <div className="flex flex-wrap items-start justify-center gap-4 py-3 sm:gap-6">
+          {block.images.map((url, photoIndex) => <figure key={url + photoIndex} className={`w-[ min(38vw, 148px)] max-w-[148px] shrink-0 border-[7px] border-b-[30px] border-white bg-white p-1 shadow-lg sm:w-[160px] sm:max-w-[160px] sm:border-[9px] sm:border-b-[34px] ${photoIndex % 4 === 0 ? "-rotate-2" : photoIndex % 4 === 1 ? "rotate-2" : photoIndex % 4 === 2 ? "rotate-1" : "-rotate-1"}`}>
+            <img src={url} alt={`Foto ${photoIndex + 1} da história da Hiraeth`} className="aspect-[4/5] w-full object-cover" loading="lazy" />
+            <figcaption className="mt-1 truncate text-center font-display text-[10px] italic text-[#354333] sm:text-xs">Hiraeth</figcaption>
+            {editing && <button type="button" onClick={() => void removeStoryPhoto(index, photoIndex)} className="mt-1 w-full text-[10px] text-red-700">Remover</button>}
+          </figure>)}
         </div>}
       </section>)}
       <p className="border-t pt-6 italic text-primary">{pageSettings.closing}</p>
