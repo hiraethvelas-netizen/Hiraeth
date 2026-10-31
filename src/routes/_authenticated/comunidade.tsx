@@ -421,8 +421,8 @@ function Comunidade() {
 
   async function toggleLibraryFavorite(item: LibraryCandle) {
     const { error } = await (supabase as any).from("community_library").update({ favorite: !item.favorite }).eq("id", item.id).eq("user_id", userId);
-    if (error) toast.error("Não foi possível atualizar seus favoritos.");
-    else await loadLibrary();
+    if (error) throw error;
+    await loadLibrary();
   }
 
   async function removeLibraryCandle(id: string) {
@@ -433,8 +433,9 @@ function Comunidade() {
       .is("order_item_id", null)
       .select("id")
       .maybeSingle();
-    if (error || !data) toast.error("Não foi possível remover esta vela da estante.");
-    else setLibrary(current => current.filter(item => item.id !== id));
+    if (error) throw error;
+    if (!data) throw new Error("Esta vela não pode ser removida.");
+    setLibrary(current => current.filter(item => item.id !== id));
   }
 
   async function openPublicProfile(memberId: string) {
