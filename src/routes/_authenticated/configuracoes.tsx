@@ -145,8 +145,16 @@ function AccountSettings() {
     navigate({ to: "/auth" });
   }
 
-  const fieldClass = "mt-1 w-full border border-primary/25 bg-card/60 px-4 py-3 text-base text-foreground outline-none transition focus:border-primary focus:ring-1 focus:ring-primary/30";
-  const labelClass = "block text-sm text-muted-foreground";
+  const panelClass = isDark
+    ? "border border-[#87904e]/35 bg-[#203126] p-5 shadow-[0_8px_24px_rgba(0,0,0,0.14)] sm:p-7"
+    : "border border-[#878e47]/20 bg-[#f2ead7]/75 p-5 sm:p-7";
+  const fieldClass = `mt-1 w-full border px-4 py-3 text-base outline-none transition focus:ring-1 ${isDark
+    ? "border-[#87904e]/45 bg-[#18251d] text-[#f7efda] placeholder:text-[#c6c4ad]/65 focus:border-[#c6a65b] focus:ring-[#c6a65b]/25"
+    : "border-[#878e47]/30 bg-[#fbf7eb] text-[#34402b] placeholder:text-[#74745e] focus:border-[#878e47] focus:ring-[#878e47]/25"}`;
+  const labelClass = isDark ? "block text-sm text-[#ded8c3]" : "block text-sm text-[#625f4b]";
+  const quietButtonClass = isDark
+    ? "border border-[#c6a65b]/45 bg-[#263a2b] px-5 py-3 text-sm text-[#f7efda] transition hover:border-[#c6a65b] hover:bg-[#304633]"
+    : "border border-[#878e47]/40 bg-[#f7efda] px-5 py-3 text-sm text-[#34402b] transition hover:bg-[#e9e7d2]";
 
   if (loading) return <div className="min-h-screen"><SiteHeader /><main className="mx-auto max-w-3xl px-6 py-16 text-muted-foreground">Carregando sua conta…</main><SiteFooter /></div>;
 
@@ -166,7 +174,7 @@ function AccountSettings() {
       </nav>
 
       {!isSettings && <form onSubmit={save} className="space-y-8">
-        <section className="border border-primary/20 bg-card/40 p-5 sm:p-7">
+        <section className={panelClass}>
           <h2 className="mb-5 text-2xl text-foreground">Dados pessoais</h2>
           <div className="grid gap-5 sm:grid-cols-2">
             <label className={labelClass}>Nome completo
@@ -181,14 +189,14 @@ function AccountSettings() {
           </div>
         </section>
 
-        <section className="border border-primary/20 bg-card/40 p-5 sm:p-7">
+        <section className={panelClass}>
           <h2 className="text-2xl text-foreground">Endereço de entrega</h2>
           <p className="mb-5 mt-2 text-sm leading-6 text-muted-foreground">Informe o CEP para preencher rua, bairro e cidade automaticamente. Depois, adicione o número e o complemento.</p>
           <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end">
             <label className={labelClass + " sm:max-w-xs sm:flex-1"}>CEP
               <input value={address.cep} onChange={e => updateAddress("cep", e.target.value.replace(/[^0-9-]/g, "").slice(0, 9))} onBlur={() => { if (address.cep.replace(/\D/g, "").length === 8) void lookupCep(); }} autoComplete="postal-code" inputMode="numeric" placeholder="00000-000" className={fieldClass} />
             </label>
-            <button type="button" onClick={() => void lookupCep()} disabled={lookingUpCep} className="min-h-12 border border-primary px-5 py-3 text-sm text-foreground transition hover:bg-primary/10 disabled:opacity-50">{lookingUpCep ? "Buscando…" : "Buscar CEP"}</button>
+            <button type="button" onClick={() => void lookupCep()} disabled={lookingUpCep} className={`min-h-12 ${quietButtonClass} disabled:opacity-50`}>{lookingUpCep ? "Buscando…" : "Buscar CEP"}</button>
           </div>
           <div className="grid gap-5 sm:grid-cols-2">
             <label className={labelClass + " sm:col-span-2"}>Rua / Avenida
@@ -216,15 +224,15 @@ function AccountSettings() {
       </form>}
 
       {isSettings && <div className="space-y-6">
-        <section className="border border-primary/20 bg-card/40 p-5 sm:p-7">
+        <section className={panelClass}>
           <h2 className="text-2xl text-foreground">Aparência do aplicativo</h2>
           <p className="mt-2 text-sm leading-6 text-muted-foreground">Escolha o tema que prefere usar. A alteração será aplicada em todo o aplicativo.</p>
-          <button type="button" onClick={toggleTheme} aria-pressed={isDark} className="mt-5 border border-primary/40 px-5 py-3 text-sm text-foreground transition hover:bg-primary/10">
+          <button type="button" onClick={toggleTheme} aria-pressed={isDark} className={`mt-5 ${quietButtonClass}`}>
             {isDark ? "Ativar tema claro" : "Ativar tema escuro"}
           </button>
         </section>
 
-        <form onSubmit={updatePassword} className="border border-primary/20 bg-card/40 p-5 sm:p-7">
+        <form onSubmit={updatePassword} className={panelClass}>
           <h2 className="text-2xl text-foreground">Segurança da conta</h2>
           <p className="mt-2 text-sm leading-6 text-muted-foreground">Defina uma nova senha para proteger seu acesso à Hiraeth.</p>
           <label className={labelClass + " mt-5 block"}>Nova senha

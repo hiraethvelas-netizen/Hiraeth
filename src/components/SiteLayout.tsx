@@ -7,6 +7,7 @@ import { InlineEditor } from "@/components/InlineEditor";
 import { useAdminEdit } from "@/lib/admin-edit";
 import { useTheme } from "@/lib/theme";
 import { Instagram, Music2, MessageCircle, Mail } from "lucide-react";
+import { toast } from "sonner";
 
 function ThemeToggle() {
   const { isDark, toggleTheme } = useTheme();
@@ -30,6 +31,15 @@ export function SiteHeader() {
   const router = useRouter();
   const cart = useCart();
   const { isAdmin, editMode, toggle } = useAdminEdit();
+
+  async function handleSignOut() {
+    const { error } = await supabase.auth.signOut({ scope: "local" });
+    if (error) {
+      toast.error("Não foi possível sair da conta. Tente novamente.");
+      return;
+    }
+    window.location.assign("/auth");
+  }
 
   return (
     <header className="relative z-[80] w-full border-b border-primary/20 bg-background px-5 py-4 md:px-10">
@@ -58,6 +68,15 @@ export function SiteHeader() {
             <Link to="/configuracoes" search={{ tab: "configuracoes" }} className="block rounded px-3 py-2.5 text-sm text-foreground/85 transition-colors hover:bg-primary/10 hover:text-primary">
               Configurações
             </Link>
+            <div className="my-1 border-t border-primary/20 pt-1">
+              <button
+                type="button"
+                onClick={() => void handleSignOut()}
+                className="block w-full rounded px-3 py-2.5 text-left text-sm text-foreground/85 transition-colors hover:bg-primary/10 hover:text-primary"
+              >
+                Sair da conta
+              </button>
+            </div>
           </div>
         </details>
         </div>
