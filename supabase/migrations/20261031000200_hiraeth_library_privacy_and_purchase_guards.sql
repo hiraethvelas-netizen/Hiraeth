@@ -124,6 +124,13 @@ begin
     return;
   end if;
 
+  if exists (
+    select 1 from public.community_library linked
+    where linked.order_item_id = p_order_item_id
+  ) then
+    return;
+  end if;
+
   select existing.id
     into v_existing_id
     from public.community_library existing
