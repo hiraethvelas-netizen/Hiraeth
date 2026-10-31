@@ -101,6 +101,10 @@ function AuthPage() {
           await navigate({ to: getPostLoginDestination(requested, false) as never });
           return;
         }
+        toast.success("Bem-vinda à Hiraeth!", {
+          description: "Seu cadastro foi recebido. Confirme seu e-mail para entrar e começar a montar sua estante de histórias.",
+          duration: 7000,
+        });
         setMode("login");
         setMessage("Sua conta foi criada. Confira seu e-mail para confirmar o acesso. No primeiro login, teremos uma mensagem especial de boas-vindas para você.");
       } else {
