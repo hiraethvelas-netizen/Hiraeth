@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { PageShell } from "@/components/SiteLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { InlineEditor } from "@/components/InlineEditor";
-import { useSiteContent } from "@/lib/admin-edit";
+import { useSiteContent, uploadSiteImage, useAdminEdit } from "@/lib/admin-edit";
 
 type Profile = { about_story: string; about_mari: string; about_image_url: string; story_image_url: string };
 type AboutLink = { label: string; url: string };
@@ -15,7 +15,7 @@ export const Route = createFileRoute("/sobre")({
   head: () => ({ meta: [{ title: "Sobre a Hiraeth — Guardiã da chama" }, { name: "description", content: "A história da Hiraeth e de Mari, Guardiã da Chama." }, { property: "og:title", content: "Sobre a Hiraeth" }, { property: "og:description", content: "Onde a Chama Acesa te Espera: a história da Hiraeth." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }] }),
   component: Sobre,
 });
-function Sobre() {
+function Sobre() {\n  const { editing } = useAdminEdit();
   const [pageSettings, savePageSettings] = useSiteContent("about-page-appearance", { eyebrow: "Nossa história", title: "Sobre a Hiraeth", closing: "Onde a Chama Acesa te Espera" });
   const [blocks, setBlocks] = useState<AboutBlock[]>([]);
   const [bannerSettings, setBannerSettings] = useState<{ enabled: boolean; image_url: string; href: string; title: string }>({ enabled: false, image_url: "", href: "/loja", title: "" });
@@ -43,6 +43,28 @@ function Sobre() {
     })();
   }, []);
   const shownBlocks = blocks.length ? blocks : seedBlocks(defaults);
+  async function addStoryPhotos(blockIndex: number, files: FileList | null) {
+    if (!files?.length) return;
+    const selected = Array.from(files);
+    const invalid = selected.find(file => !["image/jpeg", "image/png", "image/webp"].includes(file.type) || file.size > 5 * 1024 * 1024);
+    if (invalid) { window.alert(`A imagem "${invalid.name}" precisa ser JPG, PNG ou WebP e ter até 5 MB.`); return; }
+    try {
+      const urls: string[] = [];
+      for (const file of selected) urls.push(await uploadSiteImage(file, "about-story"));
+      const updated = shownBlocks.map((item, i) => i === blockIndex ? { ...item, images: [...(item.images ?? []), ...urls] } : item);
+      const { error } = await (supabase as any).from("site_content").upsert({ key: "about_page_blocks", value: { version: 2, blocks: updated }, updated_at: new Date().toISOString() }, { onConflict: "key" });
+      if (error) throw error;
+      setBlocks(updated);
+    } catch (error) {
+      window.alert("Não foi possível adicionar as fotos: " + (error instanceof Error ? error.message : "erro desconhecido"));
+    }
+  }
+  async function removeStoryPhoto(blockIndex: number, imageIndex: number) {
+    const updated = shownBlocks.map((item, i) => i === blockIndex ? { ...item, images: (item.images ?? []).filter((_, j) => j !== imageIndex) } : item);
+    const { error } = await (supabase as any).from("site_content").upsert({ key: "about_page_blocks", value: { version: 2, blocks: updated }, updated_at: new Date().toISOString() }, { onConflict: "key" });
+    if (error) { window.alert("Não foi possível salvar a remoção da foto."); return; }
+    setBlocks(updated);
+  }
   return <PageShell eyebrow={pageSettings.eyebrow} title={pageSettings.title}>
     <div className="space-y-4">
       <InlineEditor label="cabeçalho de Conheça a Hiraeth" fields={[{ name: "eyebrow", label: "Texto pequeno acima do título", type: "text" }, { name: "title", label: "Título da página", type: "text" }, { name: "closing", label: "Frase de encerramento", type: "text" }]} values={pageSettings} onSave={async (next) => savePageSettings({ ...pageSettings, ...next } as typeof pageSettings)} />
@@ -51,6 +73,11 @@ function Sobre() {
     <div className="space-y-12">
       {bannerSettings.enabled && bannerSettings.image_url && <a href={bannerSettings.href || "/loja"} target={/^(https?:)?\/\//i.test(bannerSettings.href) ? "_blank" : undefined} rel={/^(https?:)?\/\//i.test(bannerSettings.href) ? "noreferrer" : undefined} className="block overflow-hidden"><img src={bannerSettings.image_url} alt={bannerSettings.title || "Banner Hiraeth"} className="max-h-[28rem] w-full object-cover" /></a>}
       {shownBlocks.map((block, index) => <section key={block.id || index} className="space-y-5">
+        {editing && <div className="flex flex-wrap items-center gap-3 rounded-lg border border-dashed border-primary/50 bg-primary/5 p-3">
+          <label htmlFor={`story-polaroid-upload-${block.id}`} className="inline-flex min-h-10 cursor-pointer items-center rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-sm">＋ Adicionar fotos tipo polaroid</label>
+          <input id={`story-polaroid-upload-${block.id}`} type="file" multiple accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={event => { void addStoryPhotos(index, event.currentTarget.files); event.currentTarget.value = ""; }} />
+          <span className="text-xs text-muted-foreground">JPG, PNG ou WebP · até 5 MB por foto</span>
+        </div>}
         <InlineEditor label={`bloco ${block.title || "da história"}`} fields={[{ name: "title", label: "Título do bloco", type: "text" }, { name: "text", label: "Texto do bloco", type: "textarea" }, { name: "layout", label: "Layout", type: "select", options: [{ value: "text", label: "Texto e links" }, { value: "image-left", label: "Imagem à esquerda" }, { value: "image-right", label: "Imagem à direita" }, { value: "gallery", label: "Galeria" }] }]} values={{ title: block.title, text: block.text, layout: block.layout }} onSave={async (next) => {
           const updated = shownBlocks.map((item, i) => i === index ? { ...item, title: String(next["title"] ?? ""), text: String(next["text"] ?? ""), layout: String(next["layout"] ?? item.layout) as AboutBlock["layout"] } : item);
           const { error } = await (supabase as any).from("site_content").upsert({ key: "about_page_blocks", value: { blocks: updated }, updated_at: new Date().toISOString() }, { onConflict: "key" });
@@ -59,10 +86,10 @@ function Sobre() {
         }} />
         {block.images?.length >= 2 ? <div className="grid items-center gap-10 md:grid-cols-[1.1fr_.9fr]">
           <div className="relative mx-auto w-full max-w-xl pb-8 pr-5 sm:pb-10 sm:pr-8">
-            <figure className="-rotate-2 border-[10px] border-b-[42px] border-white bg-white p-1 shadow-xl"><img src={block.images[0]} alt="Uma criação da Hiraeth" className="aspect-[4/5] max-h-[38rem] w-full object-cover" /></figure>
+            <figure className="-rotate-2 border-[10px] border-b-[42px] border-white bg-white p-1 shadow-xl"><img src={block.images[0]} alt="Uma lembrança da história da Hiraeth" className="aspect-[4/5] max-h-[38rem] w-full object-cover" />{editing && <button type="button" onClick={() => void removeStoryPhoto(index, 0)} className="mt-2 w-full text-xs text-destructive">Remover foto</button>}</figure>
             <figure className="absolute bottom-0 right-0 w-[42%] max-w-56 rotate-3 border-[10px] border-b-[42px] border-white bg-white p-1 shadow-xl sm:border-[12px] sm:border-b-[50px]">
               <img src={block.images[1]} alt="Mari, criadora da Hiraeth" className="aspect-[4/5] w-full object-cover" />
-              <figcaption className="absolute inset-x-0 bottom-[-34px] text-center font-display text-sm italic tracking-wide text-[#354333] sm:bottom-[-42px] sm:text-base">Com carinho, Mari</figcaption>
+              <figcaption className="absolute inset-x-0 bottom-[-34px] text-center font-display text-sm italic tracking-wide text-[#354333] sm:bottom-[-42px] sm:text-base">Com carinho, Mari</figcaption>{editing && <button type="button" onClick={() => void removeStoryPhoto(index, 1)} className="mt-2 w-full text-xs text-destructive">Remover foto</button>}
             </figure>
           </div>
           <div className="space-y-4">
