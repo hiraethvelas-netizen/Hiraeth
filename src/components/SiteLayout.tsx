@@ -6,6 +6,7 @@ import fenixImage from "@/assets/fenix.png";
 import { supabase } from "@/integrations/supabase/client";
 import { InlineEditor } from "@/components/InlineEditor";
 import { useAdminEdit } from "@/lib/admin-edit";
+import { Instagram, Music2, MessageCircle, Mail } from "lucide-react";
 
 function ThemeToggle() {
   const [dark, setDark] = useState(false);
@@ -151,11 +152,17 @@ export function SiteFooter() {
   return (
     <footer className="border-t px-6 py-10 text-center text-sm text-muted-foreground">
       <p className="font-display text-lg italic text-primary">Onde a Chama Acesa te Espera</p>
-      <nav aria-label="Contatos da Hiraeth" className="mt-5 flex flex-wrap justify-center gap-x-6 gap-y-3">
-        {profile?.instagram_url && <a href={profile.instagram_url} target="_blank" rel="noreferrer" className="underline hover:text-primary">Instagram</a>}
-        {tiktokUrl && <a href={tiktokUrl} target="_blank" rel="noreferrer" className="underline hover:text-primary">TikTok</a>}
-        {whatsapp && <a href={whatsapp} target="_blank" rel="noreferrer" className="underline hover:text-primary">WhatsApp</a>}
-        {profile?.contact_email && <a href={`mailto:${profile.contact_email}`} className="underline hover:text-primary">{profile.contact_email}</a>}
+      <nav aria-label="Redes sociais e contato da Hiraeth" className="mt-6 flex flex-wrap justify-center gap-6">
+        {profile?.instagram_url && <a href={profile.instagram_url} target="_blank" rel="noreferrer" aria-label="Instagram da Hiraeth" title="Instagram" className="text-foreground transition hover:text-primary"><Instagram size={25} strokeWidth={1.8} /></a>}
+        {tiktokUrl && <a href={tiktokUrl} target="_blank" rel="noreferrer" aria-label="TikTok da Hiraeth" title="TikTok" className="text-foreground transition hover:text-primary"><Music2 size={25} strokeWidth={1.8} /></a>}
+        {whatsapp && <a href={whatsapp} target="_blank" rel="noreferrer" aria-label="WhatsApp da Hiraeth" title="WhatsApp" className="text-foreground transition hover:text-primary"><MessageCircle size={25} strokeWidth={1.8} /></a>}
+        {profile?.contact_email && <a href={`mailto:${profile.contact_email}`} aria-label="E-mail da Hiraeth" title="E-mail" className="text-foreground transition hover:text-primary"><Mail size={25} strokeWidth={1.8} /></a>}
+      </nav>
+      <nav aria-label="Informações e ajuda" className="mx-auto mt-7 flex max-w-3xl flex-wrap justify-center gap-x-6 gap-y-3 text-xs uppercase tracking-[.12em]">
+        <Link to="/suporte" className="transition hover:text-primary">Suporte</Link>
+        <Link to="/seguranca" className="transition hover:text-primary">Segurança e denúncias</Link>
+        <Link to="/termos" className="transition hover:text-primary">Termos e comunidade</Link>
+        <Link to="/privacidade" className="transition hover:text-primary">Privacidade</Link>
       </nav>
       <div className="mt-4"><InlineEditor label="contatos do rodapé" fields={[
         { name: "instagram_url", label: "Link do Instagram", type: "text" },
@@ -166,7 +173,7 @@ export function SiteFooter() {
       <div className="mt-3"><InlineEditor label="TikTok do rodapé" fields={[{ name: "tiktok_url", label: "Link do TikTok", type: "text" }]} values={{ tiktok_url: tiktokUrl }} onSave={saveTikTok} /></div>
       </div>
       <p className="mt-5">© {new Date().getFullYear()} Hiraeth ·{" "}
-        <Link to="/privacidade" className="underline hover:text-primary">Privacidade</Link>
+        <span>Onde a Chama Acesa te Espera</span>
       </p>
     </footer>
   );
