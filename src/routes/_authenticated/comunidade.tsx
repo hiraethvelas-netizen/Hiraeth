@@ -241,7 +241,6 @@ function Comunidade() {
   async function reactToMessage(message: Message, type: "heart" | "fire") {
     if (!userId || reactingMessageId) return;
     setReactingMessageId(message.id);
-    closeMessageMenu();
     const operation = getMessageReactionOperation(message.myReaction ?? null, type);
     try {
       const reactionsTable = (supabase as any).from("community_message_reactions");
@@ -718,7 +717,6 @@ function Comunidade() {
               {messages.map(message => {
                 const ownMessage = message.user_id === userId;
                 const messageIdentity = getCommunityMessageIdentity(message.is_admin === true);
-                const menuOpen = openMessageMenuId === message.id;
                 return <article key={message.id} className={`flex w-full flex-col ${ownMessage ? "items-end" : "items-start"}`}>
                   <div className={`relative w-fit max-w-[88%] rounded-2xl px-3.5 py-2.5 shadow-sm ${ownMessage ? "rounded-tr-sm border border-[#c6d5bd] bg-[#e3edda] text-[#243629] dark:border-[#50664f] dark:bg-[#304532] dark:text-[#f1f0e7]" : "rounded-tl-sm border border-[#e4ddcf] bg-[#f7efda] text-[#33352f] dark:border-[#455047] dark:bg-[#26332a] dark:text-[#f1f0e7]"} ${messageIdentity.bubbleClassName} ${message.is_pinned ? "ring-2 ring-[#b99a5b]/70" : ""}`}>
                     <div className="mb-1 flex items-center gap-2 pr-6">
