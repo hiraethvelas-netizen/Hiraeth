@@ -228,7 +228,7 @@ function Comunidade() {
   }
 
   async function deleteMessage(message: Message) {
-    if (!(message.user_id === userId || isAdmin) || !window.confirm("Deseja apagar esta mensagem?")) return;
+    if (message.user_id !== userId || !window.confirm("Deseja apagar esta mensagem?")) return;
     const { error } = await (supabase as any).from("community_messages").delete().eq("id", message.id);
     if (error) toast.error("Não foi possível apagar a mensagem."); else await loadMessages();
   }
@@ -506,34 +506,47 @@ function Comunidade() {
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#20382b] text-[#e8d8b4]"><Flame size={20}/></div>
               <div><h2 className="font-display text-lg">Círculo do Fogo</h2><p className="text-xs text-muted-foreground">Conversa da comunidade</p></div>
             </div>
-            <div className="flex-1 space-y-3 overflow-y-auto bg-[radial-gradient(circle_at_20%_20%,rgba(179,148,91,0.08),transparent_30%)] px-3 py-5 md:px-8">
+            <div className="flex-1 space-y-4 overflow-y-auto bg-[radial-gradient(circle_at_20%_20%,rgba(179,148,91,0.08),transparent_30%)] px-3 py-5 md:px-8">
               {messages.map(message => {
                 const ownMessage = message.user_id === userId;
                 const menuOpen = openMessageMenuId === message.id;
-                return <article key={message.id} className={`relative w-fit max-w-[88%] rounded-2xl px-3.5 py-2.5 shadow-sm ${message.is_admin ? "mr-auto rounded-tl-sm border border-[#b58a3b] bg-[#20382b] text-[#f5edda] shadow-[0_3px_14px_rgba(181,138,59,0.22)]" : ownMessage ? "ml-auto rounded-tr-sm border border-[#c6d5bd] bg-[#e3edda] text-[#243629] dark:border-[#50664f] dark:bg-[#304532] dark:text-[#f1f0e7]" : "mr-auto rounded-tl-sm border border-[#e4ddcf] bg-white text-[#33352f] dark:border-[#455047] dark:bg-[#26332a] dark:text-[#f1f0e7]"} ${message.is_pinned ? "ring-2 ring-[#b99a5b]/70" : ""}`}>
-                  <div className="mb-1 flex items-center gap-2 pr-7">
-                    <button type="button" onClick={() => void openPublicProfile(message.user_id)} className={`text-xs font-bold hover:underline ${message.is_admin ? "text-[#e6ca86]" : ownMessage ? "text-[#426246] dark:text-[#c6d9b8]" : "text-[#80653a] dark:text-[#d6bd88]"}`}>{message.is_admin ? "Hiraeth" : message.community_profiles?.username || "Integrante"}</button>
-                    {message.is_pinned && <span className="text-[9px] font-semibold uppercase tracking-wide text-[#c5a66b]">Fixada</span>}
-                  </div>
-                  {editingMessageId === message.id ? <div className="space-y-2">
-                    <textarea value={editingMessageBody} onChange={e => setEditingMessageBody(e.target.value)} maxLength={3000} className="w-full min-w-[220px] rounded-lg border border-primary/20 bg-background p-2 text-sm text-foreground"/>
-                    <div className="flex gap-3"><button type="button" onClick={() => void saveMessageEdit(message)} className="text-xs font-semibold underline">Salvar</button><button type="button" onClick={() => setEditingMessageId(null)} className="text-xs underline">Cancelar</button></div>
-                  </div> : <p className="whitespace-pre-wrap break-words text-sm leading-relaxed">{message.body}</p>}
-                  <div className="mt-1.5 flex items-center justify-end gap-1.5">
-                    <time className={`text-[9px] ${message.is_admin ? "text-[#d9c58e]" : "text-muted-foreground"}`}>{new Date(message.created_at).toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})}{message.edited_at ? " · editada" : ""}</time>
-                    <div className="relative">
-                      <button type="button" onClick={() => setOpenMessageMenuId(menuOpen ? null : message.id)} aria-label="Opções da mensagem" aria-expanded={menuOpen} className={`rounded-full p-1 transition-colors hover:bg-black/10 ${message.is_admin ? "text-[#e6ca86]" : "text-muted-foreground"}`}><MoreVertical size={16}/></button>
-                      {menuOpen && <div className="absolute bottom-full right-0 z-30 mb-1 min-w-36 overflow-hidden rounded-xl border border-primary/20 bg-background p-1 text-foreground shadow-xl">
-                        <button type="button" onClick={() => { void reactToMessage(message,"heart"); setOpenMessageMenuId(null); }} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs hover:bg-primary/10">❤️ Reagir · {message.heartCount ?? 0}</button>
-                        <button type="button" onClick={() => { void reactToMessage(message,"fire"); setOpenMessageMenuId(null); }} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs hover:bg-primary/10">🔥 Reagir · {message.fireCount ?? 0}</button>
-                        {ownMessage && <>
-                          <button type="button" onClick={() => { setEditingMessageId(message.id); setEditingMessageBody(message.body); setOpenMessageMenuId(null); }} className="block w-full rounded-lg px-3 py-2 text-left text-xs hover:bg-primary/10">Editar mensagem</button>
-                          <button type="button" onClick={() => { setOpenMessageMenuId(null); void deleteMessage(message); }} className="block w-full rounded-lg px-3 py-2 text-left text-xs text-red-600 hover:bg-red-50">Apagar mensagem</button>
-                        </>}
-                        {isAdmin && <button type="button" onClick={() => { setOpenMessageMenuId(null); void togglePinMessage(message); }} className="block w-full rounded-lg px-3 py-2 text-left text-xs hover:bg-primary/10">{message.is_pinned ? "Desafixar" : "Fixar mensagem"}</button>}
-                      </div>}
+                const reactions = [
+                  { type: "heart" as const, emoji: "❤️", count: message.heartCount ?? 0 },
+                  { type: "fire" as const, emoji: "🔥", count: message.fireCount ?? 0 },
+                ].filter(reaction => reaction.count > 0);
+                return <article key={message.id} className={`flex w-full flex-col ${ownMessage ? "items-end" : "items-start"}`}>
+                  <div className={`relative w-fit max-w-[88%] rounded-2xl px-3.5 py-2.5 shadow-sm ${ownMessage ? "rounded-tr-sm border border-[#c6d5bd] bg-[#e3edda] text-[#243629] dark:border-[#50664f] dark:bg-[#304532] dark:text-[#f1f0e7]" : "rounded-tl-sm border border-[#e4ddcf] bg-white text-[#33352f] dark:border-[#455047] dark:bg-[#26332a] dark:text-[#f1f0e7]"} ${message.is_pinned ? "ring-2 ring-[#b99a5b]/70" : ""}`}>
+                    <div className="mb-1 flex items-center gap-2 pr-6">
+                      <button type="button" onClick={() => void openPublicProfile(message.user_id)} className="text-xs font-bold text-[#80653a] hover:underline dark:text-[#d6bd88]">{message.is_admin ? "Hiraeth" : message.community_profiles?.username || "Integrante"}</button>
+                      {message.is_pinned && <span className="text-[9px] font-semibold text-[#a27b35]">Fixada</span>}
+                    </div>
+                    {editingMessageId === message.id ? <div className="min-w-[220px] space-y-2">
+                      <textarea value={editingMessageBody} onChange={e => setEditingMessageBody(e.target.value)} maxLength={3000} className="w-full rounded-lg border border-primary/20 bg-background p-2 text-sm text-foreground"/>
+                      <div className="flex justify-end gap-3"><button type="button" onClick={() => void saveMessageEdit(message)} className="text-xs font-semibold text-primary">Salvar</button><button type="button" onClick={() => setEditingMessageId(null)} className="text-xs text-muted-foreground">Cancelar</button></div>
+                    </div> : <p className="whitespace-pre-wrap break-words text-sm leading-relaxed">{message.body}</p>}
+                    <div className="mt-1.5 flex items-center justify-end gap-1.5">
+                      <time className="text-[10px] text-muted-foreground">{new Date(message.created_at).toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})}{message.edited_at ? " · editada" : ""}</time>
+                      <div className="relative">
+                        <button type="button" onClick={() => setOpenMessageMenuId(menuOpen ? null : message.id)} aria-label="Opções da mensagem" aria-expanded={menuOpen} className="rounded-full p-1 text-muted-foreground transition-colors hover:bg-black/10"><MoreVertical size={15}/></button>
+                        {menuOpen && <div className="absolute bottom-full right-0 z-30 mb-1 min-w-40 overflow-hidden rounded-xl border border-primary/20 bg-background p-1 text-foreground shadow-xl">
+                          <p className="px-3 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Reagir</p>
+                          <div className="flex items-center justify-around px-2 pb-2">
+                            <button type="button" onClick={() => { void reactToMessage(message,"heart"); setOpenMessageMenuId(null); }} aria-label="Reagir com coração" className="rounded-lg p-2 text-lg hover:bg-primary/10">❤️</button>
+                            <button type="button" onClick={() => { void reactToMessage(message,"fire"); setOpenMessageMenuId(null); }} aria-label="Reagir com fogo" className="rounded-lg p-2 text-lg hover:bg-primary/10">🔥</button>
+                          </div>
+                          {ownMessage && <>
+                            <div className="my-1 border-t border-primary/10"/>
+                            <button type="button" onClick={() => { setEditingMessageId(message.id); setEditingMessageBody(message.body); setOpenMessageMenuId(null); }} className="block w-full rounded-lg px-3 py-2 text-left text-xs hover:bg-primary/10">Editar mensagem</button>
+                            <button type="button" onClick={() => { setOpenMessageMenuId(null); void deleteMessage(message); }} className="block w-full rounded-lg px-3 py-2 text-left text-xs text-red-600 hover:bg-red-50">Apagar mensagem</button>
+                          </>}
+                          {isAdmin && <><div className="my-1 border-t border-primary/10"/><button type="button" onClick={() => { setOpenMessageMenuId(null); void togglePinMessage(message); }} className="block w-full rounded-lg px-3 py-2 text-left text-xs hover:bg-primary/10">{message.is_pinned ? "Desafixar mensagem" : "Fixar mensagem"}</button></>}
+                        </div>}
+                      </div>
                     </div>
                   </div>
+                  {reactions.length > 0 && <div className={`mt-1 flex gap-1 ${ownMessage ? "mr-2" : "ml-2"}`}>
+                    {reactions.map(reaction => <button key={reaction.type} type="button" onClick={() => void reactToMessage(message,reaction.type)} aria-label={`Reagir com ${reaction.emoji}`} className={`rounded-full border px-2 py-0.5 text-xs shadow-sm ${message.myReaction === reaction.type ? "border-primary/50 bg-primary/15" : "border-primary/15 bg-background/90"}`}>{reaction.emoji} {reaction.count}</button>)}
+                  </div>}
                 </article>;
               })}
               {messages.length === 0 && <p className="py-12 text-center text-sm text-muted-foreground">A conversa começa com você. Deixe a primeira mensagem!</p>}
