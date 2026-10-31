@@ -32,7 +32,7 @@ type CandleBookshelfProps = {
   items: CandleLibraryItem[];
   editable?: boolean;
   onAdd?: (values: CandleDraftInput) => Promise<void>;
-  onUpdate?: (id: string, values: CandleDraftWithImage) => Promise<void>;
+  onUpdate?: (id: string, values: CandleDraftInput) => Promise<void>;
   onFavorite?: (item: CandleLibraryItem) => Promise<void>;
   onRemove?: (item: CandleLibraryItem) => Promise<void>;
 };
