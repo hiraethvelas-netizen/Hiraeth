@@ -152,7 +152,7 @@ function Comunidade() {
     const rows = postRows ?? [];
     if (!rows.length) { setPosts([]); return; }
     const ids = rows.map((p: any) => p.id);
-    const users = [...new Set(rows.map((p: any) => p.user_id))];
+    const users: string[] = [...new Set<string>(rows.map((p: any) => String(p.user_id)))];
     const [{ data: profiles }, { data: reactions }, { data: commentRows }] = await Promise.all([
       (supabase as any).from("community_profiles").select("user_id,username,avatar_url").in("user_id", users),
       (supabase as any).from("community_post_reactions").select("post_id,user_id,reaction_type").in("post_id", ids),
