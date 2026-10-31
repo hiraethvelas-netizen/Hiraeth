@@ -1,16 +1,13 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { SiteFooter, SiteHeader } from "@/components/SiteLayout";
-import { brl } from "@/lib/format";
 import { toast } from "sonner";
 import { InlineEditor } from "@/components/InlineEditor";
 import { useSiteContent } from "@/lib/admin-edit";
 import { CandleBookshelf, type CandleDraftInput, type CandleLibraryItem } from "@/components/CandleBookshelf";
-import type { Tables } from "@/integrations/supabase/types";
 
 type LibraryItem = CandleLibraryItem & { product_id?: string | null };
-type WishlistItem = Tables<"wishlist_items"> & { products: Tables<"products"> | null };
 
 export const Route = createFileRoute("/_authenticated/biblioteca")({
   head: () => ({ meta: [{ title: "Minha Biblioteca — Hiraeth" }] }),
@@ -23,11 +20,8 @@ function Biblioteca() {
     title: "Minha Biblioteca",
     description: "Reúna sua coleção, acompanhe suas velas e guarde os próximos universos que deseja conhecer.",
     collectionLabel: "Minha coleção",
-    wishlistLabel: "Meus desejos",
   });
-  const [tab, setTab] = useState<"colecao" | "desejos">("colecao");
   const [library, setLibrary] = useState<LibraryItem[]>([]);
-  const [wishlist, setWishlist] = useState<WishlistItem[]>([]);
   const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -35,14 +29,12 @@ function Biblioteca() {
     const { data: userData } = await supabase.auth.getUser();
     if (!userData.user) { setLoading(false); return; }
     setUserId(userData.user.id);
-    const [{ data: lib, error: libraryError }, { data: wish, error: wishlistError }] = await Promise.all([
-      (supabase as any).from("community_library").select("*").eq("user_id", userData.user.id).order("created_at", { ascending: false }),
-      supabase.from("wishlist_items").select("*, products(*)").eq("user_id", userData.user.id).order("created_at", { ascending: false }),
-    ]);
+    const { data: lib, error: libraryError } = await (supabase as any).from("community_library")
+      .select("*")
+      .eq("user_id", userData.user.id)
+      .order("created_at", { ascending: false });
     if (libraryError) toast.error("Não foi possível carregar sua estante.");
-    if (wishlistError) toast.error("Não foi possível carregar seus desejos.");
     setLibrary((lib ?? []) as LibraryItem[]);
-    setWishlist((wish ?? []) as WishlistItem[]);
     setLoading(false);
   }, []);
 
@@ -133,57 +125,6 @@ function Biblioteca() {
     await load();
   }
 
-  async function removeWish(id: string) {
-    const { error } = await supabase.from("wishlist_items").delete().eq("id", id);
-    if (error) toast.error("Não foi possível remover este desejo.");
-    await load();
-  }
-
-  async function moveToCollection(item: WishlistItem) {
-    if (!userId || !item.products) return;
-    const { data: alreadyPurchased, error: purchaseLookupError } = await (supabase as any).from("community_library")
-      .select("id")
-      .eq("user_id", userId)
-      .eq("product_id", item.product_id)
-      .not("order_item_id", "is", null)
-      .limit(1)
-      .maybeSingle();
-    if (purchaseLookupError) { toast.error("Não foi possível verificar sua Biblioteca."); return; }
-    if (alreadyPurchased) {
-      const { error: removeWishError } = await supabase.from("wishlist_items").delete().eq("id", item.id);
-      if (removeWishError) toast.error("A vela já está na Biblioteca, mas não foi possível retirá-la dos desejos.");
-      else toast.success("Essa vela já está na sua Biblioteca por uma compra anterior.");
-      await load();
-      return;
-    }
-    const { error } = await (supabase as any).from("community_library").insert({
-      user_id: userId,
-      product_id: item.product_id,
-      title: item.products.name,
-      aroma: item.products.fragrance ?? null,
-      image_url: item.products.images?.[0] ?? null,
-    });
-    if (error) { toast.error("Não foi possível mover para sua coleção."); return; }
-    const { error: removeError } = await supabase.from("wishlist_items").delete().eq("id", item.id);
-    if (removeError) toast.error("A vela foi adicionada, mas não foi possível retirar o desejo.");
-    else toast.success("Movida para sua coleção.");
-    await load();
-  }
-
-  async function saveProduct(product: Tables<"products">, values: Record<string, unknown>) {
-    const payload = {
-      name: String(values["name"] ?? product.name),
-      description: String(values["description"] ?? "") || null,
-      price: Number(values["price"] ?? product.price),
-      sale_price: values["sale_price"] === "" || values["sale_price"] == null ? null : Number(values["sale_price"]),
-      fragrance: String(values["fragrance"] ?? "") || null,
-      images: Array.isArray(values["images"]) ? values["images"] as string[] : product.images,
-    };
-    const { error } = await supabase.from("products").update(payload).eq("id", product.id);
-    if (error) throw error;
-    setWishlist(current => current.map(item => item.product_id === product.id && item.products ? { ...item, products: { ...item.products, ...payload } } : item));
-  }
-
   return (
     <div className="min-h-screen">
       <SiteHeader />
@@ -194,7 +135,6 @@ function Biblioteca() {
             { name: "title", label: "Título da página", type: "text" },
             { name: "description", label: "Texto de apresentação", type: "textarea" },
             { name: "collectionLabel", label: "Nome da aba da coleção", type: "text" },
-            { name: "wishlistLabel", label: "Nome da aba de favoritos/desejos", type: "text" },
           ]} values={pageSettings} onSave={async next => savePageSettings({ ...pageSettings, ...next } as typeof pageSettings)} />
         </div>
         <p className="eyebrow">{pageSettings.eyebrow}</p>
@@ -202,60 +142,14 @@ function Biblioteca() {
         {pageSettings.description && <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">{pageSettings.description}</p>}
 
         <div className="mt-6 flex flex-wrap items-center gap-3 border-b border-primary/20 pb-4">
-          <button type="button" onClick={() => setTab("colecao")} className={`border px-4 py-2 text-xs uppercase tracking-widest ${tab === "colecao" ? "border-primary bg-primary/10 text-primary" : "border-transparent text-muted-foreground"}`}>
-            {pageSettings.collectionLabel} ({library.length})
-          </button>
-          <button type="button" onClick={() => setTab("desejos")} className={`border px-4 py-2 text-xs uppercase tracking-widest ${tab === "desejos" ? "border-primary bg-primary/10 text-primary" : "border-transparent text-muted-foreground"}`}>
-            {pageSettings.wishlistLabel} ({wishlist.length})
-          </button>
-          <span className="flex-1" />
-          <Link to="/pedidos" className="text-sm text-muted-foreground underline hover:text-primary">Meus pedidos</Link>
-          <Link to="/configuracoes" search={{ tab: "perfil" }} className="text-sm text-muted-foreground underline hover:text-primary">Configurações da conta</Link>
+          <span className="text-xs uppercase tracking-widest text-muted-foreground">{pageSettings.collectionLabel} ({library.length})</span>
         </div>
 
-        {tab === "colecao" && (
-          <section className="mt-5">
-            {loading
-              ? <p className="py-12 text-center text-muted-foreground">Arrumando sua estante...</p>
-              : <CandleBookshelf items={library} editable onAdd={addManual} onUpdate={updateCandle} onFavorite={toggleFavorite} onRemove={removeLibraryItem} />}
-          </section>
-        )}
-
-        {tab === "desejos" && (
-          wishlist.length === 0 ? (
-            <div className="mt-12 text-center">
-              <p className="font-display text-2xl italic text-primary">Nenhum desejo guardado</p>
-              <p className="mt-2 text-muted-foreground">Use o coração nas páginas de produto.</p>
-              <Link to="/loja" className="btn-gold mt-6">Explorar a loja</Link>
-            </div>
-          ) : (
-            <ul className="mt-8 divide-y">
-              {wishlist.map(item => (
-                <li key={item.id} className="flex items-center gap-4 py-4">
-                  <div className="h-16 w-16 shrink-0 overflow-hidden border bg-muted">
-                    {item.products?.images?.[0] && <img src={item.products.images[0]} alt="" className="h-full w-full object-cover" />}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    {item.products
-                      ? <Link to="/produto/$slug" params={{ slug: item.products.slug }} className="text-xl text-foreground hover:text-primary">{item.products.name}</Link>
-                      : <p className="text-xl text-muted-foreground">Produto indisponível</p>}
-                    {item.products && <InlineEditor label={`produto ${item.products.name}`} fields={[
-                      { name: "name", label: "Nome", type: "text" },
-                      { name: "description", label: "Descrição", type: "textarea" },
-                      { name: "price", label: "Preço", type: "text" },
-                      { name: "sale_price", label: "Preço promocional", type: "text" },
-                      { name: "fragrance", label: "Fragrância", type: "text" },
-                      { name: "images", label: "Imagens", type: "images" },
-                    ]} values={{ name: item.products.name, description: item.products.description ?? "", price: String(item.products.price), sale_price: item.products.sale_price == null ? "" : String(item.products.sale_price), fragrance: item.products.fragrance ?? "", images: item.products.images ?? [] }} onSave={values => saveProduct(item.products!, values)} />}
-                    {item.products && <p className="text-sm text-muted-foreground">{item.products.stock > 0 ? `${brl(Number(item.products.sale_price ?? item.products.price))} · disponível` : "Indisponível no momento"}</p>}
-                  </div>
-                  {item.products && <button type="button" onClick={() => void moveToCollection(item)} className="text-sm text-muted-foreground underline hover:text-primary">Mover para coleção</button>}
-                  <button type="button" onClick={() => void removeWish(item.id)} className="text-sm text-muted-foreground hover:text-destructive">Remover</button>
-                </li>
-              ))}
-            </ul>
-          )
-        )}
+        <section className="mt-5">
+          {loading
+            ? <p className="py-12 text-center text-muted-foreground">Arrumando sua estante...</p>
+            : <CandleBookshelf items={library} editable onAdd={addManual} onUpdate={updateCandle} onFavorite={toggleFavorite} onRemove={removeLibraryItem} />}
+        </section>
       </main>
       <SiteFooter />
     </div>
