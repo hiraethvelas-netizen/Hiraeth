@@ -19,6 +19,75 @@ jobs:
           bun-version: latest
       - name: Install dependencies
         run: bun install --frozen-lockfile
+      - name: Compare ESLint and TypeScript before and after PR #24
+        env:
+          BASE_SHA: 2b1586460ef1c6239f810cae351bd3e4e0b74fb7
+          MERGE_SHA: 3e4209bea958f70936dc0deda48e8d120931b094
+        run: |
+          set +e
+          git fetch origin "$BASE_SHA" "$MERGE_SHA"
+          git checkout --detach "$BASE_SHA"
+          bunx eslint . --format json > /tmp/eslint-before.json 2>&1
+          bunx tsc --noEmit --pretty false > /tmp/tsc-before.txt 2>&1
+          git checkout --detach "$MERGE_SHA"
+          bunx eslint . --format json > /tmp/eslint-after.json 2>&1
+          bunx tsc --noEmit --pretty false > /tmp/tsc-after.txt 2>&1
+          node --input-type=module <<'NODE'
+          import fs from "node:fs";
+          function readJson(file) {
+            try { return JSON.parse(fs.readFileSync(file, "utf8")); }
+            catch { return []; }
+          }
+          function lintCounts(results) {
+            const counts = new Map(); let total = 0;
+            for (const result of results) for (const item of result.messages ?? []) {
+              if (item.severity !== 2) continue;
+              const file = (result.filePath ?? "").replace(process.cwd() + "/", "");
+              const key = [file, item.ruleId ?? "fatal", item.message].join(" :: ");
+              counts.set(key, (counts.get(key) ?? 0) + 1); total++;
+            }
+            return { counts, total };
+          }
+          function differences(before, after) {
+            const added = []; const removed = [];
+            for (const [key, count] of after.counts) {
+              const delta = count - (before.counts.get(key) ?? 0);
+              if (delta > 0) added.push({ key, count: delta });
+            }
+            for (const [key, count] of before.counts) {
+              const delta = count - (after.counts.get(key) ?? 0);
+              if (delta > 0) removed.push({ key, count: delta });
+            }
+            return { added, removed };
+          }
+          const beforeLint = lintCounts(readJson("/tmp/eslint-before.json"));
+          const afterLint = lintCounts(readJson("/tmp/eslint-after.json"));
+          const lintDiff = differences(beforeLint, afterLint);
+          console.log(`ESLint errors before PR #24: ${beforeLint.total}`);
+          console.log(`ESLint errors after PR #24: ${afterLint.total}`);
+          console.log(`New ESLint diagnostics: ${lintDiff.added.reduce((n, x) => n + x.count, 0)}`);
+          console.log(`Removed ESLint diagnostics: ${lintDiff.removed.reduce((n, x) => n + x.count, 0)}`);
+          for (const item of lintDiff.added.slice(0, 80)) console.log(`NEW ESLINT: ${item.count} x ${item.key}`);
+          function typeErrors(file) {
+            return fs.readFileSync(file, "utf8").split(/\r?\n/).filter((line) => /error TS\d+/.test(line)).map((line) => {
+              const match = line.match(/^(.+?)\(\d+,\d+\): error (TS\d+): (.*)$/);
+              return match ? `${match[1]} :: ${match[2]} :: ${match[3]}` : line.trim();
+            });
+          }
+          function typeCounts(list) { const counts = new Map(); for (const key of list) counts.set(key, (counts.get(key) ?? 0) + 1); return counts; }
+          const beforeTypes = typeCounts(typeErrors("/tmp/tsc-before.txt"));
+          const afterTypes = typeCounts(typeErrors("/tmp/tsc-after.txt"));
+          let beforeTotal = 0; let afterTotal = 0; let newTotal = 0; let removedTotal = 0;
+          for (const n of beforeTypes.values()) beforeTotal += n;
+          for (const n of afterTypes.values()) afterTotal += n;
+          console.log(`TypeScript errors before PR #24: ${beforeTotal}`);
+          console.log(`TypeScript errors after PR #24: ${afterTotal}`);
+          for (const [key, count] of afterTypes) { const d = count - (beforeTypes.get(key) ?? 0); if (d > 0) { newTotal += d; console.log(`NEW TYPESCRIPT: ${d} x ${key}`); } }
+          for (const [key, count] of beforeTypes) { const d = count - (afterTypes.get(key) ?? 0); if (d > 0) removedTotal += d; }
+          console.log(`New TypeScript diagnostics: ${newTotal}`);
+          console.log(`Removed TypeScript diagnostics: ${removedTotal}`);
+          NODE
+          git checkout --detach "$GITHUB_SHA"
       - name: Run tests
         run: bun run test
       - name: Build production bundle
