@@ -426,7 +426,13 @@ function Comunidade() {
   }
 
   async function removeLibraryCandle(id: string) {
-    const { error } = await (supabase as any).from("community_library").delete().eq("id", id).eq("user_id", userId);
+    const { data, error } = await (supabase as any).from("community_library")
+      .delete()
+      .eq("id", id)
+      .eq("user_id", userId)
+      .is("order_item_id", null)
+      .select("id")
+      .maybeSingle();
     if (error || !data) toast.error("Não foi possível remover esta vela da estante.");
     else setLibrary(current => current.filter(item => item.id !== id));
   }
