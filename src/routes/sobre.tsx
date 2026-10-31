@@ -78,6 +78,15 @@ function Sobre() {
         <h2 className="max-w-3xl font-serif text-4xl font-medium leading-[1.08] tracking-tight sm:text-6xl">Algumas histórias merecem ser <span className="font-bold italic">sentidas.</span></h2>
         <p className="mt-5 max-w-2xl font-serif text-base leading-relaxed text-[#49443b] sm:text-xl">Cada criação guarda uma lembrança, cada aroma abre uma passagem e cada detalhe faz parte de quem somos.</p>
       </section>
+      <section className="relative overflow-hidden rounded-sm border border-[#b6a77f]/40 bg-[#e8e0d2] px-6 py-9 text-[#302b24] sm:px-12 sm:py-12">
+        <p className="mb-3 text-[10px] font-semibold uppercase tracking-[.24em] text-[#927b45]">A palavra por trás da chama</p>
+        <h2 className="font-serif text-4xl font-medium leading-tight sm:text-5xl">O que significa <span className="font-bold italic">Hiraeth?</span></h2>
+        <p className="mt-5 max-w-3xl font-serif text-base leading-[1.9] sm:text-lg">Hiraeth é uma palavra de origem galesa que expressa uma saudade profunda — o desejo de voltar a um lugar, a um tempo ou a uma sensação que marcou a nossa vida. É uma mistura de nostalgia, pertencimento e amor por algo que, mesmo distante, continua vivo dentro de nós.</p>
+        <p className="mt-4 max-w-3xl font-serif text-base leading-[1.9] sm:text-lg">Não existe uma tradução perfeita. Talvez porque alguns sentimentos sejam grandes demais para caber em uma única palavra.</p>
+        <div className="mt-7 border-t border-[#a99b7b]/50 pt-5">
+          <p className="max-w-3xl font-serif text-lg italic leading-relaxed sm:text-xl">Foi nesse sentimento que encontramos a essência da Hiraeth: criar aromas que despertam lembranças, aproximam histórias e fazem você se sentir, por alguns instantes, exatamente onde gostaria de estar.</p>
+        </div>
+      </section>
       {shownBlocks.map((block, index) => {
         const palettes = [
           { bg: "bg-[#f4f0e8]", ink: "text-[#302b24]", accent: "text-[#8b7446]" },
