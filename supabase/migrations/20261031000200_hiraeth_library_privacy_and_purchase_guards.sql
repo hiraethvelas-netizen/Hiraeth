@@ -126,6 +126,12 @@ begin
     return;
   end if;
 
+  -- A estante é de velas: camisetas e demais peças de vestuário não entram nela.
+  if lower(coalesce(v_product_name, '') || ' ' || coalesce(v_category, ''))
+     ~ '(camiseta|t-shirt|roupa|vestu[aá]rio)' then
+    return;
+  end if;
+
   if exists (
     select 1 from public.community_library linked
     where linked.order_item_id = p_order_item_id
