@@ -857,3 +857,12 @@ body > div {
   background: rgba(44,34,17,.42);
   color: #fff1c8;
 }
+
+.hiraeth-review-action,
+.hiraeth-review-submit {
+  border-color: #c6a65b;
+  background: #c6a65b;
+  color: #5b1d04;
+}
+.hiraeth-review-eyebrow { color: #d6bd88; }
+:root.dark .hiraeth-review-eyebrow { color: #5b1d04; }
