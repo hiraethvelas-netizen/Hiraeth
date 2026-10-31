@@ -39,7 +39,14 @@ export const Route = createFileRoute("/loja")({
 });
 
 
-function filteredProductsForApparel(products: Product[], categories: Category[]) {\n  return products.filter((product) => {\n    const category = categories.find((item) => item.id === product.category_id);\n    return /camiseta|t-shirt|roupa|vestuário/i.test(`${product.name} ${category?.name ?? ""}`);\n  });\n}\n\nfunction Loja() {
+function filteredProductsForApparel(products: Product[], categories: Category[]) {
+  return products.filter((product) => {
+    const category = categories.find((item) => item.id === product.category_id);
+    return /camiseta|t-shirt|roupa|vestuário/i.test(`${product.name} ${category?.name ?? ""}`);
+  });
+}
+
+function Loja() {
   const [pageSettings, savePageSettings] = useSiteContent("store-page-settings", { eyebrow: "O Acervo Hiraeth", title: "O Acervo Hiraeth", intro: "Encontre o universo que mora em você.", bannerImage: "", showBanner: false });
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
