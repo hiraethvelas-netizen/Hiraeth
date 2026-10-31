@@ -79,19 +79,25 @@ function Sobre() {
           <input id={`story-polaroid-upload-${block.id}`} type="file" multiple accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={event => { void addStoryPhotos(index, event.currentTarget.files); event.currentTarget.value = ""; }} />
           <span className="text-xs text-muted-foreground">JPG, PNG ou WebP · até 5 MB por foto</span>
         </div>}
-        <InlineEditor label={`bloco ${block.title || "da história"}`} fields={[{ name: "title", label: "Título do bloco", type: "text" }, { name: "text", label: "Texto do bloco", type: "textarea" }, { name: "layout", label: "Layout", type: "select", options: [{ value: "text", label: "Texto e links" }, { value: "image-left", label: "Imagem à esquerda" }, { value: "image-right", label: "Imagem à direita" }, { value: "gallery", label: "Galeria" }] }]} values={{ title: block.title, text: block.text, layout: block.layout }} onSave={async (next) => {
+        <div className={block.layout === "image-left" ? "grid gap-6 md:grid-cols-[auto_1fr] md:items-start" : block.layout === "image-right" ? "grid gap-6 md:grid-cols-[1fr_auto] md:items-start" : "space-y-5"}>
+          <div className={block.layout === "image-left" ? "md:order-1" : block.layout === "image-right" ? "md:order-2" : ""}>
+            <h2 className="mb-4 font-display text-2xl font-semibold leading-snug text-foreground sm:text-3xl">{block.title}</h2>
+            <p className="whitespace-pre-line text-base font-medium leading-relaxed text-foreground/90 sm:text-lg">{block.text}</p>
+          </div>
+          {block.images?.length > 0 && <div className={`flex flex-wrap items-start justify-center gap-4 py-3 sm:gap-5 ${block.layout === "image-left" ? "md:order-0" : block.layout === "image-right" ? "md:order-3" : ""}`}>
+            {block.images.map((url, photoIndex) => <figure key={url + photoIndex} className={`w-[clamp(104px,28vw,148px)] shrink-0 border-[7px] border-b-[28px] border-white bg-white p-1 shadow-lg sm:w-[150px] sm:border-[9px] sm:border-b-[32px] ${photoIndex % 4 === 0 ? "-rotate-2" : photoIndex % 4 === 1 ? "rotate-2" : photoIndex % 4 === 2 ? "rotate-1" : "-rotate-1"}`}>
+              <img src={url} alt={`Foto ${photoIndex + 1} da história da Hiraeth`} className="aspect-[4/5] w-full object-cover" loading="lazy" />
+              <figcaption className="mt-1 truncate text-center font-display text-[10px] italic text-[#354333] sm:text-xs">Hiraeth</figcaption>
+              {editing && <button type="button" onClick={() => void removeStoryPhoto(index, photoIndex)} className="mt-1 w-full text-[10px] text-red-700">Remover</button>}
+            </figure>)}
+          </div>}
+        </div>
+        {editing && <InlineEditor label={`Editar texto de ${block.title || "bloco da história"}`} fields={[{ name: "title", label: "Título do bloco", type: "text" }, { name: "text", label: "Texto do bloco", type: "textarea" }, { name: "layout", label: "Layout", type: "select", options: [{ value: "text", label: "Texto e links" }, { value: "image-left", label: "Imagem à esquerda" }, { value: "image-right", label: "Imagem à direita" }, { value: "gallery", label: "Galeria" }] }]} values={{ title: block.title, text: block.text, layout: block.layout }} onSave={async (next) => {
           const updated = shownBlocks.map((item, i) => i === index ? { ...item, title: String(next["title"] ?? ""), text: String(next["text"] ?? ""), layout: String(next["layout"] ?? item.layout) as AboutBlock["layout"] } : item);
-          const { error } = await (supabase as any).from("site_content").upsert({ key: "about_page_blocks", value: { blocks: updated }, updated_at: new Date().toISOString() }, { onConflict: "key" });
+          const { error } = await (supabase as any).from("site_content").upsert({ key: "about_page_blocks", value: { version: 2, blocks: updated }, updated_at: new Date().toISOString() }, { onConflict: "key" });
           if (error) throw error;
           setBlocks(updated);
-        }} />
-        {block.images?.length > 0 && <div className="flex flex-wrap items-start justify-center gap-4 py-3 sm:gap-6">
-          {block.images.map((url, photoIndex) => <figure key={url + photoIndex} className={`w-[ min(38vw, 148px)] max-w-[148px] shrink-0 border-[7px] border-b-[30px] border-white bg-white p-1 shadow-lg sm:w-[160px] sm:max-w-[160px] sm:border-[9px] sm:border-b-[34px] ${photoIndex % 4 === 0 ? "-rotate-2" : photoIndex % 4 === 1 ? "rotate-2" : photoIndex % 4 === 2 ? "rotate-1" : "-rotate-1"}`}>
-            <img src={url} alt={`Foto ${photoIndex + 1} da história da Hiraeth`} className="aspect-[4/5] w-full object-cover" loading="lazy" />
-            <figcaption className="mt-1 truncate text-center font-display text-[10px] italic text-[#354333] sm:text-xs">Hiraeth</figcaption>
-            {editing && <button type="button" onClick={() => void removeStoryPhoto(index, photoIndex)} className="mt-1 w-full text-[10px] text-red-700">Remover</button>}
-          </figure>)}
-        </div>}
+        }} />}
       </section>)}
       <p className="border-t pt-6 italic text-primary">{pageSettings.closing}</p>
     </div>
