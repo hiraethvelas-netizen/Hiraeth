@@ -100,7 +100,6 @@ export function CandleBookshelf({
       : categoryFilter === "Sem categoria"
         ? items.filter(item => !item.finished && !item.category?.trim())
         : items.filter(item => !item.finished && item.category?.trim() === categoryFilter);
-  const rows = Array.from({ length: Math.ceil(visibleItems.length / 3) }, (_, index) => visibleItems.slice(index * 3, index * 3 + 3));
   const canEditSelected = Boolean(dialogItem && editable && (!dialogItem.order_item_id || dialogItem.purchase_status === "delivered"));
   const dialogTitle = dialogMode === "add" ? "Adicionar vela antiga" : dialogMode === "edit" ? "Editar vela" : dialogItem?.title ?? "";
 
@@ -204,35 +203,37 @@ export function CandleBookshelf({
           </p>
         </div>
       ) : (
-        <div className="overflow-hidden rounded-lg border-[7px] border-[#3b2619] bg-[repeating-linear-gradient(90deg,rgba(238,190,128,0.07)_0px,rgba(238,190,128,0.07)_2px,rgba(20,10,5,0.10)_3px,transparent_9px),linear-gradient(135deg,#795235_0%,#513321_42%,#6c462c_100%)] p-2 shadow-[inset_0_0_22px_rgba(0,0,0,0.48),0_16px_30px_rgba(42,28,18,0.24)] sm:p-4">
-          {rows.map((row, rowIndex) => (
-            <div
-              key={rowIndex}
-              className="relative grid grid-cols-3 gap-2 border-b-[14px] border-[#3e281a] bg-[repeating-linear-gradient(90deg,rgba(246,203,150,0.08)_0px,rgba(246,203,150,0.08)_2px,rgba(27,12,5,0.1)_3px,transparent_10px),linear-gradient(180deg,#b17a4c_0%,#704329_43%,#4a2f1e_100%)] px-1 pb-2 pt-4 shadow-[0_8px_7px_-5px_rgba(0,0,0,0.85),inset_0_2px_2px_rgba(255,230,185,0.22)] after:pointer-events-none after:absolute after:bottom-[-14px] after:left-0 after:h-[14px] after:w-full after:bg-[linear-gradient(180deg,#8b5b37_0%,#4a2e1d_100%)] after:shadow-[0_5px_5px_rgba(0,0,0,0.45)] sm:gap-4 sm:px-3 sm:pb-3 sm:pt-5"
-            >
-              {row.map(item => (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => openItem(item)}
-                  className="group flex min-w-0 flex-col items-center rounded-sm px-1 pb-2 text-center transition hover:bg-[#f7efda]/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#e0c58b]"
-                  aria-label={`Abrir detalhes da vela ${item.title}`}
-                >
-                  <span className="relative block aspect-[4/5] w-full max-w-[120px] overflow-hidden rounded-sm border border-[#c2a47a] bg-[#e9dec8] shadow-[0_5px_12px_rgba(0,0,0,0.38)]">
-                    {item.image_url
-                      ? <img src={item.image_url} alt={item.title} loading="lazy" className={"h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" + (item.finished ? " grayscale opacity-65" : "")} />
-                      : <span className={"flex h-full w-full items-center justify-center p-2 font-display text-xs italic text-[#634b35] sm:text-sm" + (item.finished ? " grayscale opacity-65" : "")}>{item.title}</span>}
-                    {item.favorite && <span className="absolute right-1 top-1 rounded-full bg-[#f7efda] p-1 text-[#8b3426]"><Heart size={12} fill="currentColor" /></span>}
-                    {item.finished && <span className="absolute left-1 top-1 rounded bg-[#2c2924]/90 px-1.5 py-1 text-[8px] font-semibold tracking-[.12em] text-[#eee5d5]">ACABOU</span>}
-                    {item.order_item_id && <span className="absolute bottom-1 left-1 rounded bg-[#18251d]/85 px-1.5 py-0.5 text-[8px] font-semibold text-[#f7efda] sm:text-[9px]">{item.purchase_status === "delivered" ? "ENTREGUE" : "COMPRA"}</span>}
-                    {(item.quantity ?? 1) > 1 && <span className="absolute right-1 bottom-1 rounded bg-[#f7efda]/95 px-1.5 py-0.5 text-[9px] font-bold text-[#3f2b20]">×{item.quantity}</span>}
-                  </span>
-                  <span className={"mt-2 line-clamp-2 min-h-8 w-full break-words font-display text-xs font-medium sm:text-sm" + (item.finished ? " text-[#b9aa96]" : " text-[#f7efda]")}>{item.title}</span>
-                  {item.aroma && <span className="mt-0.5 line-clamp-1 w-full text-[9px] text-[#e4d5b8] sm:text-[10px]">{item.aroma}</span>}
-                </button>
-              ))}
-            </div>
-          ))}
+        <div className="relative overflow-hidden rounded-2xl border border-[#896a49] bg-[radial-gradient(ellipse_at_top,rgba(203,166,113,0.13),transparent_55%),linear-gradient(145deg,#493527_0%,#34251d_52%,#493426_100%)] p-2.5 shadow-[0_14px_32px_rgba(35,24,17,0.22),inset_0_1px_0_rgba(244,224,187,0.18)] sm:p-4">
+          <div aria-hidden="true" className="pointer-events-none absolute inset-2 rounded-xl border border-[#c09b69]/20 sm:inset-3" />
+          <div className="relative grid grid-cols-1 gap-3 min-[420px]:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 sm:gap-4">
+            {visibleItems.map((item, itemIndex) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => openItem(item)}
+                className="group relative flex min-w-0 flex-col items-center rounded-xl border border-[#b99568]/55 bg-[linear-gradient(155deg,#fbf6eb_0%,#f0e6d3_100%)] p-3 text-center shadow-[0_5px_14px_rgba(17,12,8,0.20),inset_0_1px_0_rgba(255,255,255,0.85)] transition duration-300 hover:-translate-y-1 hover:border-[#c49a60] hover:shadow-[0_10px_20px_rgba(17,12,8,0.28)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#e4c58e] sm:p-3.5"
+                aria-label={`Abrir detalhes da vela ${item.title}`}
+              >
+                <span aria-hidden="true" className="mb-2 flex w-full items-center justify-between text-[9px] font-semibold uppercase tracking-[.2em] text-[#88704e]">
+                  <span>Acervo Hiraeth</span>
+                  <span className="tabular-nums">{String(itemIndex + 1).padStart(2, "0")}</span>
+                </span>
+                <span className="relative block aspect-[4/5] w-full max-w-[190px] overflow-hidden rounded-lg border border-[#c6ad84] bg-[#e8ddc8] shadow-[0_4px_12px_rgba(46,32,19,0.18)]">
+                  {item.image_url
+                    ? <img src={item.image_url} alt={item.title} loading="lazy" className={"h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]" + (item.finished ? " grayscale opacity-65" : "")} />
+                    : <span className={"flex h-full w-full items-center justify-center p-4 font-display text-sm italic leading-snug text-[#5b4a35] sm:text-base" + (item.finished ? " grayscale opacity-65" : "")}>{item.title}</span>}
+                  {item.favorite && <span className="absolute right-2 top-2 rounded-full border border-[#d9c5a4] bg-[#fbf4e7] p-1.5 text-[#8b3426] shadow-sm"><Heart size={13} fill="currentColor" /></span>}
+                  {item.finished && <span className="absolute left-2 top-2 rounded-md border border-[#eadcc2]/40 bg-[#292820]/90 px-2 py-1 text-[8px] font-semibold tracking-[.14em] text-[#f4ead6] shadow-sm">ACABOU</span>}
+                  {item.order_item_id && <span className="absolute bottom-2 left-2 rounded-md border border-[#e4d6b9]/30 bg-[#203329]/90 px-2 py-1 text-[8px] font-semibold tracking-[.08em] text-[#f7efda] shadow-sm sm:text-[9px]">{item.purchase_status === "delivered" ? "ENTREGUE" : "COMPRA"}</span>}
+                  {(item.quantity ?? 1) > 1 && <span className="absolute bottom-2 right-2 rounded-md border border-[#d9c6a4] bg-[#fbf4e7]/95 px-2 py-1 text-[9px] font-bold text-[#3f2b20] shadow-sm">×{item.quantity}</span>}
+                </span>
+                <span className={"mt-3 line-clamp-2 min-h-10 w-full break-words font-display text-[15px] font-semibold leading-tight sm:text-base" + (item.finished ? " text-[#827760]" : " text-[#29382d]")}>{item.title}</span>
+                {item.aroma && <span className="mt-1 line-clamp-1 w-full text-[10px] tracking-[.04em] text-[#74664f] sm:text-[11px]">{item.aroma}</span>}
+                <span aria-hidden="true" className="mt-3 h-px w-10 bg-[#b58a52]/70 transition-all duration-300 group-hover:w-16" />
+              </button>
+            ))}
+          </div>
+          <div aria-hidden="true" className="pointer-events-none mt-3 h-px bg-gradient-to-r from-transparent via-[#c3a174]/45 to-transparent" />
         </div>
       )}
 
