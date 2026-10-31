@@ -3,6 +3,7 @@ import { useState } from "react";
 import { PageShell } from "@/components/SiteLayout";
 import { InlineEditor } from "@/components/InlineEditor";
 import { useSiteContent } from "@/lib/admin-edit";
+import { getVideoEmbedUrl } from "@/lib/video-embed";
 
 type CareContent = { title: string; intro: string; customText?: string; firstTitle: string; firstText: string; wickTitle: string; wickText: string; burnTitle: string; burnText: string; safetyTitle: string; safetyText: string; extinguishTitle: string; extinguishText: string; storageTitle: string; storageText: string; mediaImage: string; videoUrl: string; bannerImage: string; showBanner: boolean; mediaLinkLabel: string; mediaLinkUrl: string; modalTitle: string; modalText: string; modalButton: string };
 const defaults: CareContent = {
@@ -23,14 +24,6 @@ function H({ children }: { children: string }) {
  return <h2 className="pt-4 text-3xl text-primary">{children}</h2>;
 }
 
-function getVideoEmbedUrl(url: string) {
- if (url.includes("vimeo.com")) {
-  const id = url.match(/vimeo\.com\/(?:video\/)?(\d+)/)?.[1];
-  return id ? `https://player.vimeo.com/video/${id}` : null;
- }
- const id = url.match(/(?:shorts\/|youtu\.be\/|v=)([\w-]+)/)?.[1];
- return id ? `https://www.youtube.com/embed/${id}` : null;
-}
 function Cuidados() {
  const [content, save] = useSiteContent<CareContent>("care-page", defaults);
  const [modalOpen, setModalOpen] = useState(false);
