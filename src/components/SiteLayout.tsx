@@ -2,7 +2,6 @@ import { Link, useRouter } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 import { useCart } from "@/lib/cart";
-import fenixImage from "@/assets/fenix.png";
 import { supabase } from "@/integrations/supabase/client";
 import { InlineEditor } from "@/components/InlineEditor";
 import { useAdminEdit } from "@/lib/admin-edit";
@@ -50,16 +49,14 @@ export function SiteHeader() {
             <span className="hidden sm:inline">Minha conta</span>
           </summary>
           <div className="absolute left-0 top-full z-[90] mt-3 w-56 overflow-hidden rounded-md border border-primary/30 bg-background p-1.5 shadow-[0_12px_32px_rgba(0,0,0,0.22)] ring-1 ring-background">
-            <Link to="/biblioteca" className="block rounded px-3 py-2.5 text-sm text-foreground/85 transition-colors hover:bg-primary/10 hover:text-primary">
+            <Link to="/configuracoes" search={{ tab: "perfil" }} className="block rounded px-3 py-2.5 text-sm text-foreground/85 transition-colors hover:bg-primary/10 hover:text-primary">
               Minha conta
             </Link>
-            <Link to="/configuracoes" className="block rounded px-3 py-2.5 text-sm text-foreground/85 transition-colors hover:bg-primary/10 hover:text-primary">
-              Configurações
+            <Link to="/pedidos" className="block rounded px-3 py-2.5 text-sm text-foreground/85 transition-colors hover:bg-primary/10 hover:text-primary">
+              Meus pedidos
             </Link>
-            <div className="my-1 border-t border-primary/20" />
-            <Link to="/auth" search={{ redirect: "/admin" }} className="flex items-center gap-2.5 rounded px-3 py-2.5 text-sm font-medium text-primary transition-colors hover:bg-primary/10">
-              <img src={fenixImage} alt="" aria-hidden="true" className="h-5 w-5 object-contain" />
-              <span>Administrativo</span>
+            <Link to="/configuracoes" search={{ tab: "configuracoes" }} className="block rounded px-3 py-2.5 text-sm text-foreground/85 transition-colors hover:bg-primary/10 hover:text-primary">
+              Configurações
             </Link>
           </div>
         </details>

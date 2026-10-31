@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
+import { getPostLoginDestination, getSafeInternalRedirect } from "@/lib/auth-routing";
 import { supabase } from "@/integrations/supabase/client";
 import { SiteFooter, SiteHeader } from "@/components/SiteLayout";
 
@@ -30,12 +31,8 @@ function AuthPage() {
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [welcomeName, setWelcomeName] = useState<string | null>(null);
-  const [welcomeMode, setWelcomeMode] = useState<"signup" | "returning" | "admin" | null>(null);
-
-  const requested = redirect && redirect.startsWith("/") ? redirect : "/inicio";
+  const requested = getSafeInternalRedirect(redirect);
   const isAdminLogin = requested === "/admin";
-  const destination = isAdminLogin ? "/inicio" : requested;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -47,38 +44,36 @@ function AuthPage() {
         localStorage.setItem("hiraeth-remember-session", rememberSession ? "true" : "false");
         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        if (isAdminLogin) {
-          const { data: isAdmin, error: roleError } = await supabase.rpc("has_role", {
-            _user_id: data.user.id,
-            _role: "admin",
-          });
-          if (roleError || isAdmin !== true) {
-            await supabase.auth.signOut();
-            setError("Esta é uma página administrativa. Somente a responsável pela Hiraeth pode acessar. Entre com a conta administrativa autorizada.");
-            return;
-          }
-          setWelcomeName("Hira");
-          setWelcomeMode("admin");
+        const userId = data.user?.id;
+        if (!userId) throw new Error("Não foi possível identificar a conta autenticada.");
+        const { data: adminRole, error: roleError } = await supabase.rpc("has_role", {
+          _user_id: userId,
+          _role: "admin",
+        });
+        const isAdmin = !roleError && adminRole === true;
+        if (isAdminLogin && !isAdmin) {
+          await supabase.auth.signOut();
+          setError("Esta área é reservada à administração da Hiraeth. Entre com a conta administrativa autorizada.");
           return;
         }
-        const savedName = data.user.user_metadata?.["display_name"];
-        setWelcomeName(typeof savedName === "string" && savedName.trim() ? savedName.trim().split(/\s+/)[0] ?? "viajante" : (data.user.email?.split("@")[0] ?? "viajante"));
-        setWelcomeMode("returning");
+        await navigate({ to: getPostLoginDestination(requested, isAdmin) as never });
+        return;
       } else if (mode === "signup") {
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
             data: { display_name: name },
-            emailRedirectTo: window.location.origin,
+            emailRedirectTo: `${window.location.origin}/auth?redirect=${encodeURIComponent(requested === "/admin" ? "/inicio" : requested)}`,
           },
         });
         if (error) throw error;
-        setWelcomeName(name.trim().split(/\s+/)[0] || "viajante");
-        setWelcomeMode("signup");
-        if (!data.session) {
-          setMessage("Sua conta foi criada. Confira seu e-mail para confirmar o acesso ao Círculo.");
+        if (data.session) {
+          await navigate({ to: getPostLoginDestination(requested, false) as never });
+          return;
         }
+        setMode("login");
+        setMessage("Sua conta foi criada. Confira seu e-mail para confirmar o acesso e depois entre com suas credenciais.");
       } else {
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
           redirectTo: `${window.location.origin}/reset-password`,
@@ -97,20 +92,6 @@ function AuthPage() {
     <div className="min-h-screen">
       <SiteHeader />
       <main className="mx-auto max-w-md px-6 pb-20 pt-32">
-        {welcomeName ? (
-          <section className="relative overflow-hidden border border-primary/40 bg-card px-7 py-10 text-center shadow-xl">
-            <div aria-hidden="true" className="pointer-events-none absolute inset-0 opacity-20" style={{ background: "radial-gradient(ellipse at center, color-mix(in srgb, var(--primary) 35%, transparent), transparent 68%)" }} />
-            <div className="relative">
-              <p className="eyebrow">O portal foi aberto</p>
-              <div aria-hidden="true" className="mx-auto my-6 h-px w-20 bg-accent/80" />
-              <h1 className="text-3xl text-foreground">{welcomeMode === "admin" ? `Bem-vinda, ${welcomeName}.` : welcomeMode === "returning" ? `Bem-vinda de volta, ${welcomeName}.` : `Olá, ${welcomeName}.`}</h1>
-              <p className="mt-4 text-lg italic text-primary">{welcomeMode === "admin" ? "O espaço da Guardiã da Chama está pronto." : welcomeMode === "returning" ? "Que bom ter você de volta ao Círculo do Fogo." : "Seja bem-vinda ao Círculo do Fogo."}</p>
-              <p className="mt-4 text-sm leading-7 text-muted-foreground">{welcomeMode === "admin" ? "Acesse o painel administrativo ou abra a loja com as ferramentas de edição habilitadas." : welcomeMode === "returning" ? "Sua próxima história está esperando por você. Entre, explore e sinta-se em casa." : "Sua história agora também faz parte da Hiraeth. Há novos mundos esperando para serem descobertos."}</p>
-              {message && <p className="mt-4 text-sm text-muted-foreground">{message}</p>}
-              {welcomeMode === "admin" ? <div className="mt-7 grid gap-3"><button type="button" onClick={() => navigate({ to: "/admin" })} className="btn-gold w-full justify-center">Abrir dashboard administrativo</button><button type="button" onClick={() => { window.localStorage.setItem("hiraeth-edit-mode", "on"); navigate({ to: "/inicio" }); }} className="inline-flex w-full items-center justify-center gap-2 border border-primary/40 px-5 py-3 text-sm text-foreground transition-colors hover:bg-primary/10">Abrir loja em modo edição</button></div> : <button type="button" onClick={() => navigate({ to: destination })} aria-label="Continuar para a Hiraeth" className="mt-7 inline-flex w-full items-center justify-center gap-2 border border-primary/40 px-5 py-3 text-sm text-foreground transition-colors hover:bg-primary/10">Entrar no meu círculo</button>}
-            </div>
-          </section>
-        ) : <>
         <p className="eyebrow">{isAdminLogin ? "Acesso reservado" : "Círculo do Fogo"}</p>
         <h1 className="mt-2 text-4xl text-foreground">
           {isAdminLogin ? "Administração Hiraeth" : mode === "login" ? "Entrar" : mode === "signup" ? "Criar conta" : "Recuperar senha"}
@@ -186,7 +167,6 @@ function AuthPage() {
             </button>
           )}
         </div>
-        </>}
       </main>
       <SiteFooter />
     </div>

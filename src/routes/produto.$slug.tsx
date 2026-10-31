@@ -6,11 +6,14 @@ import { brl } from "@/lib/format";
 import { useCart } from "@/lib/cart";
 import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
+import { requireAuthenticatedUser } from "@/lib/require-auth";
 
 type Product = Tables<"products">;
 type AromaNote = { essence_id: string; quantity_ml: number; essences?: { name: string; top_notes: string[] | null; heart_notes: string[] | null; base_notes: string[] | null } | null };
 
 export const Route = createFileRoute("/produto/$slug")({
+  ssr: false,
+  beforeLoad: requireAuthenticatedUser,
   head: () => ({
     meta: [
       { title: "Produto — Hiraeth" },
