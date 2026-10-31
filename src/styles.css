@@ -692,3 +692,10 @@ body > div {
 :root.dark .hiraeth-care-panel h2,
 :root.dark .hiraeth-care-panel p,
 :root.dark .hiraeth-care-panel .eyebrow { color: #263a2b; }
+
+
+/* Divisórias editoriais: variações discretas para títulos selecionados. */
+.hiraeth-ornament--wide::before,
+.hiraeth-ornament--wide::after { width: clamp(52px, 13vw, 148px); }
+.hiraeth-ornament--flame { color: #d69a45; }
+.hiraeth-ornament--flame span { font-size: 1.05rem; filter: drop-shadow(0 1px 3px rgba(214,154,69,.24)); }
