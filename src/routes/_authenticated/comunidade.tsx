@@ -381,6 +381,16 @@ function Comunidade() {
   async function addLibraryCandle(values: CandleDraftInput) {
     if (!userId) throw new Error("Entre na sua conta para adicionar uma vela.");
     if (!values.image) throw new Error("Adicione uma foto da vela para registrar sua coleção antiga.");
+    const { data: duplicatePurchase, error: duplicateError } = await (supabase as any).from("community_library")
+      .select("id")
+      .eq("user_id", userId)
+      .ilike("title", values.title.trim())
+      .eq("acquired_at", values.acquired_at)
+      .not("order_item_id", "is", null)
+      .limit(1)
+      .maybeSingle();
+    if (duplicateError) throw duplicateError;
+    if (duplicatePurchase) throw new Error("Essa vela já aparece na sua Biblioteca por uma compra da loja. Abra o registro existente para completar seus detalhes após a entrega.");
     const image_url = await uploadLibraryImage(values.image);
     const { data, error } = await (supabase as any).from("community_library").insert({
       user_id: userId,
