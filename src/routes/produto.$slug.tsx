@@ -8,6 +8,7 @@ import { useCart } from "@/lib/cart";
 import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
 import { requireAuthenticatedUser } from "@/lib/require-auth";
+import { managedVariants, variantList } from "@/lib/product-variants";
 
 type Product = Tables<"products">;
 type AromaNote = { essence_id: string; quantity_ml: number; essences?: { name: string; top_notes: string[] | null; heart_notes: string[] | null; base_notes: string[] | null } | null };
@@ -38,6 +39,7 @@ function ProdutoPage() {
   const [aromaNotes, setAromaNotes] = useState<EssenceNotes[]>([]);
   const [selectedVariant, setSelectedVariant] = useState<any>(null);
   const [selectedHouse, setSelectedHouse] = useState("Aleatória / casa surpresa");
+  const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
 
   useEffect(() => {
     let active = true;
@@ -50,6 +52,11 @@ function ProdutoPage() {
         .maybeSingle();
       if (!active) return;
       setProduct(data);
+      setSelectedOptions({});
+      setSelectedVariant(null);
+      setSelectedHouse("Aleatória / casa surpresa");
+      setQuantity(1);
+      setActiveImage(0);
       setAromaNotes([]);
       setLoading(false);
       if (data) {
@@ -86,26 +93,53 @@ function ProdutoPage() {
 
   if (!product) throw notFound();
 
-  const variants: any[] = Array.isArray(product.variants) ? (product.variants as any[]) : [];
-  const sizeVariants = variants.filter((v) => v?.type !== "house");
-  const houseVariants = variants.filter((v) => v?.type === "house");
+  const variants: any[] = variantList(product.variants);
+  const combinationVariants = managedVariants(variants);
+  const hasCombinedVariants = combinationVariants.length > 0 && combinationVariants.length === variants.length;
+  const variantGroups = hasCombinedVariants
+    ? Object.keys(combinationVariants[0]!.options).map(name => ({
+        name, values: [...new Set(combinationVariants.map(row => row.options[name]).filter(Boolean))],
+      }))
+    : [];
+  const selectionComplete = variantGroups.every(group => Boolean(selectedOptions[group.name]));
+  const chosenCombination = hasCombinedVariants && selectionComplete
+    ? combinationVariants.find(row => variantGroups.every(group => row.options[group.name] === selectedOptions[group.name])) ?? null
+    : null;
+
+  // Preserve old products with their former size/house choices until edited by the merchant.
+  const sizeVariants = hasCombinedVariants ? [] : variants.filter((v) => v?.type !== "house");
+  const houseVariants = hasCombinedVariants ? [] : variants.filter((v) => v?.type === "house");
   const activeVariant = selectedVariant ?? sizeVariants[0] ?? null;
   const chosenHouse = houseVariants.find((v) => v.label === selectedHouse);
-  const variantImage: string | undefined = chosenHouse?.image || activeVariant?.image || undefined;
+  const variantImage: string | undefined = hasCombinedVariants
+    ? chosenCombination?.image || undefined
+    : chosenHouse?.image || activeVariant?.image || undefined;
   const currentImages: string[] = variantImage ? [variantImage, ...product.images.filter((i) => i !== variantImage)] : product.images;
-  const basePrice = activeVariant?.price != null ? Number(activeVariant.price) : Number(product.price);
-  const baseSale = activeVariant ? (activeVariant.sale_price != null ? Number(activeVariant.sale_price) : null) : (product.sale_price != null ? Number(product.sale_price) : null);
+  const basePrice = hasCombinedVariants
+    ? chosenCombination?.price ?? Math.min(...combinationVariants.map(v => v.price))
+    : activeVariant?.price != null ? Number(activeVariant.price) : Number(product.price);
+  const baseSale = hasCombinedVariants
+    ? chosenCombination?.sale_price ?? null
+    : activeVariant ? (activeVariant.sale_price != null ? Number(activeVariant.sale_price) : null)
+      : (product.sale_price != null ? Number(product.sale_price) : null);
   const price = baseSale ?? basePrice;
-  const availableStock = activeVariant?.stock != null ? Number(activeVariant.stock) : Number(product.stock);
-  const outOfStock = availableStock <= 0;
+  const availableStock = hasCombinedVariants
+    ? chosenCombination?.stock ?? 0
+    : activeVariant?.stock != null ? Number(activeVariant.stock) : Number(product.stock);
+  const requiresChoice = hasCombinedVariants && (!selectionComplete || !chosenCombination);
+  const outOfStock = !requiresChoice && availableStock <= 0;
   const sizeVariantKey = activeVariant ? String(activeVariant.key ?? activeVariant.id ?? activeVariant.label ?? "") : "";
   const houseVariantKey = houseVariants.length > 0 ? String(chosenHouse?.key ?? chosenHouse?.id ?? selectedHouse) : "";
-  const variantKey = [sizeVariantKey, houseVariantKey].filter(Boolean).join("::") || undefined;
-  const variantDetails: Record<string, unknown> = {
-    ...(typeof activeVariant?.label === "string" ? { size: activeVariant.label } : {}),
-    ...(houseVariants.length > 0 ? { house: selectedHouse } : {}),
-    stock: availableStock,
-  };
+  const variantKey = hasCombinedVariants
+    ? chosenCombination?.key
+    : [sizeVariantKey, houseVariantKey].filter(Boolean).join("::") || undefined;
+  const variantDetails: Record<string, unknown> = hasCombinedVariants
+    ? { options: { ...selectedOptions }, stock: availableStock, variantKey: chosenCombination?.key }
+    : {
+        ...(typeof activeVariant?.label === "string" ? { size: activeVariant.label } : {}),
+        ...(houseVariants.length > 0 ? { house: selectedHouse } : {}),
+        stock: availableStock,
+      };
   const pyramid = buildFragrancePyramid(aromaNotes);
   const cartImage = currentImages[0] ?? product.images[0];
 
@@ -176,11 +210,31 @@ function ProdutoPage() {
             <h1 className="text-4xl text-foreground">{product.name}</h1>
             {product.fragrance && <p className="eyebrow mt-2 text-lg">{product.fragrance}</p>}
 
+            {hasCombinedVariants && variantGroups.map(group => (
+              <fieldset key={group.name} className="mt-6">
+                <legend className="mb-2 text-sm font-medium text-foreground">{group.name}</legend>
+                <div className="flex flex-wrap gap-2">
+                  {group.values.map(option => {
+                    const selected = selectedOptions[group.name] === option;
+                    const possible = combinationVariants.some(row => row.options[group.name] === option &&
+                      variantGroups.every(other => other.name === group.name ||
+                        !selectedOptions[other.name] || row.options[other.name] === selectedOptions[other.name]));
+                    return <button key={option} type="button" disabled={!possible}
+                      aria-pressed={selected}
+                      onClick={() => { setSelectedOptions(previous => ({ ...previous, [group.name]: option })); setActiveImage(0); setQuantity(1); }}
+                      className={`rounded border px-4 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-30 ${selected ? "border-primary bg-primary/10 text-primary" : "border-border text-foreground"}`}>
+                      {option}
+                    </button>;
+                  })}
+                </div>
+              </fieldset>
+            ))}
+            {requiresChoice && <p className="mt-3 text-sm text-muted-foreground">Selecione {variantGroups.map(g => g.name.toLocaleLowerCase("pt-BR")).join(" e ")} para consultar o preço e o estoque.</p>}
             {sizeVariants.length > 0 && <div className="mt-6"><label className="mb-2 block text-sm text-foreground">Tamanho</label><div className="flex flex-wrap gap-2">{sizeVariants.map((v:any) => <button key={v.id ?? v.label} type="button" onClick={() => { setSelectedVariant(v); setActiveImage(0); }} className={`border px-4 py-2 text-sm ${activeVariant === v ? "border-primary bg-primary/10" : "border-border"}`}>{v.label}</button>)}</div></div>}
             {houseVariants.length > 0 && <div className="mt-5"><label className="mb-2 block text-sm text-foreground">Escolha sua casa</label><select value={selectedHouse} onChange={(e) => { setSelectedHouse(e.target.value); setActiveImage(0); }} className="w-full border bg-background px-3 py-2 text-foreground"><option>Aleatória / casa surpresa</option>{houseVariants.map((v:any) => <option key={v.id ?? v.label} value={v.label}>{v.label}</option>)}</select><p className="mt-2 text-xs text-muted-foreground">A casa será revelada ao acender a vela.</p></div>}
 
             <div className="mt-4 flex items-baseline gap-3">
-              <span className="text-3xl text-primary">{brl(price)}</span>
+              <span className="text-3xl text-primary">{hasCombinedVariants && requiresChoice ? `A partir de ${brl(Math.min(...combinationVariants.map(row => row.sale_price ?? row.price)))}` : brl(price)}</span>
               {baseSale != null && (
                 <span className="text-lg text-muted-foreground line-through">{brl(basePrice)}</span>
               )}
@@ -204,11 +258,13 @@ function ProdutoPage() {
               <div className="flex items-center border">
                 <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="px-3 py-2 text-lg">−</button>
                 <span className="w-10 text-center">{quantity}</span>
-                <button onClick={() => setQuantity(quantity + 1)} className="px-3 py-2 text-lg">+</button>
+                <button onClick={() => setQuantity(Math.min(quantity + 1, requiresChoice ? 1 : Math.max(1, availableStock)))} className="px-3 py-2 text-lg">+</button>
               </div>
               <button
-                disabled={outOfStock}
+                disabled={outOfStock || requiresChoice || quantity > availableStock}
                 onClick={() => {
+                  if (requiresChoice || !variantKey && hasCombinedVariants) { toast.error("Escolha as variações do produto."); return; }
+                  if (quantity > availableStock) { toast.error("Estoque insuficiente para esta combinação."); return; }
                   cart.add(
                     {
                       productId: product.id,
@@ -226,7 +282,7 @@ function ProdutoPage() {
                 }}
                 className="btn-gold flex-1 justify-center disabled:cursor-not-allowed disabled:opacity-40"
               >
-                {outOfStock ? "Esgotado" : "Adicionar ao carrinho"}
+                {requiresChoice ? "Escolha as variações" : outOfStock ? "Esgotado" : "Adicionar ao carrinho"}
               </button>
             </div>
 
