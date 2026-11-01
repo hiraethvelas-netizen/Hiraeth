@@ -6,6 +6,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { brl, slugify } from "@/lib/format";
 import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
+import { ProductVariantsEditor } from "@/components/admin/ProductVariantsEditor";
+import { validateVariantSetup, variantSetupFrom, variantTotalStock, type VariantSetup } from "@/lib/product-variants";
 
 type Product = Tables<"products">;
 type Category = Tables<"categories"> & { parent_id?: string | null };
@@ -19,7 +21,7 @@ export const Route = createFileRoute("/admin/produtos")({
 const emptyForm = {
   name: "", description: "", category_id: "", price: "", sale_price: "",
   stock: "0", sku: "", fragrance: "", images: [] as string[], status: "draft",
-  product_type: "candle", dimensions: "100 g", variantsJson: "[]", product_badge: "",
+  product_type: "candle", product_badge: "",
 };
 
 function AdminProdutos() {
@@ -29,6 +31,7 @@ function AdminProdutos() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [editing, setEditing] = useState<Product | null>(null);
   const [form, setForm] = useState(emptyForm);
+  const [variants, setVariants] = useState<VariantSetup>(() => variantSetupFrom([]));
   const [showForm, setShowForm] = useState(false);
   const [uploading, setUploading] = useState(false);
   const db = supabase as any;
@@ -72,15 +75,16 @@ function AdminProdutos() {
       price: String(p.price), sale_price: p.sale_price != null ? String(p.sale_price) : "",
       stock: String(p.stock), sku: p.sku ?? "", fragrance: p.fragrance ?? "",
       images: p.images ?? [], status: p.status,
-      product_type: (p as Product & { product_type?: string }).product_type ?? (/camiseta|t-shirt|roupa|vestuário/i.test(p.name) ? "artifact" : "candle"), dimensions: p.dimensions ?? "", variantsJson: JSON.stringify((p as any).variants ?? [], null, 2), product_badge: (p as any).product_badge ?? "",
+      product_type: (p as Product & { product_type?: string }).product_type ?? (/camiseta|t-shirt|roupa|vestuário/i.test(p.name) ? "artifact" : "candle"), product_badge: (p as any).product_badge ?? "",
     });
+    setVariants(variantSetupFrom(p.variants));
     const { data, error } = await db.from("product_essences").select("essence_id,quantity_ml,essences(name)").eq("product_id", p.id);
     if (error) { toast.error("Não foi possível carregar a receita. Tente novamente antes de editar."); return; }
     setProductAromas((data ?? []).map((r:any) => ({essence_id:r.essence_id,quantity_ml:Number(r.quantity_ml),name:r.essences?.name ?? "Aroma"})));
     setShowForm(true);
   }
 
-  function startNew() { setEditing(null); setForm(emptyForm); setProductAromas([]); setSelectedAroma(""); setAromaQuantity(""); setAromaSearch(""); setNewAromaName(""); setNewNotes(emptyNotes); setNewStock("0"); setShowForm(true); }
+  function startNew() { setEditing(null); setForm({ ...emptyForm }); setVariants(variantSetupFrom([])); setProductAromas([]); setSelectedAroma(""); setAromaQuantity(""); setAromaSearch(""); setNewAromaName(""); setNewNotes(emptyNotes); setNewStock("0"); setShowForm(true); }
 
   async function uploadImages(files: FileList | null) {
     if (!files?.length) return;
@@ -103,25 +107,35 @@ function AdminProdutos() {
     setUploading(false);
   }
 
+  async function uploadVariantPhoto(file: File): Promise<string> {
+    if (!["image/jpeg", "image/png", "image/webp", "image/gif"].includes(file.type)) throw new Error("Use uma foto JPG, PNG, WebP ou GIF.");
+    if (file.size > 10 * 1024 * 1024) throw new Error("A foto deve ter até 10 MB.");
+    const safeName = file.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9._-]/g, "-");
+    const path = `${crypto.randomUUID()}-variacao-${safeName}`;
+    const { error } = await supabase.storage.from("product-images").upload(path, file, { upsert: false });
+    if (error) throw new Error("Falha ao enviar foto da variação: " + error.message);
+    const { data } = supabase.storage.from("product-images").getPublicUrl(path);
+    if (!data.publicUrl) throw new Error("Não foi possível gerar o link da foto.");
+    return data.publicUrl;
+  }
+
   async function save(e: React.FormEvent) {
     e.preventDefault();
-    let variants: unknown[];
-    try {
-      variants = JSON.parse(form.variantsJson || "[]");
-      if (!Array.isArray(variants)) throw new Error("As variações precisam ser uma lista.");
-    } catch {
-      toast.error("Revise o JSON das variações antes de salvar.");
-      return;
-    }
+    const variantError = validateVariantSetup(variants);
+    if (variantError) { toast.error(variantError); return; }
+    const variantRows = variants.legacy ?? variants.rows;
+    const managed = variants.legacy === null && variants.rows.length > 0;
+    const lowestPrice = managed ? Math.min(...variants.rows.map(row => row.sale_price ?? row.price)) : Number(form.price) || 0;
+    const finalStock = managed ? variantTotalStock(variants, 0) : Math.max(0, Number(form.stock) || 0);
     const payload = {
       product_type: form.product_type,
       name: form.name, slug: editing ? editing.slug : slugify(form.name),
       description: form.description || null, category_id: form.category_id || null,
-      price: Number(form.price) || 0, sale_price: form.sale_price ? Number(form.sale_price) : null,
-      stock: Math.max(0, Number(form.stock) || 0), sku: form.sku || null,
+      price: lowestPrice, sale_price: managed ? null : form.sale_price ? Number(form.sale_price) : null,
+      stock: finalStock, sku: form.sku || null,
       fragrance: form.fragrance || null, images: form.images, status: form.status,
-      weight_grams: form.product_type === "candle" ? Number.parseInt(form.dimensions, 10) || null : editing?.weight_grams ?? null,
-      dimensions: form.dimensions || null, variants, product_badge: form.product_badge || null,
+      weight_grams: editing?.weight_grams ?? null,
+      dimensions: editing?.dimensions ?? null, variants: variantRows, product_badge: form.product_badge || null,
     };
     if (saving) return;
     setSaving(true);
@@ -191,9 +205,9 @@ function AdminProdutos() {
         <label className="text-sm text-muted-foreground">Categoria / subcategoria<select value={form.category_id} onChange={(e) => setForm({ ...form, category_id: e.target.value })} className={`mt-1 ${inputCls}`}><option value="">Sem categoria</option>{parentCategories.map((c) => <optgroup key={c.id} label={c.name}><option value={c.id}>{c.name} (categoria)</option>{categories.filter((sub) => sub.parent_id === c.id).map((sub) => <option key={sub.id} value={sub.id}>{sub.name}</option>)}</optgroup>)}{categories.filter((c) => c.parent_id && !parentCategories.some((p) => p.id === c.parent_id)).map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select></label>
         <label className="text-sm text-muted-foreground">Preço (R$)<input required type="number" step="0.01" min="0" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} className={`mt-1 ${inputCls}`} /></label>
         <label className="text-sm text-muted-foreground">Preço promocional (R$)<input type="number" step="0.01" min="0" placeholder="Opcional" value={form.sale_price} onChange={(e) => setForm({ ...form, sale_price: e.target.value })} className={`mt-1 ${inputCls}`} /></label>
-        <label className="text-sm text-muted-foreground">Quantidade em estoque<input required type="number" min="0" step="1" value={form.stock} onChange={(e) => setForm({ ...form, stock: e.target.value })} className={`mt-1 ${inputCls}`} /></label>
+        {variants.groups.length === 0 && variants.legacy === null && <label className="text-sm text-muted-foreground">Quantidade em estoque<input required type="number" min="0" step="1" value={form.stock} onChange={(e) => setForm({ ...form, stock: e.target.value })} className={`mt-1 ${inputCls}`} /></label>}
         
-        {form.product_type === "candle" ? <label className="text-sm text-muted-foreground">Peso da vela<select value={form.dimensions} onChange={event => setForm({ ...form, dimensions: event.target.value })} className={`mt-1 ${inputCls}`}><option value="100 g">100 g</option><option value="250 g">250 g</option>{form.dimensions && !["100 g", "250 g"].includes(form.dimensions) && <option value={form.dimensions}>{form.dimensions} (cadastrado)</option>}</select></label> : <label className="text-sm text-muted-foreground">Tamanho / dimensões do artefato<input value={form.dimensions} onChange={event => setForm({ ...form, dimensions: event.target.value })} className={`mt-1 ${inputCls}`} /></label>}
+        {/* Peso, cor e tamanho são cadastrados diretamente em Variações. */}}
         <label className="text-sm text-muted-foreground">SKU<input placeholder="Código interno (opcional)" value={form.sku} onChange={(e) => setForm({ ...form, sku: e.target.value })} className={`mt-1 ${inputCls}`} /></label>
         
         <label className="text-sm text-muted-foreground">Família olfativa<input list="fragrance-families" placeholder="Ex.: Floral ambarado" value={form.fragrance} onChange={(e) => setForm({ ...form, fragrance: e.target.value })} className={`mt-1 ${inputCls}`} /><datalist id="fragrance-families"><option value="Floral" /><option value="Floral ambarado" /><option value="Amadeirado" /><option value="Amadeirado aromático" /><option value="Oriental / ambarado" /><option value="Cítrico" /><option value="Frutado" /><option value="Gourmand" /><option value="Fresco" /><option value="Floral frutado" /><option value="Chipre" /><option value="Aromático" /></datalist></label>
@@ -216,7 +230,7 @@ function AdminProdutos() {
         </div></details>
         {productAromas.length>0&&<div className="space-y-2">{productAromas.map(a=><div key={a.essence_id} className="flex items-center justify-between border-b py-2 text-sm"><span>{a.name} <span className="text-muted-foreground">· {a.quantity_ml} ml por vela (interno)</span></span><button type="button" onClick={()=>setProductAromas(prev=>prev.filter(x=>x.essence_id!==a.essence_id))} className="text-destructive">Remover</button></div>)}</div>}
       </section>}
-      <label className="block text-sm text-muted-foreground">Variações (JSON) — preço e estoque independentes<textarea rows={8} value={form.variantsJson} onChange={(e) => setForm({ ...form, variantsJson: e.target.value })} placeholder={'[{"key":"100g","type":"size","label":"100 g","price":49,"sale_price":null,"stock":10,"image":"https://..."}]' } className={`mt-1 ${inputCls} font-mono text-xs`} /><span className="mt-1 block text-xs">Cada variação pode ter key, type (size/house), label, price, sale_price, stock e image. Para o Chapéu Seletor, crie uma opção para Aleatória / casa surpresa e uma para cada casa.</span></label>
+      <ProductVariantsEditor value={variants} onChange={setVariants} basePrice={Number(form.price) || 0} onUpload={uploadVariantPhoto} disabled={saving || uploading || savingAroma} />
       <label className="block text-sm text-muted-foreground">Descrição<textarea placeholder="Conte a história, materiais e detalhes do produto..." rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className={`mt-1 ${inputCls}`} /></label>
       <div className="space-y-3">
         <div><p className="text-sm text-foreground">Fotos do produto</p><p className="text-xs text-muted-foreground">Selecione imagens do celular ou computador. A primeira imagem será a capa. JPG, PNG, WEBP ou GIF; até 10 MB por foto.</p></div>
