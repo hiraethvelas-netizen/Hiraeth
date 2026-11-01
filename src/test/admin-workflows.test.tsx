@@ -125,11 +125,11 @@ async function addIngredient(name: string, quantity: string) {
   fireEvent.click(screen.getByRole("button", { name: "Adicionar aroma" }));
 }
 describe("Product and essence forms", () => {
-  it("shows candle weights and essences, and hides them for artifacts", async () => {
+  it("shows visual variations instead of an isolated candle-weight selector", async () => {
     await newProduct();
-    expect(screen.getByLabelText("Peso da vela")).toHaveValue("100 g");
-    fireEvent.click(screen.getByLabelText("Um artefato"));
     expect(screen.queryByLabelText("Peso da vela")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "+ Adicionar variação" })).toBeInTheDocument();
+    fireEvent.click(screen.getByLabelText("Um artefato"));
     expect(screen.queryByLabelText("Aroma", { exact: true })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Salvar produto" }));
     await waitFor(() =>
@@ -141,9 +141,11 @@ describe("Product and essence forms", () => {
     );
     expect(mocks.rpc).not.toHaveBeenCalled();
   });
-  it("saves multiple recipe ingredients and a 250 g candle", async () => {
+  it("saves fragrance ingredients and a 250 g candle option with no code field", async () => {
     await newProduct();
-    fireEvent.change(screen.getByLabelText("Peso da vela"), { target: { value: "250 g" } });
+    fireEvent.click(screen.getByRole("button", { name: "+ Adicionar variação" }));
+    fireEvent.change(screen.getByLabelText("Nome da variação"), { target: { value: "Peso" } });
+    fireEvent.change(screen.getByLabelText("Opção 1 de Peso"), { target: { value: "250 g" } });
     await addIngredient("e1", "8");
     await addIngredient("e2", "2");
     fireEvent.click(screen.getByRole("button", { name: "Salvar produto" }));
@@ -159,7 +161,12 @@ describe("Product and essence forms", () => {
     expect(mocks.mutation).toHaveBeenCalledWith(
       "products",
       "insert",
-      expect.objectContaining({ weight_grams: 250, product_type: "candle" }),
+      expect.objectContaining({
+        product_type: "candle",
+        variants: expect.arrayContaining([
+          expect.objectContaining({ options: { Peso: "250 g" }, price: 50, stock: 0 }),
+        ]),
+      }),
     );
   });
   it("reports recipe failure without reporting complete product success", async () => {
