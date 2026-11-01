@@ -96,30 +96,78 @@ export type Database = {
       }
       community_library: {
         Row: {
+          acquired_at: string | null
           aroma: string | null
+          category: string | null
           created_at: string
+          favorite: boolean
           id: string
           image_url: string | null
+          notes: string | null
+          order_item_id: string | null
+          product_id: string | null
+          purchase_status: string | null
+          quantity: number
+          rating: number | null
           title: string
+          updated_at: string
           user_id: string
+          variant_details: Json
         }
         Insert: {
+          acquired_at?: string | null
           aroma?: string | null
+          category?: string | null
           created_at?: string
+          favorite?: boolean
           id?: string
           image_url?: string | null
+          notes?: string | null
+          order_item_id?: string | null
+          product_id?: string | null
+          purchase_status?: string | null
+          quantity?: number
+          rating?: number | null
           title: string
+          updated_at?: string
           user_id: string
+          variant_details?: Json
         }
         Update: {
+          acquired_at?: string | null
           aroma?: string | null
+          category?: string | null
           created_at?: string
+          favorite?: boolean
           id?: string
           image_url?: string | null
+          notes?: string | null
+          order_item_id?: string | null
+          product_id?: string | null
+          purchase_status?: string | null
+          quantity?: number
+          rating?: number | null
           title?: string
+          updated_at?: string
           user_id?: string
+          variant_details?: Json
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "community_library_order_item_id_fkey"
+            columns: ["order_item_id"]
+            isOneToOne: false
+            referencedRelation: "order_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "community_library_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       community_memberships: {
         Row: {
@@ -136,23 +184,61 @@ export type Database = {
         }
         Relationships: []
       }
+      community_message_reactions: {
+        Row: {
+          created_at: string
+          id: string
+          message_id: string
+          reaction_type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message_id: string
+          reaction_type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message_id?: string
+          reaction_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_message_reactions_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "community_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       community_messages: {
         Row: {
           body: string
           created_at: string
+          edited_at: string | null
           id: string
+          is_pinned: boolean
           user_id: string
         }
         Insert: {
           body: string
           created_at?: string
+          edited_at?: string | null
           id?: string
+          is_pinned?: boolean
           user_id: string
         }
         Update: {
           body?: string
           created_at?: string
+          edited_at?: string | null
           id?: string
+          is_pinned?: boolean
           user_id?: string
         }
         Relationships: []
@@ -253,7 +339,6 @@ export type Database = {
           avatar_url: string | null
           bio: string | null
           instagram_url: string | null
-          library_visible: boolean
           other_social_url: string | null
           tiktok_url: string | null
           updated_at: string
@@ -264,7 +349,6 @@ export type Database = {
           avatar_url?: string | null
           bio?: string | null
           instagram_url?: string | null
-          library_visible?: boolean
           other_social_url?: string | null
           tiktok_url?: string | null
           updated_at?: string
@@ -275,7 +359,6 @@ export type Database = {
           avatar_url?: string | null
           bio?: string | null
           instagram_url?: string | null
-          library_visible?: boolean
           other_social_url?: string | null
           tiktok_url?: string | null
           updated_at?: string
