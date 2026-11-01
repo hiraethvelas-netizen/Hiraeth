@@ -207,7 +207,7 @@ function AdminProdutos() {
         <label className="text-sm text-muted-foreground">Preço promocional (R$)<input type="number" step="0.01" min="0" placeholder="Opcional" value={form.sale_price} onChange={(e) => setForm({ ...form, sale_price: e.target.value })} className={`mt-1 ${inputCls}`} /></label>
         {variants.groups.length === 0 && variants.legacy === null && <label className="text-sm text-muted-foreground">Quantidade em estoque<input required type="number" min="0" step="1" value={form.stock} onChange={(e) => setForm({ ...form, stock: e.target.value })} className={`mt-1 ${inputCls}`} /></label>}
         
-        {/* Peso, cor e tamanho são cadastrados diretamente em Variações. */}}
+        {/* Peso, cor e tamanho são cadastrados diretamente em Variações. */}
         <label className="text-sm text-muted-foreground">SKU<input placeholder="Código interno (opcional)" value={form.sku} onChange={(e) => setForm({ ...form, sku: e.target.value })} className={`mt-1 ${inputCls}`} /></label>
         
         <label className="text-sm text-muted-foreground">Família olfativa<input list="fragrance-families" placeholder="Ex.: Floral ambarado" value={form.fragrance} onChange={(e) => setForm({ ...form, fragrance: e.target.value })} className={`mt-1 ${inputCls}`} /><datalist id="fragrance-families"><option value="Floral" /><option value="Floral ambarado" /><option value="Amadeirado" /><option value="Amadeirado aromático" /><option value="Oriental / ambarado" /><option value="Cítrico" /><option value="Frutado" /><option value="Gourmand" /><option value="Fresco" /><option value="Floral frutado" /><option value="Chipre" /><option value="Aromático" /></datalist></label>
