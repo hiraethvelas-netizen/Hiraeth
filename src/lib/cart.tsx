@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 
 export type CartItem = {
   productId: string;
+  categoryId?: string | null;
   variantKey?: string;
   variantDetails?: Record<string, unknown>;
   slug: string;

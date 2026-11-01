@@ -13,7 +13,23 @@ vi.mock("@tanstack/react-router", () => ({
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: {
     from: () => {
-      const query = { select: () => query, eq: () => query, maybeSingle: mocks.lookup };
+      const query = {
+        select: () => query,
+        eq: () => query,
+        neq: () => query,
+        in: () => query,
+        then: (resolve: (value: object) => unknown) =>
+          Promise.resolve({ data: [], error: null }).then(resolve),
+        maybeSingle: async () => {
+          const result = await mocks.lookup();
+          return {
+            ...result,
+            data: result.data
+              ? { id: "test-coupon", name: "TESTE", kind: "coupon", ...result.data }
+              : null,
+          };
+        },
+      };
       return query;
     },
   },
