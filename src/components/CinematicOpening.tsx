@@ -2,8 +2,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useAdminEdit, useSiteContent } from "@/lib/admin-edit";
-import openingVideo from "@/assets/hira appVídeo sem título-26-10-2026, 13-46-2.mp4";
-import phoenixVideo from "@/gemini_generated_video_431178e3.mp4";
+import phoenixVideo from "@/assets/VID_20261101_191613.mp4";
 import hiraethWordmark from "@/assets/hiraeth-wordmark.svg";
 
 type OpeningSettings = Record<string, unknown> & {
@@ -29,7 +28,7 @@ export function CinematicOpening() {
   const publicVideoUrl = settings.phoenixVideoUrl.trim();
   const videoSrc = /^https?:\/\//i.test(publicVideoUrl) ? publicVideoUrl : phoenixVideo;
   const hasPhoenixVideo = settings.enabled;
-  const maxDuration = 15000;
+  const maxDuration = 30000;
 
   useEffect(() => {
     setReducedMotion(window.matchMedia("(prefers-reduced-motion: reduce)").matches);
@@ -72,9 +71,7 @@ export function CinematicOpening() {
   if (!hasPhoenixVideo) {
     return (
       <main className="hiraeth-opening" aria-label="Abertura da Hiraeth">
-        <video className="opening-video" autoPlay muted playsInline loop preload="auto" aria-hidden="true" tabIndex={-1}>
-          <source src={openingVideo} type="video/mp4" />
-        </video>
+        <video className="opening-video" src={phoenixVideo} autoPlay muted playsInline loop preload="auto" aria-hidden="true" tabIndex={-1} />
         <div className="opening-shade" aria-hidden="true" />
         <div className="opening-copy">
           <p className="opening-welcome">Bem-vindo ao Círculo do Fogo</p>
@@ -93,10 +90,19 @@ export function CinematicOpening() {
       <video
         ref={videoRef}
         key={videoSrc}
-        className="opening-video"
+        className={`opening-video ${complete ? "is-zooming" : ""}`}
         src={videoSrc}
         autoPlay muted playsInline preload="auto"
         aria-hidden="true" tabIndex={-1}
+        onTimeUpdate={(event) => {
+          const video = event.currentTarget;
+          const duration = video.duration;
+          // Stop before the end of the source so its final scene never appears.
+          if (!complete && Number.isFinite(duration) && duration >= 2.5 && video.currentTime >= duration - Math.min(1.2, duration * 0.22)) {
+            video.pause();
+            setComplete(true);
+          }
+        }}
         onEnded={() => setComplete(true)}
         onError={() => setComplete(true)}
       />
@@ -114,7 +120,7 @@ export function CinematicOpening() {
       <div className="hiraeth-phoenix-editor" role="dialog" aria-modal="true" aria-label="Configurar vídeo da Fênix">
         <div className="hiraeth-phoenix-editor-panel">
           <h2>Vídeo da Fênix</h2>
-          <p>O vídeo aprovado da Fênix já está incluído no aplicativo. Opcionalmente, informe uma URL pública de outro MP4 para substituí-lo. Deixe vazio para usar o vídeo original da Fênix.</p>
+          <p>O vídeo atual da Fênix já está incluído no aplicativo. Para usar outro MP4, informe uma URL pública. Deixe vazio para usar o vídeo atual.</p>
           <label htmlFor="phoenix-video-url">URL pública do vídeo MP4</label>
           <input id="phoenix-video-url" type="url" value={draftUrl} onChange={e => setDraftUrl(e.target.value)} placeholder="https://.../fenix.mp4" />
           {error && <p role="alert">{error}</p>}
