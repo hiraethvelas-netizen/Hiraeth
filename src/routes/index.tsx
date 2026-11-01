@@ -203,7 +203,7 @@ export function ExistingHomepage() {
   const mergedContent = { ...DEFAULT_HOME_CONTENT, ...content } as HomeContent;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="hiraeth-home-arrival min-h-screen bg-background">
       <SiteHeader />
       <main>
         {isAdmin && <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-5 pt-3">

@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useAdminEdit, useSiteContent } from "@/lib/admin-edit";
 import openingVideo from "@/assets/hira appVídeo sem título-26-10-2026, 13-46-2.mp4";
 import phoenixVideo from "@/gemini_generated_video_431178e3.mp4";
+import hiraethWordmark from "@/assets/hiraeth-wordmark.svg";
 
 type OpeningSettings = Record<string, unknown> & {
   phoenixVideoUrl: string;
@@ -11,7 +12,6 @@ type OpeningSettings = Record<string, unknown> & {
 };
 
 const DEFAULT_SETTINGS: OpeningSettings = { phoenixVideoUrl: "", enabled: true };
-const VISIT_KEY = "hiraeth-phoenix-opening-seen";
 
 export function CinematicOpening() {
   const navigate = useNavigate();
@@ -21,7 +21,6 @@ export function CinematicOpening() {
   const [showEditor, setShowEditor] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-  const [shortVisit, setShortVisit] = useState(false);
   const [complete, setComplete] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -30,10 +29,9 @@ export function CinematicOpening() {
   const publicVideoUrl = settings.phoenixVideoUrl.trim();
   const videoSrc = /^https?:\/\//i.test(publicVideoUrl) ? publicVideoUrl : phoenixVideo;
   const hasPhoenixVideo = settings.enabled;
-  const duration = shortVisit ? 2700 : 10000;
+  const maxDuration = 15000;
 
   useEffect(() => {
-    setShortVisit(window.sessionStorage.getItem(VISIT_KEY) === "yes");
     setReducedMotion(window.matchMedia("(prefers-reduced-motion: reduce)").matches);
   }, []);
 
@@ -43,17 +41,16 @@ export function CinematicOpening() {
       setComplete(true);
       return;
     }
-    const timeout = window.setTimeout(() => setComplete(true), duration);
+    const timeout = window.setTimeout(() => setComplete(true), maxDuration);
     return () => window.clearTimeout(timeout);
-  }, [hasPhoenixVideo, showEditor, duration, reducedMotion]);
+  }, [hasPhoenixVideo, showEditor, reducedMotion]);
 
   useEffect(() => {
     if (!complete || showEditor || navigated.current) return;
     navigated.current = true;
-    window.sessionStorage.setItem(VISIT_KEY, "yes");
-    const timeout = window.setTimeout(() => { void navigate({ to: "/inicio" }); }, 650);
+    const timeout = window.setTimeout(() => { void navigate({ to: "/inicio" }); }, reducedMotion ? 0 : 1050);
     return () => window.clearTimeout(timeout);
-  }, [complete, navigate, showEditor]);
+  }, [complete, navigate, showEditor, reducedMotion]);
 
   async function saveVideo() {
     setSaving(true);
@@ -104,8 +101,8 @@ export function CinematicOpening() {
         onError={() => setComplete(true)}
       />
       <div className="hiraeth-phoenix-vignette" aria-hidden="true" />
-      <div className={`hiraeth-phoenix-wordmark ${complete ? "is-leaving" : ""}`} aria-label="Hiraeth">HIRAETH</div>
-      <div className={`hiraeth-phoenix-portal ${complete ? "is-opening" : ""}`} aria-hidden="true"><span /></div>
+      <img src={hiraethWordmark} className={`hiraeth-phoenix-wordmark ${complete ? "is-leaving" : ""}`} alt="Hiraeth" />
+      <div className={`hiraeth-phoenix-curtain ${complete ? "is-closing" : ""}`} aria-hidden="true" />
       <button className="hiraeth-phoenix-skip" type="button" onClick={() => setComplete(true)}>Pular abertura</button>
       {editing && <button type="button" className="hiraeth-phoenix-config" onClick={() => { setDraftUrl(settings.phoenixVideoUrl); setShowEditor(true); }}>Editar abertura</button>}
       {showEditor && renderEditor()}
