@@ -3,10 +3,12 @@ import { createPortal } from "react-dom";
 import { Pencil, X } from "lucide-react";
 import { toast } from "sonner";
 import { uploadSiteImage, useAdminEdit } from "@/lib/admin-edit";
+import { ImageCropEditor } from "@/components/ImageCropEditor";
+import type { CropAspect } from "@/lib/image-crop";
 
 export type Field =
   | { name: string; label: string; type: "text" | "textarea"; help?: string }
-  | { name: string; label: string; type: "image" | "images"; help?: string }
+  | { name: string; label: string; type: "image" | "images"; help?: string; cropAspect?: CropAspect }
   | { name: string; label: string; type: "select"; options: readonly { value: string; label: string }[] }
   | { name: string; label: string; type: "checkbox" };
 
@@ -28,6 +30,7 @@ export function InlineEditor({ label, fields, values, onSave, className = "" }: 
   }, [open]);
   const [form, setForm] = useState<Values>(values);
   const [busy, setBusy] = useState(false);
+  const [crop, setCrop] = useState<{ name: string; source: File | string; aspect: CropAspect; multiple: boolean; replaceIndex?: number } | null>(null);
   if (!editing) return null;
 
   async function addImages(name: string, files: FileList | null, multiple: boolean) {
@@ -62,7 +65,7 @@ export function InlineEditor({ label, fields, values, onSave, className = "" }: 
 
   return (
     <>
-      <button type="button" onClick={(event) => { event.preventDefault(); event.stopPropagation(); setForm(values); setOpen(true); }}
+      <button type="button" onClick={(event) => { event.preventDefault(); event.stopPropagation(); setCrop(null); setForm(values); setOpen(true); }}
         className={`inline-flex items-center gap-1.5 rounded-full border border-primary bg-background px-3 py-1.5 text-xs font-medium text-primary shadow-sm hover:bg-primary hover:text-primary-foreground ${className}`}>
         <Pencil size={13} aria-hidden="true" /> Editar {label}
       </button>
@@ -73,8 +76,31 @@ export function InlineEditor({ label, fields, values, onSave, className = "" }: 
           aria-label={`Editar ${label}`}
           className="fixed inset-0 m-auto max-h-[calc(100dvh-1.5rem)] w-[calc(100%-1.5rem)] max-w-xl overflow-hidden border-0 bg-transparent p-0 text-left text-foreground backdrop:bg-foreground/50 sm:max-h-[calc(100dvh-2rem)]"
         >
-          <form onSubmit={submit}
+          <form onSubmit={(event) => { if (crop) { event.preventDefault(); return; } submit(event); }}
             className="max-h-[calc(100dvh-1.5rem)] w-full space-y-4 overflow-y-auto overscroll-contain rounded-md border border-primary/30 bg-background p-5 text-foreground shadow-xl sm:max-h-[calc(100dvh-2rem)]">
+            {crop ? (
+              <ImageCropEditor
+                source={crop.source}
+                aspect={crop.aspect}
+                onCancel={() => setCrop(null)}
+                onApply={async (file) => {
+                  setBusy(true);
+                  try {
+                    const url = await uploadSiteImage(file, "inline");
+                    setForm((previous) => {
+                      if (!crop.multiple) return { ...previous, [crop.name]: url };
+                      const existing = ((previous[crop.name] as string[]) ?? []);
+                      const updated = crop.replaceIndex === undefined ? [...existing, url] : existing.map((item, index) => index === crop.replaceIndex ? url : item);
+                      return { ...previous, [crop.name]: updated };
+                    });
+                    setCrop(null);
+                  } finally {
+                    setBusy(false);
+                  }
+                }}
+              />
+            ) : (
+              <>
             <div className="flex items-center justify-between">
               <h2 className="font-display text-2xl">Editar {label}</h2>
               <button type="button" onClick={() => setOpen(false)} aria-label="Fechar"><X size={18} /></button>
@@ -104,11 +130,12 @@ export function InlineEditor({ label, fields, values, onSave, className = "" }: 
               const list: string[] = multiple ? ((v as string[]) ?? []) : (v ? [v as string] : []);
               return (
                 <div key={f.name} className="grid gap-1.5 text-sm">{f.label}
-                  <input type="file" multiple={multiple} accept="image/jpeg,image/png,image/webp" aria-label={`Selecionar ${f.label.toLowerCase()}`} onClick={(e) => e.stopPropagation()} onChange={(e) => { const files = e.currentTarget.files; void addImages(f.name, files, multiple); e.currentTarget.value = ""; }} className="block w-full cursor-pointer rounded border bg-background px-3 py-2 text-sm file:mr-3 file:cursor-pointer file:rounded-full file:border file:border-primary/40 file:bg-primary/10 file:px-4 file:py-2 file:font-medium file:text-primary hover:file:bg-primary/20" />
+                  <input type="file" multiple={multiple} accept="image/jpeg,image/png,image/webp" aria-label={`Selecionar ${f.label.toLowerCase()}`} onClick={(e) => e.stopPropagation()} onChange={(e) => { const files = e.currentTarget.files; if (f.cropAspect && files?.length && !multiple) { setCrop({ name: f.name, source: files[0], aspect: f.cropAspect, multiple: false }); } else { void addImages(f.name, files, multiple); } e.currentTarget.value = ""; }} className="block w-full cursor-pointer rounded border bg-background px-3 py-2 text-sm file:mr-3 file:cursor-pointer file:rounded-full file:border file:border-primary/40 file:bg-primary/10 file:px-4 file:py-2 file:font-medium file:text-primary hover:file:bg-primary/20" />
                   <div className="flex flex-wrap gap-2">
                     {list.map((url, i) => (
                       <div key={url + i} className="relative">
                         <img src={url} alt="" className="h-20 w-20 object-cover" />
+                        {f.cropAspect && <button type="button" onClick={() => setCrop({ name: f.name, source: url, aspect: f.cropAspect!, multiple, replaceIndex: i })} className="mt-1 block w-20 rounded border border-primary/40 px-1 py-1 text-[11px] text-primary">Ajustar foto</button>}
                         <button type="button" aria-label="Remover imagem" onClick={() => setForm({ ...form, [f.name]: multiple ? list.filter((_, j) => j !== i) : "" })}
                           className="absolute -right-2 -top-2 rounded-full bg-destructive p-0.5 text-destructive-foreground"><X size={12} /></button>
                       </div>
@@ -122,6 +149,8 @@ export function InlineEditor({ label, fields, values, onSave, className = "" }: 
               <button type="submit" disabled={busy} className="bg-primary px-5 py-2.5 text-primary-foreground disabled:opacity-50">{busy ? "Salvando..." : "Salvar"}</button>
               <button type="button" onClick={() => setOpen(false)} className="border px-5 py-2.5">Cancelar</button>
             </div>
+              </>
+            )}
           </form>
         </dialog>,
         document.body
