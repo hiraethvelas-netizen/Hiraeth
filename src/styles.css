@@ -887,15 +887,25 @@ body > div {
 :root.dark .hiraeth-review-eyebrow { color: #5b1d04; }
 
 
-/* Abertura da Fênix: somente o logotipo escrito, sem símbolo nem distorção. */
+/* Abertura da Fênix: lettering oficial e zoom cinematográfico, sem portal desenhado. */
 .hiraeth-phoenix-intro { background: #10251d; }
-.hiraeth-phoenix-vignette { position: absolute; inset: 0; z-index: 1; pointer-events: none; background: linear-gradient(180deg, rgba(8,22,16,.15), transparent 35%, transparent 65%, rgba(8,22,16,.3)); }
+.hiraeth-phoenix-intro .opening-video {
+  transform: scale(1);
+  transform-origin: 50% 50%;
+  will-change: transform, filter;
+  transition: transform 1.05s cubic-bezier(.2,.75,.18,1), filter 1.05s ease-in;
+}
+.hiraeth-phoenix-intro .opening-video.is-zooming {
+  transform: scale(2.45);
+  filter: blur(4px);
+}
+.hiraeth-phoenix-vignette { position: absolute; inset: 0; z-index: 1; pointer-events: none; background: linear-gradient(180deg, rgba(8,22,16,.13), transparent 35%, transparent 65%, rgba(8,22,16,.28)); }
 .hiraeth-phoenix-wordmark {
   position: absolute;
   z-index: 2;
   left: 50%;
   top: 67%;
-  width: min(76vw, 415px);
+  width: min(82vw, 445px);
   height: auto;
   display: block;
   object-fit: contain;
@@ -905,20 +915,23 @@ body > div {
   animation: hiraeth-wordmark-reveal 1.1s ease-out 1.4s forwards;
   pointer-events: none;
 }
-.hiraeth-phoenix-wordmark.is-leaving { animation: none; opacity: 0; transition: opacity .45s ease; }
+.hiraeth-phoenix-wordmark.is-leaving { animation: none; opacity: 0; transition: opacity .42s ease-in; }
 @keyframes hiraeth-wordmark-reveal { from { opacity: 0; } to { opacity: 1; } }
 .hiraeth-phoenix-curtain {
   position: absolute;
   inset: 0;
   z-index: 4;
-  background: linear-gradient(140deg, #101e18 0%, #1a3126 55%, #0e1b15 100%);
+  background: #10251d;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 1.05s ease-in-out;
+  transition: opacity .72s ease-in .33s;
 }
-.hiraeth-phoenix-curtain.is-closing { opacity: 1; }
-@keyframes hiraeth-home-arrival { from { opacity: 0; } to { opacity: 1; } }
-.hiraeth-home-arrival { animation: hiraeth-home-arrival .7s ease-out both; }
+.hiraeth-phoenix-curtain.is-closing { opacity: .93; }
+@keyframes hiraeth-home-arrival {
+  from { opacity: 0; transform: scale(1.055); filter: blur(3px); }
+  to { opacity: 1; transform: scale(1); filter: blur(0); }
+}
+.hiraeth-home-arrival { animation: hiraeth-home-arrival .76s ease-out both; transform-origin: center top; }
 .hiraeth-phoenix-skip, .hiraeth-phoenix-config { position: absolute; z-index: 5; bottom: max(24px, env(safe-area-inset-bottom)); right: 20px; padding: 10px 16px; border: 1px solid rgba(231,207,161,.55); border-radius: 999px; color: #f7efda; background: rgba(12,30,22,.65); font-size: .85rem; }
 .hiraeth-phoenix-config { right: auto; left: 20px; }
 .hiraeth-phoenix-editor { position: fixed; z-index: 20; inset: 0; display: grid; place-items: center; padding: 20px; background: rgba(0,0,0,.78); }
@@ -927,4 +940,4 @@ body > div {
 .hiraeth-phoenix-editor-panel label { font-weight: 600; }
 .hiraeth-phoenix-editor-panel input { width: 100%; border: 1px solid #9c9b8b; border-radius: 8px; padding: 12px; color: #24352a; background: white; }
 .hiraeth-phoenix-editor-panel button { padding: 9px 13px; border: 1px solid #6e785d; border-radius: 8px; }
-@media (prefers-reduced-motion: reduce) { .hiraeth-phoenix-wordmark, .hiraeth-home-arrival { animation: none !important; } .hiraeth-phoenix-curtain { transition: none !important; } }
+@media (prefers-reduced-motion: reduce) { .hiraeth-phoenix-wordmark, .hiraeth-home-arrival { animation: none !important; } .hiraeth-phoenix-curtain, .hiraeth-phoenix-intro .opening-video { transition: none !important; } }
