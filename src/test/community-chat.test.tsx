@@ -7,6 +7,7 @@ const mocks = vi.hoisted(() => ({
   error: null as object | null,
   body: "Mensagem de teste",
   deleted: false,
+  interests: [] as { id: string; title: string; interest_type: string }[],
 }));
 vi.mock("@/components/SiteLayout", () => ({ SiteHeader: () => null }));
 vi.mock("@tanstack/react-router", () => ({
@@ -43,6 +44,7 @@ vi.mock("@/integrations/supabase/client", () => ({
         },
         then: (resolve: (result: object) => unknown) => {
           const rows: Record<string, unknown> = {
+            community_interests: mocks.interests,
             community_memberships: { user_id: "test-user" },
             community_profiles: single
               ? { username: "Teste", library_visible: true }
@@ -79,6 +81,7 @@ beforeEach(() => {
   mocks.error = null;
   mocks.body = "Mensagem de teste";
   mocks.deleted = false;
+  mocks.interests = [];
 });
 afterEach(() => {
   cleanup();
@@ -125,4 +128,21 @@ describe.each(["light", "dark"])("Community chat (%s theme, mocked database)", (
     expect(confirmation).toHaveBeenCalled();
     await waitFor(() => expect(screen.queryByText("Mensagem de teste")).not.toBeInTheDocument());
   });
+});
+
+it("fills each universe row before starting the next row, with three items per row", async () => {
+  mocks.interests = Array.from({ length: 7 }, (_, index) => ({
+    id: String(index),
+    title: `Livro ${index + 1}`,
+    interest_type: "book",
+  }));
+  render(<Community />);
+  fireEvent.click(await screen.findByRole("button", { name: "Meu perfil" }));
+  fireEvent.click(screen.getByRole("button", { name: "Meu Universo" }));
+  const buttons = await screen.findAllByRole("button", { name: /Editar ou remover Livro/ });
+  expect(buttons).toHaveLength(7);
+  const rows = [...new Set(buttons.map((button) => button.parentElement))];
+  expect(rows.map((row) => row?.querySelectorAll('[role="button"]').length)).toEqual([3, 3, 1]);
+  expect(rows[0]?.textContent).toMatch(/Livro 1.*Livro 2.*Livro 3/);
+  expect(rows[1]?.textContent).toMatch(/Livro 4.*Livro 5.*Livro 6/);
 });

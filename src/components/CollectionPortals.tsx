@@ -1,3 +1,4 @@
+import { activeCategories } from "@/lib/store-categories";
 import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,15 +15,16 @@ export function CollectionPortals() {
 
   useEffect(() => {
     let alive = true;
-    void supabase.from("categories").select("id,name,slug,image_url,parent_id,position,is_temporary,starts_at,ends_at").eq("visible", true).not("parent_id", "is", null).order("position")
-      .then(({ data }) => {
-        if (!alive) return;
-        const now = new Date();
-        const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
-        const active = ((data ?? []) as Category[]).filter((c) => !c.is_temporary || Boolean(c.starts_at && c.ends_at && c.starts_at <= today && c.ends_at >= today));
-        setCategories(active.sort((a, b) => a.position - b.position));
-      });
-    return () => { alive = false; };
+    async function refresh() {
+      const { data, error } = await supabase.from("categories").select("id,name,slug,image_url,parent_id,position,is_temporary,starts_at,ends_at").eq("visible", true).order("position");
+      if (alive && !error) setCategories(activeCategories((data ?? []) as Category[]).filter(category => category.parent_id));
+    }
+    void refresh();
+    const listener = () => { void refresh(); };
+    window.addEventListener("focus", listener);
+    window.addEventListener("hiraeth:categories-updated", listener);
+    const timer = window.setInterval(listener, 15000);
+    return () => { alive = false; window.clearInterval(timer); window.removeEventListener("focus", listener); window.removeEventListener("hiraeth:categories-updated", listener); };
   }, []);
 
   async function saveCategory(category: Category, values: Record<string, unknown>) {
@@ -73,7 +75,7 @@ export function CollectionPortals() {
           </span>
           <span className="hiraeth-collection-label font-display text-xl text-foreground transition-colors group-hover:text-primary">{category.name}</span>
           </button>
-          {category.is_temporary && <span className="border border-amber-600/60 px-2 py-0.5 text-[9px] uppercase tracking-widest text-amber-700">Temporária</span>}
+          {category.is_temporary && <span className="border border-amber-600/60 px-2 py-0.5 text-[9px] uppercase tracking-widest text-amber-700 dark:text-amber-200">Temporária</span>}
           {isAdmin && editMode && <div className="mt-1 flex flex-wrap items-center justify-center gap-1" onClick={event => event.stopPropagation()}>
             <button type="button" disabled={categories.indexOf(category) === 0} onClick={() => void moveCategory(categories.indexOf(category), -1).catch(error => window.alert("Não foi possível alterar a ordem: " + (error instanceof Error ? error.message : "erro")))} className="rounded border px-2 py-1 text-xs disabled:opacity-30" aria-label={`Mover ${category.name} para cima`}>↑</button>
             <button type="button" disabled={categories.indexOf(category) === categories.length - 1} onClick={() => void moveCategory(categories.indexOf(category), 1).catch(error => window.alert("Não foi possível alterar a ordem: " + (error instanceof Error ? error.message : "erro")))} className="rounded border px-2 py-1 text-xs disabled:opacity-30" aria-label={`Mover ${category.name} para baixo`}>↓</button>

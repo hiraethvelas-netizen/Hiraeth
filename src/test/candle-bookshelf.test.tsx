@@ -96,3 +96,52 @@ describe.each(["light", "dark"])(
     });
   },
 );
+
+describe("Library categories and finished state", () => {
+  it("offers official categories, groups matching names and accepts a personal category", async () => {
+    const update = vi.fn().mockResolvedValue(undefined);
+    render(
+      <CandleBookshelf
+        items={[
+          { ...candle, category: "harry  potter " },
+          { ...candle, id: "other", title: "Outra vela", category: "Harry Potter" },
+        ]}
+        categoryOptions={["Harry Potter", "Friends"]}
+        editable
+        onUpdate={update}
+      />,
+    );
+    expect(screen.getAllByRole("button", { name: "Harry Potter" })).toHaveLength(1);
+    fireEvent.click(screen.getByRole("button", { name: "Harry Potter" }));
+    expect(screen.getAllByRole("button", { name: /Abrir detalhes da vela/ })).toHaveLength(2);
+    fireEvent.click(screen.getByRole("button", { name: "Abrir detalhes da vela Vela de teste" }));
+    fireEvent.click(screen.getByRole("button", { name: "Editar detalhes" }));
+    expect(screen.getByLabelText("Categoria / universo")).toHaveAttribute("list");
+    expect(document.querySelector('option[value="Friends"]')).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText("Categoria / universo"), {
+      target: { value: "Verity" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Salvar alterações" }));
+    await waitFor(() =>
+      expect(update).toHaveBeenCalledWith(
+        candle.id,
+        expect.objectContaining({ category: "Verity" }),
+      ),
+    );
+  });
+  it("preserves the finished state on failure and updates it only after confirmation", async () => {
+    const mark = vi
+      .fn()
+      .mockRejectedValueOnce(new Error("Falha no banco"))
+      .mockResolvedValueOnce(undefined);
+    render(<CandleBookshelf items={[candle]} editable onMarkFinished={mark} />);
+    fireEvent.click(screen.getByRole("button", { name: "Abrir detalhes da vela Vela de teste" }));
+    fireEvent.click(screen.getByRole("button", { name: "Marcar que a vela acabou" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("Falha no banco");
+    fireEvent.click(screen.getByRole("button", { name: "Marcar que a vela acabou" }));
+    expect(
+      await screen.findByRole("button", { name: "Voltar para a estante" }),
+    ).toBeInTheDocument();
+    expect(mark).toHaveBeenLastCalledWith(candle, true);
+  });
+});
