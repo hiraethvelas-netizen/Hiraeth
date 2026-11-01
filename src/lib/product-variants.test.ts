@@ -12,7 +12,7 @@ describe("e-commerce product variations", () => {
     expect(rows).toHaveLength(4);
     expect(rows[0]?.options).toEqual({ Cor: "Vermelha", Tamanho: "P" });
     expect(rows[1]?.options).toEqual({ Cor: "Vermelha", Tamanho: "M" });
-    const modified = rows.map(row => row.options.Cor === "Vermelha" && row.options.Tamanho === "P"
+    const modified = rows.map(row => row.options["Cor"] === "Vermelha" && row.options["Tamanho"] === "P"
       ? { ...row, stock: 7, price: 72, image: "https://image.test/red-p.webp" } : row);
     const again = variantCombinations(groups, modified, 65);
     expect(again[0]).toMatchObject({ stock: 7, price: 72, image: "https://image.test/red-p.webp" });
@@ -36,7 +36,7 @@ describe("e-commerce product variations", () => {
       { id: "p", name: "Peso", values: [{ id: "100", label: "100 g" }, { id: "250", label: "250 g" }] },
     ];
     const rows = variantCombinations(peso, [], 50);
-    expect(rows.map(row => row.options.Peso)).toEqual(["100 g", "250 g"]);
+    expect(rows.map(row => row.options["Peso"])).toEqual(["100 g", "250 g"]);
     expect(validateVariantSetup({ groups: peso, rows, legacy: null })).toBeNull();
   });
 
