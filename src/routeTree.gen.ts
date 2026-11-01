@@ -20,7 +20,10 @@ import { Route as InicioRouteImport } from './routes/inicio'
 import { Route as LojaRouteImport } from './routes/loja'
 import { Route as PrivacidadeRouteImport } from './routes/privacidade'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as SegurancaRouteImport } from './routes/seguranca'
 import { Route as SobreRouteImport } from './routes/sobre'
+import { Route as SuporteRouteImport } from './routes/suporte'
+import { Route as TermosRouteImport } from './routes/termos'
 import { Route as AuthenticatedBibliotecaRouteImport } from './routes/_authenticated/biblioteca'
 import { Route as AuthenticatedComunidadeRouteImport } from './routes/_authenticated/comunidade'
 import { Route as AuthenticatedConfiguracoesRouteImport } from './routes/_authenticated/configuracoes'
@@ -94,9 +97,24 @@ const ResetPasswordRoute = ResetPasswordRouteImport.update({
   path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SegurancaRoute = SegurancaRouteImport.update({
+  id: '/seguranca',
+  path: '/seguranca',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SobreRoute = SobreRouteImport.update({
   id: '/sobre',
   path: '/sobre',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SuporteRoute = SuporteRouteImport.update({
+  id: '/suporte',
+  path: '/suporte',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermosRoute = TermosRouteImport.update({
+  id: '/termos',
+  path: '/termos',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedBibliotecaRoute = AuthenticatedBibliotecaRouteImport.update({
@@ -202,7 +220,10 @@ export interface FileRoutesByFullPath {
   '/loja': typeof LojaRoute
   '/privacidade': typeof PrivacidadeRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/seguranca': typeof SegurancaRoute
   '/sobre': typeof SobreRoute
+  '/suporte': typeof SuporteRoute
+  '/termos': typeof TermosRoute
   '/biblioteca': typeof AuthenticatedBibliotecaRoute
   '/comunidade': typeof AuthenticatedComunidadeRoute
   '/configuracoes': typeof AuthenticatedConfiguracoesRoute
@@ -232,7 +253,10 @@ export interface FileRoutesByTo {
   '/loja': typeof LojaRoute
   '/privacidade': typeof PrivacidadeRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/seguranca': typeof SegurancaRoute
   '/sobre': typeof SobreRoute
+  '/suporte': typeof SuporteRoute
+  '/termos': typeof TermosRoute
   '/biblioteca': typeof AuthenticatedBibliotecaRoute
   '/comunidade': typeof AuthenticatedComunidadeRoute
   '/configuracoes': typeof AuthenticatedConfiguracoesRoute
@@ -265,7 +289,10 @@ export interface FileRoutesById {
   '/loja': typeof LojaRoute
   '/privacidade': typeof PrivacidadeRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/seguranca': typeof SegurancaRoute
   '/sobre': typeof SobreRoute
+  '/suporte': typeof SuporteRoute
+  '/termos': typeof TermosRoute
   '/_authenticated/biblioteca': typeof AuthenticatedBibliotecaRoute
   '/_authenticated/comunidade': typeof AuthenticatedComunidadeRoute
   '/_authenticated/configuracoes': typeof AuthenticatedConfiguracoesRoute
@@ -298,7 +325,10 @@ export interface FileRouteTypes {
     | '/loja'
     | '/privacidade'
     | '/reset-password'
+    | '/seguranca'
     | '/sobre'
+    | '/suporte'
+    | '/termos'
     | '/biblioteca'
     | '/comunidade'
     | '/configuracoes'
@@ -328,7 +358,10 @@ export interface FileRouteTypes {
     | '/loja'
     | '/privacidade'
     | '/reset-password'
+    | '/seguranca'
     | '/sobre'
+    | '/suporte'
+    | '/termos'
     | '/biblioteca'
     | '/comunidade'
     | '/configuracoes'
@@ -360,7 +393,10 @@ export interface FileRouteTypes {
     | '/loja'
     | '/privacidade'
     | '/reset-password'
+    | '/seguranca'
     | '/sobre'
+    | '/suporte'
+    | '/termos'
     | '/_authenticated/biblioteca'
     | '/_authenticated/comunidade'
     | '/_authenticated/configuracoes'
@@ -393,7 +429,10 @@ export interface RootRouteChildren {
   LojaRoute: typeof LojaRoute
   PrivacidadeRoute: typeof PrivacidadeRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  SegurancaRoute: typeof SegurancaRoute
   SobreRoute: typeof SobreRoute
+  SuporteRoute: typeof SuporteRoute
+  TermosRoute: typeof TermosRoute
   PortalSlugRoute: typeof PortalSlugRoute
   ProdutoSlugRoute: typeof ProdutoSlugRoute
 }
@@ -477,11 +516,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/seguranca': {
+      id: '/seguranca'
+      path: '/seguranca'
+      fullPath: '/seguranca'
+      preLoaderRoute: typeof SegurancaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sobre': {
       id: '/sobre'
       path: '/sobre'
       fullPath: '/sobre'
       preLoaderRoute: typeof SobreRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/suporte': {
+      id: '/suporte'
+      path: '/suporte'
+      fullPath: '/suporte'
+      preLoaderRoute: typeof SuporteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/termos': {
+      id: '/termos'
+      path: '/termos'
+      fullPath: '/termos'
+      preLoaderRoute: typeof TermosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/biblioteca': {
@@ -674,7 +734,10 @@ const rootRouteChildren: RootRouteChildren = {
   LojaRoute: LojaRoute,
   PrivacidadeRoute: PrivacidadeRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  SegurancaRoute: SegurancaRoute,
   SobreRoute: SobreRoute,
+  SuporteRoute: SuporteRoute,
+  TermosRoute: TermosRoute,
   PortalSlugRoute: PortalSlugRoute,
   ProdutoSlugRoute: ProdutoSlugRoute,
 }
