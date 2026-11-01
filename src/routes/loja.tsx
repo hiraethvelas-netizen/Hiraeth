@@ -25,6 +25,7 @@ export const Route = createFileRoute("/loja")({
   validateSearch: (search: Record<string, unknown>) => ({
     ...(typeof search["q"] === "string" ? { q: search["q"] } : {}),
     ...(typeof search["categoria"] === "string" ? { categoria: search["categoria"] } : {}),
+    ...(search["favoritos"] === "1" ? { favoritos: "1" } : {}),
   }),
   head: () => ({
     meta: [
@@ -56,6 +57,7 @@ function filteredProductsForApparel(products: Product[], categories: Category[])
 
 function Loja() {
   const search = Route.useSearch();
+  const showFavorites = search.favoritos === "1";
   const navigate = useNavigate();
   const [pageSettings, savePageSettings] = useSiteContent("store-page-settings", { eyebrow: "O Acervo Hiraeth", title: "O Acervo Hiraeth", intro: "Encontre o universo que mora em você.", bannerImage: "", showBanner: false });
   const [products, setProducts] = useState<Product[]>([]);
@@ -142,11 +144,12 @@ useEffect(() => {
   }
   const featuredCollectionSlugs = ["harry-potter", "universo-sarah-j-maas", "friends", "the-vampire-diaries", "crepusculo", "taylor-swift", "gilmore-girls"];
   const featuredCollections = featuredCollectionSlugs.map((slug) => categories.find((category) => category.slug === slug)).filter((category): category is Category => Boolean(category));
-  const apparelProducts = !categoryId ? filteredProductsForApparel(products, categories) : [];
+  const apparelProducts = !categoryId && !showFavorites ? filteredProductsForApparel(products, categories) : [];
 
   const filtered = useMemo(() => {
     const activeCategoryIds = new Set(categories.map((category) => category.id));
     return products.filter((p) => {
+      if (showFavorites && !wishlistIds.has(p.id)) return false;
       if (p.category_id && !activeCategoryIds.has(p.category_id)) return false;
       if (categoryId) {
         const includedCategoryIds = new Set([categoryId, ...categories.filter((category) => category.parent_id === categoryId).map((category) => category.id)]);
@@ -167,7 +170,7 @@ useEffect(() => {
 
       return true;
     });
-  }, [products, query, categoryId, categories]);
+  }, [products, query, categoryId, categories, wishlistIds, showFavorites]);
 
   useEffect(() => {
     if (loading || typeof IntersectionObserver === "undefined") return;
@@ -187,15 +190,20 @@ useEffect(() => {
   return (
     <div className="min-h-screen">
       <SiteHeader />
-      <AcervoNavigation />
-      {!selectedCategory && <StoreBanners />}
+      {!showFavorites && <AcervoNavigation />}
+      {!selectedCategory && !showFavorites && <StoreBanners />}
 
       <main className="mx-auto max-w-6xl px-5 pb-20 pt-8 md:px-8 md:pt-12">
+        {showFavorites && <section className="mb-8 text-center">
+          <h1 className="font-display text-4xl text-foreground md:text-5xl">Meus Favoritos</h1>
+          <p className="mt-3 text-sm text-muted-foreground">Os produtos que você guardou no coração.</p>
+          <Link to="/loja" className="mt-4 inline-block text-sm text-primary underline underline-offset-4">Voltar ao Acervo Hiraeth</Link>
+        </section>}
         {/* Catálogo da loja */}
-        {!selectedCategory && <div className="mb-5 space-y-3">
+        {!selectedCategory && !showFavorites && <div className="mb-5 space-y-3">
           <InlineEditor label="apresentação da loja" fields={[{ name: "eyebrow", label: "Texto pequeno acima do título", type: "text" }, { name: "title", label: "Título da página", type: "text" }, { name: "intro", label: "Texto de apresentação", type: "textarea" }, { name: "bannerImage", label: "Banner opcional", type: "image" }, { name: "showBanner", label: "Exibir banner", type: "checkbox" }]} values={pageSettings} onSave={async (next) => savePageSettings({ ...pageSettings, ...next } as typeof pageSettings)} />
         </div>}
-        {!selectedCategory && pageSettings.showBanner && pageSettings.bannerImage && <img src={pageSettings.bannerImage} alt="Banner da loja Hiraeth" className="mb-8 max-h-[28rem] w-full object-cover" />}
+        {!selectedCategory && !showFavorites && pageSettings.showBanner && pageSettings.bannerImage && <img src={pageSettings.bannerImage} alt="Banner da loja Hiraeth" className="mb-8 max-h-[28rem] w-full object-cover" />}
 
         {selectedCategory && <section className="hiraeth-category-hero hiraeth-reveal relative mt-7 mb-10 overflow-hidden rounded-xl border border-primary/40">
           {selectedCategory.image_url ? <img src={selectedCategory.image_url} alt={selectedCategory.name} className="h-64 w-full object-cover sm:h-80 md:h-[26rem]" /> : <div className="h-48 w-full bg-[radial-gradient(ellipse_at_center,_var(--color-secondary),_var(--color-background)_70%)] sm:h-64 md:h-80" aria-hidden="true" />}
@@ -212,7 +220,7 @@ useEffect(() => {
           }} className="mt-3" />
         </section>}
 
-        {!categoryId && featuredCollections.length > 0 && <section className="mt-8">
+        {!categoryId && !showFavorites && featuredCollections.length > 0 && <section className="mt-8">
           <div className="mb-4 flex items-end justify-between gap-3"><div className="min-w-0"><p className="eyebrow">{pageSettings.eyebrow}</p><h2 className="hiraeth-editorial-title hiraeth-acervo-heading !mx-0 mt-2 !text-left !text-4xl md:!text-6xl">{pageSettings.title}</h2>{pageSettings.intro && <p className="mt-3 max-w-2xl text-sm text-muted-foreground md:text-base">{pageSettings.intro}</p>}</div><span className="shrink-0 text-xs text-muted-foreground">7 universos</span></div>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
             {featuredCollections.map((collection) => <div key={collection.id} className="flex min-w-0 flex-col items-center gap-2">
@@ -254,12 +262,14 @@ useEffect(() => {
         ) : filtered.length === 0 ? (
           <div className="mt-16 text-center">
             <p className="font-display text-2xl italic text-primary">
-              Nenhum item encontrado
+              {showFavorites ? "Nenhum favorito ainda" : "Nenhum item encontrado"}
             </p>
             <p className="mt-2 text-muted-foreground">
-              {products.length === 0
-                ? "O acervo ainda está sendo preparado. Volte em breve."
-                : "Tente outra busca ou categoria."}
+              {showFavorites
+                ? "Toque no coração dos produtos na Loja para encontrá-los aqui."
+                : products.length === 0
+                  ? "O acervo ainda está sendo preparado. Volte em breve."
+                  : "Tente outra busca ou categoria."}
             </p>
           </div>
         ) : (
@@ -322,8 +332,8 @@ useEffect(() => {
             ))}
           </div>
         )}
-        <CustomerReviews />
-        <SecretFlamesPromotion />
+        {!showFavorites && <CustomerReviews />}
+        {!showFavorites && <SecretFlamesPromotion />}
         {enteringCategory && <div className="portal-entry-overlay" aria-hidden="true">{enteringCategory.image_url ? <img src={enteringCategory.image_url} alt="" className="portal-entry-image" /> : <div className="portal-entry-placeholder"><span>{enteringCategory.name}</span></div>}</div>}
       </main>
 
