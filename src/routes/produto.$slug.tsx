@@ -264,7 +264,8 @@ function ProdutoPage() {
                 disabled={outOfStock || requiresChoice || quantity > availableStock}
                 onClick={() => {
                   if (requiresChoice || !variantKey && hasCombinedVariants) { toast.error("Escolha as variações do produto."); return; }
-                  if (quantity > availableStock) { toast.error("Estoque insuficiente para esta combinação."); return; }
+                  const alreadyInCart = cart.items.find(item => item.productId === product.id && (item.variantKey ?? "") === (variantKey ?? ""))?.quantity ?? 0;
+                  if (quantity + alreadyInCart > availableStock) { toast.error("Estoque insuficiente para essa opção. Confira a quantidade no carrinho."); return; }
                   cart.add(
                     {
                       productId: product.id,
