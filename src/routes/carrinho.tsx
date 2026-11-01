@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { SiteFooter, SiteHeader } from "@/components/SiteLayout";
 import { useCart } from "@/lib/cart";
@@ -19,8 +19,16 @@ function Carrinho() {
   const navigate = useNavigate();
   const [placing, setPlacing] = useState(false);
   const [coupon, setCoupon] = useState("");
-  const [couponDiscount, setCouponDiscount] = useState(0);
-  const [couponCode, setCouponCode] = useState<string | null>(null);
+  const [appliedCoupon, setAppliedCoupon] = useState<{
+    code: string;
+    discount: number;
+    cartKey: string;
+  } | null>(null);
+  const cartKey = JSON.stringify(cart.items);
+  const currentCartKey = useRef(cartKey);
+  currentCartKey.current = cartKey;
+  const couponCode = appliedCoupon?.cartKey === cartKey ? appliedCoupon.code : null;
+  const couponDiscount = couponCode ? appliedCoupon!.discount : 0;
   const [validatingCoupon, setValidatingCoupon] = useState(false);
   const db = supabase as any;
   const payableTotal = Math.max(0, cart.total - couponDiscount);
@@ -28,17 +36,30 @@ function Carrinho() {
   async function applyCoupon() {
     const code = coupon.trim().toUpperCase();
     if (!code) { toast.error("Digite o código do cupom."); return; }
+    if (validatingCoupon) return;
     setValidatingCoupon(true);
-    const now = new Date().toISOString();
-    const { data, error } = await db.from("promotions").select("*").eq("kind", "coupon").eq("code", code).eq("active", true).eq("visible", true).maybeSingle();
-    setValidatingCoupon(false);
-    if (error || !data || (data.starts_at && data.starts_at > now) || (data.ends_at && data.ends_at < now) || (data.usage_limit != null && data.usage_count >= data.usage_limit) || cart.total < Number(data.min_cart_value ?? 0)) {
-      setCouponDiscount(0); setCouponCode(null); toast.error("Cupom inválido, expirado ou não aplicável a este carrinho."); return;
+    const requestedCartKey = cartKey;
+    try {
+      const now = new Date().toISOString();
+      const { data, error } = await db.from("promotions").select("*").eq("kind", "coupon").eq("code", code).eq("active", true).eq("visible", true).maybeSingle();
+      if (currentCartKey.current !== requestedCartKey) {
+        toast.error("O carrinho mudou durante a consulta. Aplique o cupom novamente.");
+        return;
+      }
+      if (error || !data || (data.starts_at && data.starts_at > now) || (data.ends_at && data.ends_at < now) || (data.usage_limit != null && data.usage_count >= data.usage_limit) || cart.total < Number(data.min_cart_value ?? 0)) {
+        setAppliedCoupon(null);
+        toast.error("Cupom inválido, expirado ou não aplicável a este carrinho.");
+        return;
+      }
+      const discount = data.discount_type === "percent" ? cart.total * Number(data.discount_value) / 100 : Number(data.discount_value);
+      setAppliedCoupon({ code, discount: Math.min(cart.total, Math.max(0, discount)), cartKey: requestedCartKey });
+      toast.success("Cupom aplicado.");
+    } catch {
+      setAppliedCoupon(null);
+      toast.error("Não foi possível verificar o cupom. Tente novamente.");
+    } finally {
+      setValidatingCoupon(false);
     }
-    const discount = data.discount_type === "percent" ? cart.total * Number(data.discount_value) / 100 : Number(data.discount_value);
-    setCouponDiscount(Math.min(cart.total, Math.max(0, discount)));
-    setCouponCode(code);
-    toast.success("Cupom aplicado.");
   }
 
   async function checkout() {
@@ -144,13 +165,14 @@ function Carrinho() {
 
             <div className="mt-8 border-t pt-6 text-right">
               <div className="mb-5 flex gap-2"><input aria-label="Cupom de desconto" value={coupon} onChange={(e) => setCoupon(e.target.value.toUpperCase())} placeholder="Código do cupom" className="min-w-0 flex-1 border bg-transparent px-3 py-2 text-sm" /><button type="button" onClick={() => void applyCoupon()} disabled={validatingCoupon} className="border px-4 py-2 text-sm">{validatingCoupon ? "Verificando..." : "Aplicar cupom"}</button></div>
-              {couponCode && <p className="mb-2 text-sm text-primary">Cupom {couponCode}: −{brl(couponDiscount)} <button className="ml-2 underline" onClick={() => {setCouponCode(null);setCouponDiscount(0);setCoupon("");}}>Remover</button></p>}
+              {appliedCoupon && !couponCode && <p role="status" className="mb-2 text-sm text-muted-foreground">O carrinho mudou. Aplique o cupom novamente para atualizar o desconto.</p>}
+              {couponCode && <p className="mb-2 text-sm text-primary">Cupom {couponCode}: −{brl(couponDiscount)} <button className="ml-2 underline" onClick={() => {setAppliedCoupon(null);setCoupon("");}}>Remover</button></p>}
               <p className="text-sm text-muted-foreground">Subtotal: {brl(cart.total)}</p>
               <p className="text-2xl">
                 Total: <span className="text-primary">{brl(payableTotal)}</span>
               </p>
               <p className="mt-1 text-sm text-muted-foreground">Frete calculado na finalização.</p>
-              <button onClick={checkout} disabled={placing} className="btn-gold mt-6">
+              <button onClick={checkout} disabled={placing || validatingCoupon} className="btn-gold mt-6">
                 {placing ? "Processando..." : "Finalizar pedido"}
               </button>
             </div>
