@@ -32,6 +32,7 @@ function ProdutoPage() {
   const [activeImage, setActiveImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [inWishlist, setInWishlist] = useState(false);
+  const [savingWishlist, setSavingWishlist] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [aromaNotes, setAromaNotes] = useState<AromaNote[]>([]);
   const [selectedVariant, setSelectedVariant] = useState<any>(null);
@@ -103,14 +104,25 @@ function ProdutoPage() {
       toast.info("Entre na sua conta para salvar desejos.");
       return;
     }
-    if (inWishlist) {
-      await supabase.from("wishlist_items").delete().eq("user_id", userId).eq("product_id", product!.id);
-      setInWishlist(false);
-      toast.success("Removido dos desejos.");
-    } else {
-      await supabase.from("wishlist_items").insert({ user_id: userId, product_id: product!.id });
-      setInWishlist(true);
-      toast.success("Adicionado aos seus desejos.");
+    if (savingWishlist) return;
+    setSavingWishlist(true);
+    try {
+      const { error } = inWishlist
+        ? await supabase
+            .from("wishlist_items")
+            .delete()
+            .eq("user_id", userId)
+            .eq("product_id", product!.id)
+        : await supabase
+            .from("wishlist_items")
+            .insert({ user_id: userId, product_id: product!.id });
+      if (error) throw error;
+      setInWishlist(!inWishlist);
+      toast.success(inWishlist ? "Removido dos desejos." : "Adicionado aos seus desejos.");
+    } catch {
+      toast.error("Não foi possível atualizar seus desejos. Tente novamente.");
+    } finally {
+      setSavingWishlist(false);
     }
   }
 
@@ -207,7 +219,12 @@ function ProdutoPage() {
               </button>
             </div>
 
-            <button onClick={toggleWishlist} className="mt-4 text-sm text-muted-foreground underline hover:text-primary">
+            <button
+              onClick={toggleWishlist}
+              disabled={savingWishlist}
+              aria-busy={savingWishlist}
+              className="mt-4 text-sm text-muted-foreground underline hover:text-primary"
+            >
               {inWishlist ? "♥ Nos seus desejos" : "♡ Adicionar aos desejos"}
             </button>
 
