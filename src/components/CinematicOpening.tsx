@@ -103,7 +103,7 @@ export function CinematicOpening() {
       <div className="hiraeth-phoenix-vignette" aria-hidden="true" />
       <img src={hiraethWordmark} className={`hiraeth-phoenix-wordmark ${complete ? "is-leaving" : ""}`} alt="Hiraeth" />
       <div className={`hiraeth-phoenix-curtain ${complete ? "is-closing" : ""}`} aria-hidden="true" />
-      <button className="hiraeth-phoenix-skip" type="button" onClick={() => setComplete(true)}>Pular abertura</button>
+      {!complete && <button className="hiraeth-phoenix-skip" type="button" onClick={() => setComplete(true)}>Pular abertura</button>}
       {editing && <button type="button" className="hiraeth-phoenix-config" onClick={() => { setDraftUrl(settings.phoenixVideoUrl); setShowEditor(true); }}>Editar abertura</button>}
       {showEditor && renderEditor()}
     </main>
