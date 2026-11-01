@@ -10,7 +10,10 @@ export type CombinationVariant = {
   stock: number;
   image: string;
 };
-export type LegacyVariant = Record<string, unknown>;
+export type LegacyVariant = Record<string, unknown> & {
+  key?: unknown; type?: unknown; label?: unknown; price?: unknown;
+  sale_price?: unknown; stock?: unknown; image?: unknown; options?: unknown;
+};
 export type VariantSetup = {
   groups: VariantGroup[];
   rows: CombinationVariant[];
@@ -25,25 +28,28 @@ export const optionKey = (options: Record<string, string>) =>
   "combo:" + JSON.stringify(Object.entries(options));
 
 export function variantList(raw: unknown): LegacyVariant[] {
-  return Array.isArray(raw) ? raw.filter(isRecord) : [];
+  return Array.isArray(raw) ? raw.filter(isRecord) as LegacyVariant[] : [];
 }
 
 export function isCombinationVariant(variant: unknown): variant is CombinationVariant {
-  return isRecord(variant) && isRecord(variant.options) && Object.keys(variant.options).length > 0 &&
-    Object.values(variant.options).every(value => typeof value === "string");
+  return isRecord(variant) && isRecord(variant["options"]) && Object.keys(variant["options"]).length > 0 &&
+    Object.values(variant["options"]).every(value => typeof value === "string");
 }
 
 export function managedVariants(raw: unknown): CombinationVariant[] {
-  return variantList(raw).filter(isCombinationVariant).map(row => ({
+  return variantList(raw).filter(isCombinationVariant).map(row => {
+    const rawSale: unknown = row.sale_price;
+    return ({
     ...row,
     type: "combination" as const,
     key: typeof row.key === "string" ? row.key : optionKey(row.options),
     label: typeof row.label === "string" ? row.label : Object.values(row.options).join(" / "),
     price: Number.isFinite(Number(row.price)) ? Number(row.price) : 0,
-    sale_price: row.sale_price == null || row.sale_price === "" ? null : Number(row.sale_price),
+    sale_price: rawSale == null || rawSale === "" ? null : Number(rawSale),
     stock: Number.isFinite(Number(row.stock)) ? Number(row.stock) : 0,
     image: typeof row.image === "string" ? row.image : "",
-  }));
+    });
+  });
 }
 
 export function variantSetupFrom(raw: unknown): VariantSetup {
@@ -55,7 +61,7 @@ export function variantSetupFrom(raw: unknown): VariantSetup {
   const optionNames = Object.keys(managed[0]?.options ?? {});
   const groups = optionNames.map((name, i) => ({
     id: "group-" + i, name,
-    values: [...new Set(managed.map(v => v.options[name]).filter(Boolean))].map((label, j) =>
+    values: [...new Set(managed.map(v => v.options[name]).filter((v): v is string => Boolean(v)))].map((label, j) =>
       ({ id: i + "-value-" + j, label })),
   }));
   return { groups, rows: managed, legacy: null };
