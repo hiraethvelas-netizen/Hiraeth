@@ -7,6 +7,7 @@ import { useCart } from "@/lib/cart";
 import { brl } from "@/lib/format";
 import { toast } from "sonner";
 import { requireAuthenticatedUser } from "@/lib/require-auth";
+import { managedVariants } from "@/lib/product-variants";
 
 export const Route = createFileRoute("/carrinho")({
   ssr: false,
@@ -112,10 +113,15 @@ function Carrinho() {
 
     // Valida estoque antes de criar o pedido
     const ids = cart.items.map((i) => i.productId);
-    const { data: products } = await supabase.from("products").select("id, name, stock").in("id", ids);
+    const { data: products, error: productsError } = await supabase.from("products").select("id, name, stock, variants").in("id", ids);
+    if (productsError) { toast.error("Não foi possível validar o estoque. Tente novamente."); setPlacing(false); return; }
     for (const item of cart.items) {
       const p = products?.find((x) => x.id === item.productId);
-      const variantStock = typeof item.variantDetails?.["stock"] === "number" ? item.variantDetails["stock"] : null;
+      const currentVariants = managedVariants(p?.variants);
+      const selected = item.variantKey ? currentVariants.find(row => row.key === item.variantKey) : null;
+      const variantStock = currentVariants.length
+        ? (selected?.stock ?? 0)
+        : typeof item.variantDetails?.["stock"] === "number" ? item.variantDetails["stock"] : null;
       if (!p || (variantStock !== null ? variantStock < item.quantity : p.stock < item.quantity)) {
         toast.error(`Estoque insuficiente para "${item.name}".`);
         setPlacing(false);
@@ -196,6 +202,9 @@ function Carrinho() {
                     <p className="text-sm text-muted-foreground">{brl(item.price)} cada</p>
                     {typeof item.variantDetails?.["size"] === "string" && <p className="text-xs text-muted-foreground">Tamanho: {item.variantDetails["size"]}</p>}
                     {typeof item.variantDetails?.["house"] === "string" && <p className="text-xs text-muted-foreground">Casa: {item.variantDetails["house"]}</p>}
+                    {item.variantDetails?.["options"] && typeof item.variantDetails["options"] === "object" && !Array.isArray(item.variantDetails["options"]) &&
+                      Object.entries(item.variantDetails["options"] as Record<string, string>).map(([name, value]) =>
+                        <p key={name} className="text-xs text-muted-foreground">{name}: {String(value)}</p>)}
                   </div>
                   <div className="flex items-center border">
                     <button disabled={placing} onClick={() => cart.setQuantity(item.productId, item.quantity - 1, item.variantKey)} className="px-3 py-1">−</button>
