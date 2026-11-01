@@ -29,6 +29,7 @@ export function CinematicOpening() {
   const videoSrc = /^https?:\/\//i.test(publicVideoUrl) ? publicVideoUrl : phoenixVideo;
   const hasPhoenixVideo = settings.enabled;
   const maxDuration = 30000;
+  const transitionDuration = 860;
 
   useEffect(() => {
     setReducedMotion(window.matchMedia("(prefers-reduced-motion: reduce)").matches);
@@ -47,7 +48,7 @@ export function CinematicOpening() {
   useEffect(() => {
     if (!complete || showEditor || navigated.current) return;
     navigated.current = true;
-    const timeout = window.setTimeout(() => { void navigate({ to: "/inicio" }); }, reducedMotion ? 0 : 1050);
+    const timeout = window.setTimeout(() => { void navigate({ to: "/inicio" }); }, reducedMotion ? 0 : transitionDuration);
     return () => window.clearTimeout(timeout);
   }, [complete, navigate, showEditor, reducedMotion]);
 
@@ -97,9 +98,8 @@ export function CinematicOpening() {
         onTimeUpdate={(event) => {
           const video = event.currentTarget;
           const duration = video.duration;
-          // Stop before the end of the source so its final scene never appears.
-          if (!complete && Number.isFinite(duration) && duration >= 2.5 && video.currentTime >= duration - Math.min(1.2, duration * 0.22)) {
-            video.pause();
+          // Begin the zoom while playback continues. Navigate before the final scene.
+          if (!complete && Number.isFinite(duration) && duration >= 2.5 && video.currentTime >= duration - Math.min(1.25, duration * 0.28)) {
             setComplete(true);
           }
         }}
