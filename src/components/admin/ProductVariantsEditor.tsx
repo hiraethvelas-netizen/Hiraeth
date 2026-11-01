@@ -23,7 +23,7 @@ export function ProductVariantsEditor({ value, onChange, basePrice, onUpload, di
   function updateGroups(groups: VariantGroup[]) {
     const rows = variantCombinations(groups, value.rows, basePrice);
     // Keep previous values while one of the new fields is still being entered.
-    onChange({ groups, rows: rows.length ? rows : value.rows, legacy: null });
+    onChange({ groups, rows: groups.length === 0 ? [] : rows.length ? rows : value.rows, legacy: null });
   }
 
   function addGroup() {
