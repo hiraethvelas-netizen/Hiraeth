@@ -88,7 +88,7 @@ afterEach(() => {
 
 async function openChatMenu() {
   render(<Community />);
-  fireEvent.click(await screen.findByRole("button", { name: "Chat", exact: true }));
+  fireEvent.click(await screen.findByRole("button", { name: "Chat" }));
   // Only the current author's message exposes editing/deletion options.
   const triggers = await screen.findAllByRole("button", { name: "Opções da mensagem" });
   expect(triggers).toHaveLength(1);
