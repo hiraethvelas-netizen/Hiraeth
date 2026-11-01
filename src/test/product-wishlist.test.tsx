@@ -8,6 +8,13 @@ const mocks = vi.hoisted(() => ({
   error: vi.fn(),
   add: vi.fn(),
   saved: false,
+  aromaNotes: [] as {
+    name: string;
+    is_pure: boolean;
+    top_notes: string[];
+    heart_notes: string[];
+    base_notes: string[];
+  }[],
 }));
 vi.mock("@/components/SiteLayout", () => ({ SiteHeader: () => null, SiteFooter: () => null }));
 vi.mock("@/lib/cart", () => ({ useCart: () => ({ add: mocks.add }) }));
@@ -22,6 +29,7 @@ vi.mock("@tanstack/react-router", () => ({
 }));
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: {
+    rpc: async () => ({ data: mocks.aromaNotes, error: null }),
     auth: { getUser: async () => ({ data: { user: { id: "test-user" } } }) },
     from: (table: string) => {
       const query = {
