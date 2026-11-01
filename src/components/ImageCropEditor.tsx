@@ -127,7 +127,7 @@ export function ImageCropEditor({ source, aspect, onApply, onCancel }: Props) {
         }
       });
       const extension = blob.type === "image/webp" ? "webp" : blob.type === "image/jpeg" ? "jpg" : "png";
-      await onApply(new File([blob], \`hiraeth-recorte.\${extension}\`, { type: blob.type || "image/png" }));
+      await onApply(new File([blob], `hiraeth-recorte.${extension}`, { type: blob.type || "image/png" }));
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Não foi possível salvar o recorte.");
     } finally {
