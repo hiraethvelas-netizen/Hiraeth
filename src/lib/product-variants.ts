@@ -130,9 +130,9 @@ export function legacyToManaged(legacy: LegacyVariant[], fallbackPrice: number):
   const rows = variantCombinations(groups, [], fallbackPrice).map(row => {
     // Preserve existing size pricing/stock and the image for the selected house.
     const size = legacy.find(v => String(v.type ?? "size") === "size" &&
-      row.options.Tamanho === String(v.label ?? v.key ?? ""));
+      row.options["Tamanho"] === String(v.label ?? v.key ?? ""));
     const house = legacy.find(v => String(v.type ?? "") === "house" &&
-      row.options.Casa === String(v.label ?? v.key ?? ""));
+      row.options["Casa"] === String(v.label ?? v.key ?? ""));
     const source = size ?? house ?? legacy.find(v => Object.values(row.options).includes(String(v.label))) ?? null;
     const price = source?.price == null ? fallbackPrice : Number(source.price);
     const salePrice = source?.sale_price == null ? null : Number(source.sale_price);
