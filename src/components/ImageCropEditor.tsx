@@ -9,8 +9,6 @@ type Props = {
   onCancel: () => void;
 };
 
-const FRAME_WIDTH = 900;
-
 /** Crops in the browser before upload: drag to reposition, zoom or turn the photo. */
 export function ImageCropEditor({ source, aspect, onApply, onCancel }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -21,7 +19,8 @@ export function ImageCropEditor({ source, aspect, onApply, onCancel }: Props) {
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
-  const frameHeight = Math.round(FRAME_WIDTH / CROP_ASPECTS[aspect]);
+  const frameWidth = aspect === "landscape" ? 1600 : 1000;
+  const frameHeight = Math.round(frameWidth / CROP_ASPECTS[aspect]);
 
   useEffect(() => {
     let active = true;
@@ -58,12 +57,12 @@ export function ImageCropEditor({ source, aspect, onApply, onCancel }: Props) {
     }
     const frame = getCropGeometry(
       image.naturalWidth, image.naturalHeight,
-      FRAME_WIDTH, frameHeight,
+      frameWidth, frameHeight,
       zoom, rotation, offset.x, offset.y,
     );
-    context.clearRect(0, 0, FRAME_WIDTH, frameHeight);
+    context.clearRect(0, 0, frameWidth, frameHeight);
     context.save();
-    context.translate(FRAME_WIDTH / 2 + frame.x, frameHeight / 2 + frame.y);
+    context.translate(frameWidth / 2 + frame.x, frameHeight / 2 + frame.y);
     context.rotate((rotation * Math.PI) / 180);
     context.drawImage(
       image,
@@ -73,7 +72,7 @@ export function ImageCropEditor({ source, aspect, onApply, onCancel }: Props) {
       image.naturalHeight * frame.scale,
     );
     context.restore();
-  }, [frameHeight, image, offset.x, offset.y, rotation, zoom]);
+  }, [frameHeight, frameWidth, image, offset.x, offset.y, rotation, zoom]);
 
   function pointerDown(event: React.PointerEvent<HTMLCanvasElement>) {
     if (!image || saving) return;
@@ -94,9 +93,9 @@ export function ImageCropEditor({ source, aspect, onApply, onCancel }: Props) {
     const rect = canvas.getBoundingClientRect();
     if (!rect.width || !rect.height) return;
     const frame = getCropGeometry(
-      image.naturalWidth, image.naturalHeight, FRAME_WIDTH, frameHeight,
+      image.naturalWidth, image.naturalHeight, frameWidth, frameHeight,
       zoom, rotation,
-      drag.offsetX + (event.clientX - drag.x) * FRAME_WIDTH / rect.width,
+      drag.offsetX + (event.clientX - drag.x) * frameWidth / rect.width,
       drag.offsetY + (event.clientY - drag.y) * frameHeight / rect.height,
     );
     setOffset({ x: frame.x, y: frame.y });
@@ -140,13 +139,13 @@ export function ImageCropEditor({ source, aspect, onApply, onCancel }: Props) {
       <div>
         <h2 className="font-display text-2xl">Ajustar foto</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Arraste a foto para enquadrar. Ajuste o zoom e gire se desejar. O recorte será aplicado antes de enviar.
+          Arraste a foto para enquadrar. Ajuste o zoom e gire se desejar. Nas bolinhas, a prévia é circular. O recorte será aplicado antes de enviar.
         </p>
       </div>
       <div className="flex justify-center">
         <canvas
           ref={canvasRef}
-          width={FRAME_WIDTH}
+          width={frameWidth}
           height={frameHeight}
           aria-label="Prévia da foto recortada. Arraste para ajustar a posição."
           role="img"
@@ -154,7 +153,7 @@ export function ImageCropEditor({ source, aspect, onApply, onCancel }: Props) {
           onPointerMove={pointerMove}
           onPointerUp={pointerEnd}
           onPointerCancel={pointerEnd}
-          className="block h-auto w-full max-w-[380px] cursor-grab touch-none rounded border border-primary/30 bg-card active:cursor-grabbing"
+          className={`block h-auto w-full max-w-[380px] cursor-grab touch-none border border-primary/30 bg-card active:cursor-grabbing ${aspect === "square" ? "rounded-full" : "rounded"}`}
           style={{ aspectRatio: String(CROP_ASPECTS[aspect]) }}
         />
       </div>
