@@ -1,3 +1,4 @@
+import { buildFragrancePyramid, type EssenceNotes } from "@/lib/fragrance";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -32,12 +33,14 @@ function ProdutoPage() {
   const [activeImage, setActiveImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [inWishlist, setInWishlist] = useState(false);
+  const [savingWishlist, setSavingWishlist] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
-  const [aromaNotes, setAromaNotes] = useState<AromaNote[]>([]);
+  const [aromaNotes, setAromaNotes] = useState<EssenceNotes[]>([]);
   const [selectedVariant, setSelectedVariant] = useState<any>(null);
   const [selectedHouse, setSelectedHouse] = useState("Aleatória / casa surpresa");
 
   useEffect(() => {
+    let active = true;
     async function load() {
       const { data } = await supabase
         .from("products")
@@ -45,8 +48,14 @@ function ProdutoPage() {
         .eq("slug", slug)
         .eq("status", "published")
         .maybeSingle();
+      if (!active) return;
       setProduct(data);
+      setAromaNotes([]);
       setLoading(false);
+      if (data) {
+        const { data: notes, error: notesError } = await supabase.rpc("get_product_aroma_notes" as never, { p_product_id: data.id } as never);
+        if (active && !notesError && Array.isArray(notes)) setAromaNotes(notes as unknown as EssenceNotes[]);
+      }
 
       const { data: userData } = await supabase.auth.getUser();
       if (userData.user && data) {
@@ -60,7 +69,8 @@ function ProdutoPage() {
         setInWishlist(!!w);
       }
     }
-    load();
+    void load();
+    return () => { active = false; };
   }, [slug]);
 
   if (loading) {
@@ -96,6 +106,7 @@ function ProdutoPage() {
     ...(houseVariants.length > 0 ? { house: selectedHouse } : {}),
     stock: availableStock,
   };
+  const pyramid = buildFragrancePyramid(aromaNotes);
   const cartImage = currentImages[0] ?? product.images[0];
 
   async function toggleWishlist() {
@@ -103,14 +114,25 @@ function ProdutoPage() {
       toast.info("Entre na sua conta para salvar desejos.");
       return;
     }
-    if (inWishlist) {
-      await supabase.from("wishlist_items").delete().eq("user_id", userId).eq("product_id", product!.id);
-      setInWishlist(false);
-      toast.success("Removido dos desejos.");
-    } else {
-      await supabase.from("wishlist_items").insert({ user_id: userId, product_id: product!.id });
-      setInWishlist(true);
-      toast.success("Adicionado aos seus desejos.");
+    if (savingWishlist) return;
+    setSavingWishlist(true);
+    try {
+      const { error } = inWishlist
+        ? await supabase
+            .from("wishlist_items")
+            .delete()
+            .eq("user_id", userId)
+            .eq("product_id", product!.id)
+        : await supabase
+            .from("wishlist_items")
+            .insert({ user_id: userId, product_id: product!.id });
+      if (error) throw error;
+      setInWishlist(!inWishlist);
+      toast.success(inWishlist ? "Removido dos desejos." : "Adicionado aos seus desejos.");
+    } catch {
+      toast.error("Não foi possível atualizar seus desejos. Tente novamente.");
+    } finally {
+      setSavingWishlist(false);
     }
   }
 
@@ -164,7 +186,7 @@ function ProdutoPage() {
               )}
             </div>
 
-            {aromaNotes.length > 0 && <section className="mt-6 border-l-2 border-primary pl-4"><h2 className="font-display text-xl text-foreground">Pirâmide olfativa</h2>{([["Saída", "top_notes"], ["Corpo", "heart_notes"], ["Fundo", "base_notes"]] as const).map(([label, key])=>{const notes=Array.from(new Set(aromaNotes.flatMap(a=>a.essences?.[key] ?? [])));return notes.length ? <div key={label} className="mt-3"><p className="text-xs uppercase tracking-widest text-primary">{label}</p><p className="mt-1 text-sm text-foreground/85">{notes.join(", ")}</p></div> : null;})}</section>}
+            {aromaNotes.length > 0 && <section className="mt-6 border-l-2 border-primary pl-4"><h2 className="font-display text-xl text-foreground">Pirâmide olfativa</h2>{([["Saída", "top"], ["Corpo", "heart"], ["Fundo", "base"]] as const).map(([label, key])=>{const notes=pyramid[key];return notes.length ? <div key={label} className="mt-3"><p className="text-xs uppercase tracking-widest text-primary">{label}</p><p className="mt-1 text-sm text-foreground/85">{notes.join(", ")}</p></div> : null;})}</section>}
 
             {product.description && (
               <p className="mt-6 leading-relaxed text-foreground/85">{product.description}</p>
@@ -190,6 +212,7 @@ function ProdutoPage() {
                   cart.add(
                     {
                       productId: product.id,
+                      categoryId: product.category_id,
                       ...(variantKey ? { variantKey } : {}),
                       variantDetails,
                       slug: product.slug,
@@ -207,7 +230,12 @@ function ProdutoPage() {
               </button>
             </div>
 
-            <button onClick={toggleWishlist} className="mt-4 text-sm text-muted-foreground underline hover:text-primary">
+            <button
+              onClick={toggleWishlist}
+              disabled={savingWishlist}
+              aria-busy={savingWishlist}
+              className="mt-4 text-sm text-muted-foreground underline hover:text-primary"
+            >
               {inWishlist ? "♥ Nos seus desejos" : "♡ Adicionar aos desejos"}
             </button>
 

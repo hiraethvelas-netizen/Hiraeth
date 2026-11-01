@@ -1,3 +1,4 @@
+import { useLibraryCategories } from "@/hooks/use-library-categories";
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,6 +16,7 @@ export const Route = createFileRoute("/_authenticated/biblioteca")({
 });
 
 function Biblioteca() {
+  const categoryOptions = useLibraryCategories();
   const [pageSettings, savePageSettings] = useSiteContent("library-page-settings", {
     eyebrow: "Sua estante pessoal",
     title: "Minha Biblioteca",
@@ -120,8 +122,9 @@ function Biblioteca() {
   async function toggleCandleFinished(item: CandleLibraryItem, finished: boolean) {
     if (!userId) throw new Error("Entre na sua conta para atualizar a estante.");
     if (item.order_item_id && item.purchase_status !== "delivered") throw new Error("Você poderá marcar esta vela depois que o pedido for entregue.");
-    const { error } = await (supabase as any).from("community_library").update({ finished, updated_at: new Date().toISOString() }).eq("id", item.id).eq("user_id", userId);
-    if (error) throw error;
+    const { data, error } = await (supabase as any).from("community_library").update({ finished, updated_at: new Date().toISOString() }).eq("id", item.id).eq("user_id", userId).select("id,finished").maybeSingle();
+    if (error) throw new Error(error.code === "PGRST204" || error.code === "42703" ? "A atualização da Biblioteca ainda precisa ser aplicada ao banco para marcar velas como acabadas." : "Não foi possível atualizar a vela. Tente novamente.");
+    if (!data) throw new Error("Não foi possível confirmar a atualização desta vela.");
     setLibrary(current => current.map(entry => entry.id === item.id ? { ...entry, finished } : entry));
     toast.success(finished ? "Vela movida para Acabaram." : "Vela voltou para a estante.");
   }
@@ -157,7 +160,7 @@ function Biblioteca() {
         <section className="mt-5">
           {loading
             ? <p className="py-12 text-center text-muted-foreground">Arrumando sua estante...</p>
-            : <CandleBookshelf items={library} editable onAdd={addManual} onUpdate={updateCandle} onFavorite={toggleFavorite} onRemove={removeLibraryItem} onMarkFinished={toggleCandleFinished} />}
+            : <CandleBookshelf categoryOptions={categoryOptions} items={library} editable onAdd={addManual} onUpdate={updateCandle} onFavorite={toggleFavorite} onRemove={removeLibraryItem} onMarkFinished={toggleCandleFinished} />}
         </section>
       </main>
       <SiteFooter />

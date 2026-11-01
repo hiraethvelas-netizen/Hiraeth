@@ -1,3 +1,4 @@
+import { activeCategories } from "@/lib/store-categories";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -97,23 +98,25 @@ useEffect(() => {
       const { data: saved } = await supabase.from("wishlist_items").select("product_id").eq("user_id", authData.user.id);
       setWishlistIds(new Set((saved ?? []).map((item) => item.product_id)));
     }
-    const now = new Date();
-    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
-    const categoryIsInPeriod = (category: Category) => !category.is_temporary
-      || Boolean(category.starts_at && category.ends_at && category.starts_at <= today && category.ends_at >= today);
-    const allCategories = (cats ?? []) as Category[];
-    const activeCategories = allCategories.filter((category) => {
-      if (!categoryIsInPeriod(category)) return false;
-      if (!category.parent_id) return true;
-      const parent = allCategories.find((item) => item.id === category.parent_id);
-      return Boolean(parent && categoryIsInPeriod(parent));
-    });
-    setCategories(activeCategories);
+    setCategories(activeCategories((cats ?? []) as Category[]));
 
     setLoading(false);
   }
 
   load();
+}, []);
+
+useEffect(() => {
+  let active = true;
+  async function refresh() {
+    const { data, error } = await supabase.from("categories").select("*").eq("visible", true).order("position");
+    if (active && !error) setCategories(activeCategories((data ?? []) as Category[]));
+  }
+  const listener = () => { void refresh(); };
+  window.addEventListener("focus", listener);
+  window.addEventListener("hiraeth:categories-updated", listener);
+  const timer = window.setInterval(listener, 15000);
+  return () => { active = false; window.clearInterval(timer); window.removeEventListener("focus", listener); window.removeEventListener("hiraeth:categories-updated", listener); };
 }, []);
 
 useEffect(() => {
@@ -281,6 +284,7 @@ useEffect(() => {
                 </div>
 
                 <div className="px-2 pb-3 pt-3">
+                  {categories.some(category => category.id === p.category_id && (category.is_temporary || categories.some(parent => parent.id === category.parent_id && parent.is_temporary))) && <span className="inline-flex rounded-full border border-amber-700/50 bg-amber-50 px-2 py-1 text-[10px] font-semibold text-amber-900">Coleção temporária</span>}
                   <InlineEditor
                     label={`produto ${p.name}`}
                     fields={[

@@ -1,5 +1,6 @@
-import { useMemo, useState } from "react";
+import { useId, useMemo, useState } from "react";
 import { Flame, ImagePlus, X } from "lucide-react";
+import { canonicalCategory, categoryKey, libraryCategories } from "@/lib/library-categories";
 
 export type CandleLibraryItem = {
   id: string;
@@ -32,6 +33,7 @@ export type CandleDraftInput = CandleDraft & { image: File | null };
 type CandleBookshelfProps = {
   items: CandleLibraryItem[];
   editable?: boolean;
+  categoryOptions?: string[];
   onAdd?: (values: CandleDraftInput) => Promise<void>;
   onUpdate?: (id: string, values: CandleDraftInput) => Promise<void>;
   onFavorite?: (item: CandleLibraryItem) => Promise<void>;
@@ -75,12 +77,15 @@ function statusLabel(status?: string | null) {
 export function CandleBookshelf({
   items,
   editable = false,
+  categoryOptions = [],
   onAdd,
   onUpdate,
   onFavorite,
   onRemove,
   onMarkFinished,
 }: CandleBookshelfProps) {
+  const categoryListId = useId();
+  const categoryChoices = libraryCategories(categoryOptions, items.map(item => item.category ?? ""));
   const [categoryFilter, setCategoryFilter] = useState("Todos");
   const [dialogItem, setDialogItem] = useState<CandleLibraryItem | null>(null);
   const [dialogMode, setDialogMode] = useState<"view" | "add" | "edit">("view");
@@ -90,8 +95,9 @@ export function CandleBookshelf({
   const [error, setError] = useState("");
 
   const categories = useMemo(
-    () => [...new Set(items.filter(item => !item.finished).map(item => item.category?.trim()).filter((value): value is string => Boolean(value) && value !== "Acabaram"))].sort((a, b) => a.localeCompare(b, "pt-BR")),
-    [items],
+    () => libraryCategories(categoryOptions, items.filter(item => !item.finished).map(item => item.category ?? ""))
+      .filter(name => items.some(item => !item.finished && categoryKey(item.category ?? "") === categoryKey(name))),
+    [items, categoryOptions],
   );
   const visibleItems = categoryFilter === "Todos"
     ? items
@@ -99,7 +105,7 @@ export function CandleBookshelf({
       ? items.filter(item => item.finished)
       : categoryFilter === "Sem categoria"
         ? items.filter(item => !item.finished && !item.category?.trim())
-        : items.filter(item => !item.finished && item.category?.trim() === categoryFilter);
+        : items.filter(item => !item.finished && categoryKey(item.category ?? "") === categoryKey(categoryFilter));
   const canEditSelected = Boolean(dialogItem && editable && (!dialogItem.order_item_id || dialogItem.purchase_status === "delivered"));
   const dialogTitle = dialogMode === "add" ? "Adicionar vela antiga" : dialogMode === "edit" ? "Editar vela" : dialogItem?.title ?? "";
 
@@ -132,7 +138,7 @@ export function CandleBookshelf({
     setError("");
     setSaving(true);
     try {
-      const values = { ...draft, title: draft.title.trim(), image: imageFile };
+      const values = { ...draft, title: draft.title.trim(), category: canonicalCategory(draft.category, categoryChoices), image: imageFile };
       if (!values.title) throw new Error("Informe o nome da vela.");
       if (dialogMode === "add" && !imageFile) throw new Error("Adicione uma foto da vela para registrar uma coleção antiga.");
       if (dialogMode === "add") {
@@ -278,12 +284,14 @@ export function CandleBookshelf({
                     </label>
                     <div className="grid gap-4 sm:grid-cols-2">
                       <label className="block text-sm font-semibold text-[#29342c]">Categoria / universo
-                        <input maxLength={100} value={draft.category} onChange={event => setDraft(current => ({ ...current, category: event.target.value }))} placeholder="Ex.: Harry Potter, Friends" className="mt-1 w-full rounded-md border border-[#c9bea8] bg-white px-3 py-3 text-[#29342c] placeholder:text-[#756d60] shadow-sm outline-none transition focus:border-[#506b4f] focus:ring-2 focus:ring-[#506b4f]/20" />
+                        <input list={categoryListId} maxLength={100} value={draft.category} onChange={event => setDraft(current => ({ ...current, category: event.target.value }))} placeholder="Escolha uma categoria ou digite outra" className="mt-1 w-full rounded-md border border-[#c9bea8] bg-white px-3 py-3 text-[#29342c] placeholder:text-[#756d60] shadow-sm outline-none transition focus:border-[#506b4f] focus:ring-2 focus:ring-[#506b4f]/20" />
                       </label>
                       <label className="block text-sm font-semibold text-[#29342c]">Aroma
                         <input maxLength={160} value={draft.aroma} onChange={event => setDraft(current => ({ ...current, aroma: event.target.value }))} placeholder="Nome do aroma" className="mt-1 w-full rounded-md border border-[#c9bea8] bg-white px-3 py-3 text-[#29342c] placeholder:text-[#756d60] shadow-sm outline-none transition focus:border-[#506b4f] focus:ring-2 focus:ring-[#506b4f]/20" />
                       </label>
                     </div>
+                    <datalist id={categoryListId}>{categoryChoices.map(name => <option key={categoryKey(name)} value={name} />)}</datalist>
+                    <p className="text-xs text-[#625d50]">Escolha uma categoria da loja ou digite uma categoria pessoal, como Verity.</p>
                     <label className="block text-sm font-semibold text-[#29342c]">Data da compra
                       <input type="date" value={draft.acquired_at} onChange={event => setDraft(current => ({ ...current, acquired_at: event.target.value }))} className="mt-1 w-full rounded-md border border-[#c9bea8] bg-white px-3 py-3 text-[#29342c] placeholder:text-[#756d60] shadow-sm outline-none transition focus:border-[#506b4f] focus:ring-2 focus:ring-[#506b4f]/20" />
                     </label>

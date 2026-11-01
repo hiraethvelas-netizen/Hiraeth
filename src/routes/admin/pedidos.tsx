@@ -1,3 +1,4 @@
+import { OrderPromotionSummary } from "@/components/OrderPromotionSummary";
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -5,7 +6,7 @@ import { brl } from "@/lib/format";
 import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
 
-type Order = Tables<"orders"> & { order_items: Tables<"order_items">[] };
+type Order = Tables<"orders"> & { promotion_summary?: unknown; order_items: Tables<"order_items">[] };
 
 function variantLabel(details: Tables<"order_items">["variant_details"]) {
   if (!details || typeof details !== "object" || Array.isArray(details)) return "";
@@ -112,6 +113,7 @@ function AdminPedidos() {
         <div className="mt-8 space-y-4">
           {filtered.map((o) => (
             <article key={o.id} className="border bg-card p-5">
+              <OrderPromotionSummary value={o.promotion_summary}/>
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <p className="text-foreground">#{o.id.slice(0, 8)} · {o.customer_name || "Cliente sem nome"}</p>

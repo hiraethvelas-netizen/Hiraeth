@@ -24,6 +24,7 @@ function AdminCategorias() {
   const [editing, setEditing] = useState<Category | null>(null);
 
   const load = useCallback(async () => {
+    window.dispatchEvent(new Event("hiraeth:categories-updated"));
     const { data, error } = await supabase.from("categories").select("*").order("position");
     if (error) toast.error("Não foi possível carregar categorias.");
     setCategories((data ?? []) as Category[]);

@@ -78,15 +78,15 @@ function AdminDashboard() {
     <section className="mt-5 border bg-card p-4 sm:p-5">
       <div className="flex flex-wrap items-center gap-3">
         <label htmlFor="dashboard-period" className="text-sm text-foreground">Filtrar indicadores por data</label>
-        <select id="dashboard-period" value={period} onChange={(e) => setPeriod(e.target.value as "week" | "month" | "all" | "custom")} className="min-w-44 border bg-background px-3 py-2 text-sm text-foreground">
+        <select id="dashboard-period" value={period} onChange={(e) => setPeriod(e.target.value as "week" | "month" | "all" | "custom")} className="min-w-44 border bg-background dark:bg-card px-3 py-2 text-sm text-foreground">
           <option value="week">Esta semana</option>
           <option value="month">Este mês</option>
           <option value="all">Todo o período</option>
           <option value="custom">Personalizar datas</option>
         </select>
         {period === "custom" && <div className="flex flex-wrap items-center gap-2">
-          <label className="text-xs text-muted-foreground">De <input type="date" value={dateFrom} max={dateTo || undefined} onChange={(e) => setDateFrom(e.target.value)} className="ml-1 border bg-background px-2 py-2 text-sm text-foreground" /></label>
-          <label className="text-xs text-muted-foreground">Até <input type="date" value={dateTo} min={dateFrom || undefined} onChange={(e) => setDateTo(e.target.value)} className="ml-1 border bg-background px-2 py-2 text-sm text-foreground" /></label>
+          <label className="text-xs text-muted-foreground">De <input type="date" value={dateFrom} max={dateTo || undefined} onChange={(e) => setDateFrom(e.target.value)} className="ml-1 border bg-background dark:bg-card px-2 py-2 text-sm text-foreground" /></label>
+          <label className="text-xs text-muted-foreground">Até <input type="date" value={dateTo} min={dateFrom || undefined} onChange={(e) => setDateTo(e.target.value)} className="ml-1 border bg-background dark:bg-card px-2 py-2 text-sm text-foreground" /></label>
         </div>}
       </div>
       <p className="mt-2 text-xs text-muted-foreground">O filtro altera a quantidade de pedidos, pedidos pagos e receita. Produtos, estoque e portais continuam mostrando os totais atuais.</p>

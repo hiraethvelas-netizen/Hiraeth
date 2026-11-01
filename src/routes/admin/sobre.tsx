@@ -101,7 +101,7 @@ function AdminSobre() {
         </div></div>
         <div className="grid gap-4 md:grid-cols-2">
           <label className="grid gap-2 text-sm">Título<input value={block.title} onChange={e => updateBlock(index, { title: e.target.value })} className="border bg-transparent px-3 py-3" placeholder="Título desta seção" /></label>
-          <label className="grid gap-2 text-sm">Layout<select value={block.layout} onChange={e => updateBlock(index, { layout: e.target.value as AboutBlock["layout"] })} className="border bg-background px-3 py-3"><option value="text">Texto e links</option><option value="image-left">Imagem à esquerda</option><option value="image-right">Imagem à direita</option><option value="gallery">Galeria de fotos</option></select></label>
+          <label className="grid gap-2 text-sm">Layout<select value={block.layout} onChange={e => updateBlock(index, { layout: e.target.value as AboutBlock["layout"] })} className="border bg-background dark:bg-card px-3 py-3"><option value="text">Texto e links</option><option value="image-left">Imagem à esquerda</option><option value="image-right">Imagem à direita</option><option value="gallery">Galeria de fotos</option></select></label>
         </div>
         <label className="grid gap-2 text-sm">Texto<textarea rows={6} value={block.text} onChange={e => updateBlock(index, { text: e.target.value })} className="border bg-transparent px-3 py-3" placeholder="Escreva o conteúdo desta seção..." /></label>
         <div className="space-y-3 rounded-md border border-dashed p-4">

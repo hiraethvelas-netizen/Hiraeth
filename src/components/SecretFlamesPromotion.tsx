@@ -1,3 +1,4 @@
+import { SecretFlameCard } from "@/components/SecretFlameCard";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { X, Sparkles, Copy, Check } from "lucide-react";
@@ -26,6 +27,7 @@ export function SecretFlamesPromotion() {
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [copying, setCopying] = useState(false);
   const [chosen, setChosen] = useState<number | null>(null);
 
   useEffect(() => {
@@ -76,8 +78,22 @@ export function SecretFlamesPromotion() {
     localStorage.setItem("hiraeth-secret-flames-completed", "1");
   }
 
+  async function copyCoupon(code: string) {
+    if (copying) return;
+    setCopying(true);
+    setCopied(false);
+    try {
+      await navigator.clipboard.writeText(code);
+      setCopied(true);
+    } catch {
+      toast.error("Não foi possível copiar o cupom. Selecione o código e copie manualmente.");
+    } finally {
+      setCopying(false);
+    }
+  }
+
   if (!settings || !open) return null;
-  const images: CandleImage[] = Array.isArray(settings.candle_images) ? settings.candle_images : [];
+
   const reward = claim?.reward;
   const coupon = reward?.coupon_code;
 
@@ -91,9 +107,8 @@ export function SecretFlamesPromotion() {
       {!claim ? <>
         <div className="mt-7 grid grid-cols-2 gap-3">
           {[0,1,2,3].map(index => {
-            const item = images[index] || {};
             return <button key={index} type="button" disabled={busy} onClick={() => void choose(index)} className={`group relative aspect-[4/5] overflow-hidden rounded-2xl border border-[#d7c7b6] bg-[#e9dfd7] p-2 transition hover:-translate-y-1 hover:shadow-lg disabled:opacity-60 ${chosen === index ? "ring-2 ring-[#6d7955]" : ""}`}>
-              {item.image_url ? <img src={item.image_url} alt={item.label || `Vela misteriosa ${index+1}`} className="h-full w-full rounded-xl object-contain"/> : <div className="flex h-full flex-col items-center justify-center gap-3 rounded-xl bg-gradient-to-b from-[#d8c9bd] to-[#9b847d] text-[#f7efda]"><span className="text-4xl">✧</span><span className="font-display text-lg">Chama {index+1}</span></div>}
+              <SecretFlameCard index={index} />
               <span className="absolute inset-x-2 bottom-2 rounded-lg bg-[#342c2a]/65 px-2 py-1 text-xs text-[#f7efda]">{busy && chosen === index ? "Revelando..." : "Escolher esta vela"}</span>
             </button>;
           })}
@@ -104,7 +119,7 @@ export function SecretFlamesPromotion() {
         <p className="text-xs font-semibold uppercase tracking-[.18em] text-[#8b7650]">Sua surpresa foi revelada</p>
         <h3 className="mt-2 font-display text-2xl">{reward?.title || "Uma surpresa especial"}</h3>
         {reward?.description && <p className="mt-2 text-sm text-[#766b61]">{reward.description}</p>}
-        {coupon && <button type="button" onClick={() => { void navigator.clipboard.writeText(coupon); setCopied(true); }} className="mt-4 inline-flex items-center gap-2 rounded-full bg-[#e9dfd7] px-4 py-2 text-sm font-semibold">{copied ? <Check size={16}/> : <Copy size={16}/>} {copied ? "Cupom copiado" : coupon}</button>}
+        {coupon && <button type="button" disabled={copying} aria-busy={copying} onClick={() => void copyCoupon(coupon)} className="mt-4 inline-flex items-center gap-2 rounded-full bg-[#e9dfd7] px-4 py-2 text-sm font-semibold">{copied ? <Check size={16}/> : <Copy size={16}/>} {copied ? "Cupom copiado" : coupon}</button>}
         {Number(settings.min_cart_value) > 0 && <p className="mt-3 text-xs text-[#85796f]">Válido em compras a partir de R$ {Number(settings.min_cart_value).toFixed(2).replace(".", ",")}.</p>}
         <p className="mt-4 text-xs text-[#85796f]">Esta participação já foi registrada e não poderá ser repetida.</p>
       </div>}
