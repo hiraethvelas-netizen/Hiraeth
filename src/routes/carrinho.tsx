@@ -202,7 +202,7 @@ function Carrinho() {
                     <p className="text-sm text-muted-foreground">{brl(item.price)} cada</p>
                     {typeof item.variantDetails?.["size"] === "string" && <p className="text-xs text-muted-foreground">Tamanho: {item.variantDetails["size"]}</p>}
                     {typeof item.variantDetails?.["house"] === "string" && <p className="text-xs text-muted-foreground">Casa: {item.variantDetails["house"]}</p>}
-                    {item.variantDetails?.["options"] && typeof item.variantDetails["options"] === "object" && !Array.isArray(item.variantDetails["options"]) &&
+                    {item.variantDetails && typeof item.variantDetails["options"] === "object" && !Array.isArray(item.variantDetails["options"]) &&
                       Object.entries(item.variantDetails["options"] as Record<string, string>).map(([name, value]) =>
                         <p key={name} className="text-xs text-muted-foreground">{name}: {String(value)}</p>)}
                   </div>
