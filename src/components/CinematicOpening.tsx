@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useAdminEdit, useSiteContent } from "@/lib/admin-edit";
 import openingVideo from "@/assets/hira appVídeo sem título-26-10-2026, 13-46-2.mp4";
+import phoenixVideo from "@/gemini_generated_video_431178e3.mp4";
 
 type OpeningSettings = Record<string, unknown> & {
   phoenixVideoUrl: string;
@@ -26,7 +27,9 @@ export function CinematicOpening() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const navigated = useRef(false);
 
-  const hasPhoenixVideo = settings.enabled && /^https?:\/\//i.test(settings.phoenixVideoUrl.trim());
+  const publicVideoUrl = settings.phoenixVideoUrl.trim();
+  const videoSrc = /^https?:\/\//i.test(publicVideoUrl) ? publicVideoUrl : phoenixVideo;
+  const hasPhoenixVideo = settings.enabled;
   const duration = shortVisit ? 2700 : 10000;
 
   useEffect(() => {
@@ -67,8 +70,8 @@ export function CinematicOpening() {
     }
   }
 
-  // The approved phoenix video must be hosted before replacing the existing opening.
-  // Until then, preserve the original opening without any visual or behavioral changes.
+  // The approved phoenix video is bundled locally; an admin may optionally override its URL.
+  // The original opening remains available if the cinematic entrance is disabled.
   if (!hasPhoenixVideo) {
     return (
       <main className="hiraeth-opening" aria-label="Abertura da Hiraeth">
@@ -92,9 +95,9 @@ export function CinematicOpening() {
     <main className="hiraeth-opening hiraeth-phoenix-intro" aria-label="Abertura cinematográfica da Hiraeth">
       <video
         ref={videoRef}
-        key={settings.phoenixVideoUrl}
+        key={videoSrc}
         className="opening-video"
-        src={settings.phoenixVideoUrl}
+        src={videoSrc}
         autoPlay muted playsInline preload="auto"
         aria-hidden="true" tabIndex={-1}
         onEnded={() => setComplete(true)}
@@ -114,7 +117,7 @@ export function CinematicOpening() {
       <div className="hiraeth-phoenix-editor" role="dialog" aria-modal="true" aria-label="Configurar vídeo da Fênix">
         <div className="hiraeth-phoenix-editor-panel">
           <h2>Vídeo da Fênix</h2>
-          <p>Hospede o vídeo aprovado em um endereço MP4 público. A abertura antiga permanece disponível se este campo ficar vazio.</p>
+          <p>O vídeo aprovado da Fênix já está incluído no aplicativo. Opcionalmente, informe uma URL pública de outro MP4 para substituí-lo. Deixe vazio para usar o vídeo original da Fênix.</p>
           <label htmlFor="phoenix-video-url">URL pública do vídeo MP4</label>
           <input id="phoenix-video-url" type="url" value={draftUrl} onChange={e => setDraftUrl(e.target.value)} placeholder="https://.../fenix.mp4" />
           {error && <p role="alert">{error}</p>}
