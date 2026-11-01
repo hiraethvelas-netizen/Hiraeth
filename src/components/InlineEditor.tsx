@@ -127,15 +127,16 @@ export function InlineEditor({ label, fields, values, onSave, className = "" }: 
                 </label>
               );
               const multiple = f.type === "images";
+              const cropAspect = "cropAspect" in f ? f.cropAspect : undefined;
               const list: string[] = multiple ? ((v as string[]) ?? []) : (v ? [v as string] : []);
               return (
                 <div key={f.name} className="grid gap-1.5 text-sm">{f.label}
-                  <input type="file" multiple={multiple} accept="image/jpeg,image/png,image/webp" aria-label={`Selecionar ${f.label.toLowerCase()}`} onClick={(e) => e.stopPropagation()} onChange={(e) => { const files = e.currentTarget.files; if (f.cropAspect && files?.length && !multiple) { setCrop({ name: f.name, source: files[0], aspect: f.cropAspect, multiple: false }); } else { void addImages(f.name, files, multiple); } e.currentTarget.value = ""; }} className="block w-full cursor-pointer rounded border bg-background px-3 py-2 text-sm file:mr-3 file:cursor-pointer file:rounded-full file:border file:border-primary/40 file:bg-primary/10 file:px-4 file:py-2 file:font-medium file:text-primary hover:file:bg-primary/20" />
+                  <input type="file" multiple={multiple} accept="image/jpeg,image/png,image/webp" aria-label={`Selecionar ${f.label.toLowerCase()}`} onClick={(e) => e.stopPropagation()} onChange={(e) => { const files = e.currentTarget.files; const firstFile = files?.item(0); if (cropAspect && firstFile && !multiple) { setCrop({ name: f.name, source: firstFile, aspect: cropAspect, multiple: false }); } else { void addImages(f.name, files, multiple); } e.currentTarget.value = ""; }} className="block w-full cursor-pointer rounded border bg-background px-3 py-2 text-sm file:mr-3 file:cursor-pointer file:rounded-full file:border file:border-primary/40 file:bg-primary/10 file:px-4 file:py-2 file:font-medium file:text-primary hover:file:bg-primary/20" />
                   <div className="flex flex-wrap gap-2">
                     {list.map((url, i) => (
                       <div key={url + i} className="relative">
                         <img src={url} alt="" className="h-20 w-20 object-cover" />
-                        {f.cropAspect && <button type="button" onClick={() => setCrop({ name: f.name, source: url, aspect: f.cropAspect!, multiple, replaceIndex: i })} className="mt-1 block w-20 rounded border border-primary/40 px-1 py-1 text-[11px] text-primary">Ajustar foto</button>}
+                        {cropAspect && <button type="button" onClick={() => setCrop({ name: f.name, source: url, aspect: cropAspect, multiple, replaceIndex: i })} className="mt-1 block w-20 rounded border border-primary/40 px-1 py-1 text-[11px] text-primary">Ajustar foto</button>}
                         <button type="button" aria-label="Remover imagem" onClick={() => setForm({ ...form, [f.name]: multiple ? list.filter((_, j) => j !== i) : "" })}
                           className="absolute -right-2 -top-2 rounded-full bg-destructive p-0.5 text-destructive-foreground"><X size={12} /></button>
                       </div>
