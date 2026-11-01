@@ -99,7 +99,7 @@ export function CinematicOpening() {
           const video = event.currentTarget;
           const duration = video.duration;
           // Begin the zoom while playback continues. Navigate before the final scene.
-          if (!complete && Number.isFinite(duration) && duration >= 2.5 && video.currentTime >= duration - Math.min(1.25, duration * 0.28)) {
+          if (!complete && Number.isFinite(duration) && duration >= 2.5 && video.currentTime >= duration - Math.min(1.65, duration * 0.34)) {
             setComplete(true);
           }
         }}
