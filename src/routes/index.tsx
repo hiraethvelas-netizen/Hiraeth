@@ -68,13 +68,13 @@ const HOME_FIELDS = [
   { name: "portalsEyebrow", label: "Texto pequeno do topo", type: "text" },
   { name: "portalsTitle", label: "Título principal", type: "text" },
   { name: "bannersTitle", label: "Título da seção de novidades", type: "text" },
-  { name: "featuredBannerImage", label: "Imagem do banner principal de novidades", type: "image", help: "Envie a imagem que deve ocupar toda a largura no celular." },
+  { name: "featuredBannerImage", label: "Imagem do banner principal de novidades", type: "image", cropAspect: "landscape", help: "Envie a imagem que deve ocupar toda a largura no celular." },
   { name: "featuredBannerHref", label: "Link do banner principal de novidades", type: "text" },
   { name: "careEyebrow", label: "Texto pequeno da seção de cuidados", type: "text" },
   { name: "careTitle", label: "Título da seção de cuidados", type: "text" },
   { name: "careDescription", label: "Descrição dos cuidados", type: "textarea" },
   { name: "careButton", label: "Texto do botão de cuidados", type: "text" },
-  { name: "careImage", label: "Imagem opcional da seção de cuidados", type: "image", help: "JPG, PNG, WebP ou GIF, até 10 MB." },
+  { name: "careImage", label: "Imagem opcional da seção de cuidados", type: "image", cropAspect: "photo", help: "JPG, PNG, WebP ou GIF, até 10 MB." },
   { name: "fontStyle", label: "Estilo tipográfico dos títulos", type: "select", options: [
     { value: "display", label: "Literário (padrão Hiraeth)" },
     { value: "serif", label: "Serifado clássico" },
@@ -149,7 +149,7 @@ export function ExistingHomepage() {
                 { name: "title", label: "Título", type: "text" },
                 { name: "description", label: "Descrição", type: "text" },
                 { name: "href", label: "Link de destino", type: "text" },
-                { name: "image_key", label: "Imagem da bolinha", type: "image", help: "JPG, PNG ou WebP, até 5 MB." },
+                { name: "image_key", label: "Imagem da bolinha", type: "image", cropAspect: "square", help: "JPG, PNG ou WebP, até 5 MB." },
               ]} values={{ title: item.title, description: item.description ?? "", href: item.href, image_key: item.image_key }} onSave={(next) => saveShortcut(item.id, next)} />}
             </div>
           ))}
@@ -167,9 +167,9 @@ export function ExistingHomepage() {
                 <img src={item.image_url} alt={item.title || "Novidade Hiraeth"} className="h-auto max-h-[70vh] min-h-[18rem] w-full object-cover transition-transform duration-500 group-hover:scale-[1.01] sm:h-64 md:h-80" loading="lazy" />
                 {item.title && <span className="sr-only">{item.title}</span>}
               </Link>
-              {item.id === "fallback" ? <InlineEditor label="banner principal de novidades" fields={[{ name: "featuredBannerImage", label: "Imagem do banner", type: "image" }, { name: "featuredBannerHref", label: "Link de destino", type: "text" }]} values={{ featuredBannerImage: content.featuredBannerImage || "", featuredBannerHref: content.featuredBannerHref || "/loja" }} onSave={async values => saveContent({ ...mergedContent, featuredBannerImage: String(values["featuredBannerImage"] || ""), featuredBannerHref: String(values["featuredBannerHref"] || "/loja") } as HomeContent)} className="mx-auto max-w-6xl px-5 mt-3" /> : <InlineEditor label={`novidade ${item.title || ""}`} fields={[
+              {item.id === "fallback" ? <InlineEditor label="banner principal de novidades" fields={[{ name: "featuredBannerImage", label: "Imagem do banner", type: "image", cropAspect: "landscape" }, { name: "featuredBannerHref", label: "Link de destino", type: "text" }]} values={{ featuredBannerImage: content.featuredBannerImage || "", featuredBannerHref: content.featuredBannerHref || "/loja" }} onSave={async values => saveContent({ ...mergedContent, featuredBannerImage: String(values["featuredBannerImage"] || ""), featuredBannerHref: String(values["featuredBannerHref"] || "/loja") } as HomeContent)} className="mx-auto max-w-6xl px-5 mt-3" /> : <InlineEditor label={`novidade ${item.title || ""}`} fields={[
                 { name: "title", label: "Título", type: "text" },
-                { name: "image_url", label: "Imagem do banner", type: "image" },
+                { name: "image_url", label: "Imagem do banner", type: "image", cropAspect: "landscape" },
                 { name: "href", label: "Link de destino", type: "text" },
               ]} values={{ title: item.title ?? "", image_url: item.image_url, href: item.href }} onSave={async (values) => {
                 const { error } = await (supabase as any).from("site_banners").update({ title: String(values["title"] ?? "") || null, image_url: String(values["image_url"] ?? item.image_url), href: String(values["href"] ?? item.href) }).eq("id", item.id);
