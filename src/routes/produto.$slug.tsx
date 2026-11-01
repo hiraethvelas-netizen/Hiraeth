@@ -98,7 +98,7 @@ function ProdutoPage() {
   const hasCombinedVariants = combinationVariants.length > 0 && combinationVariants.length === variants.length;
   const variantGroups = hasCombinedVariants
     ? Object.keys(combinationVariants[0]!.options).map(name => ({
-        name, values: [...new Set(combinationVariants.map(row => row.options[name]).filter(Boolean))],
+        name, values: [...new Set(combinationVariants.map(row => row.options[name]).filter((option): option is string => Boolean(option)))],
       }))
     : [];
   const selectionComplete = variantGroups.every(group => Boolean(selectedOptions[group.name]));
