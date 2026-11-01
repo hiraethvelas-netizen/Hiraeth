@@ -1,3 +1,4 @@
+import homeShortcuts from "@/assets/hiraeth-home-shortcuts.webp";
 import banner from "@/assets/banner-portal.png";
 import fenix from "@/assets/fenix.png";
 import forest from "@/assets/opening-forest.jpg";
@@ -14,10 +15,28 @@ export const SHORTCUT_ICON_OPTIONS = [
   { value: "banner", label: "Banner do portal" },
 ];
 
+/** Each image occupies one cell of the 3 x 2 atlas approved for the Hiraeth home page. */
+const HOME_SPRITE_POSITIONS: Record<string, string> = {
+  "home-hiraeth": "0% 0%",
+  "home-loja": "50% 0%",
+  "home-comunidade": "100% 0%",
+  "home-biblioteca": "0% 100%",
+  "home-clube": "50% 100%",
+  "home-favoritos": "100% 100%",
+};
+
 const svg = "h-1/2 w-1/2 text-primary";
 
 /** Renders a shortcut image: uploaded URL, existing artwork, or a drawn icon. */
 export function ShortcutIcon({ imageKey, title }: { imageKey: string; title: string }) {
+  if (HOME_SPRITE_POSITIONS[imageKey]) {
+    return <span
+      role="img"
+      aria-label={title}
+      className="block h-full w-full rounded-full bg-no-repeat"
+      style={{ backgroundImage: `url(${homeShortcuts})`, backgroundSize: "300% 200%", backgroundPosition: HOME_SPRITE_POSITIONS[imageKey] }}
+    />;
+  }
   if (/^https?:\/\//i.test(imageKey)) return <img src={imageKey} alt={title} className="h-full w-full rounded-full object-cover" loading="lazy" />;
   const art: Record<string, string> = { phoenix: fenix, forest, portal, banner };
   if (art[imageKey]) return <img src={art[imageKey]} alt={title} className="h-full w-full rounded-full object-cover" loading="lazy" />;

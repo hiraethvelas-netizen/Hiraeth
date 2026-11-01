@@ -103,8 +103,8 @@ export function ExistingHomepage() {
       .then(({ data }: { data: Shortcut[] | null }) => {
         const existing = data ?? [];
         const additions: Shortcut[] = [
-          { id: "builtin-community", title: "Círculo do Fogo", description: "Nossa comunidade", href: "/comunidade", image_key: "phoenix", position: 90, active: true },
-          { id: "builtin-book-club", title: "Clube do Livro", description: "Leituras que nos conectam", href: "/clube-do-livro", image_key: "book", position: 91, active: true },
+          { id: "builtin-community", title: "Círculo do Fogo", description: "Nossa comunidade", href: "/comunidade", image_key: "home-comunidade", position: 90, active: true },
+          { id: "builtin-book-club", title: "Clube do Livro", description: "Leituras que nos conectam", href: "/clube-do-livro", image_key: "home-clube", position: 91, active: true },
         ].filter(item => !existing.some(current => current.href === item.href));
         setShortcuts([...existing, ...additions]);
       });
@@ -134,18 +134,17 @@ export function ExistingHomepage() {
         <div className="hiraeth-ornament relative z-10" aria-hidden="true"><span>·</span></div>
         <div className="relative z-10 mx-auto mt-8 grid max-w-3xl grid-cols-2 gap-x-5 gap-y-8">
           {(shortcuts.length ? shortcuts : [
-            { id: "default-about", title: "Conheça a Hiraeth", description: "Conheça nossa história", href: "/sobre", image_key: "hiraeth", position: 1, active: true },
-            { id: "default-store", title: "Nossa Loja", description: "Velas e camisetas literárias", href: "/loja", image_key: "candle", position: 2, active: true },
-            { id: "default-library", title: "Seu próximo portal", description: "Volte ao Círculo do Fogo", href: "/inicio", image_key: "portal", position: 3, active: true },
-            { id: "default-care", title: "Cuidados", description: "Cuidados com suas velas", href: "/cuidados", image_key: "book", position: 4, active: true },
+            { id: "default-about", title: "Conheça a Hiraeth", description: "Conheça nossa história", href: "/sobre", image_key: "home-hiraeth", position: 1, active: true },
+            { id: "default-store", title: "Nossa Loja", description: "Velas e camisetas literárias", href: "/loja", image_key: "home-loja", position: 2, active: true },
+            { id: "default-library", title: "Minha Biblioteca", description: "Sua estante pessoal", href: "/biblioteca", image_key: "home-biblioteca", position: 4, active: true },
+            { id: "default-favorites", title: "Favoritos", description: "Suas histórias favoritas", href: "/loja", image_key: "home-favoritos", position: 3, active: true },
           ] as Shortcut[]).map((item) => (
             <div key={item.id} className="hiraeth-reveal group flex flex-col items-center gap-3 text-center">
-              <span className="hiraeth-collection-card block aspect-square w-full max-w-40 overflow-hidden rounded-full bg-card p-1.5">
+              <Link to={item.href as never} aria-label={`Abrir ${item.title}`} className="hiraeth-collection-card block aspect-square w-full max-w-40 overflow-hidden rounded-full bg-transparent focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#c6a65b]">
                 <ShortcutIcon imageKey={item.image_key} title={item.title} />
-              </span>
+              </Link>
               <span className={`hiraeth-collection-label text-foreground ${headingFont}`}>{item.title}</span>
               {item.description && <span className="max-w-40 text-sm text-muted-foreground">{item.description}</span>}
-              <Link to={item.href as never} className="text-xs text-primary underline-offset-4 hover:underline">Explorar</Link>
               {!item.id.startsWith("default-") && <InlineEditor label={`atalho ${item.title}`} fields={[
                 { name: "title", label: "Título", type: "text" },
                 { name: "description", label: "Descrição", type: "text" },
