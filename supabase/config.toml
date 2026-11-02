@@ -1,1 +1,13 @@
 project_id = "hmraxskcxwbqftapnqdv"
+# Authenticated checkout / administration. Secrets live in the Supabase vault,
+# never in this repository or in VITE_ environment variables.
+[functions.commerce-checkout]
+verify_jwt = true
+
+[functions.commerce-fulfillment]
+verify_jwt = true
+
+# The Mercado Pago webhook authenticates by its x-signature HMAC.
+# It cannot use a Supabase user JWT, and must NEVER trust an unsigned payload.
+[functions.commerce-webhook]
+verify_jwt = false
