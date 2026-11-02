@@ -41,7 +41,11 @@ function Comunidade() {
   const categoryOptions = useLibraryCategories();
   const [userId, setUserId] = useState("");
   const [joined, setJoined] = useState(false);
-  const [tab, setTab] = useState<Tab>("inicio");
+  const [tab, setTab] = useState<Tab>(() => {
+    // Links from Sinais da Chama open the relevant area of the community.
+    const requested = typeof window === "undefined" ? null : new URLSearchParams(window.location.search).get("tab");
+    return requested === "chat" || requested === "feed" ? requested : "inicio";
+  });
   const [composerOpen, setComposerOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [messages, setMessages] = useState<Message[]>([]);
