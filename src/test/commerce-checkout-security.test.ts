@@ -3,6 +3,7 @@ import {
   calculateCheckoutPrice, snapshotProducts, validateItems, money,
 } from "../../supabase/functions/_shared/commerce-pricing";
 import { validMercadoPagoSignature } from "../../supabase/functions/_shared/mercado-pago-signature";
+import { calculateShippingPackage } from "../../supabase/functions/_shared/commerce-shipping";
 
 const id = "6c3efc18-cdbc-4cc1-918a-1fc53087d522";
 const otherId = "e3c182d1-6a9d-45bc-b3e7-89a1180f9772";
@@ -87,6 +88,62 @@ describe("Checkout Hiraeth — precificação sempre no servidor", () => {
   it("prevents merchant from quoting freight without real package weights", () => {
     expect(()=>snapshotProducts([{productId:id,quantity:1}],[{...goods[0],weight_grams:0}]))
       .toThrow(/peso/);
+  });
+});
+
+
+describe("Hiraeth — candle size and protected parcel calculations", () => {
+  const candle = {
+    ...goods[0], product_type: "candle",
+    variants: [
+      { type: "combination", key: "vela-p", label: "100 g",
+        options: { Tamanho: "100 g" }, stock: 3, price: 50 },
+      { type: "combination", key: "vela-g", label: "250 g",
+        options: { Tamanho: "250 g" }, stock: 3, price: 90 },
+    ],
+  };
+
+  it("uses 180 g for the 100 g candle and 616 g for the 250 g candle", () => {
+    const small = snapshotProducts([{ productId: id, quantity: 1, variantKey: "vela-p" }], [candle]);
+    const large = snapshotProducts([{ productId: id, quantity: 1, variantKey: "vela-g" }], [candle]);
+    expect(small[0]).toMatchObject({ weightGrams: 180, shippingSize: "small" });
+    expect(large[0]).toMatchObject({ weightGrams: 616, shippingSize: "large" });
+  });
+
+  it("prioritizes the measured weight configured on each variant", () => {
+    const variants = candle.variants.map(v => v.key === "vela-g" ? { ...v, weight_grams: 720 } : v);
+    const snapshot = snapshotProducts([{ productId: id, quantity: 1, variantKey: "vela-g" }],
+      [{ ...candle, variants }]);
+    expect(snapshot[0]!.weightGrams).toBe(720);
+  });
+
+  it("keeps weights for non-candle products unchanged", () => {
+    const other = { ...goods[0], product_type: "artifact", variants: candle.variants };
+    const snapshot = snapshotProducts([{ productId: id, quantity: 1, variantKey: "vela-g" }], [other]);
+    expect(snapshot[0]!.weightGrams).toBe(350);
+    expect(snapshot[0]!.shippingSize).toBeUndefined();
+  });
+
+  it("adds measured packaging weight without inventing weights for other goods", () => {
+    const items = snapshotProducts([{ productId: id, quantity: 1, variantKey: "vela-p" }], [candle]);
+    const parcel = calculateShippingPackage(items, { width: 13, height: 13, length: 16 }, null, 1, 75);
+    expect(parcel).toEqual({ width: 13, height: 13, length: 16, weight: 0.255, insurance_value: 50 });
+  });
+
+  it("uses the small box only when explicitly provided for known small candles", () => {
+    const small = snapshotProducts([{ productId: id, quantity: 1, variantKey: "vela-p" }], [candle]);
+    const large = snapshotProducts([{ productId: id, quantity: 1, variantKey: "vela-g" }], [candle]);
+    const mainBox = { width: 13, height: 13, length: 16 };
+    const optInSmall = { width: 8, height: 11, length: 16 };
+    expect(calculateShippingPackage(small, mainBox, optInSmall, 1, 0).width).toBe(8);
+    expect(calculateShippingPackage(large, mainBox, optInSmall, 1, 0).width).toBe(13);
+  });
+
+  it("blocks unverified multi-candle shipments and invalid package weights", () => {
+    const items = snapshotProducts([{ productId: id, quantity: 2, variantKey: "vela-p" }], [candle]);
+    const box = { width: 13, height: 13, length: 16 };
+    expect(() => calculateShippingPackage(items, box, null, 1, 75)).toThrow(/excede a embalagem/);
+    expect(() => calculateShippingPackage(items, box, null, 3, -10)).toThrow(/peso da embalagem/);
   });
 });
 
