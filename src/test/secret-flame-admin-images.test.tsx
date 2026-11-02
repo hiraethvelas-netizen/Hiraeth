@@ -2,7 +2,7 @@ import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/re
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-const mocks = vi.hoisted(() => ({ upload: vi.fn(), upsert: vi.fn(), success: vi.fn(), error: vi.fn() }));
+const mocks = vi.hoisted(() => ({ upload: vi.fn(), upsert: vi.fn(), success: vi.fn(), error: vi.fn(), welcome: null as unknown }));
 
 vi.mock("@tanstack/react-router", () => ({
   createFileRoute: () => (options: { component: () => ReactNode }) => ({ options }),
@@ -11,7 +11,7 @@ vi.mock("sonner", () => ({
   toast: { success: mocks.success, error: mocks.error },
 }));
 vi.mock("@/lib/admin-edit", () => ({
-  useSiteContent: (_key: string, defaults: unknown) => [defaults, async () => {}],
+  useSiteContent: (_key: string, defaults: unknown) => [mocks.welcome ?? (mocks.welcome = defaults), async () => {}],
   uploadSiteImage: mocks.upload,
 }));
 vi.mock("@/components/ImageCropEditor", () => ({
@@ -51,6 +51,7 @@ const AdminPromotions = Route.options.component;
 
 beforeEach(() => {
   vi.clearAllMocks();
+  mocks.welcome = null;
   mocks.upload.mockResolvedValue("https://cdn.example.test/secret-flame-cards/carta-ajustada.webp");
 });
 afterEach(cleanup);
