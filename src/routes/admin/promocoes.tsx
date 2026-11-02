@@ -1,4 +1,6 @@
 import { SecretFlameCard } from "@/components/SecretFlameCard";
+import { ImageCropEditor } from "@/components/ImageCropEditor";
+import { uploadSiteImage } from "@/lib/admin-edit";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -24,6 +26,8 @@ function PromocoesAdmin(){
   const [scope,setScope]=useState("all");
   const [saving,setSaving]=useState(false);
   const [flamesSaving,setFlamesSaving]=useState(false);
+  const [flameImageSaving,setFlameImageSaving]=useState(false);
+  const [flameCrop,setFlameCrop]=useState<{index:number;source:File|string}|null>(null);
   const [welcomeSaving,setWelcomeSaving]=useState(false);
 
  async function load(){setLoading(true);const {data,error}=await db.from("promotions").select("*").order("created_at",{ascending:false});if(error){toast.error("Não foi possível carregar promoções. A migração do banco precisa ser aplicada.");setLoading(false);return;}setItems(data??[]);setLoading(false)}
@@ -40,9 +44,31 @@ function PromocoesAdmin(){
    setFlameClaims(c??[]);
    } catch {toast.error("Não foi possível carregar a configuração das Quatro Chamas.");}
  }
+ function updateFlameImage(index:number,image_url:string){
+   setFlameSettings((previous:any)=>({
+     ...previous,
+     candle_images:[0,1,2,3].map(i=>
+       i===index ? {...(previous.candle_images?.[i]??{}),image_url}
+         : (previous.candle_images?.[i]??{image_url:""})),
+   }));
+ }
+ async function applyFlameCrop(file:File){
+   if(!flameCrop)return;
+   const index=flameCrop.index;
+   setFlameImageSaving(true);
+   try{
+     const image_url=await uploadSiteImage(file,"secret-flame-cards");
+     updateFlameImage(index,image_url);
+     setFlameCrop(null);
+     toast.success("Imagem ajustada. Salve a configuração para publicar esta carta.");
+   }catch(cause){
+     toast.error(cause instanceof Error?cause.message:"Não foi possível enviar a foto.");
+     throw cause;
+   }finally{setFlameImageSaving(false);}
+ }
  async function saveFlames(e:React.FormEvent){
    e.preventDefault();
-   if(flamesSaving)return;
+   if(flamesSaving||flameImageSaving||flameCrop)return;
    if(flameSettings.starts_at&&flameSettings.ends_at&&flameSettings.starts_at>flameSettings.ends_at){toast.error("Confira as datas da promoção.");return;}
    if(flameRewards.some(reward=>!reward.reward_title.trim()||(["coupon","discount"].includes(reward.reward_type)&&!reward.coupon_code?.trim()))){toast.error("Informe o prêmio de cada carta e vincule um código de cupom aos prêmios de desconto.");return;}
    setFlamesSaving(true);
@@ -101,7 +127,7 @@ function PromocoesAdmin(){
  <div className="flex flex-wrap gap-5 border-t pt-4"><label className="flex items-center gap-2 text-sm text-foreground"><input type="checkbox" checked={form.active} onChange={e=>setForm({...form,active:e.target.checked})}/>Ativa</label><label className="flex items-center gap-2 text-sm text-foreground"><input type="checkbox" checked={form.visible} onChange={e=>setForm({...form,visible:e.target.checked})}/>Visível para clientes</label></div><div className="flex gap-3"><button className="btn-gold" disabled={saving} type="submit">{saving?"Salvando...":"Salvar promoção"}</button>{editing&&<button type="button" className="border px-4 py-2 text-sm text-foreground" onClick={()=>{setForm(blank);setEditing(null)}}>Cancelar</button>}</div></form>
  <section className="mt-8"><h2 className="text-xl text-foreground">Promoções cadastradas</h2>{loading?<p className="mt-4 text-muted-foreground">Carregando...</p>:<div className="mt-4 space-y-3">{items.map(p=><article key={p.id} className="flex flex-wrap items-center justify-between gap-4 border bg-card p-4"><div><h3 className="text-foreground">{p.name}</h3><p className="mt-1 text-xs text-muted-foreground">{p.kind==="coupon"?"Cupom "+p.code:p.kind} · {p.active?"Ativa":"Pausada"} · {p.visible?"Visível":"Oculta"}</p></div><div className="flex gap-2"><button className="border px-3 py-2 text-sm text-foreground" onClick={()=>{setEditing(p.id);setScope(p.all_products?"all":p.eligible_category_ids?.length?"categories":"products");setForm({...blank,...p,eligible_product_ids:p.eligible_product_ids??[],eligible_category_ids:p.eligible_category_ids??[],discount_value:String(p.discount_value??0),min_cart_value:String(p.min_cart_value??0),buy_quantity:String(p.buy_quantity??3),pay_quantity:String(p.pay_quantity??2),starts_at:p.starts_at?.slice(0,16)??"",ends_at:p.ends_at?.slice(0,16)??"",usage_limit:p.usage_limit==null?"":String(p.usage_limit)})}}>Editar</button><button className="border px-3 py-2 text-sm text-foreground" onClick={()=>void toggle(p)}>{p.active?"Pausar":"Ativar"}</button><button className="border px-3 py-2 text-sm text-destructive" onClick={()=>void remove(p)}>Excluir</button></div></article>)}</div>}</section>
  <section className="mt-10 border border-primary/30 bg-card p-5 sm:p-7">
-  <div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-xs uppercase tracking-[.18em] text-primary">Experiência exclusiva</p><h2 className="mt-2 font-display text-2xl text-foreground">O Segredo das Quatro Chamas</h2><p className="mt-1 text-sm text-muted-foreground">As quatro cartas já vêm com uma vela ilustrada. Edite os textos e o prêmio revelado por cada carta.</p></div><label className="flex items-center gap-2 text-sm text-foreground"><input type="checkbox" checked={!!flameSettings.active} onChange={e=>setFlameSettings({...flameSettings,active:e.target.checked})}/>Promoção ativa</label></div>
+  <div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-xs uppercase tracking-[.18em] text-primary">Experiência exclusiva</p><h2 className="mt-2 font-display text-2xl text-foreground">O Segredo das Quatro Chamas</h2><p className="mt-1 text-sm text-muted-foreground">Escolha uma foto para cada carta, ajuste corte e zoom no próprio aplicativo e edite o prêmio revelado. Não é necessário usar URL.</p></div><label className="flex items-center gap-2 text-sm text-foreground"><input type="checkbox" checked={!!flameSettings.active} onChange={e=>setFlameSettings({...flameSettings,active:e.target.checked})}/>Promoção ativa</label></div>
   <form onSubmit={saveFlames} className="mt-6 space-y-5">
    <div className="grid gap-4 md:grid-cols-2">
     <label className="text-sm text-foreground">Título<input className={input+" mt-1"} value={flameSettings.title} onChange={e=>setFlameSettings({...flameSettings,title:e.target.value})}/></label>
@@ -113,14 +139,44 @@ function PromocoesAdmin(){
    <div className="grid gap-4 sm:grid-cols-2">
     {[0,1,2,3].map(i=><div key={i} className="space-y-3 border p-4">
       <h3 className="font-display text-lg text-foreground">Carta {i+1}</h3>
-      <div className="mx-auto h-48 w-36"><SecretFlameCard index={i}/></div>
+      {flameCrop?.index===i ? (
+        <div className="rounded-xl border border-primary/30 bg-background p-3">
+          <ImageCropEditor source={flameCrop.source} aspect="portrait"
+            squarePreview="square"
+            onCancel={()=>setFlameCrop(null)}
+            onApply={applyFlameCrop}/>
+        </div>
+      ) : <>
+        <div className="mx-auto h-48 w-36"><SecretFlameCard index={i} imageUrl={flameSettings.candle_images?.[i]?.image_url}/></div>
+        <label className="block text-sm font-medium text-foreground">Imagem da carta {i+1}
+          <input type="file" accept="image/jpeg,image/png,image/webp" aria-label={`Enviar imagem da carta ${i+1}`}
+            disabled={flameImageSaving||flamesSaving}
+            onChange={event=>{
+              const file=event.currentTarget.files?.[0];
+              if(file)setFlameCrop({index:i,source:file});
+              event.currentTarget.value="";
+            }}
+            className="mt-2 block w-full cursor-pointer rounded border border-primary/30 bg-background px-2 py-2 text-xs text-foreground file:mr-2 file:rounded file:border-0 file:bg-primary/15 file:px-3 file:py-1.5 file:text-primary"/>
+        </label>
+        {flameSettings.candle_images?.[i]?.image_url && (
+          <div className="flex flex-wrap gap-2">
+            <button type="button" onClick={()=>setFlameCrop({index:i,source:flameSettings.candle_images[i].image_url})}
+              disabled={flameImageSaving||flamesSaving}
+              className="rounded border border-primary/40 px-3 py-2 text-xs text-primary">Cortar / dar zoom novamente</button>
+            <button type="button" onClick={()=>updateFlameImage(i,"")}
+              disabled={flameImageSaving||flamesSaving}
+              className="rounded border border-primary/30 px-3 py-2 text-xs text-muted-foreground">Retirar foto da carta</button>
+          </div>
+        )}
+      </>}
       <label className="block text-sm text-muted-foreground">Tipo de benefício<select className={input+" mt-1"} value={flameRewards[i].reward_type} onChange={e=>setFlameRewards(flameRewards.map((r:any,j:number)=>j===i?{...r,reward_type:e.target.value}:r))}><option value="message">Brinde / mensagem</option><option value="coupon">Cupom</option><option value="free_shipping">Frete grátis</option><option value="gift">Brinde físico</option><option value="discount">Desconto</option></select></label>
       <label className="block text-sm text-muted-foreground">Nome do benefício<input required className={input+" mt-1"} value={flameRewards[i].reward_title} onChange={e=>setFlameRewards(flameRewards.map((r:any,j:number)=>j===i?{...r,reward_title:e.target.value}:r))}/></label>
       <label className="block text-sm text-muted-foreground">Detalhes / condições<textarea rows={2} className={input+" mt-1"} value={flameRewards[i].reward_description} onChange={e=>setFlameRewards(flameRewards.map((r:any,j:number)=>j===i?{...r,reward_description:e.target.value}:r))}/></label>
       <label className="block text-sm text-muted-foreground">Código do cupom (se houver)<input className={input+" mt-1"} value={flameRewards[i].coupon_code??""} onChange={e=>setFlameRewards(flameRewards.map((r:any,j:number)=>j===i?{...r,coupon_code:e.target.value.toUpperCase()}:r))}/></label>
     </div>)}
    </div>
-   <button type="submit" disabled={flamesSaving} className="btn-gold">{flamesSaving?"Salvando...":"Salvar configuração das Quatro Chamas"}</button>
+   <p className="text-sm text-muted-foreground">Depois de ajustar as fotos, clique em salvar para publicar as imagens das cartas e os benefícios. Até lá, as alterações ficam apenas nesta edição.</p>
+   <button type="submit" disabled={flamesSaving||flameImageSaving||!!flameCrop} className="btn-gold">{flamesSaving?"Salvando...":flameImageSaving?"Enviando foto...":"Salvar configuração das Quatro Chamas"}</button>
   </form>
   <div className="mt-8 border-t pt-5"><h3 className="font-display text-xl text-foreground">Participações registradas</h3><p className="mt-1 text-xs text-muted-foreground">Últimas 100 escolhas registradas.</p>{flameClaims.length===0?<p className="mt-3 text-sm text-muted-foreground">Nenhuma participação registrada.</p>:<div className="mt-3 space-y-2">{flameClaims.map((c:any)=><div key={c.id} className="flex flex-wrap justify-between gap-2 border-b py-2 text-sm"><span>Vela {c.candle_index+1} · {c.reward_snapshot?.title??"Benefício"}</span><span className="text-muted-foreground">{new Date(c.created_at).toLocaleString("pt-BR")}</span></div>)}</div>}</div>
  </section>
