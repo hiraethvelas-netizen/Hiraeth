@@ -18,6 +18,7 @@ const NAV = [
   { to: "/admin/essencias", label: "Estoque de essências" },
   { to: "/admin/categorias", label: "Categorias" },
   { to: "/admin/pedidos", label: "Pedidos" },
+  { to: "/admin/expedicao", label: "Correio da Fênix · Expedição" },
   { to: "/admin/avaliacoes", label: "Relatos do Acervo" },
   { to: "/admin/portais", label: "Portais NFC" },
   { to: "/admin/financeiro", label: "Financeiro" },
