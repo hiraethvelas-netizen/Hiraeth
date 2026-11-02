@@ -36,9 +36,9 @@ vi.mock("@/integrations/supabase/client", () => ({
         select: async (fields: string) => {
           mocks.deleted({ ...deleteFilters }, fields);
           if (mocks.deleteError) return { data: null, error: mocks.deleteError };
-          if (deleteFilters.kind !== "announcement" || deleteFilters.recipient_id !== null)
+          if (deleteFilters['kind'] !== "announcement" || deleteFilters['recipient_id'] !== null)
             return { data: [], error: null };
-          const deleted = mocks.rows.filter(item => item.id === deleteFilters.id && item.kind === "announcement");
+          const deleted = mocks.rows.filter(item => item.id === deleteFilters['id'] && item.kind === "announcement");
           mocks.rows = mocks.rows.filter(item => !deleted.some(row => row.id === item.id));
           return { data: deleted.map(item => ({ id: item.id })), error: null };
         },
