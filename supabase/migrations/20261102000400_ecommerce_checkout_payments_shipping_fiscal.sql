@@ -5,6 +5,9 @@
 -- absent from older database snapshots, even when other fields already exist.
 alter table public.orders
   add column if not exists promotion_summary jsonb not null default '{}'::jsonb;
+-- Keep existing orders while adding only the missing promotion snapshot field.
+alter table public.orders add column if not exists promotion_summary jsonb not null default '{}'::jsonb;
+
 create table if not exists public.commerce_checkouts (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete restrict,
