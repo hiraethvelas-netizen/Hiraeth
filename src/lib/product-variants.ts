@@ -94,6 +94,39 @@ export function variantCombinations(groups: VariantGroup[], previous: Combinatio
   });
 }
 
+/** Preserve prices, stock and pictures when an existing option/group is renamed.
+ * IDs identify the options throughout editing even when their visible labels change.
+ * Adding/removing options is intentionally not treated as a rename: newly created
+ * combinations start with zero stock to avoid duplicating inventory. */
+export function reconcileVariantCombinations(
+  previousGroups: VariantGroup[],
+  nextGroups: VariantGroup[],
+  previousRows: CombinationVariant[],
+  fallbackPrice: number,
+): CombinationVariant[] {
+  const sameOptionIds =
+    previousGroups.length === nextGroups.length &&
+    previousGroups.every(group => {
+      const next = nextGroups.find(candidate => candidate.id === group.id);
+      return !!next && next.values.length === group.values.length &&
+        group.values.every(value => next.values.some(candidate => candidate.id === value.id));
+    });
+  if (!sameOptionIds) return variantCombinations(nextGroups, previousRows, fallbackPrice);
+
+  const remapped = previousRows.map(row => {
+    const options: Record<string, string> = {};
+    for (const next of nextGroups) {
+      const prior = previousGroups.find(group => group.id === next.id)!;
+      const oldLabel = row.options[prior.name.trim()];
+      const original = prior.values.find(value => value.label.trim() === oldLabel);
+      const revised = next.values.find(value => value.id === original?.id);
+      options[next.name.trim()] = revised?.label.trim() ?? oldLabel ?? "";
+    }
+    return { ...row, options, key: optionKey(options), label: Object.values(options).join(" / ") };
+  });
+  return variantCombinations(nextGroups, remapped, fallbackPrice);
+}
+
 export function validateVariantSetup(setup: VariantSetup): string | null {
   if (setup.legacy) return null;
   if (!setup.groups.length) return null;
