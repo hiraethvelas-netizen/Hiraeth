@@ -104,7 +104,10 @@ export function ProductVariantsEditor({ value, onChange, basePrice, onUpload, di
   }
 
   const isLegacy = value.legacy !== null;
-  const groupsReady = value.groups.length > 0 && !currentError;
+  // Validation must never unmount the combination editor mid-keystroke.
+  // Numeric inputs are temporarily empty/invalid while merchants edit them.
+  // Keep the existing rows visible and block only the final product save.
+  const groupsReady = value.groups.length > 0 && value.rows.length > 0;
 
   return (
     <section className="space-y-4 border border-primary/25 p-4" aria-label="Variações do produto">
