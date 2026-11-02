@@ -124,7 +124,7 @@ export function SecretFlamesPromotion() {
           Uma experiência Hiraeth
         </p>
         <h2 className="font-display text-4xl leading-tight sm:text-5xl">{PHOENIX_TAROT_TITLE}</h2>
-        <p className="mx-auto mt-3 max-w-md text-sm italic leading-relaxed text-[#ead7ad]">{PHOENIX_TAROT_SUBTITLE}</p>
+        <p className="mx-auto mt-3 max-w-md text-sm italic leading-relaxed text-[#ead7ad]">{!settings.subtitle || settings.subtitle === "Escolha uma vela e descubra a surpresa que ela guarda." ? PHOENIX_TAROT_SUBTITLE : settings.subtitle}</p>
         <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-[#f0e7d4]">
           {claim ? "Sua escolha já foi registrada. A Fênix ainda guarda a sua carta." : PHOENIX_TAROT_INSTRUCTION}
         </p>
