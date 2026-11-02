@@ -86,13 +86,13 @@ function PromocoesAdmin(){
    e.preventDefault();
    if(flamesSaving||flameImagesSaving||flameImageSaving||flameCrop)return;
    if(flameSettings.starts_at&&flameSettings.ends_at&&flameSettings.starts_at>flameSettings.ends_at){toast.error("Confira as datas da promoção.");return;}
-   if(flameRewards.some(reward=>!reward.reward_title.trim()||(["coupon","discount"].includes(reward.reward_type)&&!reward.coupon_code?.trim()))){toast.error("Informe o prêmio de cada carta e vincule um código de cupom aos prêmios de desconto.");return;}
+   if(flameRewards.some(reward=>!String(reward.reward_title??"").trim())){toast.error("Informe somente o nome do benefício de cada carta. O código do cupom é opcional.");return;}
    setFlamesSaving(true);
    try {
    const settings={id:true,active:flameSettings.active,title:flameSettings.title,subtitle:flameSettings.subtitle,candle_images:flameSettings.candle_images,min_cart_value:Number(flameSettings.min_cart_value)||0,starts_at:flameSettings.starts_at?new Date(flameSettings.starts_at).toISOString():null,ends_at:flameSettings.ends_at?new Date(flameSettings.ends_at).toISOString():null,updated_at:new Date().toISOString()};
    const {error}=await db.from("secret_flame_settings").upsert(settings,{onConflict:"id"});
    if(error){toast.error("Não foi possível salvar a promoção: "+error.message);return;}
-   const rewards=flameRewards.map((r:any)=>({...r,reward_title:r.reward_title.trim(),reward_description:r.reward_description.trim(),coupon_code:String(r.coupon_code??"").trim()||null,updated_at:new Date().toISOString()}));
+   const rewards=flameRewards.map((r:any)=>({...r,reward_title:r.reward_title.trim(),reward_description:String(r.reward_description??"").trim(),coupon_code:String(r.coupon_code??"").trim()||null,updated_at:new Date().toISOString()}));
    const {error:rewardError}=await db.from("secret_flame_rewards").upsert(rewards,{onConflict:"candle_index"});
    if(rewardError){toast.error("Configuração salva, mas houve erro nos benefícios: "+rewardError.message);return;}
    toast.success("O Segredo das Quatro Chamas foi salvo.");void loadFlames();
@@ -188,7 +188,7 @@ function PromocoesAdmin(){
       <label className="block text-sm text-muted-foreground">Tipo de benefício<select className={input+" mt-1"} value={flameRewards[i].reward_type} onChange={e=>setFlameRewards(flameRewards.map((r:any,j:number)=>j===i?{...r,reward_type:e.target.value}:r))}><option value="message">Brinde / mensagem</option><option value="coupon">Cupom</option><option value="free_shipping">Frete grátis</option><option value="gift">Brinde físico</option><option value="discount">Desconto</option></select></label>
       <label className="block text-sm text-muted-foreground">Nome do benefício<input required className={input+" mt-1"} value={flameRewards[i].reward_title} onChange={e=>setFlameRewards(flameRewards.map((r:any,j:number)=>j===i?{...r,reward_title:e.target.value}:r))}/></label>
       <label className="block text-sm text-muted-foreground">Detalhes / condições<textarea rows={2} className={input+" mt-1"} value={flameRewards[i].reward_description} onChange={e=>setFlameRewards(flameRewards.map((r:any,j:number)=>j===i?{...r,reward_description:e.target.value}:r))}/></label>
-      <label className="block text-sm text-muted-foreground">Código do cupom (se houver)<input className={input+" mt-1"} value={flameRewards[i].coupon_code??""} onChange={e=>setFlameRewards(flameRewards.map((r:any,j:number)=>j===i?{...r,coupon_code:e.target.value.toUpperCase()}:r))}/></label>
+      <label className="block text-sm text-muted-foreground">Código do cupom (opcional, pode ficar vazio)<input className={input+" mt-1"} value={flameRewards[i].coupon_code??""} onChange={e=>setFlameRewards(flameRewards.map((r:any,j:number)=>j===i?{...r,coupon_code:e.target.value.toUpperCase()}:r))}/></label>
     </div>)}
    </div>
    <p className="text-sm text-muted-foreground">Você pode salvar só as imagens, mesmo sem configurar todos os prêmios. Para publicar também os benefícios, salve a configuração completa.</p>
