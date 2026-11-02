@@ -1,4 +1,5 @@
 import { combineBenefits, promotionBenefit, type Promotion, type PromotionCategory } from "@/lib/promotions";
+import { allocateCartAutomaticDiscounts } from "@/lib/store-pricing";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -69,6 +70,10 @@ function Carrinho() {
   const couponCode = couponBenefit && benefits.applied.some(benefit => benefit.id === couponBenefit.id) ? appliedCoupon!.code : null;
   const totalDiscount = benefits.discount;
   const couponDiscount = couponBenefit ? benefits.applied.find(benefit => benefit.id === couponBenefit.id)?.discount ?? 0 : 0;
+  const automaticLineDiscounts = allocateCartAutomaticDiscounts(
+    promotionItems, automaticPromotions, promotionCategories,
+    benefits.applied.filter(benefit => benefit.id !== couponBenefit?.id),
+  );
   const [validatingCoupon, setValidatingCoupon] = useState(false);
   const db = supabase as any;
   const payableTotal = Math.max(0, cart.total - totalDiscount);
@@ -210,7 +215,7 @@ function Carrinho() {
         ) : (
           <>
             <ul className="mt-8 w-full min-w-0 divide-y sm:mt-10">
-              {cart.items.map((item) => (
+              {cart.items.map((item, index) => (
                 <li key={`${item.productId}-${item.variantKey ?? "default"}`}
                   className="grid w-full min-w-0 grid-cols-[4.5rem_minmax(0,1fr)_auto] gap-x-3 gap-y-3 py-5 sm:grid-cols-[5rem_minmax(0,1fr)_auto_auto_auto] sm:items-center sm:gap-4">
                   <div className="h-20 w-[4.5rem] shrink-0 overflow-hidden border bg-muted sm:w-20">
@@ -220,7 +225,19 @@ function Carrinho() {
                     <Link to="/produto/$slug" params={{ slug: item.slug }} className="block break-words text-lg leading-snug text-foreground hover:text-primary sm:text-xl">
                       {item.name}
                     </Link>
-                    <p className="text-sm text-muted-foreground">{brl(item.price)} cada</p>
+                    {(() => {
+                      const allocation = automaticLineDiscounts[index];
+                      const originalPrice = Number(item.variantDetails?.["originalPrice"]);
+                      const hasProductSale = Number.isFinite(originalPrice) && originalPrice > item.price;
+                      const showDiscount = (allocation?.hasDiscount ?? false) || hasProductSale;
+                      return showDiscount ? (
+                        <div className="mt-1 flex flex-wrap items-baseline gap-x-2 gap-y-1 text-sm">
+                          <span className="text-muted-foreground line-through">{brl(hasProductSale ? originalPrice : item.price)} cada</span>
+                          <span className="font-semibold text-primary">{brl(allocation?.discountedUnit ?? item.price)} cada</span>
+                          <span className="text-xs text-primary">Preço com desconto</span>
+                        </div>
+                      ) : <p className="text-sm text-muted-foreground">{brl(item.price)} cada</p>;
+                    })()}
                     {typeof item.variantDetails?.["size"] === "string" && <p className="text-xs text-muted-foreground">Tamanho: {item.variantDetails["size"]}</p>}
                     {typeof item.variantDetails?.["house"] === "string" && <p className="text-xs text-muted-foreground">Casa: {item.variantDetails["house"]}</p>}
                     {item.variantDetails && typeof item.variantDetails["options"] === "object" && !Array.isArray(item.variantDetails["options"]) &&
@@ -232,7 +249,14 @@ function Carrinho() {
                     <span className="w-6 text-center text-sm sm:w-8">{item.quantity}</span>
                     <button type="button" disabled={placing} aria-label={`Aumentar quantidade de ${item.name}`} onClick={() => increaseQuantity(item)} className="px-2 py-1.5 sm:px-3">+</button>
                   </div>
-                  <span className="col-start-3 row-start-2 self-center justify-self-end whitespace-nowrap text-right text-sm text-primary sm:col-start-4 sm:row-start-1 sm:text-base">{brl(item.price * item.quantity)}</span>
+                  <span className="col-start-3 row-start-2 flex flex-col items-end self-center justify-self-end whitespace-nowrap text-right text-sm text-primary sm:col-start-4 sm:row-start-1 sm:text-base">
+                    {automaticLineDiscounts[index]?.hasDiscount && (
+                      <span className="text-xs text-muted-foreground line-through">{brl(automaticLineDiscounts[index]!.originalLineTotal)}</span>
+                    )}
+                    <span className={automaticLineDiscounts[index]?.hasDiscount ? "font-semibold" : ""}>
+                      {brl(automaticLineDiscounts[index]?.discountedLineTotal ?? item.price * item.quantity)}
+                    </span>
+                  </span>
                   <button type="button" disabled={placing} onClick={() => cart.remove(item.productId, item.variantKey)} className="col-start-3 row-start-1 self-start justify-self-end px-1 text-muted-foreground hover:text-destructive sm:col-start-5 sm:self-center" aria-label={`Remover ${item.name}`}>
                     ✕
                   </button>
@@ -243,14 +267,26 @@ function Carrinho() {
             <div className="mt-8 w-full min-w-0 border-t pt-6 text-right">
               <div className="mb-5 grid w-full min-w-0 grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_auto]"><input disabled={placing} aria-label="Cupom de desconto" value={coupon} onChange={(e) => setCoupon(e.target.value.toUpperCase())} placeholder="Código do cupom" className="min-w-0 w-full border bg-transparent px-3 py-2 text-sm" /><button type="button" onClick={() => void applyCoupon()} disabled={validatingCoupon || placing} className="w-full border px-4 py-2 text-sm sm:w-auto">{validatingCoupon ? "Verificando..." : "Aplicar cupom"}</button></div>
               {appliedCoupon && !couponIsCurrent && <p role="status" className="mb-2 text-sm text-muted-foreground">O carrinho mudou. Aplique o cupom novamente para atualizar o desconto.</p>}
-              {couponCode && <p className="mb-2 text-sm text-primary">Cupom {couponCode}: −{brl(couponDiscount)} <button disabled={placing} className="ml-2 underline" onClick={() => {setAppliedCoupon(null);setCoupon("");}}>Remover</button></p>}
+              {appliedCoupon && (
+                <div className="mb-3 flex flex-wrap items-center justify-end gap-3 rounded-lg border border-primary/25 bg-card/70 px-3 py-2">
+                  <p className="text-sm text-foreground">
+                    Cupom {appliedCoupon.code}{couponCode ? `: −${brl(couponDiscount)}` : " (sem desconto ativo)"}
+                  </p>
+                  <button type="button" aria-label="Retirar cupom" disabled={placing || validatingCoupon}
+                    className="rounded border border-primary/50 px-3 py-1.5 text-sm font-medium text-primary underline underline-offset-2 hover:bg-primary/10"
+                    onClick={() => { setAppliedCoupon(null); setCoupon(""); toast.success("Cupom removido."); }}>
+                    Remover cupom
+                  </button>
+                </div>
+              )}
               {promotionsLoading && <p role="status" className="mb-2 text-sm text-muted-foreground">Verificando promoções disponíveis...</p>}
               {promotionsError && <p role="alert" className="mb-2 text-sm text-foreground">Não foi possível verificar as promoções. <button type="button" className="underline" onClick={() => setRefreshPromotions(value => value + 1)}>Tentar novamente</button></p>}
               {benefits.applied.filter(benefit => benefit.id !== couponBenefit?.id && benefit.discount > 0).map(benefit => <p key={benefit.id} className="mb-2 text-sm text-primary">{benefit.name}: −{brl(benefit.discount)}</p>)}
               {benefits.freeShipping && <p className="mb-2 text-sm text-primary">Frete grátis aplicado.</p>}
               {benefits.gifts.map(gift => <p key={gift} className="mb-2 text-sm text-primary">Brinde: {gift}</p>)}
               {couponIsCurrent && couponBenefit && !couponCode && <p className="mb-2 text-sm text-muted-foreground">Os descontos já atingiram o valor dos produtos; este cupom não reduz mais o total.</p>}
-              <p className="text-sm text-muted-foreground">Subtotal: {brl(cart.total)}</p>
+              <p className="text-sm text-muted-foreground">Subtotal sem descontos: {brl(cart.total)}</p>
+              {totalDiscount > 0 && <p className="text-sm font-medium text-primary">Descontos aplicados: −{brl(totalDiscount)}</p>
               <p className="text-xl sm:text-2xl">
                 Total: <span className="text-primary">{brl(payableTotal)}</span>
               </p>
