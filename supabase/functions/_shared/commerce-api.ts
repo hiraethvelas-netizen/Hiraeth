@@ -26,9 +26,18 @@ export function env(name: string) {
 }
 
 export function isCommerceEnabled() {
+  const token=Deno.env.get("MERCADO_PAGO_ACCESS_TOKEN")?.trim() ?? "";
+  const mode=Deno.env.get("HIRAETH_PAYMENTS_MODE");
+  // A production credential is never accepted in the sandbox branch. To
+  // enable real charges the merchant must explicitly opt in twice.
+  const safePaymentMode=mode==="sandbox"
+    ? token.startsWith("TEST-")
+    : mode==="production" && Deno.env.get("HIRAETH_ALLOW_LIVE_CHARGES")==="true"
+      && token.startsWith("APP_USR-");
   return Deno.env.get("HIRAETH_COMMERCE_ENABLED") === "true" &&
-    Boolean(Deno.env.get("MERCADO_PAGO_ACCESS_TOKEN")) &&
+    safePaymentMode &&
     Boolean(Deno.env.get("MERCADO_PAGO_PUBLIC_KEY")) &&
+    Boolean(Deno.env.get("MERCADO_PAGO_WEBHOOK_SECRET")) &&
     Boolean(Deno.env.get("MELHOR_ENVIO_TOKEN")) &&
     Boolean(Deno.env.get("MELHOR_ENVIO_ORIGIN_POSTAL_CODE"));
 }
@@ -144,6 +153,10 @@ export async function freightQuotes(
     throw new Error("Configure as dimensões reais da embalagem na administração.");
   // Using one package means all packed candles share measured box dimensions.
   // Merchant must configure adequate dimensions for the maximum order size.
+  const maxItems=Number(env("HIRAETH_MAX_ITEMS_PER_PACKAGE"));
+  if(!Number.isSafeInteger(maxItems)||maxItems<1||
+     items.reduce((sum,i)=>sum+i.quantity,0)>maxItems)
+    throw new Error("Este pedido excede a embalagem configurada para envio. Consulte a Hiraeth.");
   const weightKg = items.reduce((sum,i)=>sum+i.quantity*i.weightGrams,0)/1000;
   const declaredValue = items.reduce((sum,i)=>sum+i.price*i.quantity,0);
   const payload = {
