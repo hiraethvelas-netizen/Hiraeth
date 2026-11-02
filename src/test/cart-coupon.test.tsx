@@ -67,7 +67,7 @@ describe("Cart coupon validity after edits", () => {
   it("requires reapplying a coupon after the quantity changes", async () => {
     await apply();
     expect(screen.getByText(/Cupom TESTE/)).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "+" }));
+    fireEvent.click(screen.getByRole("button", { name: "Aumentar quantidade de Vela teste" }));
     expect(screen.queryByText(/Cupom TESTE/)).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Aplicar cupom" }));
     await waitFor(() => expect(mocks.success).toHaveBeenCalledTimes(2));
@@ -106,7 +106,7 @@ describe("Cart coupon validity after edits", () => {
     });
     fireEvent.click(screen.getByRole("button", { name: "Aplicar cupom" }));
     expect(screen.getByRole("button", { name: "Finalizar pedido" })).toBeDisabled();
-    fireEvent.click(screen.getByRole("button", { name: "+" }));
+    fireEvent.click(screen.getByRole("button", { name: "Aumentar quantidade de Vela teste" }));
     resolveRequest({ data: { discount_type: "percent", discount_value: 10 }, error: null });
     await waitFor(() => expect(mocks.error).toHaveBeenCalled());
     expect(screen.queryByText(/Cupom TESTE/)).not.toBeInTheDocument();
