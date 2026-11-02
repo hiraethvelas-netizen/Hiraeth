@@ -222,7 +222,7 @@ export function CandleBookshelf({
                 >
                   <span className="block aspect-[4/5] w-full overflow-hidden rounded-md border border-[#8c704d] bg-[#d9c8a9] shadow-md">
                     {item.image_url
-                      ? <img src={item.image_url} alt={item.title} loading="lazy" className="h-full w-full object-cover" />
+                      ? <img src={item.image_url} alt={item.title} loading="lazy" className={"h-full w-full object-cover transition-[filter,opacity] duration-300 " + (item.finished ? "grayscale brightness-[.82]" : "")} data-finished={item.finished ? "true" : "false"} />
                       : <span className="flex h-full w-full items-center justify-center p-2 font-display text-xs italic text-[#60472f]">{item.title}</span>}
                   </span>
                   <span className="mt-2 line-clamp-2 w-full break-words text-[11px] font-semibold leading-snug text-[#493725] dark:text-[#f0e4d0] sm:text-xs">{item.title}</span>
@@ -246,7 +246,7 @@ export function CandleBookshelf({
             {dialogMode === "view" && dialogItem ? (
               <div className="mt-5 grid gap-5 sm:grid-cols-[minmax(0,190px)_1fr]">
                 <div className="overflow-hidden rounded-md border border-[#d6c9ae] bg-[#efe6d6]">
-                  {dialogItem.image_url ? <img src={dialogItem.image_url} alt={dialogItem.title} className="aspect-[4/5] w-full object-cover" /> : <div className="flex aspect-[4/5] items-center justify-center p-4 text-center font-display text-[#526b47]">{dialogItem.title}</div>}
+                  {dialogItem.image_url ? <img src={dialogItem.image_url} alt={dialogItem.title} className={"aspect-[4/5] w-full object-cover transition-[filter,opacity] duration-300 " + (dialogItem.finished ? "grayscale brightness-[.82]" : "")} data-finished={dialogItem.finished ? "true" : "false"} /> : <div className="flex aspect-[4/5] items-center justify-center p-4 text-center font-display text-[#526b47]">{dialogItem.title}</div>}
                 </div>
                 <div className="space-y-3 text-sm text-[#4d493d]">
                   {dialogItem.category && <p><span className="font-semibold text-[#29342c]">Categoria:</span> <span className="text-[#625d50]">{dialogItem.category}</span></p>}
