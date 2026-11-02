@@ -48,6 +48,7 @@ vi.mock("@/integrations/supabase/client", () => ({
   supabase: {
     auth: {
       getUser: async () => ({ data: { user: { id: "test-user", email: "user@example.test" } } }),
+      onAuthStateChange: () => ({ data: { subscription: { unsubscribe: vi.fn() } } }),
     },
     from: (table: string) => {
       const q = {
@@ -84,7 +85,7 @@ beforeEach(() => {
   mocks.failed = false;
   localStorage.clear();
   localStorage.setItem(
-    "hiraeth-cart",
+    "hiraeth-cart:v2:test-user",
     JSON.stringify([
       { productId: "test", name: "Vela teste", slug: "vela", quantity: 2, price: 20 },
     ]),
