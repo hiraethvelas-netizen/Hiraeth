@@ -55,15 +55,15 @@ export function AcervoNavigation() {
   }
 
   return (
-    <div className="mx-auto mt-4 grid w-full max-w-5xl grid-cols-[1fr_auto] items-start gap-3 border-t border-primary/15 pt-3">
-      {searchOpen ? <form onSubmit={submitSearch} role="search" className="flex min-w-0 items-center gap-2 rounded-full border border-primary/30 bg-card/70 px-4 py-2.5 focus-within:border-primary focus-within:shadow-[var(--glow)]">
+    <div className="mx-auto mt-4 grid w-full min-w-0 max-w-5xl grid-cols-[minmax(0,1fr)_auto] items-start gap-2 overflow-visible border-t border-primary/15 px-4 pt-3 sm:gap-3 sm:px-6">
+      {searchOpen ? <form onSubmit={submitSearch} role="search" className="flex w-full min-w-0 items-center gap-1.5 rounded-full border border-primary/30 bg-card/70 px-2 py-2.5 sm:gap-2 sm:px-4 focus-within:border-primary focus-within:shadow-[var(--glow)]">
         <Search size={18} className="shrink-0 text-primary" aria-hidden="true" />
         <input autoFocus value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Buscar por aroma, livro, filme, série, música ou tema..." aria-label="Pesquisar no Acervo Hiraeth" className="min-w-0 flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground" />
         <button type="submit" className="text-xs uppercase tracking-wider text-primary hover:opacity-75">Buscar</button>
         <button type="button" aria-label="Fechar pesquisa" onClick={() => setSearchOpen(false)} className="rounded-full p-1 text-muted-foreground hover:text-primary"><X size={16} /></button>
       </form> : <button type="button" aria-label="Abrir pesquisa do Acervo" title="Pesquisar no Acervo" onClick={() => setSearchOpen(true)} className="flex h-11 w-11 items-center justify-center rounded-full border border-primary/30 bg-card/70 text-primary transition-colors hover:bg-primary/10"><Search size={19} aria-hidden="true" /></button>}
-      <div className="relative">
-        <button type="button" aria-label="Ver todas as categorias e subcategorias" aria-expanded={menuOpen} onClick={() => { setMenuOpen((open) => !open); window.dispatchEvent(new Event("hiraeth:categories-updated")); }} className="flex h-11 items-center gap-1.5 rounded-full border border-primary/30 px-3 text-sm text-foreground transition-colors hover:bg-primary/10">
+      <div className="relative min-w-0 justify-self-end">
+        <button type="button" aria-label="Ver todas as categorias e subcategorias" aria-expanded={menuOpen} onClick={() => { setMenuOpen((open) => !open); window.dispatchEvent(new Event("hiraeth:categories-updated")); }} className="flex h-11 items-center gap-1.5 rounded-full border border-primary/30 px-2.5 text-sm text-foreground sm:px-3 transition-colors hover:bg-primary/10">
           <MoreHorizontal size={20} /><span className="hidden sm:inline">Acervo</span>
         </button>
         {menuOpen && <div className="absolute right-0 top-full z-50 mt-2 max-h-[70vh] w-[min(88vw,340px)] overflow-y-auto rounded-lg border border-primary/25 bg-background p-3 shadow-xl">
