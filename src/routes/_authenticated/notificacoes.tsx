@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Bell, Flame, Heart, MessageCircle, RefreshCw, Sparkles } from "lucide-react";
 import { SiteFooter, SiteHeader } from "@/components/SiteLayout";
 import { supabase } from "@/integrations/supabase/client";
-import { notificationDate, safeNotificationHref, type HiraethNotification } from "@/lib/notifications";
+import { markNotificationsViewed, notificationDate, safeNotificationHref, type HiraethNotification } from "@/lib/notifications";
 
 export const Route = createFileRoute("/_authenticated/notificacoes")({
   ssr: false,
@@ -36,6 +36,9 @@ function NotificationsPage() {
       if (queryError) throw queryError;
       setNotifications((data ?? []) as HiraethNotification[]);
       setError("");
+      // The list has been displayed, so it is no longer a pending signal.
+      const { data: auth } = await supabase.auth.getUser();
+      if (auth.user?.id) markNotificationsViewed(auth.user.id);
     } catch (cause) {
       setError(cause instanceof Error
         ? "Não foi possível carregar os avisos. " + cause.message
@@ -47,6 +50,12 @@ function NotificationsPage() {
   }, []);
 
   useEffect(() => {
+    // Hide the dot as soon as the customer opens Sinais da Chama, even
+    // before the full list finishes loading. No messages are marked as read.
+    let mounted = true;
+    void supabase.auth.getUser().then(({ data }) => {
+      if (mounted && data.user?.id) markNotificationsViewed(data.user.id);
+    }).catch(() => {});
     void refresh(true);
     const onFocus = () => { void refresh(true); };
     window.addEventListener("focus", onFocus);
@@ -54,6 +63,7 @@ function NotificationsPage() {
       if (!document.hidden) void refresh(true);
     }, 30000);
     return () => {
+      mounted = false;
       window.removeEventListener("focus", onFocus);
       window.clearInterval(interval);
     };
