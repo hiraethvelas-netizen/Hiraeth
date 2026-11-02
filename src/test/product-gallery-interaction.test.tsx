@@ -2,9 +2,13 @@ import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/re
 import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-const { add } = vi.hoisted(() => ({ add: vi.fn() }));
+const mocks = vi.hoisted(() => ({
+  add: vi.fn(),
+  cartItems: [] as { productId: string; variantKey?: string; quantity: number }[],
+  zeroStockFor250: false,
+}));
 vi.mock("@/components/SiteLayout", () => ({ SiteHeader: () => null, SiteFooter: () => null }));
-vi.mock("@/lib/cart", () => ({ useCart: () => ({ items: [], add }) }));
+vi.mock("@/lib/cart", () => ({ useCart: () => ({ items: mocks.cartItems, add: mocks.add }) }));
 vi.mock("sonner", () => ({ toast: { error: vi.fn(), success: vi.fn(), info: vi.fn() } }));
 vi.mock("@tanstack/react-router", () => ({
   createFileRoute: () => (options: object) => ({
@@ -33,7 +37,7 @@ vi.mock("@/integrations/supabase/client", () => ({
           data: {
             id: "candle", name: "Vela teste", slug: "teste-vela",
             price: 50, stock: 9, status: "published",
-            images, variants, description: null,
+            images, variants: variants.map(v => v.label === "250 g" && mocks.zeroStockFor250 ? { ...v, stock: 0 } : v), description: null,
           }, error: null,
         }),
       };
@@ -45,9 +49,27 @@ vi.mock("@/integrations/supabase/client", () => ({
 import { Route } from "@/routes/produto.$slug";
 const Product = Route.options.component!;
 
-afterEach(cleanup);
+afterEach(() => { cleanup(); mocks.cartItems = []; mocks.zeroStockFor250 = false; vi.clearAllMocks(); });
 
 describe("product photo gallery", () => {
+  it("does not mark an item as sold out merely because its units are in this customer's cart", async () => {
+    mocks.cartItems = [{ productId: "candle", variantKey: "size-250", quantity: 3 }];
+    render(<Product />);
+    fireEvent.click(await screen.findByRole("button", { name: "250 g" }));
+    expect(screen.getByText("Últimas 3 unidades disponíveis.")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Limite na sacola" })).toBeDisabled();
+    expect(screen.getByText(/Isso não reserva o produto para outros clientes/)).toBeInTheDocument();
+    expect(screen.queryByText("Estoque esgotado.")).not.toBeInTheDocument();
+  });
+
+  it("shows stock exhausted only when the selected variant's persisted stock is zero", async () => {
+    mocks.zeroStockFor250 = true;
+    render(<Product />);
+    fireEvent.click(await screen.findByRole("button", { name: "250 g" }));
+    expect(screen.getByText("Estoque esgotado.")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Estoque esgotado" })).toBeDisabled();
+  });
+
   it("swipes between existing photos and selects the correct photo for a variation", async () => {
     render(<Product />);
     const gallery = await screen.findByRole("region", {
