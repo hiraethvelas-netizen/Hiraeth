@@ -7,6 +7,8 @@ import { brl, slugify } from "@/lib/format";
 import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
 import { ProductVariantsEditor } from "@/components/admin/ProductVariantsEditor";
+import { ImageCropEditor } from "@/components/ImageCropEditor";
+import type { CropAspect } from "@/lib/image-crop";
 import { validateVariantSetup, variantSetupFrom, variantTotalStock, type VariantSetup } from "@/lib/product-variants";
 
 type Product = Tables<"products">;
@@ -34,6 +36,10 @@ function AdminProdutos() {
   const [variants, setVariants] = useState<VariantSetup>(() => variantSetupFrom([]));
   const [showForm, setShowForm] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [photoCrop, setPhotoCrop] = useState<{
+    source: File | string; pending: File[]; replaceIndex?: number;
+  } | null>(null);
+  const [photoAspect, setPhotoAspect] = useState<CropAspect>("portrait");
   const db = supabase as any;
   const [essences, setEssences] = useState<Essence[]>([]);
   const [saving, setSaving] = useState(false);
@@ -85,6 +91,7 @@ function AdminProdutos() {
   useEffect(() => { load(); }, [load]);
 
   async function startEdit(p: Product) {
+    setPhotoCrop(null);
     setEditing(p);
     setForm({
       name: p.name, description: p.description ?? "", category_id: p.category_id ?? "",
@@ -100,27 +107,68 @@ function AdminProdutos() {
     setShowForm(true);
   }
 
-  function startNew() { setEditing(null); setForm({ ...emptyForm }); setVariants(variantSetupFrom([])); setProductAromas([]); setShowForm(true); }
+  function startNew() { setEditing(null); setForm({ ...emptyForm }); setVariants(variantSetupFrom([])); setProductAromas([]); setPhotoCrop(null); setShowForm(true); }
 
-  async function uploadImages(files: FileList | null) {
+  function chooseProductPhotos(files: FileList | null) {
     if (!files?.length) return;
-    setUploading(true);
-    const added: string[] = [];
+    const accepted: File[] = [];
     for (const file of Array.from(files)) {
-      if (!file.type.startsWith("image/")) { toast.error("Escolha apenas arquivos de imagem."); continue; }
-      if (file.size > 10 * 1024 * 1024) { toast.error("Cada imagem deve ter no máximo 10 MB."); continue; }
-      const safeName = file.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9._-]/g, "-");
-      const path = `${crypto.randomUUID()}-${safeName}`;
-      const { error } = await supabase.storage.from("product-images").upload(path, file, { upsert: false });
-      if (error) { toast.error(`Falha ao enviar ${file.name}: ${error.message}`); continue; }
-      const { data } = supabase.storage.from("product-images").getPublicUrl(path);
-      added.push(data.publicUrl);
+      if (!["image/jpeg", "image/png", "image/webp", "image/gif"].includes(file.type)) {
+        toast.error("Escolha imagens JPG, PNG, WebP ou GIF.");
+      } else if (file.size > 10 * 1024 * 1024) {
+        toast.error("Cada imagem deve ter no máximo 10 MB.");
+      } else {
+        accepted.push(file);
+      }
     }
-    if (added.length) {
-      setForm((current) => ({ ...current, images: [...current.images, ...added] }));
-      toast.success(added.length === 1 ? "Imagem adicionada." : `${added.length} imagens adicionadas.`);
+    if (!accepted.length) return;
+    setPhotoAspect("portrait");
+    setPhotoCrop({ source: accepted[0]!, pending: accepted.slice(1) });
+  }
+
+  async function uploadProductPhoto(file: File): Promise<string> {
+    if (!["image/jpeg", "image/png", "image/webp", "image/gif"].includes(file.type)) {
+      throw new Error("Formato de imagem não permitido.");
     }
-    setUploading(false);
+    if (file.size > 10 * 1024 * 1024) throw new Error("Cada imagem deve ter até 10 MB.");
+    const safeName = file.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9._-]/g, "-");
+    const path = `${crypto.randomUUID()}-${safeName}`;
+    const { error } = await supabase.storage.from("product-images").upload(path, file, { upsert: false });
+    if (error) throw new Error("Falha ao enviar imagem: " + error.message);
+    const { data } = supabase.storage.from("product-images").getPublicUrl(path);
+    if (!data.publicUrl) throw new Error("Não foi possível gerar o endereço da imagem.");
+    return data.publicUrl;
+  }
+
+  async function applyProductPhotoCrop(file: File) {
+    if (!photoCrop) return;
+    const current = photoCrop;
+    setUploading(true);
+    try {
+      const url = await uploadProductPhoto(file);
+      setForm(previous => {
+        if (current.replaceIndex !== undefined) {
+          const images = [...previous.images];
+          if (current.replaceIndex >= images.length) return previous;
+          images[current.replaceIndex] = url;
+          return { ...previous, images };
+        }
+        return { ...previous, images: [...previous.images, url] };
+      });
+      if (current.pending.length > 0) {
+        setPhotoCrop({ source: current.pending[0]!, pending: current.pending.slice(1) });
+      } else {
+        setPhotoCrop(null);
+      }
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  function skipProductPhotoCrop() {
+    setPhotoCrop(current => current?.pending.length
+      ? { source: current.pending[0]!, pending: current.pending.slice(1) }
+      : null);
   }
 
   async function uploadVariantPhoto(file: File): Promise<string> {
@@ -137,6 +185,7 @@ function AdminProdutos() {
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
+    if (photoCrop || uploading) { toast.error("Finalize ou cancele o recorte das fotos antes de salvar."); return; }
     const variantError = validateVariantSetup(variants);
     if (variantError) { toast.error(variantError); return; }
     const variantRows = variants.legacy ?? variants.rows;
@@ -255,12 +304,36 @@ function AdminProdutos() {
       <ProductVariantsEditor value={variants} onChange={setVariants} basePrice={Number(form.price) || 0} onUpload={uploadVariantPhoto} disabled={saving || uploading} />
       <label className="block text-sm text-muted-foreground">Descrição<textarea placeholder="Conte a história, materiais e detalhes do produto..." rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className={`mt-1 ${inputCls}`} /></label>
       <div className="space-y-3">
-        <div><p className="text-sm text-foreground">Fotos do produto</p><p className="text-xs text-muted-foreground">Selecione imagens do celular ou computador. A primeira imagem será a capa. JPG, PNG, WEBP ou GIF; até 10 MB por foto.</p></div>
-        <label className="inline-flex cursor-pointer items-center border px-4 py-2 text-sm text-foreground hover:border-primary"><span>{uploading ? "Enviando imagens..." : "+ Escolher imagens"}</span><input type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple disabled={uploading} onChange={(e) => { void uploadImages(e.target.files); e.currentTarget.value = ""; }} className="sr-only" /></label>
-        {form.images.length > 0 && <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">{form.images.map((url, i) => <div key={url} className="relative border p-2"><img src={url} alt={`Foto ${i + 1} de ${form.name || "produto"}`} className="h-32 w-full object-cover" /><p className="mt-1 text-xs text-muted-foreground">{i === 0 ? "Imagem principal" : `Imagem ${i + 1}`}</p><div className="mt-2 flex gap-2"><button type="button" disabled={i === 0} onClick={() => setForm({ ...form, images: [url, ...form.images.filter((x) => x !== url)] })} className="text-xs text-primary disabled:opacity-30">Tornar capa</button><button type="button" onClick={() => setForm({ ...form, images: form.images.filter((x) => x !== url) })} className="text-xs text-destructive">Remover</button></div></div>)}</div>}
+        <div><p className="text-sm text-foreground">Fotos do produto</p><p className="text-xs text-muted-foreground">Escolha fotos e ajuste corte, zoom, posição e rotação antes de enviar. Você pode ajustar novamente as imagens cadastradas. A primeira é a capa.</p></div>
+        <label className="inline-flex cursor-pointer items-center border px-4 py-2 text-sm text-foreground hover:border-primary"><span>{uploading ? "Enviando recorte..." : "+ Escolher imagens"}</span><input type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple disabled={uploading || !!photoCrop} onChange={(e) => { chooseProductPhotos(e.currentTarget.files); e.currentTarget.value = ""; }} className="sr-only" /></label>
+        {form.images.length > 0 && <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">{form.images.map((url, i) => <div key={i + ":" + url} className="relative border p-2"><img src={url} alt={`Foto ${i + 1} de ${form.name || "produto"}`} className="h-32 w-full object-cover" /><p className="mt-1 text-xs text-muted-foreground">{i === 0 ? "Imagem principal" : `Imagem ${i + 1}`}</p><div className="mt-2 flex flex-wrap gap-2"><button type="button" disabled={i === 0} onClick={() => setForm(prev => ({ ...prev, images: [url, ...prev.images.filter((_, idx) => idx !== i)] }))} className="text-xs text-primary disabled:opacity-30">Tornar capa</button><button type="button" onClick={() => { setPhotoAspect("portrait"); setPhotoCrop({ source: url, pending: [], replaceIndex: i }); }} className="text-xs text-primary">Ajustar foto</button><button type="button" onClick={() => setForm(prev => ({ ...prev, images: prev.images.filter((_, idx) => idx !== i) }))} className="text-xs text-destructive">Remover</button></div></div>)}</div>}
       </div>
       <div className="flex gap-3"><button type="submit" disabled={uploading || saving} className="btn-gold disabled:opacity-50">{saving ? "Salvando..." : "Salvar produto"}</button><button type="button" onClick={() => setShowForm(false)} className="border px-4 py-2 text-sm text-muted-foreground hover:text-primary">Cancelar</button></div>
     </form>}
+    {photoCrop && <div className="fixed inset-0 z-[90] flex items-center justify-center overflow-y-auto bg-black/75 p-3 sm:p-5"
+      role="dialog" aria-modal="true" aria-label="Editar foto do produto">
+      <div className="my-auto max-h-[95dvh] w-full max-w-xl overflow-y-auto rounded border border-primary/35 bg-background p-5 shadow-2xl">
+        <div className="mb-3 flex flex-wrap gap-2" aria-label="Proporção do recorte">
+          {([
+            ["portrait", "Vertical 4:5"],
+            ["square", "Quadrado 1:1"],
+            ["photo", "Horizontal 4:3"],
+          ] as const).map(([aspect, title]) => (
+            <button key={aspect} type="button" aria-pressed={photoAspect === aspect}
+              disabled={uploading} onClick={() => setPhotoAspect(aspect)}
+              className={`rounded border px-3 py-2 text-xs ${photoAspect === aspect ? "border-primary bg-primary/15 text-primary" : "border-border text-foreground"}`}>
+              {title}
+            </button>
+          ))}
+        </div>
+        <ImageCropEditor key={String(photoAspect) + (typeof photoCrop.source === "string" ? photoCrop.source : photoCrop.source.name)}
+          source={photoCrop.source} aspect={photoAspect}
+          onApply={applyProductPhotoCrop} onCancel={skipProductPhotoCrop} />
+        {photoCrop.pending.length > 0 && <p className="mt-3 text-xs text-muted-foreground">
+          Próximas fotos: {photoCrop.pending.length}. Ao aplicar ou cancelar, você passa para a próxima.
+        </p>}
+      </div>
+    </div>}
     {loading ? <p className="mt-8 text-muted-foreground">Carregando...</p> : products.length === 0 ? <p className="mt-8 text-muted-foreground">Nenhum produto cadastrado ainda.</p> : <div className="mt-8 overflow-x-auto"><table className="w-full text-left text-sm"><thead><tr className="border-b text-xs uppercase tracking-widest text-muted-foreground"><th className="py-2 pr-4">Produto</th><th className="py-2 pr-4">Categoria</th><th className="py-2 pr-4">Preço</th><th className="py-2 pr-4">Estoque</th><th className="py-2 pr-4">Status</th><th className="py-2"></th></tr></thead><tbody className="divide-y">{products.map((p) => <tr key={p.id}><td className="py-3 pr-4 text-foreground"><div className="flex items-center gap-3">{p.images?.[0] && <img src={p.images[0]} alt="" className="h-12 w-10 object-cover" />}<span>{p.name}</span></div></td><td className="py-3 pr-4 text-muted-foreground">{categoryLabel(p.category_id)}</td><td className="py-3 pr-4">{brl(Number(p.sale_price ?? p.price))}</td><td className={`py-3 pr-4 ${p.stock <= 5 ? "text-destructive font-semibold" : ""}`}>{p.stock}{p.stock <= 5 ? " · Baixo" : ""}</td><td className="py-3 pr-4 text-muted-foreground">{p.status === "published" ? "Publicado" : p.status === "draft" ? "Rascunho" : "Arquivado"}</td><td className="py-3 text-right whitespace-nowrap"><button onClick={() => startEdit(p)} className="mr-3 text-muted-foreground hover:text-primary">Editar</button><button onClick={() => remove(p.id, p.name)} className="text-muted-foreground hover:text-destructive">Remover</button></td></tr>)}</tbody></table></div>}
   </div>;
 }
