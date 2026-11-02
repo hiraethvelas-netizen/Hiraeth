@@ -1,5 +1,11 @@
-/** Fixed artwork shared by the four mystery cards; no uploaded image is needed. */
-export function SecretFlameCard({ index }: { index: number }) {
+/** Each mystery card uses the administrator's cropped image, or the original artwork until configured. */
+export function SecretFlameCard({ index, imageUrl }: { index: number; imageUrl?: string | null }) {
+  if (imageUrl) return (
+    <div className="h-full w-full overflow-hidden rounded-xl border border-[#b79b69]/60 bg-[#dfcfac]">
+      <img src={imageUrl} alt={`Imagem da Carta ${index + 1}`} loading="lazy"
+        className="h-full w-full object-cover" />
+    </div>
+  );
   return (
     <div className="flex h-full w-full flex-col items-center justify-center gap-3 rounded-xl border border-[#b79b69]/60 bg-gradient-to-b from-[#f3e8d1] to-[#dfcfac] p-3 text-[#54412d]">
       <span className="text-xs uppercase tracking-[.2em]">Hiraeth</span>
