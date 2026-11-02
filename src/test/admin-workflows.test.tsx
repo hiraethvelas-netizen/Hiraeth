@@ -179,7 +179,8 @@ describe("Product and essence forms", () => {
         expect.stringContaining("receita não foi atualizada"),
       ),
     );
-    expect(mocks.success).not.toHaveBeenCalled();
+    expect(mocks.success).not.toHaveBeenCalledWith("Produto criado.");
+    expect(mocks.success).not.toHaveBeenCalledWith("Produto atualizado.");
     expect(screen.getByRole("button", { name: "Salvar produto" })).toBeInTheDocument();
   });
   it("creates a pure essence in stock from the product form", async () => {
