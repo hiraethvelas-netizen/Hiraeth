@@ -15,6 +15,7 @@ type Curation = {
   title: string;
   configured: boolean;
   featured: FeaturedProduct[];
+  [key: string]: unknown;
 };
 
 type Props = {
