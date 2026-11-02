@@ -12,6 +12,10 @@ vi.mock("@tanstack/react-router", () => ({
 }));
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: {
+    auth: {
+      getUser: async () => ({ data: { user: { id: "test-user" } }, error: null }),
+      onAuthStateChange: () => ({ data: { subscription: { unsubscribe: vi.fn() } } }),
+    },
     from: () => {
       const query = {
         select: () => query,
@@ -40,7 +44,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   localStorage.clear();
   localStorage.setItem(
-    "hiraeth-cart",
+    "hiraeth-cart:v2:test-user",
     JSON.stringify([
       { productId: "test-product", name: "Vela teste", slug: "teste", price: 100, quantity: 2 },
     ]),
