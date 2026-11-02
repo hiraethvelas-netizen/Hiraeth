@@ -163,6 +163,7 @@ Deno.serve(async (req: Request) => {
       items: items.map(item => ({
         productId: item.productId, name: item.name, quantity: item.quantity,
         price: item.price, variantKey: item.variantKey,
+        stockVariantKey: item.stockVariantKey,
         variantDetails: item.variantDetails,
       })),
       freight, coupon_code: summary.coupon_code,
