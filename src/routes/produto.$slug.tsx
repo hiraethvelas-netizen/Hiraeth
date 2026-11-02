@@ -146,7 +146,17 @@ function ProdutoPage() {
     ? chosenCombination?.stock ?? 0
     : activeVariant?.stock != null ? Number(activeVariant.stock) : Number(product.stock);
   const requiresChoice = hasCombinedVariants && (!selectionComplete || !chosenCombination);
+  // Cart quantity is only a per-customer limit, not a reservation of stock.
+  // "Estoque esgotado" refers strictly to stock persisted for the product/variation.
   const outOfStock = !requiresChoice && availableStock <= 0;
+  const alreadyInCart = cart.items.find(item =>
+    item.productId === product.id && (item.variantKey ?? "") ===
+    ((hasCombinedVariants ? chosenCombination?.key : [
+      activeVariant ? String(activeVariant.key ?? activeVariant.id ?? activeVariant.label ?? "") : "",
+      houseVariants.length > 0 ? String(chosenHouse?.key ?? chosenHouse?.id ?? selectedHouse) : "",
+    ].filter(Boolean).join("::")) || ""))?.quantity ?? 0;
+  const remainingToAdd = Math.max(0, availableStock - alreadyInCart);
+  const cartQuantityLimitReached = !requiresChoice && !outOfStock && remainingToAdd === 0;
   const sizeVariantKey = activeVariant ? String(activeVariant.key ?? activeVariant.id ?? activeVariant.label ?? "") : "";
   const houseVariantKey = houseVariants.length > 0 ? String(chosenHouse?.key ?? chosenHouse?.id ?? selectedHouse) : "";
   const variantKey = hasCombinedVariants
@@ -313,14 +323,13 @@ function ProdutoPage() {
               <div className="flex items-center border">
                 <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="px-3 py-2 text-lg">−</button>
                 <span className="w-10 text-center">{quantity}</span>
-                <button onClick={() => setQuantity(Math.min(quantity + 1, requiresChoice ? 1 : Math.max(1, availableStock)))} className="px-3 py-2 text-lg">+</button>
+                <button onClick={() => setQuantity(Math.min(quantity + 1, Math.max(1, remainingToAdd)))} className="px-3 py-2 text-lg">+</button>
               </div>
               <button
-                disabled={outOfStock || requiresChoice || quantity > availableStock}
+                disabled={outOfStock || requiresChoice || cartQuantityLimitReached || quantity > remainingToAdd}
                 onClick={() => {
                   if (requiresChoice || !variantKey && hasCombinedVariants) { toast.error("Escolha as variações do produto."); return; }
-                  const alreadyInCart = cart.items.find(item => item.productId === product.id && (item.variantKey ?? "") === (variantKey ?? ""))?.quantity ?? 0;
-                  if (quantity + alreadyInCart > availableStock) { toast.error("Estoque insuficiente para essa opção. Confira a quantidade no carrinho."); return; }
+                  if (quantity > remainingToAdd) { toast.error("Você já colocou as unidades disponíveis desta vela na sacola."); return; }
                   cart.add(
                     {
                       productId: product.id,
@@ -338,9 +347,13 @@ function ProdutoPage() {
                 }}
                 className="btn-gold flex-1 justify-center disabled:cursor-not-allowed disabled:opacity-40"
               >
-                {requiresChoice ? "Escolha as variações" : outOfStock ? "Esgotado" : "Adicionar ao carrinho"}
+                {requiresChoice ? "Escolha as variações" : outOfStock ? "Estoque esgotado" : cartQuantityLimitReached ? "Limite na sacola" : "Adicionar ao carrinho"}
               </button>
             </div>
+
+            {cartQuantityLimitReached && <p role="status" className="mt-3 text-sm text-primary">
+              Você já colocou todas as unidades disponíveis desta opção na sua sacola. Isso não reserva o produto para outros clientes.
+            </p>}
 
             <button
               onClick={toggleWishlist}
@@ -358,11 +371,13 @@ function ProdutoPage() {
             )}
 
             <p className="mt-6 text-sm text-muted-foreground">
-              {availableStock > 0 && availableStock <= 5
-                ? `Últimas ${availableStock} unidades.`
+              {requiresChoice
+                ? "Escolha as variações para consultar a disponibilidade."
                 : outOfStock
-                  ? "Indisponível no momento."
-                  : "Em estoque."}
+                  ? "Estoque esgotado."
+                  : availableStock <= 5
+                    ? `Últimas ${availableStock} unidades disponíveis.`
+                    : "Em estoque."}
             </p>
           </div>
         </div>
