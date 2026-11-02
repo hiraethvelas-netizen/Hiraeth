@@ -4,6 +4,7 @@ import {
 } from "../../supabase/functions/_shared/commerce-pricing";
 import { validMercadoPagoSignature } from "../../supabase/functions/_shared/mercado-pago-signature";
 import { calculateShippingPackage } from "../../supabase/functions/_shared/commerce-shipping";
+import { canAccessCommerce } from "../../supabase/functions/_shared/commerce-access";
 
 const id = "6c3efc18-cdbc-4cc1-918a-1fc53087d522";
 const otherId = "e3c182d1-6a9d-45bc-b3e7-89a1180f9772";
@@ -144,6 +145,28 @@ describe("Hiraeth — candle size and protected parcel calculations", () => {
     const box = { width: 13, height: 13, length: 16 };
     expect(() => calculateShippingPackage(items, box, null, 1, 75)).toThrow(/excede a embalagem/);
     expect(() => calculateShippingPackage(items, box, null, 3, -10)).toThrow(/peso da embalagem/);
+  });
+});
+
+
+describe("Hiraeth — sandbox checkout only for authenticated admins", () => {
+  it("keeps test checkout disabled for visitors and regular customers even with all secrets configured", () => {
+    expect(canAccessCommerce(true, "sandbox", false)).toBe(false);
+  });
+
+  it("allows an administrator to test only when commerce is explicitly enabled", () => {
+    expect(canAccessCommerce(true, "sandbox", true)).toBe(true);
+    expect(canAccessCommerce(false, "sandbox", true)).toBe(false);
+  });
+
+  it("fails closed for missing or unknown payment modes", () => {
+    expect(canAccessCommerce(true, undefined, true)).toBe(false);
+    expect(canAccessCommerce(true, "staging", true)).toBe(false);
+  });
+
+  it("preserves production customer access only after the separate live-mode checks succeeded", () => {
+    expect(canAccessCommerce(true, "production", false)).toBe(true);
+    expect(canAccessCommerce(false, "production", true)).toBe(false);
   });
 });
 
