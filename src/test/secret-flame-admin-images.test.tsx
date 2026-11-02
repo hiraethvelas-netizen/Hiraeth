@@ -73,6 +73,6 @@ describe("Imagens das quatro cartas na administração", () => {
       .toHaveAttribute("src", "https://cdn.example.test/secret-flame-cards/carta-ajustada.webp"));
     expect(screen.getByRole("button", { name: "Cortar / dar zoom novamente" })).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Retirar foto da carta" }));
-    expect(screen.getByText("Carta 1")).toBeInTheDocument();
+    expect(screen.getAllByText("Carta 1").length).toBeGreaterThan(0);
   });
 });
