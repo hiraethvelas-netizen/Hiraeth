@@ -76,8 +76,8 @@ function OrderExpedition({order}:{order:Order}) {
         action==="issue_invoice"?"Emissão fiscal solicitada.":
         action==="generate_label"?"Etiqueta gerada.": "Etapa atualizada.");
       await refresh();
-      if(action==="generate_label"&&response.labelUrl){
-        window.open(response.labelUrl,"_blank","noopener,noreferrer");
+      if(action==="generate_label"&&response['labelUrl']){
+        window.open(response['labelUrl'],"_blank","noopener,noreferrer");
       }
     }catch(cause){
       toast.error(cause instanceof Error?cause.message:"Não foi possível executar esta etapa.");
