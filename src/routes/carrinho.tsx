@@ -12,7 +12,7 @@ import { managedVariants } from "@/lib/product-variants";
 export const Route = createFileRoute("/carrinho")({
   ssr: false,
   beforeLoad: requireAuthenticatedUser,
-  head: () => ({ meta: [{ title: "Carrinho — Hiraeth" }] }),
+  head: () => ({ meta: [{ title: "Tesouros Escolhidos — Hiraeth" }] }),
   component: Carrinho,
 });
 
@@ -176,27 +176,28 @@ function Carrinho() {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen w-full min-w-0 max-w-full overflow-x-clip">
       <SiteHeader />
-      <main className="mx-auto max-w-3xl px-6 pb-20 pt-32">
-        <p className="eyebrow">Sua seleção</p>
-        <h1 className="mt-2 text-5xl text-foreground">Carrinho</h1>
+      <main className="mx-auto w-full min-w-0 max-w-3xl px-4 pb-20 pt-24 sm:px-6 sm:pt-32">
+        <p className="eyebrow">Seu círculo de encantos</p>
+        <h1 className="mt-2 break-words font-display text-4xl text-foreground sm:text-5xl">Tesouros Escolhidos</h1>
 
         {cart.items.length === 0 ? (
           <div className="mt-12 text-center">
-            <p className="font-display text-2xl italic text-primary">Seu carrinho está vazio</p>
+            <p className="font-display text-2xl italic text-primary">Seu baú de tesouros está vazio</p>
             <Link to="/loja" className="btn-gold mt-8">Explorar a loja</Link>
           </div>
         ) : (
           <>
-            <ul className="mt-10 divide-y">
+            <ul className="mt-8 w-full min-w-0 divide-y sm:mt-10">
               {cart.items.map((item) => (
-                <li key={`${item.productId}-${item.variantKey ?? "default"}`} className="flex items-center gap-4 py-4">
-                  <div className="h-20 w-20 shrink-0 overflow-hidden border bg-muted">
+                <li key={`${item.productId}-${item.variantKey ?? "default"}`}
+                  className="grid w-full min-w-0 grid-cols-[4.5rem_minmax(0,1fr)_auto] gap-x-3 gap-y-3 py-5 sm:grid-cols-[5rem_minmax(0,1fr)_auto_auto_auto] sm:items-center sm:gap-4">
+                  <div className="h-20 w-[4.5rem] shrink-0 overflow-hidden border bg-muted sm:w-20">
                     {item.image && <img src={item.image} alt="" className="h-full w-full object-cover" />}
                   </div>
-                  <div className="flex-1">
-                    <Link to="/produto/$slug" params={{ slug: item.slug }} className="text-xl text-foreground hover:text-primary">
+                  <div className="min-w-0">
+                    <Link to="/produto/$slug" params={{ slug: item.slug }} className="block break-words text-lg leading-snug text-foreground hover:text-primary sm:text-xl">
                       {item.name}
                     </Link>
                     <p className="text-sm text-muted-foreground">{brl(item.price)} cada</p>
@@ -206,21 +207,21 @@ function Carrinho() {
                       Object.entries(item.variantDetails["options"] as Record<string, string>).map(([name, value]) =>
                         <p key={name} className="text-xs text-muted-foreground">{name}: {String(value)}</p>)}
                   </div>
-                  <div className="flex items-center border">
-                    <button disabled={placing} onClick={() => cart.setQuantity(item.productId, item.quantity - 1, item.variantKey)} className="px-3 py-1">−</button>
-                    <span className="w-8 text-center">{item.quantity}</span>
-                    <button disabled={placing} onClick={() => cart.setQuantity(item.productId, item.quantity + 1, item.variantKey)} className="px-3 py-1">+</button>
+                  <div className="col-start-2 row-start-2 inline-flex w-fit shrink-0 items-center border sm:col-start-3 sm:row-start-1">
+                    <button type="button" disabled={placing} aria-label={`Diminuir quantidade de ${item.name}`} onClick={() => cart.setQuantity(item.productId, item.quantity - 1, item.variantKey)} className="px-2 py-1.5 sm:px-3">−</button>
+                    <span className="w-6 text-center text-sm sm:w-8">{item.quantity}</span>
+                    <button type="button" disabled={placing} aria-label={`Aumentar quantidade de ${item.name}`} onClick={() => cart.setQuantity(item.productId, item.quantity + 1, item.variantKey)} className="px-2 py-1.5 sm:px-3">+</button>
                   </div>
-                  <span className="w-24 text-right text-primary">{brl(item.price * item.quantity)}</span>
-                  <button disabled={placing} onClick={() => cart.remove(item.productId, item.variantKey)} className="text-muted-foreground hover:text-destructive" aria-label="Remover">
+                  <span className="col-start-3 row-start-2 self-center justify-self-end whitespace-nowrap text-right text-sm text-primary sm:col-start-4 sm:row-start-1 sm:text-base">{brl(item.price * item.quantity)}</span>
+                  <button type="button" disabled={placing} onClick={() => cart.remove(item.productId, item.variantKey)} className="col-start-3 row-start-1 self-start justify-self-end px-1 text-muted-foreground hover:text-destructive sm:col-start-5 sm:self-center" aria-label={`Remover ${item.name}`}>
                     ✕
                   </button>
                 </li>
               ))}
             </ul>
 
-            <div className="mt-8 border-t pt-6 text-right">
-              <div className="mb-5 flex gap-2"><input disabled={placing} aria-label="Cupom de desconto" value={coupon} onChange={(e) => setCoupon(e.target.value.toUpperCase())} placeholder="Código do cupom" className="min-w-0 flex-1 border bg-transparent px-3 py-2 text-sm" /><button type="button" onClick={() => void applyCoupon()} disabled={validatingCoupon || placing} className="border px-4 py-2 text-sm">{validatingCoupon ? "Verificando..." : "Aplicar cupom"}</button></div>
+            <div className="mt-8 w-full min-w-0 border-t pt-6 text-right">
+              <div className="mb-5 grid w-full min-w-0 grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_auto]"><input disabled={placing} aria-label="Cupom de desconto" value={coupon} onChange={(e) => setCoupon(e.target.value.toUpperCase())} placeholder="Código do cupom" className="min-w-0 w-full border bg-transparent px-3 py-2 text-sm" /><button type="button" onClick={() => void applyCoupon()} disabled={validatingCoupon || placing} className="w-full border px-4 py-2 text-sm sm:w-auto">{validatingCoupon ? "Verificando..." : "Aplicar cupom"}</button></div>
               {appliedCoupon && !couponIsCurrent && <p role="status" className="mb-2 text-sm text-muted-foreground">O carrinho mudou. Aplique o cupom novamente para atualizar o desconto.</p>}
               {couponCode && <p className="mb-2 text-sm text-primary">Cupom {couponCode}: −{brl(couponDiscount)} <button disabled={placing} className="ml-2 underline" onClick={() => {setAppliedCoupon(null);setCoupon("");}}>Remover</button></p>}
               {promotionsLoading && <p role="status" className="mb-2 text-sm text-muted-foreground">Verificando promoções disponíveis...</p>}
@@ -230,11 +231,11 @@ function Carrinho() {
               {benefits.gifts.map(gift => <p key={gift} className="mb-2 text-sm text-primary">Brinde: {gift}</p>)}
               {couponIsCurrent && couponBenefit && !couponCode && <p className="mb-2 text-sm text-muted-foreground">Os descontos já atingiram o valor dos produtos; este cupom não reduz mais o total.</p>}
               <p className="text-sm text-muted-foreground">Subtotal: {brl(cart.total)}</p>
-              <p className="text-2xl">
+              <p className="text-xl sm:text-2xl">
                 Total: <span className="text-primary">{brl(payableTotal)}</span>
               </p>
               <p className="mt-1 text-sm text-muted-foreground">{benefits.freeShipping ? "Frete grátis nesta compra." : "Frete calculado na finalização."}</p>
-              <button onClick={checkout} disabled={placing || validatingCoupon || promotionsLoading || promotionsError} className="btn-gold mt-6">
+              <button onClick={checkout} disabled={placing || validatingCoupon || promotionsLoading || promotionsError} className="btn-gold mt-6 w-full max-w-full justify-center sm:w-auto">
                 {placing ? "Processando..." : "Finalizar pedido"}
               </button>
             </div>
