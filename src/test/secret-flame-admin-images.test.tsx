@@ -2,7 +2,7 @@ import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/re
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-const mocks = vi.hoisted(() => ({ upload: vi.fn(), success: vi.fn(), error: vi.fn() }));
+const mocks = vi.hoisted(() => ({ upload: vi.fn(), upsert: vi.fn(), success: vi.fn(), error: vi.fn() }));
 
 vi.mock("@tanstack/react-router", () => ({
   createFileRoute: () => (options: { component: () => ReactNode }) => ({ options }),
@@ -30,6 +30,10 @@ vi.mock("@/integrations/supabase/client", () => ({
     from: () => {
       const query = {
         select: () => query,
+        upsert: async (payload: unknown, opts: unknown) => {
+          mocks.upsert(payload, opts);
+          return { error: null };
+        },
         order: () => query,
         eq: () => query,
         limit: async () => ({ data: [], error: null }),
@@ -58,6 +62,29 @@ describe("Imagens das quatro cartas na administração", () => {
       expect(screen.getByLabelText("Enviar imagem da carta " + i)).toHaveAttribute("type", "file");
     }
     expect(screen.queryByPlaceholderText(/url.*imagem/i)).not.toBeInTheDocument();
+  });
+
+  it("can save only the card images without configuring all four rewards", async () => {
+    render(<AdminPromotions />);
+    const select = screen.getByLabelText("Enviar imagem da carta 1");
+    fireEvent.change(select, { target: { files: [
+      new File(["picture"], "carta.png", { type: "image/png" }),
+    ] } });
+    fireEvent.click(screen.getByRole("button", { name: "Aplicar recorte" }));
+    await screen.findByRole("img", { name: "Imagem da Carta 1" });
+    fireEvent.click(screen.getByRole("button", { name: "Salvar apenas imagens das cartas" }));
+    await waitFor(() => expect(mocks.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: true,
+        candle_images: expect.arrayContaining([
+          expect.objectContaining({
+            image_url: "https://cdn.example.test/secret-flame-cards/carta-ajustada.webp",
+          }),
+        ]),
+      }),
+      { onConflict: "id" },
+    ));
+    expect(mocks.success).toHaveBeenCalledWith("As imagens das quatro cartas foram salvas.");
   });
 
   it("opens the portrait crop editor and previews the uploaded photo before saving", async () => {
