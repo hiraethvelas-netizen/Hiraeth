@@ -1,7 +1,6 @@
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { Tables } from "@/integrations/supabase/types";
 
 const mock = vi.hoisted(() => ({ products: [] as Record<string, unknown>[] }));
 
@@ -25,7 +24,6 @@ vi.mock("@/integrations/supabase/client", () => ({
 
 import { RelatedProducts, chooseRelatedProducts } from "@/components/RelatedProducts";
 
-type Product = Tables<"products">;
 const recommendation = (id: string, category: string, stock = 5) => ({
   id, slug: "vela-" + id, name: "Vela " + id, category_id: category, stock,
   images: ["/" + id + ".webp"], price: 50, sale_price: null,
