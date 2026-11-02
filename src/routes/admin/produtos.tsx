@@ -252,7 +252,7 @@ function AdminProdutos() {
         refreshing={refreshingEssences}
         saving={saving}
       />}
-      <ProductVariantsEditor value={variants} onChange={setVariants} basePrice={Number(form.price) || 0} onUpload={uploadVariantPhoto} disabled={saving || uploading || savingAroma} />
+      <ProductVariantsEditor value={variants} onChange={setVariants} basePrice={Number(form.price) || 0} onUpload={uploadVariantPhoto} disabled={saving || uploading} />
       <label className="block text-sm text-muted-foreground">Descrição<textarea placeholder="Conte a história, materiais e detalhes do produto..." rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className={`mt-1 ${inputCls}`} /></label>
       <div className="space-y-3">
         <div><p className="text-sm text-foreground">Fotos do produto</p><p className="text-xs text-muted-foreground">Selecione imagens do celular ou computador. A primeira imagem será a capa. JPG, PNG, WEBP ou GIF; até 10 MB por foto.</p></div>
