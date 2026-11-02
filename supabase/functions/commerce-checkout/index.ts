@@ -109,9 +109,23 @@ Deno.serve(async (req: Request) => {
         updates.pix_qr_code = result.point_of_interaction?.transaction_data?.qr_code ?? null;
         updates.pix_qr_code_base64 = result.point_of_interaction?.transaction_data?.qr_code_base64 ?? null;
       }
-      const { error: updateError } = await db.from("commerce_checkouts")
-        .update(updates).eq("id", id).eq("user_id", user.id);
+      const { data: updated, error: updateError } = await db.from("commerce_checkouts")
+        .update(updates).eq("id", id).eq("user_id", user.id)
+        .eq("status", "awaiting_payment")
+        .select("id,status");
       if (updateError) throw new Error("Não foi possível registrar o retorno do Mercado Pago.");
+      // A webhook may approve and finalize the payment before the REST
+      // response returns. Never overwrite a paid checkout with "pending".
+      if (!updated?.length) {
+        const { data: current } = await db.from("commerce_checkouts")
+          .select("status,order_id,mp_payment_id,pix_qr_code,pix_qr_code_base64")
+          .eq("id", id).eq("user_id", user.id).maybeSingle();
+        if (!current || (current.mp_payment_id && current.mp_payment_id !== paymentId))
+          throw new Error("O pagamento precisa de conciliação. Consulte Meus pedidos.");
+        if (current.status === "paid" || current.status === "paid_attention")
+          return json({ checkoutId: id, paymentId, status: current.status, orderId: current.order_id,
+            qrCode: current.pix_qr_code, qrCodeBase64: current.pix_qr_code_base64 });
+      }
       let status = updates.status;
       let orderId: string | null = null;
       if (result.status === "approved") {
