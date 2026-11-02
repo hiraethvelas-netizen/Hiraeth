@@ -11,13 +11,14 @@ type Props = {
   onChange: Dispatch<SetStateAction<VariantSetup>>;
   basePrice: number;
   onUpload: (file: File) => Promise<string>;
+  galleryImages?: string[];
   disabled?: boolean;
 };
 
 const fieldStyle = "min-w-0 w-full rounded border border-primary/30 bg-[#fbf7eb] px-3 py-2 text-sm text-[#34402b] [color-scheme:light]";
 const buttonStyle = "rounded border border-primary/50 px-3 py-2 text-sm text-primary hover:bg-primary/10 disabled:opacity-40";
 
-export function ProductVariantsEditor({ value, onChange, basePrice, onUpload, disabled = false }: Props) {
+export function ProductVariantsEditor({ value, onChange, basePrice, onUpload, galleryImages = [], disabled = false }: Props) {
   const [uploadingRow, setUploadingRow] = useState<string | null>(null);
   const [photoCrop, setPhotoCrop] = useState<{
     source: File | string;
@@ -78,7 +79,23 @@ export function ProductVariantsEditor({ value, onChange, basePrice, onUpload, di
   }
 
   function photoField(image: string, id: string, onDone: (url: string) => void) {
-    return <div className="flex flex-wrap items-center gap-3">
+    return <div className="space-y-3">
+      {galleryImages.length > 0 && <div>
+        <p className="mb-2 text-xs text-muted-foreground">Escolha uma foto já cadastrada no produto para esta variação:</p>
+        <div role="group" aria-label="Fotos disponíveis para a variação" className="flex max-w-full gap-2 overflow-x-auto pb-2">
+          {[...new Set(galleryImages)].map((url, index) => (
+            <button key={url} type="button" disabled={disabled} aria-pressed={image === url}
+              aria-label={`Usar foto ${index + 1} do produto nesta variação`}
+              onClick={() => onDone(url)}
+              className={`h-16 w-16 shrink-0 overflow-hidden rounded border-2 ${image === url ? "border-primary" : "border-primary/20"}`}>
+              <img src={url} alt="" className="h-full w-full object-cover" />
+            </button>
+          ))}
+        </div>
+        {image && !galleryImages.includes(image) &&
+          <p className="text-xs text-primary">A foto atual não está na galeria. Selecione uma das imagens acima para exibi-la junto das fotos do produto.</p>}
+      </div>}
+      <div className="flex flex-wrap items-center gap-3">
       {image ? (
         <img className="h-20 w-20 rounded border object-cover" src={image} alt="Foto da variação" />
       ) : (
@@ -88,7 +105,7 @@ export function ProductVariantsEditor({ value, onChange, basePrice, onUpload, di
       )}
       <div className="flex flex-col gap-1.5">
         <label className="cursor-pointer rounded border border-primary/40 px-3 py-2 text-xs text-primary">
-          {uploadingRow === id ? "Enviando foto..." : image ? "Trocar foto" : "+ Adicionar foto"}
+          {uploadingRow === id ? "Enviando foto..." : image ? "Enviar outra foto" : "+ Adicionar foto"}
           <input
             type="file" accept="image/jpeg,image/png,image/webp,image/gif"
             disabled={disabled || !!uploadingRow}
@@ -117,6 +134,7 @@ export function ProductVariantsEditor({ value, onChange, basePrice, onUpload, di
           </button>
         </>}
       </div>
+      {galleryImages.length === 0 && <p className="text-xs text-muted-foreground">Você também pode adicionar fotos na seção “Fotos do produto” e depois selecioná-las aqui.</p>}
     </div>;
   }
 
