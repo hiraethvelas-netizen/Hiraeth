@@ -12,6 +12,8 @@ import { AcervoNavigation } from "@/components/AcervoNavigation";
 import { CustomerReviews } from "@/components/CustomerReviews";
 import { SecretFlamesPromotion } from "@/components/SecretFlamesPromotion";
 import { CuratedProductGrid } from "@/components/CuratedProductGrid";
+import { useStorePromotions } from "@/lib/use-store-promotions";
+import { visiblePrice } from "@/lib/store-pricing";
 import { CategoryHeroBanner } from "@/components/CategoryHeroBanner";
 import { Heart, Shirt } from "lucide-react";
 import { toast } from "sonner";
@@ -63,6 +65,7 @@ function Loja() {
   const navigate = useNavigate();
   const [pageSettings, savePageSettings] = useSiteContent("store-page-settings", { eyebrow: "O Acervo Hiraeth", title: "O Acervo Hiraeth", intro: "Encontre o universo que mora em você.", bannerImage: "", showBanner: false });
   const [products, setProducts] = useState<Product[]>([]);
+  const { promotions: automaticPromotions, categories: promotionCategories } = useStorePromotions();
   const [categories, setCategories] = useState<Category[]>([]);
 const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
@@ -248,7 +251,18 @@ useEffect(() => {
                 {product.images?.[0] ? <img src={product.images[0]} alt={product.name} className="h-full w-full object-contain p-2 transition-transform duration-500 group-hover:scale-105" loading="lazy" /> : <div className="flex h-full flex-col items-center justify-center gap-3 text-muted-foreground"><Shirt size={42} strokeWidth={1.1} /><span className="text-xs">Foto em breve</span></div>}
               </div>
               <p className="mt-3 font-display text-base sm:text-lg">{product.name}</p>
-              <p className="mt-1 text-sm text-muted-foreground">{brl(Number(product.sale_price ?? product.price))}</p>
+              <p className="mt-1 flex flex-wrap items-baseline justify-center gap-2 text-sm text-foreground">
+                {(() => {
+                  const shown = visiblePrice({
+                    id: product.id, category_id: product.category_id,
+                    price: Number(product.price), sale_price: product.sale_price,
+                  }, automaticPromotions, promotionCategories);
+                  return <>
+                    {shown.hasDiscount && <span className="text-muted-foreground line-through">{brl(shown.original)}</span>}
+                    <span className={shown.hasDiscount ? "font-semibold text-primary" : ""}>{brl(shown.current)}</span>
+                  </>;
+                })()}
+              </p>
             </Link>)}
           </div>
         </section>}
@@ -278,6 +292,8 @@ useEffect(() => {
             wishlistIds={wishlistIds}
             onWishlist={(id, event) => { void toggleWishlist(id, event); }}
             onSaveProduct={saveProduct}
+            automaticPromotions={automaticPromotions}
+            promotionCategories={promotionCategories}
             showFavorites={showFavorites}
             searching={Boolean(query.trim())}
           />
