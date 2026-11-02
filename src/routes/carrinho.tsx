@@ -112,8 +112,9 @@ function Carrinho() {
     const selected = variants.find(v => v.key === item.variantKey);
     const savedStock = variants.length
       ? selected?.stock ?? 0
-      : product?.stock ?? (typeof item.variantDetails?.["stock"] === "number"
-        ? item.variantDetails["stock"] : undefined);
+      : typeof item.variantDetails?.["stock"] === "number"
+        ? item.variantDetails["stock"]
+        : product?.stock;
     if (typeof savedStock === "number" && item.quantity >= savedStock) {
       toast.error("Você já adicionou todas as unidades disponíveis desta opção à sua sacola.");
       return;
