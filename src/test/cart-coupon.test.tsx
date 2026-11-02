@@ -156,8 +156,10 @@ describe("Cart coupon validity after edits", () => {
 
   it("removes the applied coupon without removing the cart items", async () => {
     await apply();
-    fireEvent.click(screen.getByText(/Cupom TESTE/).querySelector("button")!);
+    fireEvent.click(screen.getByRole("button", { name: "Retirar cupom" }));
     expect(screen.queryByText(/Cupom TESTE/)).not.toBeInTheDocument();
     expect(screen.getByText("Vela teste")).toBeInTheDocument();
+    expect(screen.getByText("Subtotal: R$ 200,00")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Aplicar cupom" })).toBeEnabled();
   });
 });
