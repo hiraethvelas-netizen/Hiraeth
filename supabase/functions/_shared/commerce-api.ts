@@ -67,12 +67,25 @@ export async function signedInUser(req: Request) {
   return { ...data.user, email: data.user.email };
 }
 
+/**
+ * Sandbox can be exposed only to confirmed administrators.
+ * The public production checkout retains its existing availability rules.
+ * Unknown payment modes always fail closed.
+ */
+export function canAccessCommerce(enabled: boolean, mode: string | undefined, isAdmin: boolean): boolean {
+  return enabled && (mode === "production" || (mode === "sandbox" && isAdmin));
+}
+
+export async function userIsAdmin(userId: string): Promise<boolean> {
+  const { data, error } = await serviceClient().rpc("has_role", {
+    _user_id: userId, _role: "admin",
+  });
+  return !error && data === true;
+}
+
 export async function requireAdmin(req: Request) {
   const user = await signedInUser(req);
-  const { data, error } = await serviceClient().rpc("has_role", {
-    _user_id: user.id, _role: "admin",
-  });
-  if (error || data !== true) throw new Error("Acesso reservado à administração.");
+  if (!await userIsAdmin(user.id)) throw new Error("Acesso reservado à administração.");
   return user;
 }
 
