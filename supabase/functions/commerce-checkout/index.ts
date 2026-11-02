@@ -147,18 +147,20 @@ Deno.serve(async (req: Request) => {
     const cartItems = validateItems(body.items);
     const ids = [...new Set(cartItems.map(item => item.productId))];
     const { data: products, error: productsError } = await db.from("products")
-      .select("id,name,status,category_id,price,sale_price,variants,stock,weight_grams")
+      .select("id,name,status,product_type,category_id,price,sale_price,variants,stock,weight_grams")
       .in("id", ids);
     if (productsError || !products || products.length !== ids.length)
       throw new Error("Não foi possível conferir o estoque. Revise sua sacola.");
     const weights = Number(Deno.env.get("HIRAETH_DEFAULT_PRODUCT_WEIGHT_GRAMS") || "0");
     const items = snapshotProducts(cartItems, products, weights);
     const destination = postalCode(body.action === "quote" ? body.postalCode : body.recipient?.postal_code);
-    const quotes = await freightQuotes(destination, items);
+    const { quotes, parcel } = await freightQuotes(destination, items);
     if (body.action === "quote") return json({ quotes });
     if (!quotes.length) throw new Error("Não há frete disponível para esse CEP.");
-    const freight = quotes.find(quote => quote.id === Number(body.freightServiceId));
-    if (!freight) throw new Error("Selecione uma das opções de entrega disponíveis.");
+    const selectedQuote = quotes.find(quote => quote.id === Number(body.freightServiceId));
+    if (!selectedQuote) throw new Error("Selecione uma das opções de entrega disponíveis.");
+    // Preserve parcel dimensions and billed weight for consistent label creation.
+    const freight = { ...selectedQuote, package: parcel };
 
     const recipient = validateRecipient(body.recipient, user.email);
     const [{ data: promos, error: promoError }, { data: categories, error: categoryError }] =
@@ -179,6 +181,7 @@ Deno.serve(async (req: Request) => {
         price: item.price, variantKey: item.variantKey,
         stockVariantKey: item.stockVariantKey,
         weightGrams: item.weightGrams,
+        shippingSize: item.shippingSize ?? null,
         variantDetails: item.variantDetails,
       })),
       freight, coupon_code: summary.coupon_code,
