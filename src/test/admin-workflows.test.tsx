@@ -5,6 +5,7 @@ const mocks = vi.hoisted(() => ({
   rpc: vi.fn(),
   success: vi.fn(),
   error: vi.fn(),
+  storageUpload: vi.fn(),
   recipeError: false,
   content: { enabled: false, title: "Bem-vinda", message: "Olá", buttonText: "Entrar" },
 }));
@@ -13,8 +14,27 @@ vi.mock("@tanstack/react-router", () => ({
 }));
 vi.mock("sonner", () => ({ toast: { success: mocks.success, error: mocks.error } }));
 vi.mock("@/lib/admin-edit", () => ({ useSiteContent: () => [mocks.content, vi.fn()] }));
+vi.mock("@/components/ImageCropEditor", () => ({
+  ImageCropEditor: ({ onApply, onCancel }: {
+    onApply: (file: File) => Promise<void>;
+    onCancel: () => void;
+  }) => <div>
+    <p>Prévia de recorte para teste</p>
+    <button type="button" onClick={() => void onApply(new File(["recorte"], "recorte.webp", { type: "image/webp" }))}>Aplicar recorte</button>
+    <button type="button" onClick={onCancel}>Voltar sem alterar</button>
+  </div>,
+}));
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: {
+    storage: {
+      from: () => ({
+        upload: async (path: string, file: File) => {
+          mocks.storageUpload(path, file);
+          return { error: null };
+        },
+        getPublicUrl: (path: string) => ({ data: { publicUrl: "https://images.example/" + path } }),
+      }),
+    },
     rpc: async (name: string, payload: object) => {
       mocks.rpc(name, payload);
       return { error: mocks.recipeError ? { message: "Recipe refused" } : null };
@@ -202,6 +222,43 @@ describe("Product and essence forms", () => {
       ),
     );
   });
+  it("opens a crop preview before uploading the product picture and can adjust it again", async () => {
+    await newProduct();
+    fireEvent.change(screen.getByLabelText("+ Escolher imagens"), {
+      target: { files: [new File(["foto"], "vela.png", { type: "image/png" })] },
+    });
+    expect(screen.getByText("Prévia de recorte para teste")).toBeInTheDocument();
+    expect(mocks.storageUpload).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: "Aplicar recorte" }));
+    await waitFor(() => expect(mocks.storageUpload).toHaveBeenCalledTimes(1));
+    await screen.findByText("Imagem principal");
+    expect(screen.getByRole("button", { name: "Ajustar foto" })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Ajustar foto" }));
+    expect(screen.getByText("Prévia de recorte para teste")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Voltar sem alterar" }));
+    expect(screen.getByText("Imagem principal")).toBeInTheDocument();
+    expect(mocks.storageUpload).toHaveBeenCalledTimes(1);
+  });
+
+  it("crops a multiple-image selection one image at a time", async () => {
+    await newProduct();
+    fireEvent.change(screen.getByLabelText("+ Escolher imagens"), {
+      target: { files: [
+        new File(["foto1"], "vela-1.png", { type: "image/png" }),
+        new File(["foto2"], "vela-2.png", { type: "image/png" }),
+      ] },
+    });
+    expect(screen.getByText("Próximas fotos: 1. Ao aplicar ou cancelar, você passa para a próxima.")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Aplicar recorte" }));
+    await waitFor(() => expect(mocks.storageUpload).toHaveBeenCalledTimes(1));
+    expect(screen.getByText("Prévia de recorte para teste")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Aplicar recorte" }));
+    await waitFor(() => expect(mocks.storageUpload).toHaveBeenCalledTimes(2));
+    expect(screen.queryByText("Prévia de recorte para teste")).not.toBeInTheDocument();
+    expect(screen.getByText("Imagem 2")).toBeInTheDocument();
+  });
+
   it("stores the pyramid on the essence instead of requiring it for each candle", async () => {
     render(<Essences />);
     await screen.findByText("Baunilha", { selector: "p" });
