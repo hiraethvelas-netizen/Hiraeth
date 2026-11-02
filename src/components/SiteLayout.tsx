@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { InlineEditor } from "@/components/InlineEditor";
 import { useAdminEdit } from "@/lib/admin-edit";
 import { useTheme } from "@/lib/theme";
-import { Instagram, Music2, MessageCircle, Mail } from "lucide-react";
+import { Instagram, Music2, MessageCircle, Mail, Bell } from "lucide-react";
 import { toast } from "sonner";
 
 function ThemeToggle() {
@@ -102,6 +102,12 @@ export function SiteHeader() {
               </Link>
             </>
           )}
+          <Link to="/notificacoes"
+            aria-label="Notificações" title="Sinais da Chama"
+            className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-foreground/85 transition-colors hover:bg-primary/10 hover:text-primary"
+          >
+            <Bell size={21} strokeWidth={1.6} aria-hidden="true" />
+          </Link>
           <ThemeToggle />
           <Link
             to="/carrinho"
