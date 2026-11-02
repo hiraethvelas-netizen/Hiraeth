@@ -5,8 +5,8 @@ import type { Tables } from "@/integrations/supabase/types";
 
 const mocks = vi.hoisted(() => ({ savedKeys: [] as string[] }));
 vi.mock("@tanstack/react-router", () => ({
-  Link: ({ children, params }: { children: ReactNode; params?: { slug: string } }) =>
-    <a href={params ? "/produto/" + params.slug : "#"}>{children}</a>,
+  Link: ({ children, params, ...props }: { children: ReactNode; params?: { slug: string }; [key: string]: unknown }) =>
+    <a {...props} href={params ? "/produto/" + params.slug : "#"}>{children}</a>,
 }));
 vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 vi.mock("@/components/InlineEditor", () => ({ InlineEditor: () => null }));
