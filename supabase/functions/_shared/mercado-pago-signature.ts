@@ -20,7 +20,7 @@ export async function validMercadoPagoSignature(
   const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(secret),
     { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
   const expected = new Uint8Array(await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(msg)));
-  const actual = Uint8Array.from((fields.v1 ?? "").match(/.{2}/g) ?? [], byte => parseInt(byte,16));
+  const actual = new Uint8Array(((fields.v1 ?? "").match(/.{2}/g) ?? []).map((byte: string) => parseInt(byte,16)));
   if (expected.length !== actual.length) return false;
   let different = 0;
   for (let i = 0; i < expected.length; i++) different |= expected[i]! ^ actual[i]!;
