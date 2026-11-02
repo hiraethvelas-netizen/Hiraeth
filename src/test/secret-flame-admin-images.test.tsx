@@ -103,7 +103,7 @@ describe("Imagens das quatro cartas na administração", () => {
     expect(coupons[0]).toHaveValue("");
     expect(coupons[1]).toHaveValue("");
 
-    fireEvent.click(screen.getByRole("button", { name: "Salvar configuração das Quatro Chamas" }));
+    fireEvent.click(screen.getByRole("button", { name: "Salvar configuração do Tarô da Fênix" }));
     await waitFor(() => expect(mocks.upsert).toHaveBeenCalledWith(
       expect.arrayContaining([
         expect.objectContaining({ candle_index: 0, reward_type: "coupon", coupon_code: null }),
@@ -112,7 +112,7 @@ describe("Imagens das quatro cartas na administração", () => {
       { onConflict: "candle_index" },
     ));
     expect(mocks.error).not.toHaveBeenCalledWith(expect.stringContaining("cupom"));
-    expect(mocks.success).toHaveBeenCalledWith("O Segredo das Quatro Chamas foi salvo.");
+    expect(mocks.success).toHaveBeenCalledWith("O Tarô da Fênix foi salvo.");
   });
 
   it("opens the portrait crop editor and previews the uploaded photo before saving", async () => {
