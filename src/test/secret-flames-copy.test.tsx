@@ -113,6 +113,21 @@ describe("O Tarô da Fênix: escolha e cópia do cupom", () => {
     expect(screen.queryByText("Copiado: TESTE")).not.toBeInTheDocument();
   });
 
+  it("offers to revisit the same chosen card without claiming another prize", async () => {
+    savePhoenixTarotClaim(phoenixTarotScope(null), {
+      candle_index: 0,
+      reward: { title: "Um presente da chama", coupon_code: "TESTE" },
+      already_claimed: true,
+    });
+    render(<SecretFlamesPromotion />);
+    const revisit = await screen.findByRole("button", { name: "Rever minha carta" });
+    expect(screen.getByRole("img", { name: "Imagem da Carta 1" })).toHaveAttribute("src", mocks.customImage);
+    expect(screen.queryByRole("button", { name: "Escolher carta 2" })).not.toBeInTheDocument();
+    fireEvent.click(revisit);
+    await waitFor(() => expect(mocks.navigate).toHaveBeenCalledWith({ to: "/taro-da-fenix" }));
+    expect(mocks.rpc).not.toHaveBeenCalled();
+  });
+
   it("does not claim a prize by merely opening the result URL without any prior choice", async () => {
     render(<PhoenixTarotReveal />);
     expect(await screen.findByText("Sua carta ainda não foi encontrada")).toBeInTheDocument();
