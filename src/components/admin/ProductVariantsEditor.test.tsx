@@ -31,6 +31,7 @@ function Harness() {
   return (
     <>
       <ProductVariantsEditor value={setup} onChange={setSetup} basePrice={60}
+        galleryImages={["https://cdn.test/vermelha-p.webp", "https://cdn.test/verde-m.webp"]}
         onUpload={vi.fn(async () => "https://cdn.test/nova.webp")} />
       <output data-testid="variation-state">{JSON.stringify(setup.rows)}</output>
     </>
@@ -96,5 +97,16 @@ describe("editing existing product variations", () => {
         price: 60, stock: 7, image: "https://cdn.test/nova.webp",
       });
     });
+  });
+
+  it("selects a photo already in the product gallery for the variation", () => {
+    render(<Harness />);
+    fireEvent.click(screen.getByRole("button", { name: "Usar foto 2 do produto nesta variação" }));
+    const rows = JSON.parse(screen.getByTestId("variation-state").textContent ?? "[]");
+    expect(rows[0]).toMatchObject({
+      image: "https://cdn.test/verde-m.webp", price: 60, stock: 7,
+    });
+    expect(screen.getByRole("button", { name: "Usar foto 2 do produto nesta variação" }))
+      .toHaveAttribute("aria-pressed", "true");
   });
 });
