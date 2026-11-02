@@ -140,7 +140,7 @@ export function CandleEssenceEditor({
                 className={inputCls + " pl-9"} />
             </label>
             <button type="button" disabled={refreshing || saving}
-              onClick={() => void onRefresh()} className="rounded border border-primary/40 p-2.5 text-primary disabled:opacity-40"
+              onClick={() => { void onRefresh().catch(error => toast.error(error instanceof Error ? error.message : "Falha ao atualizar o estoque.")); }} className="rounded border border-primary/40 p-2.5 text-primary disabled:opacity-40"
               aria-label="Atualizar estoque de essências" title="Atualizar estoque">
               <RefreshCw size={19} aria-hidden="true" />
             </button>
