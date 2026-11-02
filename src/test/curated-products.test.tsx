@@ -36,7 +36,7 @@ describe("Hiraeth featured product sections", () => {
     render(<CuratedProductGrid scope="home" products={products} categories={[]}
       wishlistIds={new Set()} onWishlist={vi.fn()} onSaveProduct={vi.fn()} />);
     expect(screen.getByTestId("curated-product-grid").querySelectorAll("[data-product-size]")).toHaveLength(3);
-    fireEvent.click(screen.getByRole("button", { name: "Escolher velas e tamanhos" }));
+    fireEvent.click(screen.getByRole("button", { name: "Personalizar destaques" }));
     const checkbox = screen.getByRole("checkbox", { name: /Vela B/ });
     fireEvent.click(checkbox);
     fireEvent.change(screen.getByRole("combobox", { name: "Tamanho na vitrine: Vela A" }), { target: { value: "large" } });
@@ -46,6 +46,19 @@ describe("Hiraeth featured product sections", () => {
     expect(grid.querySelectorAll("[data-product-size]")).toHaveLength(2);
     expect(grid.querySelector('[data-product-size="large"]')).toHaveTextContent("Vela A");
     expect(grid).toHaveClass("grid-cols-3");
+  });
+
+  it("lets the admin adjust a candle from three-per-row to large and back directly", async () => {
+    render(<CuratedProductGrid scope="home" products={products} categories={[]}
+      wishlistIds={new Set()} onWishlist={vi.fn()} onSaveProduct={vi.fn()} />);
+    const grid = screen.getByTestId("curated-product-grid");
+    expect(grid.querySelector('[data-product-size="large"]')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Exibir Vela A grande" }));
+    await waitFor(() => expect(grid.querySelector('[data-product-size="large"]')).toHaveTextContent("Vela A"));
+    expect(screen.getByRole("button", { name: "Exibir Vela A grande" })).toHaveAttribute("aria-pressed", "true");
+    fireEvent.click(screen.getByRole("button", { name: "Exibir Vela A em fileira de três" }));
+    await waitFor(() => expect(grid.querySelector('[data-product-size="large"]')).not.toBeInTheDocument());
+    expect(grid.querySelectorAll('[data-product-size="normal"]')).toHaveLength(3);
   });
 
   it("keeps home, category and subcategory vitrine settings in separate storage keys", () => {
