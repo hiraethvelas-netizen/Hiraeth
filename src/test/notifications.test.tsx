@@ -4,6 +4,8 @@ import { safeNotificationHref, notificationDate, getNotificationsViewedAt } from
 
 const mocks = vi.hoisted(() => ({
   inserted: vi.fn(),
+  deleted: vi.fn(),
+  deleteError: null as Error | null,
   success: vi.fn(),
   error: vi.fn(),
   rows: [
@@ -27,11 +29,26 @@ vi.mock("@/integrations/supabase/client", () => ({
   supabase: {
     auth: { getUser: async () => ({ data: { user: { id: "u1" } }, error: null }) },
     from: () => {
+      const deleteFilters: Record<string, unknown> = {};
+      const deleteQuery = {
+        eq: (name: string, value: unknown) => { deleteFilters[name] = value; return deleteQuery; },
+        is: (name: string, value: unknown) => { deleteFilters[name] = value; return deleteQuery; },
+        select: async (fields: string) => {
+          mocks.deleted({ ...deleteFilters }, fields);
+          if (mocks.deleteError) return { data: null, error: mocks.deleteError };
+          if (deleteFilters.kind !== "announcement" || deleteFilters.recipient_id !== null)
+            return { data: [], error: null };
+          const deleted = mocks.rows.filter(item => item.id === deleteFilters.id && item.kind === "announcement");
+          mocks.rows = mocks.rows.filter(item => !deleted.some(row => row.id === item.id));
+          return { data: deleted.map(item => ({ id: item.id })), error: null };
+        },
+      };
       const query = {
         select: () => query,
         order: () => query,
         eq: () => query,
         is: () => query,
+        delete: () => deleteQuery,
         limit: async () => ({ data: mocks.rows, error: null }),
         insert: (payload: unknown) => {
           mocks.inserted(payload);
@@ -49,7 +66,13 @@ import { Route as AdminRoute } from "@/routes/admin/notificacoes";
 const Notifications = NotificationsRoute.options.component!;
 const AdminNotifications = AdminRoute.options.component!;
 
-beforeEach(() => { vi.clearAllMocks(); localStorage.clear(); });
+const initialRows = [...mocks.rows];
+beforeEach(() => {
+  vi.clearAllMocks();
+  localStorage.clear();
+  mocks.rows = [...initialRows];
+  mocks.deleteError = null;
+});
 afterEach(() => { cleanup(); vi.restoreAllMocks(); });
 
 describe("Sinais da Chama", () => {
@@ -99,6 +122,39 @@ describe("Sinais da Chama", () => {
     }));
     expect(confirm).toHaveBeenCalledTimes(1);
     await waitFor(() => expect(mocks.success).toHaveBeenCalled());
+  });
+
+  it("deletes a broadcast for everyone after confirmation, without touching personal notices", async () => {
+    const confirm = vi.spyOn(window, "confirm").mockReturnValue(true);
+    render(<AdminNotifications />);
+    fireEvent.click(await screen.findByRole("button", { name: "Excluir aviso Cupom especial" }));
+    await waitFor(() => expect(mocks.deleted).toHaveBeenCalledWith({
+      id: "broadcast", kind: "announcement", recipient_id: null,
+    }, "id"));
+    expect(confirm).toHaveBeenCalledWith(expect.stringContaining("desaparecerá também"));
+    await waitFor(() => expect(mocks.success).toHaveBeenCalledWith(
+      "Aviso excluído das notificações de todos.",
+    ));
+    expect(screen.queryByRole("button", { name: "Excluir aviso Cupom especial" })).not.toBeInTheDocument();
+    expect(mocks.rows.some(row => row.id === "reaction")).toBe(true);
+  });
+
+  it("does not delete a broadcast when the administrator cancels", async () => {
+    const confirm = vi.spyOn(window, "confirm").mockReturnValue(false);
+    render(<AdminNotifications />);
+    fireEvent.click(await screen.findByRole("button", { name: "Excluir aviso Cupom especial" }));
+    expect(confirm).toHaveBeenCalledTimes(1);
+    expect(mocks.deleted).not.toHaveBeenCalled();
+    expect(screen.getByRole("button", { name: "Excluir aviso Cupom especial" })).toBeInTheDocument();
+  });
+
+  it("keeps the sent notice visible and reports the problem if deletion is rejected", async () => {
+    mocks.deleteError = new Error("Acesso negado");
+    vi.spyOn(window, "confirm").mockReturnValue(true);
+    render(<AdminNotifications />);
+    fireEvent.click(await screen.findByRole("button", { name: "Excluir aviso Cupom especial" }));
+    await waitFor(() => expect(mocks.error).toHaveBeenCalledWith("Acesso negado"));
+    expect(screen.getByRole("button", { name: "Excluir aviso Cupom especial" })).toBeEnabled();
   });
 
   it("does not broadcast if the admin cancels confirmation", async () => {
