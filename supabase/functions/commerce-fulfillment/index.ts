@@ -161,8 +161,11 @@ Deno.serve(async (req:Request) => {
       const width=Number(env("HIRAETH_PACKAGE_WIDTH_CM"));
       const height=Number(env("HIRAETH_PACKAGE_HEIGHT_CM"));
       const length=Number(env("HIRAETH_PACKAGE_LENGTH_CM"));
-      const defaultWeight=Number(env("HIRAETH_DEFAULT_PRODUCT_WEIGHT_GRAMS"));
-      const weight=Math.max(0.1,items.reduce((n:number,i:any)=>n+i.quantity*defaultWeight,0)/1000);
+      const measuredWeightGrams=(checkout.items as any[]).reduce((n:number,i:any)=>
+        n+Number(i.quantity)*Number(i.weightGrams??0),0);
+      if(!Number.isFinite(measuredWeightGrams)||measuredWeightGrams<=0)
+        throw new Error("O peso salvo no pedido está inválido. Confira a expedição.");
+      const weight=Math.max(0.1,measuredWeightGrams/1000);
       const payload={
         service:Number(checkout.freight.id),
         from:sender,
@@ -198,6 +201,9 @@ Deno.serve(async (req:Request) => {
         return json({error:"A etiqueta não está pronta para compra."},409);
       // Explicit separate admin action. Never auto-spend Melhor Envio balance.
       if(body.confirmPurchase!==true)return json({error:"Confirme a compra da etiqueta."},400);
+      if(Deno.env.get("MELHOR_ENVIO_ENV")==="production" &&
+         Deno.env.get("HIRAETH_ALLOW_LIVE_LABEL_PURCHASES")!=="true")
+        return json({error:"Compra real de etiquetas ainda não foi autorizada."},403);
       await melhorEnvio("/api/v2/me/shipment/checkout",{orders:[shipment.provider_label_id]});
       await db.from("commerce_shipments").update({
         status:"label_paid",updated_at:new Date().toISOString(),
