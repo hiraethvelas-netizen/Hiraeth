@@ -9,10 +9,12 @@ export type CombinationVariant = {
   sale_price: number | null;
   stock: number;
   image: string;
+  weight_grams?: number | null;
 };
 export type LegacyVariant = Record<string, unknown> & {
   key?: unknown; type?: unknown; label?: unknown; price?: unknown;
   sale_price?: unknown; stock?: unknown; image?: unknown; options?: unknown;
+  weight_grams?: unknown;
 };
 export type VariantSetup = {
   groups: VariantGroup[];
@@ -150,7 +152,8 @@ export function validateVariantSetup(setup: VariantSetup): string | null {
   if (setup.rows.length !== total) return "Confira as combinações antes de salvar.";
   if (setup.rows.some(row => !Number.isFinite(row.price) || row.price < 0 ||
     !Number.isInteger(row.stock) || row.stock < 0 ||
-    (row.sale_price != null && (!Number.isFinite(row.sale_price) || row.sale_price < 0 || row.sale_price > row.price))))
+    (row.sale_price != null && (!Number.isFinite(row.sale_price) || row.sale_price < 0 || row.sale_price > row.price)) ||
+    (row.weight_grams != null && (!Number.isFinite(row.weight_grams) || row.weight_grams <= 0 || row.weight_grams > 30000))))
     return "Confira preços, preços promocionais e estoque das combinações.";
   return null;
 }
