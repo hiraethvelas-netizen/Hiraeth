@@ -47,7 +47,7 @@ vi.mock("@/integrations/supabase/client", () => ({
 }));
 
 import { Route } from "@/routes/admin/promocoes";
-const AdminPromotions = Route.options.component;
+const AdminPromotions = Route.options.component!;
 
 beforeEach(() => {
   vi.clearAllMocks();
