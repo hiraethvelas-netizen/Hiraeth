@@ -88,23 +88,27 @@ export function allocateCartAutomaticDiscounts(
     if (!promotion || benefit.discount <= 0) continue;
     const allowed = items.map((item, index) =>
       eligibleForPromotion(promotion, item, categories) ? index : -1).filter(index => index !== -1);
-    let remaining = Math.min(cents(benefit.discount), allowed.reduce((sum, index) =>
-      sum + lineCents[index]! - reductions[index]!, 0));
     const availableTotal = allowed.reduce((sum, index) =>
       sum + lineCents[index]! - reductions[index]!, 0);
-    if (remaining <= 0 || availableTotal <= 0) continue;
-    const remainingBenefit = remaining;
-    // Proportional allocation with the last non-empty row absorbing cents.
-    for (let i = 0; i < allowed.length && remaining > 0; i++) {
-      const index = allowed[i]!;
+    const totalBenefit = Math.min(cents(benefit.discount), availableTotal);
+    if (totalBenefit <= 0 || availableTotal <= 0) continue;
+    // Use integer cents and distribute rounding leftovers by largest
+    // fractional remainder. All line amounts reconcile to the total discount.
+    const shares = allowed.map(index => {
       const capacity = lineCents[index]! - reductions[index]!;
-      const portion = i === allowed.length - 1
-        ? remaining
-        : Math.min(remaining, Math.floor(remainingBenefit * capacity / availableTotal));
-      const taken = Math.min(capacity, portion);
-      reductions[index]! += taken;
-      remaining -= taken;
+      const exact = totalBenefit * capacity / availableTotal;
+      const amount = Math.min(capacity, Math.floor(exact));
+      return { index, capacity, amount, fraction: exact - amount };
+    });
+    let remainder = totalBenefit - shares.reduce((sum, share) => sum + share.amount, 0);
+    for (const share of [...shares].sort((a, b) => b.fraction - a.fraction)) {
+      if (remainder === 0) break;
+      if (share.amount < share.capacity) {
+        share.amount++;
+        remainder--;
+      }
     }
+    for (const share of shares) reductions[share.index]! += share.amount;
   }
   return items.map((item, index) => {
     const originalLineTotal = lineCents[index]! / 100;
