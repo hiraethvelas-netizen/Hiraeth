@@ -176,7 +176,7 @@ useEffect(() => {
 
   useEffect(() => {
     if (loading || typeof IntersectionObserver === "undefined") return;
-    const cards = document.querySelectorAll<HTMLElement>(".hiraeth-product-card[data-product-badge]");
+    const cards = document.querySelectorAll<HTMLElement>(".hiraeth-product-card[data-product-badge], .hiraeth-featured-flame");
     const observer = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
