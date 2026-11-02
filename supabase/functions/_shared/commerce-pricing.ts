@@ -9,6 +9,7 @@ export type SnapshotItem = {
   variantDetails: Record<string, unknown>;
   categoryId: string | null;
   weightGrams: number;
+  shippingSize?: "small" | "large";
 };
 type Promotion = {
   id: string; name: string; kind: string; active: boolean; visible: boolean;
@@ -41,6 +42,20 @@ export function validateItems(input: unknown): ItemInput[] {
     seen.add(productId + "::" + variantKey);
     return { productId, quantity, variantKey };
   });
+}
+
+/** Size is derived from the server-side variant, never the customer's cart. */
+function candleSize(variant: any): "small" | "large" | undefined {
+  if (!variant) return undefined;
+  const options = variant.options && typeof variant.options === "object" ? variant.options : {};
+  const sizeOption = Object.entries(options)
+    .find(([key]) => /^(tamanho|peso)$/i.test(key.trim()))?.[1];
+  const label = sizeOption ?? (variant.type === "size" ? variant.label : undefined);
+  const value = typeof label === "string" ? label.normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "").trim().toLowerCase() : "";
+  if (/^(100\s*g|pequena|pequeno)$/.test(value)) return "small";
+  if (/^(250\s*g|grande)$/.test(value)) return "large";
+  return undefined;
 }
 
 export function snapshotProducts(
@@ -84,7 +99,14 @@ export function snapshotProducts(
       ? Number(sale) : original;
     if (!Number.isFinite(price) || price <= 0 || price > 100000)
       throw new Error("Preço de produto inválido.");
-    const grams = Number(product.weight_grams) || defaultWeightGrams;
+    const shippingSize = product.product_type === "candle" ? candleSize(variant) : undefined;
+    const explicitVariantWeight = variant?.weight_grams == null || variant.weight_grams === ""
+      ? 0 : Number(variant.weight_grams);
+    // Known pot + lid + wax weights, confirmed for Hiraeth's 100 g and 250 g
+    // candle sizes. Protective shipping packaging is weighed separately.
+    const candleWeight = shippingSize === "small" ? 180 : shippingSize === "large" ? 616 : 0;
+    const grams = explicitVariantWeight || candleWeight ||
+      Number(product.weight_grams) || defaultWeightGrams;
     if (!Number.isFinite(grams) || grams <= 0 || grams > 30000)
       throw new Error("Configure o peso de envio dos produtos antes de calcular o frete.");
     return {
@@ -104,6 +126,7 @@ export function snapshotProducts(
       } : { originalPrice: original },
       categoryId: product.category_id ?? null,
       weightGrams: grams,
+      ...(shippingSize ? { shippingSize } : {}),
     };
   });
 }

@@ -1,4 +1,5 @@
 import { createClient, type SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { calculateShippingPackage, type ShippingPackage, type ShippingItem } from "./commerce-shipping.ts";
 
 export const corsHeaders = {
   "Access-Control-Allow-Origin": Deno.env.get("COMMERCE_ALLOWED_ORIGIN") || "https://hiraeth-oficial.lovable.app",
@@ -149,29 +150,33 @@ export function melhorEnvioHeaders() {
 /** The quote is obtained again during checkout creation. Browser prices are ignored. */
 export async function freightQuotes(
   destination: string,
-  items: Array<{ weightGrams: number; quantity: number; price: number }>,
-): Promise<FreightQuote[]> {
-  const width = Number(env("HIRAETH_PACKAGE_WIDTH_CM"));
-  const length = Number(env("HIRAETH_PACKAGE_LENGTH_CM"));
-  const height = Number(env("HIRAETH_PACKAGE_HEIGHT_CM"));
-  if (![width,length,height].every(n=>Number.isFinite(n)&&n>0))
-    throw new Error("Configure as dimensões reais da embalagem na administração.");
-  // Using one package means all packed candles share measured box dimensions.
-  // Merchant must configure adequate dimensions for the maximum order size.
-  const maxItems=Number(env("HIRAETH_MAX_ITEMS_PER_PACKAGE"));
-  if(!Number.isSafeInteger(maxItems)||maxItems<1||
-     items.reduce((sum,i)=>sum+i.quantity,0)>maxItems)
-    throw new Error("Este pedido excede a embalagem configurada para envio. Consulte a Hiraeth.");
-  const weightKg = items.reduce((sum,i)=>sum+i.quantity*i.weightGrams,0)/1000;
-  const declaredValue = items.reduce((sum,i)=>sum+i.price*i.quantity,0);
+  items: ShippingItem[],
+): Promise<{ quotes: FreightQuote[]; parcel: ShippingPackage }> {
+  const mainBox = {
+    width: Number(env("HIRAETH_PACKAGE_WIDTH_CM")),
+    length: Number(env("HIRAETH_PACKAGE_LENGTH_CM")),
+    height: Number(env("HIRAETH_PACKAGE_HEIGHT_CM")),
+  };
+  // The smaller box is only allowed after a real packing test, including
+  // protection and the actual inner measurements. Otherwise use mainBox.
+  const useSmall = Deno.env.get("HIRAETH_SMALL_BOX_FIT_CONFIRMED") === "true";
+  const smallBox = useSmall ? {
+    width: Number(env("HIRAETH_SMALL_PACKAGE_WIDTH_CM")),
+    length: Number(env("HIRAETH_SMALL_PACKAGE_LENGTH_CM")),
+    height: Number(env("HIRAETH_SMALL_PACKAGE_HEIGHT_CM")),
+  } : null;
+  const tare = Number(Deno.env.get("HIRAETH_PACKAGE_TARE_GRAMS") || "0");
+  if (Deno.env.get("MELHOR_ENVIO_ENV") === "production" && tare <= 0) {
+    throw new Error("Meça o peso da caixa e dos materiais de proteção antes de ativar fretes reais.");
+  }
+  const parcel = calculateShippingPackage(
+    items, mainBox, smallBox,
+    Number(env("HIRAETH_MAX_ITEMS_PER_PACKAGE")), tare,
+  );
   const payload = {
     from: { postal_code: postalCode(env("MELHOR_ENVIO_ORIGIN_POSTAL_CODE")) },
     to: { postal_code: postalCode(destination) },
-    package: {
-      width, height, length,
-      weight: Math.round(Math.max(weightKg,0.1)*1000)/1000,
-      insurance_value: Math.round(declaredValue*100)/100,
-    },
+    package: parcel,
     options: { receipt: false, own_hand: false },
   };
   const response = await fetch(betterShippingUrl()+"/api/v2/me/shipment/calculate",{
@@ -180,7 +185,7 @@ export async function freightQuotes(
   if (!response.ok) throw new Error("Não foi possível calcular o frete. Confira o CEP.");
   const raw: unknown=await response.json();
   if (!Array.isArray(raw)) throw new Error("Cotação de frete indisponível.");
-  return raw.flatMap((row:any) => {
+  const quotes: FreightQuote[] = raw.flatMap((row:any) => {
     const amount=Number(row?.custom_price ?? row?.price);
     if (row?.error || !Number.isFinite(amount) || amount < 0 || !Number.isInteger(Number(row?.id))) return [];
     return [{
@@ -191,4 +196,5 @@ export async function freightQuotes(
       delivery_time:Number.isFinite(Number(row.delivery_time))?Number(row.delivery_time):null,
     }];
   });
+  return { quotes, parcel };
 }

@@ -22,7 +22,7 @@ export const Route = createFileRoute("/admin/produtos")({
 
 const emptyForm = {
   name: "", description: "", category_id: "", price: "", sale_price: "",
-  stock: "0", sku: "", fragrance: "", images: [] as string[], status: "draft",
+  stock: "0", sku: "", fragrance: "", weight_grams: "", images: [] as string[], status: "draft",
   product_type: "candle", product_badge: "",
 };
 
@@ -97,6 +97,7 @@ function AdminProdutos() {
       name: p.name, description: p.description ?? "", category_id: p.category_id ?? "",
       price: String(p.price), sale_price: p.sale_price != null ? String(p.sale_price) : "",
       stock: String(p.stock), sku: p.sku ?? "", fragrance: p.fragrance ?? "",
+      weight_grams: p.weight_grams == null ? "" : String(p.weight_grams),
       images: p.images ?? [], status: p.status,
       product_type: (p as Product & { product_type?: string }).product_type ?? (/camiseta|t-shirt|roupa|vestuário/i.test(p.name) ? "artifact" : "candle"), product_badge: (p as any).product_badge ?? "",
     });
@@ -204,6 +205,13 @@ function AdminProdutos() {
     const variantError = validateVariantSetup(variants);
     if (variantError) { toast.error(variantError); return; }
     const variantRows = variants.legacy ?? variants.rows;
+    const productWeight = form.weight_grams.trim() === "" ? null : Number(form.weight_grams);
+    if (productWeight !== null && (!Number.isFinite(productWeight) || productWeight <= 0 || productWeight > 30000)) {
+      toast.error("Informe um peso válido de até 30.000 g para o produto."); return;
+    }
+    if (variantRows.some(row => row.weight_grams != null && (!Number.isFinite(Number(row.weight_grams)) || Number(row.weight_grams) <= 0 || Number(row.weight_grams) > 30000))) {
+      toast.error("Confira o peso de envio das variações."); return;
+    }
     const managed = variants.legacy === null && variants.rows.length > 0;
     const lowestPrice = managed ? Math.min(...variants.rows.map(row => row.sale_price ?? row.price)) : Number(form.price) || 0;
     const finalStock = managed ? variantTotalStock(variants, 0) : Math.max(0, Number(form.stock) || 0);
@@ -214,7 +222,7 @@ function AdminProdutos() {
       price: lowestPrice, sale_price: managed ? null : form.sale_price ? Number(form.sale_price) : null,
       stock: finalStock, sku: form.sku || null,
       fragrance: form.fragrance || null, images: form.images, status: form.status,
-      weight_grams: editing?.weight_grams ?? null,
+      weight_grams: productWeight,
       dimensions: editing?.dimensions ?? null, variants: variantRows, product_badge: form.product_badge || null,
     };
     if (saving) return;
@@ -299,7 +307,10 @@ function AdminProdutos() {
         <label className="text-sm text-muted-foreground">Preço promocional (R$)<input type="number" step="0.01" min="0" placeholder="Opcional" value={form.sale_price} onChange={(e) => setForm({ ...form, sale_price: e.target.value })} className={`mt-1 ${inputCls}`} /></label>
         {variants.groups.length === 0 && variants.legacy === null && <label className="text-sm text-muted-foreground">Quantidade em estoque<input required type="number" min="0" step="1" value={form.stock} onChange={(e) => setForm({ ...form, stock: e.target.value })} className={`mt-1 ${inputCls}`} /></label>}
         
-        {/* Peso, cor e tamanho são cadastrados diretamente em Variações. */}
+        <label className="text-sm text-muted-foreground">Peso de envio do produto (g)
+          <input type="number" min="1" step="1" placeholder="Ex.: 180" value={form.weight_grams}
+            onChange={(e) => setForm({ ...form, weight_grams: e.target.value })} className={`mt-1 ${inputCls}`} />
+        </label>
         <label className="text-sm text-muted-foreground">SKU<input placeholder="Código interno (opcional)" value={form.sku} onChange={(e) => setForm({ ...form, sku: e.target.value })} className={`mt-1 ${inputCls}`} /></label>
         
         <label className="text-sm text-muted-foreground">Selo do produto<select value={form.product_badge} onChange={(e) => setForm({ ...form, product_badge: e.target.value })} className={`mt-1 ${inputCls}`}><option value="">Sem selo</option><option value="new">Novidade</option><option value="limited">Edição limitada</option><option value="bestseller">Mais vendido</option></select></label>

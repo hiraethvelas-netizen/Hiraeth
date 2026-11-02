@@ -87,3 +87,14 @@ na Hiraeth. O Mercado Pago controla o formulário seguro de cartão.
 Mercado Pago: https://www.mercadopago.com.br/developers/pt/docs/checkout-bricks/payment-brick
 Melhor Envio: https://docs.melhorenvio.com.br/reference/introducao-api-melhor-envio
 Focus NFe: https://doc.focusnfe.com.br/reference/introducao
+
+## Peso, embalagem e testes seguros — Hiraeth
+
+- As velas com variação **Tamanho/Peso 100 g** usam provisoriamente **180 g** (pote + tampa + 80 g de cera) para a cotação; as de **250 g**, **616 g** (pote + tampa + 200 g de cera). São estimativas da proprietária, **sem** caixa, palha, plástico-bolha ou cartões. A massa real cadastrada no campo **Peso de envio (g)** da variação sempre prevalece.
+- Produtos sem essas variações usam o peso de envio cadastrado no produto `weight_grams`; não aplicar cegamente um peso padrão de vela a camisetas ou outros produtos. Produtos sem peso válido exigem correção antes do checkout.
+- `HIRAETH_PACKAGE_WIDTH_CM`, `HIRAETH_PACKAGE_HEIGHT_CM`, `HIRAETH_PACKAGE_LENGTH_CM`: **caixa principal** (atualmente informada como 13 × 13 × 16 cm). A cotação e a criação da etiqueta compartilham o mesmo pacote calculado e armazenado no checkout.
+- `HIRAETH_MAX_ITEMS_PER_PACKAGE=1` enquanto não for feito um teste físico com proteção. **Não alterar para 3 só porque três velas pequenas parecem caber**: ainda é preciso verificar medidas internas, fragilidade e massa do pacote.
+- `HIRAETH_PACKAGE_TARE_GRAMS`: peso **medido** da caixa principal com palha, plástico-bolha, cartões e demais materiais. Em Sandbox, enquanto não informado, o cálculo demonstra apenas o peso dos produtos e **não representa frete final**. No Melhor Envio de produção, o serviço rejeita a cotação sem tara positiva.
+- **Caixa pequena opcional:** configurar `HIRAETH_SMALL_PACKAGE_WIDTH_CM`, `HIRAETH_SMALL_PACKAGE_HEIGHT_CM`, `HIRAETH_SMALL_PACKAGE_LENGTH_CM` e `HIRAETH_SMALL_BOX_FIT_CONFIRMED=true` **somente depois** de comprovar fisicamente que a vela pequena cabe nela protegida; caso contrário, qualquer vela usa a caixa principal. A caixa menor mencionada (8 × 16 × 11 cm) ainda **não está liberada** para envio automático.
+- Com o limite de 1 vela por pacote, pedidos com mais de uma vela são bloqueados com mensagem clara, sem cotação subestimada. Uma futura implementação de múltiplos volumes exige rechecagem completa de cotação, checkout e etiquetas.
+- **Não ativar cobrança real nem comprar etiquetas reais durante os testes.** Verificar as credenciais de teste na origem, executar testes reais de ponta a ponta e liberar somente após aprovação.
