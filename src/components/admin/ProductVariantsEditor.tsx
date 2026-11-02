@@ -173,6 +173,11 @@ export function ProductVariantsEditor({ value, onChange, basePrice, onUpload, ga
                   <input type="number" min="0" step="1" className={fieldStyle} value={String(row.stock ?? 0)}
                     onChange={e => editLegacy(index, { stock: Number(e.target.value) })} disabled={disabled} />
                 </label>
+                <label className="text-xs text-muted-foreground">Peso de envio (g)
+                  <input type="number" min="1" step="1" className={fieldStyle}
+                    placeholder="Opcional" value={row.weight_grams == null ? "" : String(row.weight_grams)}
+                    onChange={e => editLegacy(index, { weight_grams: e.target.value === "" ? null : Number(e.target.value) })} disabled={disabled} />
+                </label>
               </div>
               {photoField(typeof row.image === "string" ? row.image : "", "legacy-" + index,
                 url => editLegacy(index, { image: url }))}
@@ -255,6 +260,11 @@ export function ProductVariantsEditor({ value, onChange, basePrice, onUpload, ga
                   <input required type="number" min="0" step="1" className={fieldStyle}
                     value={Number.isFinite(row.stock) ? row.stock : ""}
                     onChange={e => editRow(row.key, { stock: e.target.value === "" ? Number.NaN : Number(e.target.value) })} disabled={disabled} />
+                </label>
+                <label className="text-xs text-muted-foreground">Peso de envio (g) — {row.label}
+                  <input type="number" min="1" step="1" className={fieldStyle}
+                    placeholder="Opcional" value={row.weight_grams ?? ""}
+                    onChange={e => editRow(row.key, { weight_grams: e.target.value === "" ? null : Number(e.target.value) })} disabled={disabled} />
                 </label>
               </div>
               {photoField(row.image, row.key, url => editRow(row.key, { image: url }))}
