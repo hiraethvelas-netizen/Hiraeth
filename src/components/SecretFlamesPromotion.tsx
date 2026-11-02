@@ -108,7 +108,7 @@ export function SecretFlamesPromotion() {
         <div className="mt-7 grid grid-cols-2 gap-3">
           {[0,1,2,3].map(index => {
             return <button key={index} type="button" disabled={busy} onClick={() => void choose(index)} className={`group relative aspect-[4/5] overflow-hidden rounded-2xl border border-[#d7c7b6] bg-[#e9dfd7] p-2 transition hover:-translate-y-1 hover:shadow-lg disabled:opacity-60 ${chosen === index ? "ring-2 ring-[#6d7955]" : ""}`}>
-              <SecretFlameCard index={index} />
+              <SecretFlameCard index={index} imageUrl={settings.candle_images?.[index]?.image_url} />
               <span className="absolute inset-x-2 bottom-2 rounded-lg bg-[#342c2a]/65 px-2 py-1 text-xs text-[#f7efda]">{busy && chosen === index ? "Revelando..." : "Escolher esta vela"}</span>
             </button>;
           })}
