@@ -1,5 +1,5 @@
-import { EssenceNotesFields } from "@/components/admin/EssenceNotesFields";
-import { emptyNotes, essenceNotesPayload } from "@/lib/fragrance";
+import { CandleEssenceEditor, type StockEssence, type CandleIngredient } from "@/components/admin/CandleEssenceEditor";
+import { essenceNotesPayload, type NotesDraft } from "@/lib/fragrance";
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,7 +11,7 @@ import { validateVariantSetup, variantSetupFrom, variantTotalStock, type Variant
 
 type Product = Tables<"products">;
 type Category = Tables<"categories"> & { parent_id?: string | null };
-type Essence = { id: string; name: string; stock_ml: number; notes: string | null; top_notes: string[]; heart_notes: string[]; base_notes: string[]; active: boolean };
+type Essence = StockEssence & { notes?: string | null; top_notes?: string[]; heart_notes?: string[]; base_notes?: string[] };
 
 export const Route = createFileRoute("/admin/produtos")({
   head: () => ({ meta: [{ title: "Produtos — Admin Hiraeth" }] }),
@@ -36,15 +36,10 @@ function AdminProdutos() {
   const [uploading, setUploading] = useState(false);
   const db = supabase as any;
   const [essences, setEssences] = useState<Essence[]>([]);
-  const [aromaSearch, setAromaSearch] = useState("");
-  const [selectedAroma, setSelectedAroma] = useState("");
-  const [aromaQuantity, setAromaQuantity] = useState("");
-  const [newAromaName, setNewAromaName] = useState("");
-  const [newNotes, setNewNotes] = useState(emptyNotes);
-  const [newStock, setNewStock] = useState("0");
   const [saving, setSaving] = useState(false);
-  const [savingAroma, setSavingAroma] = useState(false);
-  const [productAromas, setProductAromas] = useState<{essence_id:string;quantity_ml:number;name:string}[]>([]);
+  const [stockError, setStockError] = useState<string | null>(null);
+  const [refreshingEssences, setRefreshingEssences] = useState(false);
+  const [productAromas, setProductAromas] = useState<CandleIngredient[]>([]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -61,10 +56,31 @@ function AdminProdutos() {
     setLoadError(null);
     setProducts(prods ?? []);
     setCategories((cats ?? []) as Category[]);
-    setEssences((aromaData ?? []) as Essence[]);
-    if (aromaError) toast.error("Não foi possível carregar as essências do estoque.");
+    if (aromaError) {
+      setStockError("Não foi possível carregar as essências: " + aromaError.message);
+      toast.error("Não foi possível carregar as essências do estoque.");
+    } else {
+      setEssences((aromaData ?? []) as Essence[]);
+      setStockError(null);
+    }
     setLoading(false);
   }, []);
+
+  async function refreshEssences() {
+    setRefreshingEssences(true);
+    try {
+      const { data, error } = await db.from("essences").select("*").eq("active", true).order("name");
+      if (error) throw error;
+      setEssences((data ?? []) as Essence[]);
+      setStockError(null);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Falha ao consultar essências.";
+      setStockError("Não foi possível atualizar o estoque: " + message);
+      toast.error("Erro ao consultar estoque: " + message);
+    } finally {
+      setRefreshingEssences(false);
+    }
+  }
 
   useEffect(() => { load(); }, [load]);
 
@@ -84,7 +100,7 @@ function AdminProdutos() {
     setShowForm(true);
   }
 
-  function startNew() { setEditing(null); setForm({ ...emptyForm }); setVariants(variantSetupFrom([])); setProductAromas([]); setSelectedAroma(""); setAromaQuantity(""); setAromaSearch(""); setNewAromaName(""); setNewNotes(emptyNotes); setNewStock("0"); setShowForm(true); }
+  function startNew() { setEditing(null); setForm({ ...emptyForm }); setVariants(variantSetupFrom([])); setProductAromas([]); setShowForm(true); }
 
   async function uploadImages(files: FileList | null) {
     if (!files?.length) return;
@@ -160,19 +176,31 @@ function AdminProdutos() {
     } finally { setSaving(false); }
   }
 
-  async function createAroma() {
-    const name = newAromaName.trim();
-    const stock = Number(newStock);
-    if (!name || !Number.isFinite(stock) || stock < 0) { toast.error("Informe o nome e um saldo válido para a essência."); return; }
-    if (!newNotes.is_pure && ![newNotes.top, newNotes.heart, newNotes.base].some(value => value.trim())) { toast.error("Informe a pirâmide olfativa da essência composta."); return; }
-    setSavingAroma(true);
+
+  async function createAroma(input: { name: string; stock_ml: number; notes: NotesDraft }): Promise<StockEssence> {
+    const payload = {
+      name: input.name.trim(),
+      stock_ml: input.stock_ml,
+      minimum_stock_ml: 10,
+      target_stock_ml: 50,
+      ...essenceNotesPayload(input.name, input.notes),
+      active: true,
+    };
     try {
-      const { data, error } = await db.from("essences").insert({ name, stock_ml: stock, minimum_stock_ml: 10, target_stock_ml: 50, ...essenceNotesPayload(name, newNotes), active: true }).select("*").single();
-      if (error || !data) throw error ?? new Error("Não foi possível confirmar a essência.");
-      setEssences(current => [...current, data]); setSelectedAroma(data.id); setNewAromaName(""); setNewNotes(emptyNotes); setNewStock("0");
-      toast.success("Essência cadastrada no estoque. Informe a quantidade usada na vela.");
-    } catch { toast.error("Não foi possível cadastrar a essência. Confira se o nome já existe e se a atualização do banco foi aplicada."); }
-    finally { setSavingAroma(false); }
+      const { data, error } = await db.from("essences").insert(payload).select("*").single();
+      if (error || !data) throw error ?? new Error("O banco não confirmou a nova essência.");
+      const essence = data as Essence;
+      setEssences(current => [...current.filter(row => row.id !== essence.id), essence]
+        .sort((a, b) => a.name.localeCompare(b.name, "pt-BR")));
+      setStockError(null);
+      return essence;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Erro desconhecido";
+      if (/unique|duplicate|23505/i.test(message)) {
+        throw new Error("Essa essência já está cadastrada. Pesquise pelo nome na aba Estoque.");
+      }
+      throw new Error("Não foi possível cadastrar a essência: " + message);
+    }
   }
 
   async function remove(id: string, name: string) {
@@ -210,26 +238,20 @@ function AdminProdutos() {
         {/* Peso, cor e tamanho são cadastrados diretamente em Variações. */}
         <label className="text-sm text-muted-foreground">SKU<input placeholder="Código interno (opcional)" value={form.sku} onChange={(e) => setForm({ ...form, sku: e.target.value })} className={`mt-1 ${inputCls}`} /></label>
         
-        <label className="text-sm text-muted-foreground">Família olfativa<input list="fragrance-families" placeholder="Ex.: Floral ambarado" value={form.fragrance} onChange={(e) => setForm({ ...form, fragrance: e.target.value })} className={`mt-1 ${inputCls}`} /><datalist id="fragrance-families"><option value="Floral" /><option value="Floral ambarado" /><option value="Amadeirado" /><option value="Amadeirado aromático" /><option value="Oriental / ambarado" /><option value="Cítrico" /><option value="Frutado" /><option value="Gourmand" /><option value="Fresco" /><option value="Floral frutado" /><option value="Chipre" /><option value="Aromático" /></datalist></label>
         <label className="text-sm text-muted-foreground">Selo do produto<select value={form.product_badge} onChange={(e) => setForm({ ...form, product_badge: e.target.value })} className={`mt-1 ${inputCls}`}><option value="">Sem selo</option><option value="new">Novidade</option><option value="limited">Edição limitada</option><option value="bestseller">Mais vendido</option></select></label>
         <label className="text-sm text-muted-foreground">Status<select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })} className={`mt-1 ${inputCls}`}><option value="draft">Rascunho</option><option value="published">Publicado</option><option value="archived">Arquivado</option></select></label>
       </div>
-      {form.product_type === "candle" && <section className="space-y-4 border border-primary/20 p-4">
-        <div><h3 className="text-lg text-foreground">Aroma da vela — combinação de essências</h3><p className="text-xs text-muted-foreground">Pesquise essências já cadastradas ou cadastre uma nova aqui. Informe quantos ml de cada aroma entram em uma vela; as quantidades são internas e não aparecem para clientes.</p></div>
-        <label className="block text-sm text-muted-foreground">Pesquisar aroma no estoque<input value={aromaSearch} onChange={e=>setAromaSearch(e.target.value)} placeholder="Digite o nome do aroma..." className={inputCls}/></label>
-        <div className="grid gap-3 md:grid-cols-[1fr_140px_auto]">
-          <label className="text-sm text-muted-foreground">Aroma<select value={selectedAroma} onChange={e=>setSelectedAroma(e.target.value)} className={inputCls}><option value="">Selecione um aroma</option>{essences.filter(a=>a.name.toLowerCase().includes(aromaSearch.toLowerCase())).map(a=><option key={a.id} value={a.id}>{a.name} — {Number(a.stock_ml).toLocaleString("pt-BR")} ml no estoque</option>)}</select></label>
-          <label className="text-sm text-muted-foreground">Quantidade (ml)<input type="number" min="0.001" step="0.001" value={aromaQuantity} onChange={e=>setAromaQuantity(e.target.value)} placeholder="Ex.: 8" className={inputCls}/></label>
-          <button type="button" className="btn-gold self-end" onClick={()=>{const a=essences.find(x=>x.id===selectedAroma);const q=Number(aromaQuantity);if(!a||!Number.isFinite(q)||q<=0){toast.error("Selecione um aroma e informe a quantidade em ml.");return;}setProductAromas(prev=>[...prev.filter(x=>x.essence_id!==a.id),{essence_id:a.id,quantity_ml:q,name:a.name}]);setSelectedAroma("");setAromaQuantity("");}}>Adicionar aroma</button>
-        </div>
-        <details className="border p-3"><summary className="cursor-pointer text-sm text-primary">+ Cadastrar um aroma novo</summary><div className="mt-3 grid gap-3 md:grid-cols-2">
-          <label className="text-sm text-muted-foreground">Nome do aroma<input value={newAromaName} onChange={e=>setNewAromaName(e.target.value)} placeholder="Ex.: Baunilha" className={inputCls}/></label>
-          <label className="text-sm text-muted-foreground">Saldo inicial (ml)<input type="number" min="0" step="0.001" value={newStock} onChange={event => setNewStock(event.target.value)} className={inputCls} /></label>
-          <div className="md:col-span-2"><EssenceNotesFields value={newNotes} onChange={setNewNotes} inputClass={inputCls} /></div>
-          <button type="button" disabled={savingAroma} className="btn-gold md:col-span-2" onClick={() => void createAroma()}>{savingAroma ? "Salvando..." : "Salvar essência no estoque"}</button>
-        </div></details>
-        {productAromas.length>0&&<div className="space-y-2">{productAromas.map(a=><div key={a.essence_id} className="flex items-center justify-between border-b py-2 text-sm"><span>{a.name} <span className="text-muted-foreground">· {a.quantity_ml} ml por vela (interno)</span></span><button type="button" onClick={()=>setProductAromas(prev=>prev.filter(x=>x.essence_id!==a.essence_id))} className="text-destructive">Remover</button></div>)}</div>}
-      </section>}
+      {form.product_type === "candle" && <CandleEssenceEditor
+        key={editing?.id ?? "new-product"}
+        essences={essences}
+        ingredients={productAromas}
+        onIngredientsChange={setProductAromas}
+        onCreate={createAroma}
+        onRefresh={refreshEssences}
+        stockError={stockError}
+        refreshing={refreshingEssences}
+        saving={saving}
+      />}
       <ProductVariantsEditor value={variants} onChange={setVariants} basePrice={Number(form.price) || 0} onUpload={uploadVariantPhoto} disabled={saving || uploading || savingAroma} />
       <label className="block text-sm text-muted-foreground">Descrição<textarea placeholder="Conte a história, materiais e detalhes do produto..." rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className={`mt-1 ${inputCls}`} /></label>
       <div className="space-y-3">
@@ -237,7 +259,7 @@ function AdminProdutos() {
         <label className="inline-flex cursor-pointer items-center border px-4 py-2 text-sm text-foreground hover:border-primary"><span>{uploading ? "Enviando imagens..." : "+ Escolher imagens"}</span><input type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple disabled={uploading} onChange={(e) => { void uploadImages(e.target.files); e.currentTarget.value = ""; }} className="sr-only" /></label>
         {form.images.length > 0 && <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">{form.images.map((url, i) => <div key={url} className="relative border p-2"><img src={url} alt={`Foto ${i + 1} de ${form.name || "produto"}`} className="h-32 w-full object-cover" /><p className="mt-1 text-xs text-muted-foreground">{i === 0 ? "Imagem principal" : `Imagem ${i + 1}`}</p><div className="mt-2 flex gap-2"><button type="button" disabled={i === 0} onClick={() => setForm({ ...form, images: [url, ...form.images.filter((x) => x !== url)] })} className="text-xs text-primary disabled:opacity-30">Tornar capa</button><button type="button" onClick={() => setForm({ ...form, images: form.images.filter((x) => x !== url) })} className="text-xs text-destructive">Remover</button></div></div>)}</div>}
       </div>
-      <div className="flex gap-3"><button type="submit" disabled={uploading || saving || savingAroma} className="btn-gold disabled:opacity-50">{saving ? "Salvando..." : "Salvar produto"}</button><button type="button" onClick={() => setShowForm(false)} className="border px-4 py-2 text-sm text-muted-foreground hover:text-primary">Cancelar</button></div>
+      <div className="flex gap-3"><button type="submit" disabled={uploading || saving} className="btn-gold disabled:opacity-50">{saving ? "Salvando..." : "Salvar produto"}</button><button type="button" onClick={() => setShowForm(false)} className="border px-4 py-2 text-sm text-muted-foreground hover:text-primary">Cancelar</button></div>
     </form>}
     {loading ? <p className="mt-8 text-muted-foreground">Carregando...</p> : products.length === 0 ? <p className="mt-8 text-muted-foreground">Nenhum produto cadastrado ainda.</p> : <div className="mt-8 overflow-x-auto"><table className="w-full text-left text-sm"><thead><tr className="border-b text-xs uppercase tracking-widest text-muted-foreground"><th className="py-2 pr-4">Produto</th><th className="py-2 pr-4">Categoria</th><th className="py-2 pr-4">Preço</th><th className="py-2 pr-4">Estoque</th><th className="py-2 pr-4">Status</th><th className="py-2"></th></tr></thead><tbody className="divide-y">{products.map((p) => <tr key={p.id}><td className="py-3 pr-4 text-foreground"><div className="flex items-center gap-3">{p.images?.[0] && <img src={p.images[0]} alt="" className="h-12 w-10 object-cover" />}<span>{p.name}</span></div></td><td className="py-3 pr-4 text-muted-foreground">{categoryLabel(p.category_id)}</td><td className="py-3 pr-4">{brl(Number(p.sale_price ?? p.price))}</td><td className={`py-3 pr-4 ${p.stock <= 5 ? "text-destructive font-semibold" : ""}`}>{p.stock}{p.stock <= 5 ? " · Baixo" : ""}</td><td className="py-3 pr-4 text-muted-foreground">{p.status === "published" ? "Publicado" : p.status === "draft" ? "Rascunho" : "Arquivado"}</td><td className="py-3 text-right whitespace-nowrap"><button onClick={() => startEdit(p)} className="mr-3 text-muted-foreground hover:text-primary">Editar</button><button onClick={() => remove(p.id, p.name)} className="text-muted-foreground hover:text-destructive">Remover</button></td></tr>)}</tbody></table></div>}
   </div>;
