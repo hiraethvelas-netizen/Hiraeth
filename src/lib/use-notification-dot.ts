@@ -17,7 +17,7 @@ export function useNotificationDot(): boolean {
 
   useEffect(() => {
     let mounted = true;
-    let authTimer: ReturnType<typeof setTimeout> | undefined;
+    let authTimer: number | undefined;
 
     async function check() {
       const request = ++requestId.current;
