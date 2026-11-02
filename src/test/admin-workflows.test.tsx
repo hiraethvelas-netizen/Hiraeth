@@ -312,7 +312,7 @@ describe("Promotion editing", () => {
     rewards.forEach((field, index) =>
       fireEvent.change(field, { target: { value: `Prêmio ${index + 1}` } }),
     );
-    fireEvent.click(screen.getByRole("button", { name: "Salvar configuração das Quatro Chamas" }));
+    fireEvent.click(screen.getByRole("button", { name: "Salvar configuração do Tarô da Fênix" }));
     await waitFor(() =>
       expect(mocks.mutation).toHaveBeenCalledWith(
         "secret_flame_rewards",
