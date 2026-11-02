@@ -11,6 +11,8 @@ import { StoreBanners } from "@/components/StoreBanners";
 import { AcervoNavigation } from "@/components/AcervoNavigation";
 import { CustomerReviews } from "@/components/CustomerReviews";
 import { SecretFlamesPromotion } from "@/components/SecretFlamesPromotion";
+import { CuratedProductGrid } from "@/components/CuratedProductGrid";
+import { CategoryHeroBanner } from "@/components/CategoryHeroBanner";
 import { Heart, Shirt } from "lucide-react";
 import { toast } from "sonner";
 import { requireAuthenticatedUser } from "@/lib/require-auth";
@@ -205,20 +207,15 @@ useEffect(() => {
         </div>}
         {!selectedCategory && !showFavorites && pageSettings.showBanner && pageSettings.bannerImage && <img src={pageSettings.bannerImage} alt="Banner da loja Hiraeth" className="mb-8 max-h-[28rem] w-full object-cover" />}
 
-        {selectedCategory && <section className="hiraeth-category-hero hiraeth-reveal relative mt-7 mb-10 overflow-hidden rounded-xl border border-primary/40">
-          {selectedCategory.image_url ? <img src={selectedCategory.image_url} alt={selectedCategory.name} className="h-64 w-full object-cover sm:h-80 md:h-[26rem]" /> : <div className="h-48 w-full bg-[radial-gradient(ellipse_at_center,_var(--color-secondary),_var(--color-background)_70%)] sm:h-64 md:h-80" aria-hidden="true" />}
-          <div className="absolute inset-0 flex items-end bg-gradient-to-t from-[#07110b]/95 via-[#07110b]/25 to-transparent p-6 sm:p-10">
-            <div><p className="eyebrow !text-[#e2c477]">Entre neste universo</p><h2 className="hiraeth-editorial-title !mx-0 mt-2 !text-left text-4xl text-[#f7efda] sm:text-5xl md:text-6xl">{selectedCategory.name}</h2>
-              {selectedCategory.is_temporary && <span className="mt-2 inline-flex border border-amber-200/80 bg-black/25 px-2 py-1 text-[10px] uppercase tracking-widest text-amber-100">Coleção temporária{selectedCategory.ends_at ? ` · até ${new Date(selectedCategory.ends_at + "T12:00:00").toLocaleDateString("pt-BR")}` : ""}</span>}
-            </div>
-          </div>
-          <InlineEditor label={"banner da coleção " + selectedCategory.name} fields={[{ name: "name", label: "Nome da coleção", type: "text" }, { name: "image_url", label: "Foto do banner da coleção", type: "image", help: "Essa imagem também será usada na bolinha da subcategoria. JPG, PNG ou WebP." }]} values={{ name: selectedCategory.name, image_url: selectedCategory.image_url ?? "" }} onSave={async values => {
-            const payload = { name: String(values["name"] ?? selectedCategory.name).trim(), image_url: String(values["image_url"] ?? selectedCategory.image_url ?? "").trim() || null };
-            const { error } = await supabase.from("categories").update(payload).eq("id", selectedCategory.id);
+        {selectedCategory && <CategoryHeroBanner
+          key={selectedCategory.id}
+          category={selectedCategory}
+          onNameChange={async name => {
+            const { error } = await supabase.from("categories").update({ name }).eq("id", selectedCategory.id);
             if (error) throw error;
-            setCategories(current => current.map(item => item.id === selectedCategory.id ? { ...item, ...payload } as Category : item));
-          }} className="mt-3" />
-        </section>}
+            setCategories(current => current.map(item => item.id === selectedCategory.id ? { ...item, name } : item));
+          }}
+        />}
 
         {!categoryId && !showFavorites && featuredCollections.length > 0 && <section className="mt-8">
           <div className="mb-4 flex items-end justify-between gap-3"><div className="min-w-0"><p className="eyebrow">{pageSettings.eyebrow}</p><h2 className="hiraeth-editorial-title hiraeth-acervo-heading !mx-0 mt-2 !text-left !text-4xl md:!text-6xl">{pageSettings.title}</h2>{pageSettings.intro && <p className="mt-3 max-w-2xl text-sm text-muted-foreground md:text-base">{pageSettings.intro}</p>}</div><span className="shrink-0 text-xs text-muted-foreground">7 universos</span></div>
@@ -273,64 +270,17 @@ useEffect(() => {
             </p>
           </div>
         ) : (
-          <div className="mt-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-            {filtered.filter((p) => !apparelProducts.some((apparel) => apparel.id === p.id)).map((p) => (
-              <Link
-                key={p.id}
-                to="/produto/$slug"
-                params={{ slug: p.slug }}
-                className="hiraeth-product-card group block border-0 bg-transparent text-center shadow-none transition-transform duration-300 hover:-translate-y-1" data-product-badge={(p as any).product_badge ?? undefined}
-              >
-                <div className="hiraeth-product-visual relative aspect-square overflow-hidden bg-transparent">
-                  {p.images[0] ? (
-                    <img src={p.images[0]} alt={p.name} className="hiraeth-product-image h-full w-full object-contain p-3 transition-transform duration-500 group-hover:scale-[1.03]" loading="lazy" />
-                  ) : (
-                    <div className="flex h-full items-center justify-center font-display text-lg italic text-muted-foreground">Foto em breve</div>
-                  )}
-                  <button type="button" onClick={(event) => void toggleWishlist(p.id, event)} aria-label={wishlistIds.has(p.id) ? "Remover dos favoritos" : "Adicionar aos favoritos"} aria-pressed={wishlistIds.has(p.id)} className="absolute right-3 top-3 z-10 rounded-full bg-[#f5efe5]/90 p-2.5 text-[#68764f] shadow-sm transition hover:scale-105">
-                    <Heart size={19} strokeWidth={1.8} fill={wishlistIds.has(p.id) ? "currentColor" : "none"} />
-                  </button>
-                  {(p as any).product_badge && <span className={`hiraeth-product-badge absolute left-3 top-3 z-10 rounded-full px-3 py-1 text-[9px] font-semibold uppercase tracking-[.16em] shadow-sm ${(p as any).product_badge === "limited" ? "bg-[#8b6b45] text-[#f7efda]" : (p as any).product_badge === "bestseller" ? "bg-[#66513f] text-[#f7efda]" : "bg-[#65744d] text-[#f7efda]"}`}>{(p as any).product_badge === "limited" ? "Edição limitada" : (p as any).product_badge === "bestseller" ? "Mais vendido" : "Novidade"}</span>}
-                </div>
-
-                <div className="px-2 pb-3 pt-3">
-                  {categories.some(category => category.id === p.category_id && (category.is_temporary || categories.some(parent => parent.id === category.parent_id && parent.is_temporary))) && <span className="inline-flex rounded-full border border-amber-700/50 bg-amber-50 px-2 py-1 text-[10px] font-semibold text-amber-900">Coleção temporária</span>}
-                  <InlineEditor
-                    label={`produto ${p.name}`}
-                    fields={[
-                      { name: "name", label: "Nome", type: "text" },
-                      { name: "description", label: "Descrição", type: "textarea" },
-                      { name: "price", label: "Preço", type: "text" },
-                      { name: "sale_price", label: "Preço promocional", type: "text" },
-                      { name: "fragrance", label: "Fragrância", type: "text" },
-                      { name: "images", label: "Imagens do produto", type: "images" },
-                    ]}
-                    values={{ name: p.name, description: p.description ?? "", price: String(p.price), sale_price: p.sale_price == null ? "" : String(p.sale_price), fragrance: p.fragrance ?? "", images: p.images ?? [] }}
-                    onSave={(values) => saveProduct(p, values)}
-                  />
-                  <h2 className="font-display text-lg font-medium tracking-wide text-foreground sm:text-xl">{p.name}</h2>
-
-                  <div className="mt-2 flex items-baseline justify-center gap-2">
-                    {p.sale_price != null ? (
-                      <>
-                        <span className="text-lg text-primary">
-                          {brl(Number(p.sale_price))}
-                        </span>
-                        <span className="text-sm text-muted-foreground line-through">
-                          {brl(Number(p.price))}
-                        </span>
-                      </>
-                    ) : (
-                      <span className="text-lg text-primary">
-                        {brl(Number(p.price))}
-                      </span>
-                    )}
-                  </div>
-
-                </div>
-              </Link>
-            ))}
-          </div>
+          <CuratedProductGrid
+            key={selectedCategory?.id ?? (showFavorites ? "favorites" : "home")}
+            scope={selectedCategory?.id ?? "home"}
+            products={filtered.filter(p => !apparelProducts.some(apparel => apparel.id === p.id))}
+            categories={categories}
+            wishlistIds={wishlistIds}
+            onWishlist={(id, event) => { void toggleWishlist(id, event); }}
+            onSaveProduct={saveProduct}
+            showFavorites={showFavorites}
+            searching={Boolean(query.trim())}
+          />
         )}
         {!showFavorites && <CustomerReviews />}
         {!showFavorites && <SecretFlamesPromotion />}
