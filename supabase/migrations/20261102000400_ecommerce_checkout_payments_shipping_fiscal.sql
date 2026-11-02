@@ -1,6 +1,10 @@
 -- Hiraeth commerce: prepared tables and atomic paid-order fulfillment.
 -- Deployment is opt-in: real payments are disabled until credentials, freight,
 -- and sandbox verification are complete. No changes to existing orders.
+-- Prior promotion-tracking migrations expect this JSONB column. It may be
+-- absent from older database snapshots, even when other fields already exist.
+alter table public.orders
+  add column if not exists promotion_summary jsonb not null default '{}'::jsonb;
 create table if not exists public.commerce_checkouts (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete restrict,
@@ -173,6 +177,23 @@ begin
     v_variant := null;
     v_position := null;
   end loop;
+
+  -- Store-wide discount/coupon usage limits must be tracked exactly once
+  -- by the promotion redemption trigger. An incomplete migration must not
+  -- quietly allow an unlimited discounted order.
+  if jsonb_array_length(coalesce(v_session.promotion_summary->'applied','[]'::jsonb))>0
+     and not exists(
+       select 1 from pg_trigger
+       where tgrelid='public.order_items'::regclass
+         and tgname='track_order_promotion_uses' and not tgisinternal
+     )
+  then
+    update public.commerce_checkouts set status='paid_attention',
+      mp_payment_id=p_payment_id,payment_method=p_method,paid_at=now(),
+      last_error='Promotion redemption tracking not installed',
+      updated_at=now() where id=p_checkout_id;
+    return jsonb_build_object('status','paid_attention','reason','promotions_configuration');
+  end if;
 
   if v_shortage is not null then
     -- Payment is REAL, so do not refund or cancel automatically. Escalate to
