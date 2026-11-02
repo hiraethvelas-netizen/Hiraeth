@@ -7,6 +7,7 @@ import { InlineEditor } from "@/components/InlineEditor";
 import { useAdminEdit } from "@/lib/admin-edit";
 import { useTheme } from "@/lib/theme";
 import { Instagram, Music2, MessageCircle, Mail, Bell } from "lucide-react";
+import { useNotificationDot } from "@/lib/use-notification-dot";
 import { toast } from "sonner";
 
 function ThemeToggle() {
@@ -31,6 +32,7 @@ export function SiteHeader() {
   const router = useRouter();
   const cart = useCart();
   const { isAdmin, editMode, toggle } = useAdminEdit();
+  const hasNotifications = useNotificationDot();
 
   async function handleSignOut() {
     const { error } = await supabase.auth.signOut({ scope: "local" });
@@ -103,10 +105,15 @@ export function SiteHeader() {
             </>
           )}
           <Link to="/notificacoes"
-            aria-label="Notificações" title="Sinais da Chama"
-            className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-foreground/85 transition-colors hover:bg-primary/10 hover:text-primary"
+            aria-label={hasNotifications ? "Notificações disponíveis — Sinais da Chama" : "Notificações — Sinais da Chama"}
+            title="Sinais da Chama"
+            className="relative inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-foreground/85 transition-colors hover:bg-primary/10 hover:text-primary"
           >
             <Bell size={21} strokeWidth={1.6} aria-hidden="true" />
+            {hasNotifications && (
+              <span data-testid="notification-dot" aria-hidden="true"
+                className="absolute right-0.5 top-0.5 h-2.5 w-2.5 rounded-full border-2 border-background bg-[#c6a65b]" />
+            )}
           </Link>
           <ThemeToggle />
           <Link
