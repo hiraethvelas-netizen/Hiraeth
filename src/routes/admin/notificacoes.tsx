@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
-import { Bell, Send, RefreshCw } from "lucide-react";
+import { Bell, Send, RefreshCw, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { NOTIFICATION_DESTINATIONS, notificationDate, safeNotificationHref, type HiraethNotification, type NotificationDestination } from "@/lib/notifications";
@@ -15,6 +15,7 @@ function AdminNotifications() {
   const [body, setBody] = useState("");
   const [href, setHref] = useState<NotificationDestination>("/loja");
   const [sending, setSending] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [history, setHistory] = useState<HiraethNotification[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -69,6 +70,36 @@ function AdminNotifications() {
       toast.error(cause instanceof Error ? cause.message : "Não foi possível enviar o aviso.");
     } finally {
       setSending(false);
+    }
+  }
+
+  async function deleteNotice(notice: HiraethNotification) {
+    if (deletingId || sending || notice.kind !== "announcement" || notice.recipient_id !== null) return;
+    const approved = window.confirm(
+      'Excluir o aviso "' + notice.title + '" para todas as contas?\n\n' +
+      "Ele desaparecerá também das notificações dos clientes. Esta ação não pode ser desfeita.",
+    );
+    if (!approved) return;
+    setDeletingId(notice.id);
+    try {
+      const { data, error: deleteError } = await (supabase as any)
+        .from("app_notifications")
+        .delete()
+        .eq("id", notice.id)
+        .eq("kind", "announcement")
+        .is("recipient_id", null)
+        .select("id");
+      if (deleteError) throw deleteError;
+      if (!Array.isArray(data) || data.length !== 1) {
+        throw new Error("O aviso não foi excluído. Confira suas permissões de administração.");
+      }
+      setHistory(current => current.filter(item => item.id !== notice.id));
+      toast.success("Aviso excluído das notificações de todos.");
+      await load();
+    } catch (cause) {
+      toast.error(cause instanceof Error ? cause.message : "Não foi possível excluir o aviso.");
+    } finally {
+      setDeletingId(null);
     }
   }
 
@@ -129,6 +160,13 @@ function AdminNotifications() {
             <h3 className="font-display text-xl text-foreground">{notice.title}</h3>
             <p className="mt-1 whitespace-pre-wrap break-words text-sm text-muted-foreground">{notice.body}</p>
             <p className="mt-2 text-xs text-primary">{notificationDate(notice.created_at)} · Enviado a todos</p>
+            <button type="button" aria-label={"Excluir aviso " + notice.title}
+              disabled={deletingId !== null || sending}
+              onClick={() => void deleteNotice(notice)}
+              className="mt-3 inline-flex items-center gap-1.5 rounded border border-destructive/40 px-3 py-2 text-sm font-medium text-destructive transition-colors hover:bg-destructive/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-destructive disabled:cursor-not-allowed disabled:opacity-50">
+              <Trash2 size={15} aria-hidden="true" />
+              {deletingId === notice.id ? "Excluindo..." : "Excluir aviso"}
+            </button>
           </div>
         </article>) : <p className="py-5 text-sm text-muted-foreground">Nenhum recado enviado ainda.</p>}
     </section>
