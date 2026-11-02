@@ -112,13 +112,6 @@ function Biblioteca() {
     await load();
   }
 
-  async function toggleFavorite(item: CandleLibraryItem) {
-    if (!userId) return;
-    const { error } = await (supabase as any).from("community_library").update({ favorite: !item.favorite }).eq("id", item.id).eq("user_id", userId);
-    if (error) { toast.error("Não foi possível atualizar seus favoritos."); return; }
-    await load();
-  }
-
   async function toggleCandleFinished(item: CandleLibraryItem, finished: boolean) {
     if (!userId) throw new Error("Entre na sua conta para atualizar a estante.");
     if (item.order_item_id && item.purchase_status !== "delivered") throw new Error("Você poderá marcar esta vela depois que o pedido for entregue.");
@@ -160,7 +153,7 @@ function Biblioteca() {
         <section className="mt-5">
           {loading
             ? <p className="py-12 text-center text-muted-foreground">Arrumando sua estante...</p>
-            : <CandleBookshelf categoryOptions={categoryOptions} items={library} editable onAdd={addManual} onUpdate={updateCandle} onFavorite={toggleFavorite} onRemove={removeLibraryItem} onMarkFinished={toggleCandleFinished} />}
+            : <CandleBookshelf categoryOptions={categoryOptions} items={library} editable onAdd={addManual} onUpdate={updateCandle} onRemove={removeLibraryItem} onMarkFinished={toggleCandleFinished} />}
         </section>
       </main>
       <SiteFooter />
