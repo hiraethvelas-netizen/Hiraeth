@@ -1,6 +1,7 @@
 import { buildFragrancePyramid, type EssenceNotes } from "@/lib/fragrance";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { galleryImageIndex, uniqueProductPhotos } from "@/lib/product-gallery";
 import { supabase } from "@/integrations/supabase/client";
 import { SiteFooter, SiteHeader } from "@/components/SiteLayout";
 import { brl } from "@/lib/format";
@@ -32,6 +33,7 @@ function ProdutoPage() {
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeImage, setActiveImage] = useState(0);
+  const galleryRef = useRef<HTMLDivElement>(null);
   const [quantity, setQuantity] = useState(1);
   const [inWishlist, setInWishlist] = useState(false);
   const [savingWishlist, setSavingWishlist] = useState(false);
@@ -114,7 +116,23 @@ function ProdutoPage() {
   const variantImage: string | undefined = hasCombinedVariants
     ? chosenCombination?.image || undefined
     : chosenHouse?.image || activeVariant?.image || undefined;
-  const currentImages: string[] = variantImage ? [variantImage, ...product.images.filter((i) => i !== variantImage)] : product.images;
+  // A variation selects a photo already in the product gallery, never an extra slide.
+  const currentImages = uniqueProductPhotos(product.images);
+  function showGalleryImage(index: number) {
+    const safeIndex = Math.min(Math.max(0, index), Math.max(0, currentImages.length - 1));
+    setActiveImage(safeIndex);
+    const gallery = galleryRef.current;
+    if (gallery) gallery.scrollTo({ left: safeIndex * gallery.clientWidth, behavior: "smooth" });
+  }
+  function showVariationImage(image?: string | null) {
+    showGalleryImage(galleryImageIndex(currentImages, image));
+  }
+  function onGalleryScroll() {
+    const gallery = galleryRef.current;
+    if (!gallery || gallery.clientWidth <= 0) return;
+    const index = Math.round(gallery.scrollLeft / gallery.clientWidth);
+    setActiveImage(Math.min(Math.max(0, index), Math.max(0, currentImages.length - 1)));
+  }
   const basePrice = hasCombinedVariants
     ? chosenCombination?.price ?? Math.min(...combinationVariants.map(v => v.price))
     : activeVariant?.price != null ? Number(activeVariant.price) : Number(product.price);
@@ -141,7 +159,7 @@ function ProdutoPage() {
         stock: availableStock,
       };
   const pyramid = buildFragrancePyramid(aromaNotes);
-  const cartImage = currentImages[0] ?? product.images[0];
+  const cartImage = currentImages[galleryImageIndex(currentImages, variantImage)] ?? currentImages[0];
 
   async function toggleWishlist() {
     if (!userId) {
@@ -181,28 +199,51 @@ function ProdutoPage() {
         </nav>
 
         <div className="mt-8 grid gap-10 md:grid-cols-2">
-          <div>
-            <div className="aspect-square overflow-hidden border bg-muted">
-              {currentImages[activeImage] ? (
-                <img src={currentImages[activeImage]} alt={product.name} className="h-full w-full object-cover" />
-              ) : (
-                <div className="flex h-full items-center justify-center font-display text-lg italic text-muted-foreground">
-                  Foto em breve
-                </div>
+          <div className="min-w-0">
+            <div className="relative">
+              <div
+                ref={galleryRef}
+                onScroll={onGalleryScroll}
+                role="region"
+                aria-label="Galeria de fotos do produto. Deslize para os lados para ver mais imagens."
+                className="flex aspect-square w-full snap-x snap-mandatory overflow-x-auto overscroll-x-contain border bg-muted [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                style={{ WebkitOverflowScrolling: "touch" }}
+              >
+                {currentImages.length ? currentImages.map((img, index) => (
+                  <div key={img} className="aspect-square w-full shrink-0 snap-center snap-always">
+                    <img src={img} alt={`${product.name}, foto ${index + 1} de ${currentImages.length}`}
+                      loading={index === 0 ? "eager" : "lazy"}
+                      draggable={false} className="h-full w-full select-none object-cover" />
+                  </div>
+                )) : (
+                  <div className="flex h-full w-full shrink-0 items-center justify-center font-display text-lg italic text-muted-foreground">
+                    Foto em breve
+                  </div>
+                )}
+              </div>
+              {currentImages.length > 1 && (
+                <>
+                  <button type="button" onClick={() => showGalleryImage(activeImage - 1)} disabled={activeImage === 0}
+                    aria-label="Foto anterior" className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-background/85 px-3 py-2 text-foreground shadow disabled:opacity-30">‹</button>
+                  <button type="button" onClick={() => showGalleryImage(activeImage + 1)} disabled={activeImage >= currentImages.length - 1}
+                    aria-label="Próxima foto" className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-background/85 px-3 py-2 text-foreground shadow disabled:opacity-30">›</button>
+                </>
               )}
             </div>
             {currentImages.length > 1 && (
-              <div className="mt-3 flex gap-2">
-                {currentImages.map((img, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setActiveImage(i)}
-                    className={`h-16 w-16 overflow-hidden border ${i === activeImage ? "border-primary" : "opacity-60 hover:opacity-100"}`}
-                  >
-                    <img src={img} alt="" className="h-full w-full object-cover" />
-                  </button>
-                ))}
-              </div>
+              <>
+                <p className="mt-2 text-center text-xs text-muted-foreground">Deslize para ver as fotos · {activeImage + 1} de {currentImages.length}</p>
+                <div className="mt-3 flex max-w-full gap-2 overflow-x-auto pb-2">
+                  {currentImages.map((img, i) => (
+                    <button key={img} type="button" onClick={() => showGalleryImage(i)}
+                      aria-label={`Ver foto ${i + 1} de ${currentImages.length}`}
+                      aria-current={i === activeImage ? "true" : undefined}
+                      className={`h-16 w-16 shrink-0 overflow-hidden border ${i === activeImage ? "border-primary" : "opacity-60 hover:opacity-100"}`}>
+                      <img src={img} alt="" className="h-full w-full object-cover" />
+                    </button>
+                  ))}
+                </div>
+              </>
             )}
           </div>
 
@@ -221,7 +262,16 @@ function ProdutoPage() {
                         !selectedOptions[other.name] || row.options[other.name] === selectedOptions[other.name]));
                     return <button key={option} type="button" disabled={!possible}
                       aria-pressed={selected}
-                      onClick={() => { setSelectedOptions(previous => ({ ...previous, [group.name]: option })); setActiveImage(0); setQuantity(1); }}
+                      onClick={() => {
+                        const nextOptions = { ...selectedOptions, [group.name]: option };
+                        setSelectedOptions(nextOptions);
+                        const matching = combinationVariants.find(row => variantGroups.every(g => row.options[g.name] === nextOptions[g.name]));
+                        // Partial selections can still jump to a shared variation photo.
+                        const partial = combinationVariants.find(row => Object.entries(nextOptions)
+                          .every(([key, value]) => row.options[key] === value) && currentImages.includes(row.image));
+                        showVariationImage(matching?.image ?? partial?.image);
+                        setQuantity(1);
+                      }}
                       className={`rounded border px-4 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-30 ${selected ? "border-primary bg-primary/10 text-primary" : "border-border text-foreground"}`}>
                       {option}
                     </button>;
@@ -230,8 +280,12 @@ function ProdutoPage() {
               </fieldset>
             ))}
             {requiresChoice && <p className="mt-3 text-sm text-muted-foreground">Selecione {variantGroups.map(g => g.name.toLocaleLowerCase("pt-BR")).join(" e ")} para consultar o preço e o estoque.</p>}
-            {sizeVariants.length > 0 && <div className="mt-6"><label className="mb-2 block text-sm text-foreground">Tamanho</label><div className="flex flex-wrap gap-2">{sizeVariants.map((v:any) => <button key={v.id ?? v.label} type="button" onClick={() => { setSelectedVariant(v); setActiveImage(0); }} className={`border px-4 py-2 text-sm ${activeVariant === v ? "border-primary bg-primary/10" : "border-border"}`}>{v.label}</button>)}</div></div>}
-            {houseVariants.length > 0 && <div className="mt-5"><label className="mb-2 block text-sm text-foreground">Escolha sua casa</label><select value={selectedHouse} onChange={(e) => { setSelectedHouse(e.target.value); setActiveImage(0); }} className="w-full border bg-background px-3 py-2 text-foreground"><option>Aleatória / casa surpresa</option>{houseVariants.map((v:any) => <option key={v.id ?? v.label} value={v.label}>{v.label}</option>)}</select><p className="mt-2 text-xs text-muted-foreground">A casa será revelada ao acender a vela.</p></div>}
+            {sizeVariants.length > 0 && <div className="mt-6"><label className="mb-2 block text-sm text-foreground">Tamanho</label><div className="flex flex-wrap gap-2">{sizeVariants.map((v:any) => <button key={v.id ?? v.label} type="button" onClick={() => { setSelectedVariant(v); showVariationImage(v.image); }} className={`border px-4 py-2 text-sm ${activeVariant === v ? "border-primary bg-primary/10" : "border-border"}`}>{v.label}</button>)}</div></div>}
+            {houseVariants.length > 0 && <div className="mt-5"><label className="mb-2 block text-sm text-foreground">Escolha sua casa</label><select value={selectedHouse} onChange={(e) => {
+                      setSelectedHouse(e.target.value);
+                      const house = houseVariants.find(v => v.label === e.target.value);
+                      showVariationImage(house?.image || activeVariant?.image);
+                    }} className="w-full border bg-background px-3 py-2 text-foreground"><option>Aleatória / casa surpresa</option>{houseVariants.map((v:any) => <option key={v.id ?? v.label} value={v.label}>{v.label}</option>)}</select><p className="mt-2 text-xs text-muted-foreground">A casa será revelada ao acender a vela.</p></div>}
 
             <div className="mt-4 flex items-baseline gap-3">
               <span className="text-3xl text-primary">{hasCombinedVariants && requiresChoice ? `A partir de ${brl(Math.min(...combinationVariants.map(row => row.sale_price ?? row.price)))}` : brl(price)}</span>
