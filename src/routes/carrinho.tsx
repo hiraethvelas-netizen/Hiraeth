@@ -285,7 +285,7 @@ function Carrinho() {
               {benefits.freeShipping && <p className="mb-2 text-sm text-primary">Frete grátis aplicado.</p>}
               {benefits.gifts.map(gift => <p key={gift} className="mb-2 text-sm text-primary">Brinde: {gift}</p>)}
               {couponIsCurrent && couponBenefit && !couponCode && <p className="mb-2 text-sm text-muted-foreground">Os descontos já atingiram o valor dos produtos; este cupom não reduz mais o total.</p>}
-              <p className="text-sm text-muted-foreground">Subtotal sem descontos: {brl(cart.total)}</p>
+              <p className="text-sm text-muted-foreground">Subtotal: {brl(cart.total)}</p>
               {totalDiscount > 0 && <p className="text-sm font-medium text-primary">Descontos aplicados: −{brl(totalDiscount)}</p>
               <p className="text-xl sm:text-2xl">
                 Total: <span className="text-primary">{brl(payableTotal)}</span>
