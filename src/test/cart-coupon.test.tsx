@@ -72,7 +72,10 @@ describe("Cart coupon validity after edits", () => {
     await apply();
     expect(screen.getByText(/Cupom TESTE/)).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Aumentar quantidade de Vela teste" }));
-    expect(screen.queryByText(/Cupom TESTE/)).not.toBeInTheDocument();
+    // The applied code stays visible with an explicit remove button, but
+    // its discount is suspended until revalidated for the new cart.
+    expect(screen.getByText(/Cupom TESTE/)).toHaveTextContent("sem desconto ativo");
+    expect(screen.getByRole("button", { name: "Retirar cupom" })).toBeEnabled();
     fireEvent.click(screen.getByRole("button", { name: "Aplicar cupom" }));
     await waitFor(() => expect(mocks.success).toHaveBeenCalledTimes(2));
     expect(screen.getByText(/Cupom TESTE/)).toHaveTextContent(/30,00/);
