@@ -6,6 +6,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { SiteFooter, SiteHeader } from "@/components/SiteLayout";
 import { RelatedProducts } from "@/components/RelatedProducts";
 import { brl } from "@/lib/format";
+import { visiblePrice } from "@/lib/store-pricing";
+import { useStorePromotions } from "@/lib/use-store-promotions";
 import { useCart } from "@/lib/cart";
 import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
@@ -31,6 +33,7 @@ export const Route = createFileRoute("/produto/$slug")({
 function ProdutoPage() {
   const { slug } = Route.useParams();
   const cart = useCart();
+  const { promotions: automaticPromotions, categories: promotionCategories } = useStorePromotions();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeImage, setActiveImage] = useState(0);
@@ -141,7 +144,13 @@ function ProdutoPage() {
     ? chosenCombination?.sale_price ?? null
     : activeVariant ? (activeVariant.sale_price != null ? Number(activeVariant.sale_price) : null)
       : (product.sale_price != null ? Number(product.sale_price) : null);
+  // The cart keeps its undiscounted-by-automatic-promotions unit price.
+  // Automatic benefits are applied only once in the cart's order totals.
   const price = baseSale ?? basePrice;
+  const pricePreview = visiblePrice({
+    id: product.id, category_id: product.category_id,
+    price: basePrice, sale_price: baseSale,
+  }, automaticPromotions, promotionCategories);
   const availableStock = hasCombinedVariants
     ? chosenCombination?.stock ?? 0
     : activeVariant?.stock != null ? Number(activeVariant.stock) : Number(product.stock);
@@ -159,11 +168,12 @@ function ProdutoPage() {
   const remainingToAdd = Math.max(0, availableStock - alreadyInCart);
   const cartQuantityLimitReached = !requiresChoice && !outOfStock && remainingToAdd === 0;
   const variantDetails: Record<string, unknown> = hasCombinedVariants
-    ? { options: { ...selectedOptions }, stock: availableStock, variantKey: chosenCombination?.key }
+    ? { options: { ...selectedOptions }, stock: availableStock, variantKey: chosenCombination?.key, originalPrice: basePrice }
     : {
         ...(typeof activeVariant?.label === "string" ? { size: activeVariant.label } : {}),
         ...(houseVariants.length > 0 ? { house: selectedHouse } : {}),
         stock: availableStock,
+        originalPrice: basePrice,
       };
   const pyramid = buildFragrancePyramid(aromaNotes);
   const cartImage = currentImages[galleryImageIndex(currentImages, variantImage)] ?? currentImages[0];
@@ -295,10 +305,15 @@ function ProdutoPage() {
                     }} className="w-full border bg-background px-3 py-2 text-foreground"><option>Aleatória / casa surpresa</option>{houseVariants.map((v:any) => <option key={v.id ?? v.label} value={v.label}>{v.label}</option>)}</select><p className="mt-2 text-xs text-muted-foreground">A casa será revelada ao acender a vela.</p></div>}
 
             <div className="mt-4 flex items-baseline gap-3">
-              <span className="text-3xl text-primary">{hasCombinedVariants && requiresChoice ? `A partir de ${brl(Math.min(...combinationVariants.map(row => row.sale_price ?? row.price)))}` : brl(price)}</span>
-              {baseSale != null && (
-                <span className="text-lg text-muted-foreground line-through">{brl(basePrice)}</span>
+              {pricePreview.hasDiscount && !requiresChoice && (
+                <span className="text-lg text-muted-foreground line-through" aria-label="Preço original">{brl(pricePreview.original)}</span>
               )}
+              <span className="text-3xl text-primary">{hasCombinedVariants && requiresChoice
+                ? `A partir de ${brl(Math.min(...combinationVariants.map(row => visiblePrice({
+                    id: product.id, category_id: product.category_id,
+                    price: row.price, sale_price: row.sale_price,
+                  }, automaticPromotions, promotionCategories).current)))}`
+                : brl(pricePreview.current)}</span>
             </div>
 
             {aromaNotes.length > 0 && <section className="mt-6 border-l-2 border-primary pl-4"><h2 className="font-display text-xl text-foreground">Pirâmide olfativa</h2>{([["Saída", "top"], ["Corpo", "heart"], ["Fundo", "base"]] as const).map(([label, key])=>{const notes=pyramid[key];return notes.length ? <div key={label} className="mt-3"><p className="text-xs uppercase tracking-widest text-primary">{label}</p><p className="mt-1 text-sm text-foreground/85">{notes.join(", ")}</p></div> : null;})}</section>}
