@@ -1,13 +1,14 @@
-import { useState } from "react";
+import { useState, type Dispatch, type SetStateAction } from "react";
+import { ImageCropEditor } from "@/components/ImageCropEditor";
 import { toast } from "sonner";
 import {
-  legacyToManaged, validateVariantSetup, variantCombinations,
+  legacyToManaged, validateVariantSetup, reconcileVariantCombinations,
   type CombinationVariant, type LegacyVariant, type VariantGroup, type VariantSetup,
 } from "@/lib/product-variants";
 
 type Props = {
   value: VariantSetup;
-  onChange: (value: VariantSetup) => void;
+  onChange: Dispatch<SetStateAction<VariantSetup>>;
   basePrice: number;
   onUpload: (file: File) => Promise<string>;
   disabled?: boolean;
@@ -18,12 +19,19 @@ const buttonStyle = "rounded border border-primary/50 px-3 py-2 text-sm text-pri
 
 export function ProductVariantsEditor({ value, onChange, basePrice, onUpload, disabled = false }: Props) {
   const [uploadingRow, setUploadingRow] = useState<string | null>(null);
+  const [photoCrop, setPhotoCrop] = useState<{
+    source: File | string;
+    id: string;
+    onDone: (url: string) => void;
+  } | null>(null);
   const currentError = validateVariantSetup(value);
 
   function updateGroups(groups: VariantGroup[]) {
-    const rows = variantCombinations(groups, value.rows, basePrice);
-    // Keep previous values while one of the new fields is still being entered.
-    onChange({ groups, rows: groups.length === 0 ? [] : rows.length ? rows : value.rows, legacy: null });
+    onChange(previous => {
+      const rows = reconcileVariantCombinations(previous.groups, groups, previous.rows, basePrice);
+      // Keep the combinations during an unfinished edit so no prices/images disappear.
+      return { groups, rows: groups.length === 0 ? [] : rows.length ? rows : previous.rows, legacy: null };
+    });
   }
 
   function addGroup() {
@@ -43,30 +51,27 @@ export function ProductVariantsEditor({ value, onChange, basePrice, onUpload, di
   }
 
   function editRow(key: string, patch: Partial<CombinationVariant>) {
-    onChange({
-      ...value,
-      rows: value.rows.map(row => row.key === key ? { ...row, ...patch } : row),
-    });
+    onChange(previous => ({
+      ...previous,
+      rows: previous.rows.map(row => row.key === key ? { ...row, ...patch } : row),
+    }));
   }
 
   function editLegacy(index: number, patch: Partial<LegacyVariant>) {
-    onChange({
-      ...value,
-      legacy: (value.legacy ?? []).map((row, i) => i === index ? { ...row, ...patch } : row),
-    });
+    onChange(previous => ({
+      ...previous,
+      legacy: (previous.legacy ?? []).map((row, i) => i === index ? { ...row, ...patch } : row),
+    }));
   }
 
-  async function uploadImage(file: File, id: string, onDone: (url: string) => void) {
-    if (!file.type.startsWith("image/")) {
-      toast.error("Selecione uma imagem.");
-      return;
-    }
+  async function applyVariantCrop(file: File) {
+    if (!photoCrop) return;
+    const { id, onDone } = photoCrop;
     setUploadingRow(id);
     try {
       const url = await onUpload(file);
       onDone(url);
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Falha ao enviar imagem da variação.");
+      setPhotoCrop(null);
     } finally {
       setUploadingRow(null);
     }
@@ -89,16 +94,28 @@ export function ProductVariantsEditor({ value, onChange, basePrice, onUpload, di
             disabled={disabled || !!uploadingRow}
             onChange={event => {
               const file = event.currentTarget.files?.item(0);
-              if (file) void uploadImage(file, id, onDone);
+              if (file) {
+                if (!["image/jpeg", "image/png", "image/webp", "image/gif"].includes(file.type) || file.size > 10 * 1024 * 1024) {
+                  toast.error("Selecione uma foto JPG, PNG, WebP ou GIF com até 10 MB.");
+                } else {
+                  setPhotoCrop({ source: file, id, onDone });
+                }
+              }
               event.currentTarget.value = "";
             }}
             className="sr-only"
           />
         </label>
-        {image && <button type="button" className="text-left text-xs text-destructive" disabled={disabled}
-          onClick={() => { if (window.confirm("Remover a foto desta variação?")) onDone(""); }}>
-          Remover foto
-        </button>}
+        {image && <>
+          <button type="button" className="text-left text-xs text-primary" disabled={disabled}
+            onClick={() => setPhotoCrop({ source: image, id, onDone })}>
+            Ajustar foto
+          </button>
+          <button type="button" className="text-left text-xs text-destructive" disabled={disabled}
+            onClick={() => { if (window.confirm("Remover a foto desta variação?")) onDone(""); }}>
+            Remover foto
+          </button>
+        </>}
       </div>
     </div>;
   }
@@ -226,6 +243,13 @@ export function ProductVariantsEditor({ value, onChange, basePrice, onUpload, di
           </div>}
         </>
       )}
+      {photoCrop && <div className="fixed inset-0 z-[80] flex items-center justify-center overflow-y-auto bg-black/75 p-4"
+        role="dialog" aria-modal="true" aria-label="Recortar foto da variação">
+        <div className="my-auto max-h-[95dvh] w-full max-w-xl overflow-y-auto rounded border border-primary/35 bg-background p-5 shadow-2xl">
+          <ImageCropEditor source={photoCrop.source} aspect="portrait"
+            onApply={applyVariantCrop} onCancel={() => setPhotoCrop(null)} />
+        </div>
+      </div>}
     </section>
   );
 }
