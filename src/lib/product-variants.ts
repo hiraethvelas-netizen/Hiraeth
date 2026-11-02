@@ -124,6 +124,11 @@ export function reconcileVariantCombinations(
     }
     return { ...row, options, key: optionKey(options), label: Object.values(options).join(" / ") };
   });
+  // While a label is temporarily blank, retain the remapped rows (including
+  // their IDs, price, stock and photos). A valid label regenerates normal keys.
+  if (nextGroups.some(group => !group.name.trim() || group.values.some(item => !item.label.trim()))) {
+    return remapped;
+  }
   return variantCombinations(nextGroups, remapped, fallbackPrice);
 }
 
