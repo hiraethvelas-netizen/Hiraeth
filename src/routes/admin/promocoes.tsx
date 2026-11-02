@@ -27,6 +27,7 @@ function PromocoesAdmin(){
   const [saving,setSaving]=useState(false);
   const [flamesSaving,setFlamesSaving]=useState(false);
   const [flameImageSaving,setFlameImageSaving]=useState(false);
+  const [flameImagesSaving,setFlameImagesSaving]=useState(false);
   const [flameCrop,setFlameCrop]=useState<{index:number;source:File|string}|null>(null);
   const [welcomeSaving,setWelcomeSaving]=useState(false);
 
@@ -66,9 +67,24 @@ function PromocoesAdmin(){
      throw cause;
    }finally{setFlameImageSaving(false);}
  }
+ async function saveFlameImages(){
+   if(flameImagesSaving||flamesSaving||flameImageSaving||flameCrop)return;
+   setFlameImagesSaving(true);
+   try{
+     // Persist photos independently: there may not be any rewards configured yet.
+     // On conflict, only the explicitly provided image field changes.
+     const {error}=await db.from("secret_flame_settings").upsert({
+       id:true,candle_images:flameSettings.candle_images,
+     },{onConflict:"id"});
+     if(error)throw error;
+     toast.success("As imagens das quatro cartas foram salvas.");
+   }catch(error){
+     toast.error(error instanceof Error?error.message:"Não foi possível salvar as fotos das cartas.");
+   }finally{setFlameImagesSaving(false);}
+ }
  async function saveFlames(e:React.FormEvent){
    e.preventDefault();
-   if(flamesSaving||flameImageSaving||flameCrop)return;
+   if(flamesSaving||flameImagesSaving||flameImageSaving||flameCrop)return;
    if(flameSettings.starts_at&&flameSettings.ends_at&&flameSettings.starts_at>flameSettings.ends_at){toast.error("Confira as datas da promoção.");return;}
    if(flameRewards.some(reward=>!reward.reward_title.trim()||(["coupon","discount"].includes(reward.reward_type)&&!reward.coupon_code?.trim()))){toast.error("Informe o prêmio de cada carta e vincule um código de cupom aos prêmios de desconto.");return;}
    setFlamesSaving(true);
@@ -175,8 +191,15 @@ function PromocoesAdmin(){
       <label className="block text-sm text-muted-foreground">Código do cupom (se houver)<input className={input+" mt-1"} value={flameRewards[i].coupon_code??""} onChange={e=>setFlameRewards(flameRewards.map((r:any,j:number)=>j===i?{...r,coupon_code:e.target.value.toUpperCase()}:r))}/></label>
     </div>)}
    </div>
-   <p className="text-sm text-muted-foreground">Depois de ajustar as fotos, clique em salvar para publicar as imagens das cartas e os benefícios. Até lá, as alterações ficam apenas nesta edição.</p>
-   <button type="submit" disabled={flamesSaving||flameImageSaving||!!flameCrop} className="btn-gold">{flamesSaving?"Salvando...":flameImageSaving?"Enviando foto...":"Salvar configuração das Quatro Chamas"}</button>
+   <p className="text-sm text-muted-foreground">Você pode salvar só as imagens, mesmo sem configurar todos os prêmios. Para publicar também os benefícios, salve a configuração completa.</p>
+   <div className="flex flex-wrap gap-3">
+     <button type="button" disabled={flameImagesSaving||flamesSaving||flameImageSaving||!!flameCrop}
+       onClick={()=>void saveFlameImages()}
+       className="rounded border border-primary/50 px-4 py-2.5 text-sm font-semibold text-primary disabled:opacity-50">
+       {flameImagesSaving?"Salvando imagens...":"Salvar apenas imagens das cartas"}
+     </button>
+     <button type="submit" disabled={flamesSaving||flameImagesSaving||flameImageSaving||!!flameCrop} className="btn-gold">{flamesSaving?"Salvando...":flameImageSaving?"Enviando foto...":"Salvar configuração das Quatro Chamas"}</button>
+   </div>
   </form>
   <div className="mt-8 border-t pt-5"><h3 className="font-display text-xl text-foreground">Participações registradas</h3><p className="mt-1 text-xs text-muted-foreground">Últimas 100 escolhas registradas.</p>{flameClaims.length===0?<p className="mt-3 text-sm text-muted-foreground">Nenhuma participação registrada.</p>:<div className="mt-3 space-y-2">{flameClaims.map((c:any)=><div key={c.id} className="flex flex-wrap justify-between gap-2 border-b py-2 text-sm"><span>Vela {c.candle_index+1} · {c.reward_snapshot?.title??"Benefício"}</span><span className="text-muted-foreground">{new Date(c.created_at).toLocaleString("pt-BR")}</span></div>)}</div>}</div>
  </section>
