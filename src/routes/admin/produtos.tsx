@@ -327,7 +327,7 @@ function AdminProdutos() {
           ))}
         </div>
         <ImageCropEditor key={String(photoAspect) + (typeof photoCrop.source === "string" ? photoCrop.source : photoCrop.source.name)}
-          source={photoCrop.source} aspect={photoAspect}
+          source={photoCrop.source} aspect={photoAspect} squarePreview="square"
           onApply={applyProductPhotoCrop} onCancel={skipProductPhotoCrop} />
         {photoCrop.pending.length > 0 && <p className="mt-3 text-xs text-muted-foreground">
           Próximas fotos: {photoCrop.pending.length}. Ao aplicar ou cancelar, você passa para a próxima.
