@@ -55,12 +55,12 @@ function SecureCardBrick({ publicKey, amount, email, onSubmit }: {
         if(!window.MercadoPago) {
           await new Promise<void>((resolve,reject)=>{
             const previous=document.querySelector<HTMLScriptElement>('script[data-hiraeth-mercadopago="1"]');
-            if(previous && previous.dataset.ready==="1") return resolve();
+            if(previous && previous.dataset['ready']==="1") return resolve();
             if(previous) { previous.addEventListener("load",()=>resolve(),{once:true}); previous.addEventListener("error",()=>reject(new Error("SDK indisponível.")),{once:true}); return; }
             const script=document.createElement("script");
             script.src="https://sdk.mercadopago.com/js/v2";
-            script.async=true; script.dataset.hiraethMercadopago="1";
-            script.onload=()=>{script.dataset.ready="1";resolve();};
+            script.async=true; script.dataset['hiraethMercadopago']="1";
+            script.onload=()=>{script.dataset['ready']="1";resolve();};
             script.onerror=()=>reject(new Error("Não foi possível carregar o formulário seguro."));
             document.head.appendChild(script);
           });
@@ -122,7 +122,7 @@ function CheckoutHiraeth() {
       supabase.auth.getUser(),
     ]).then(([data,auth])=>{
       if(!active)return;
-      setConfig({enabled:!!data.enabled,publicKey:data.publicKey??null,sandbox:data.sandbox!==false});
+      setConfig({enabled:!!data['enabled'],publicKey:data['publicKey']??null,sandbox:data['sandbox']!==false});
       setPayerEmail(auth.data.user?.email??"");
       try{setCoupon(sessionStorage.getItem("hiraeth-checkout-coupon")??"");}catch{/* optional */}
     }).catch(()=>{if(active)setConfig({enabled:false,publicKey:null,sandbox:true});})
@@ -135,7 +135,7 @@ function CheckoutHiraeth() {
     setBusy(true);setError("");setQuotes([]);setSelectedFreight(null);
     try{
       const data=await commerceCall({action:"quote",items:itemInputs,postalCode:recipient.postal_code});
-      const list=(data.quotes??[]) as FreightQuote[];
+      const list=(data['quotes']??[]) as FreightQuote[];
       if(!list.length)throw new Error("Nenhum frete disponível para este CEP.");
       setQuotes(list);
     }catch(cause){setError(cause instanceof Error?cause.message:"Falha no cálculo de frete.");}
@@ -149,7 +149,7 @@ function CheckoutHiraeth() {
     try{
       const data=await commerceCall({action:"init",items:itemInputs,recipient,
         freightServiceId:selectedFreight,couponCode:coupon.trim()});
-      setCheckout(data.checkout as CheckoutSummary);
+      setCheckout(data['checkout'] as CheckoutSummary);
       setQuotes([]);
       window.scrollTo({top:0,behavior:"smooth"});
     }catch(cause){setError(cause instanceof Error?cause.message:"Revise seus dados de entrega.");}
@@ -181,10 +181,10 @@ function CheckoutHiraeth() {
     const refresh=async()=>{
       try{
         const data=await commerceCall({action:"status",checkoutId:checkout.id});
-        const status=data.checkout?.status;
+        const status=data['checkout']?.status;
         if(!active || !status)return;
         if(status==="paid"){
-          setOutcome(old=>old?{...old,status,orderId:data.checkout.order_id}:old);
+          setOutcome(old=>old?{...old,status,orderId:data['checkout'].order_id}:old);
           cart.clear();
         }else if(status==="paid_attention"){
           setOutcome(old=>old?{...old,status}:old);
