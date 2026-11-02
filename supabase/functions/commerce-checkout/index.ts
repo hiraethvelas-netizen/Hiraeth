@@ -164,6 +164,7 @@ Deno.serve(async (req: Request) => {
         productId: item.productId, name: item.name, quantity: item.quantity,
         price: item.price, variantKey: item.variantKey,
         stockVariantKey: item.stockVariantKey,
+        weightGrams: item.weightGrams,
         variantDetails: item.variantDetails,
       })),
       freight, coupon_code: summary.coupon_code,
