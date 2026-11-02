@@ -33,7 +33,9 @@ function Carrinho() {
   const couponIsCurrent = appliedCoupon?.cartKey === cartKey;
   const [automaticPromotions, setAutomaticPromotions] = useState<Promotion[]>([]);
   const [promotionCategories, setPromotionCategories] = useState<PromotionCategory[]>([]);
-  const [productCategories, setProductCategories] = useState<{id: string; category_id: string | null}[]>([]);
+  const [productCategories, setProductCategories] = useState<{
+    id: string; category_id: string | null; stock?: number; variants?: unknown;
+  }[]>([]);
   const [promotionsLoading, setPromotionsLoading] = useState(true);
   const [promotionsError, setPromotionsError] = useState(false);
   const [refreshPromotions, setRefreshPromotions] = useState(0);
@@ -46,7 +48,7 @@ function Carrinho() {
         const [promos, categories, products] = await Promise.all([
           supabase.from("promotions").select("*").eq("active", true).eq("visible", true).neq("kind", "coupon"),
           supabase.from("categories").select("id,parent_id"),
-          productIds ? supabase.from("products").select("id,category_id").in("id", productIds.split(",")) : Promise.resolve({ data: [], error: null }),
+          productIds ? supabase.from("products").select("id,category_id,stock,variants").in("id", productIds.split(",")) : Promise.resolve({ data: [], error: null }),
         ]);
         if (promos.error || categories.error || products.error) throw new Error("Promoções indisponíveis");
         if (!active) return;
@@ -100,6 +102,23 @@ function Carrinho() {
     } finally {
       setValidatingCoupon(false);
     }
+  }
+
+  function increaseQuantity(item: (typeof cart.items)[number]) {
+    // Cart items do not reserve stock. This only prevents this customer from
+    // requesting more than the currently known inventory for this option.
+    const product = productCategories.find(p => p.id === item.productId);
+    const variants = managedVariants(product?.variants);
+    const selected = variants.find(v => v.key === item.variantKey);
+    const savedStock = variants.length
+      ? selected?.stock ?? 0
+      : product?.stock ?? (typeof item.variantDetails?.["stock"] === "number"
+        ? item.variantDetails["stock"] : undefined);
+    if (typeof savedStock === "number" && item.quantity >= savedStock) {
+      toast.error("Você já adicionou todas as unidades disponíveis desta opção à sua sacola.");
+      return;
+    }
+    cart.setQuantity(item.productId, item.quantity + 1, item.variantKey);
   }
 
   async function checkout() {
@@ -210,7 +229,7 @@ function Carrinho() {
                   <div className="col-start-2 row-start-2 inline-flex w-fit shrink-0 items-center border sm:col-start-3 sm:row-start-1">
                     <button type="button" disabled={placing} aria-label={`Diminuir quantidade de ${item.name}`} onClick={() => cart.setQuantity(item.productId, item.quantity - 1, item.variantKey)} className="px-2 py-1.5 sm:px-3">−</button>
                     <span className="w-6 text-center text-sm sm:w-8">{item.quantity}</span>
-                    <button type="button" disabled={placing} aria-label={`Aumentar quantidade de ${item.name}`} onClick={() => cart.setQuantity(item.productId, item.quantity + 1, item.variantKey)} className="px-2 py-1.5 sm:px-3">+</button>
+                    <button type="button" disabled={placing} aria-label={`Aumentar quantidade de ${item.name}`} onClick={() => increaseQuantity(item)} className="px-2 py-1.5 sm:px-3">+</button>
                   </div>
                   <span className="col-start-3 row-start-2 self-center justify-self-end whitespace-nowrap text-right text-sm text-primary sm:col-start-4 sm:row-start-1 sm:text-base">{brl(item.price * item.quantity)}</span>
                   <button type="button" disabled={placing} onClick={() => cart.remove(item.productId, item.variantKey)} className="col-start-3 row-start-1 self-start justify-self-end px-1 text-muted-foreground hover:text-destructive sm:col-start-5 sm:self-center" aria-label={`Remover ${item.name}`}>
