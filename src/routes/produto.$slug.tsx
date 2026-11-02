@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { galleryImageIndex, uniqueProductPhotos } from "@/lib/product-gallery";
 import { supabase } from "@/integrations/supabase/client";
 import { SiteFooter, SiteHeader } from "@/components/SiteLayout";
+import { RelatedProducts } from "@/components/RelatedProducts";
 import { brl } from "@/lib/format";
 import { useCart } from "@/lib/cart";
 import { toast } from "sonner";
@@ -86,7 +87,7 @@ function ProdutoPage() {
     return (
       <div className="min-h-screen">
         <SiteHeader />
-        <main className="mx-auto max-w-5xl px-6 pb-20 pt-32">
+        <main className="mx-auto max-w-5xl px-4 pb-20 pt-8 sm:px-6 sm:pt-10">
           <p className="text-muted-foreground">Carregando...</p>
         </main>
       </div>
@@ -191,14 +192,14 @@ function ProdutoPage() {
   return (
     <div className="min-h-screen">
       <SiteHeader />
-      <main className="mx-auto max-w-5xl px-6 pb-20 pt-32">
+      <main className="mx-auto max-w-5xl px-4 pb-20 pt-8 sm:px-6 sm:pt-10">
         <nav className="text-sm text-muted-foreground">
           <Link to="/loja" className="hover:text-primary">Loja</Link>
           <span className="mx-2">/</span>
           <span className="text-foreground">{product.name}</span>
         </nav>
 
-        <div className="mt-8 grid gap-10 md:grid-cols-2">
+        <div className="mt-4 grid gap-7 sm:mt-6 md:grid-cols-2 md:gap-10">
           <div className="min-w-0">
             <div className="relative">
               <div
@@ -365,6 +366,7 @@ function ProdutoPage() {
             </p>
           </div>
         </div>
+        <RelatedProducts product={product} />
       </main>
       <SiteFooter />
     </div>
