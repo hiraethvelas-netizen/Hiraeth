@@ -122,7 +122,7 @@ function ProdutoPage() {
     const safeIndex = Math.min(Math.max(0, index), Math.max(0, currentImages.length - 1));
     setActiveImage(safeIndex);
     const gallery = galleryRef.current;
-    if (gallery) gallery.scrollTo({ left: safeIndex * gallery.clientWidth, behavior: "smooth" });
+    if (gallery && typeof gallery.scrollTo === "function") gallery.scrollTo({ left: safeIndex * gallery.clientWidth, behavior: "smooth" });
   }
   function showVariationImage(image?: string | null) {
     showGalleryImage(galleryImageIndex(currentImages, image));
