@@ -141,7 +141,7 @@ begin
   -- over-selling if two payments are approved at the same moment.
   for v_stock in
     select (element->>'productId')::uuid as product_id,
-      coalesce(element->>'variantKey','') as variant_key,
+      coalesce(element->>'stockVariantKey',element->>'variantKey','') as variant_key,
       sum((element->>'quantity')::integer)::integer as quantity
     from jsonb_array_elements(v_session.items) element
     group by 1,2 order by 1,2
@@ -208,7 +208,7 @@ begin
 
     for v_stock in
       select (element->>'productId')::uuid as product_id,
-        coalesce(element->>'variantKey','') as variant_key,
+        coalesce(element->>'stockVariantKey',element->>'variantKey','') as variant_key,
         sum((element->>'quantity')::integer)::integer as quantity
       from jsonb_array_elements(v_session.items) element
       group by 1,2 order by 1,2
