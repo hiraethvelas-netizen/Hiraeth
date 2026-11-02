@@ -61,29 +61,30 @@ function NotificationsPage() {
 
   return <div className="min-h-screen">
     <SiteHeader />
-    <main className="mx-auto w-full max-w-3xl px-4 pb-20 pt-10 sm:px-6 sm:pt-14">
+    <main className="min-h-[65vh] bg-[#18251d] text-[#f7efda]">
+      <div className="mx-auto w-full max-w-3xl px-4 pb-20 pt-10 sm:px-6 sm:pt-14">
       <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="eyebrow">Um sinal entre histórias</p>
-          <h1 className="mt-2 font-display text-4xl text-foreground sm:text-5xl">Sinais da Chama</h1>
-          <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground">
+          <p className="font-display text-base italic tracking-wide text-[#dbc28a]">Um sinal entre histórias</p>
+          <h1 className="mt-2 font-display text-4xl text-[#f7efda] sm:text-5xl">Sinais da Chama</h1>
+          <p className="mt-3 max-w-xl text-base leading-relaxed text-[#ece4d0]">
             Avisos da Hiraeth, mensagens e acontecimentos do Círculo do Fogo.
             Tudo em um só lugar, sem precisar marcar como lido.
           </p>
         </div>
         <button type="button" aria-label="Atualizar notificações" disabled={refreshing}
-          onClick={() => void refresh()} className="inline-flex items-center gap-2 rounded-full border border-primary/40 px-4 py-2 text-sm text-primary disabled:opacity-50">
+          onClick={() => void refresh()} className="inline-flex items-center gap-2 rounded-full border border-[#c8ac75] bg-[#273a2c] px-4 py-2 text-sm font-medium text-[#f7efda] transition-colors hover:bg-[#334b37] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#f7efda] disabled:opacity-50">
           <RefreshCw size={16} aria-hidden="true" /> Atualizar
         </button>
       </div>
 
-      {error && <p role="alert" className="mb-5 rounded border border-destructive/50 p-3 text-sm text-destructive">{error}</p>}
-      {loading ? <p role="status" className="py-12 text-center text-muted-foreground">Reunindo os sinais da chama...</p> :
+      {error && <p role="alert" className="mb-5 rounded border border-[#e7bd8b] bg-[#39271e] p-3 text-sm text-[#fff0dc]">{error}</p>}
+      {loading ? <p role="status" className="py-12 text-center text-[#ece4d0]">Reunindo os sinais da chama...</p> :
         notifications.length === 0 ? (
-          <section className="rounded-xl border border-primary/25 bg-card px-5 py-14 text-center">
-            <Bell size={36} strokeWidth={1.2} className="mx-auto text-primary" aria-hidden="true" />
-            <h2 className="mt-4 font-display text-2xl text-foreground">A chama está tranquila por enquanto</h2>
-            <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
+          <section className="rounded-xl border border-[#c6ae7e] bg-[#f6eed9] px-5 py-14 text-center shadow-lg">
+            <Bell size={36} strokeWidth={1.2} className="mx-auto text-[#526238]" aria-hidden="true" />
+            <h2 className="mt-4 font-display text-2xl text-[#283c2a]">A chama está tranquila por enquanto</h2>
+            <p className="mx-auto mt-2 max-w-md text-base leading-relaxed text-[#394b36]">
               Quando chegar um aviso, uma nova mensagem ou uma interação da Comunidade, ele aparecerá aqui.
             </p>
           </section>
@@ -91,23 +92,24 @@ function NotificationsPage() {
           {notifications.map(notification => (
             <li key={notification.id}>
               <a href={safeNotificationHref(notification.href)}
-                className="group flex min-w-0 items-start gap-3 rounded-lg border border-primary/20 bg-card/60 p-4 transition-colors hover:border-primary/60 hover:bg-primary/5 sm:gap-4 sm:p-5">
-                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-primary/30 bg-background text-primary" aria-hidden="true">
+                className="group flex min-w-0 items-start gap-3 rounded-xl border border-[#c8af7c] bg-[#f6eed9] p-4 shadow-[0_4px_18px_rgba(0,0,0,0.16)] transition-colors hover:border-[#94713d] hover:bg-[#fff6df] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d9bc79] sm:gap-4 sm:p-5">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#9e8652] bg-[#e6d9b7] text-[#364729]" aria-hidden="true">
                   <NotificationIcon kind={notification.kind} />
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="block break-words font-display text-xl leading-snug text-foreground">{notification.title}</span>
-                  <span className="mt-1 block whitespace-pre-wrap break-words text-sm leading-relaxed text-muted-foreground">{notification.body}</span>
-                  <span className="mt-3 block text-xs text-primary/80">
+                  <span className="block break-words font-display text-[1.45rem] font-semibold leading-snug text-[#273b2b]">{notification.title}</span>
+                  <span className="mt-2 block whitespace-pre-wrap break-words text-base leading-relaxed text-[#354933]">{notification.body}</span>
+                  <span className="mt-3 block text-sm font-medium text-[#65512f]">
                     {notification.kind === "announcement" ? "Recado da Hiraeth" : "Círculo do Fogo"}
                     {" · "}{notificationDate(notification.created_at)}
                   </span>
                 </span>
-                <span className="self-center text-lg text-primary" aria-hidden="true">›</span>
+                <span className="self-center text-2xl font-semibold text-[#526238]" aria-hidden="true">›</span>
               </a>
             </li>
           ))}
         </ol>}
+      </div>
     </main>
     <SiteFooter />
   </div>;
