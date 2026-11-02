@@ -1,0 +1,78 @@
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import type { ReactNode } from "react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+const mocks = vi.hoisted(() => ({ upload: vi.fn(), success: vi.fn(), error: vi.fn() }));
+
+vi.mock("@tanstack/react-router", () => ({
+  createFileRoute: () => (options: { component: () => ReactNode }) => ({ options }),
+}));
+vi.mock("sonner", () => ({
+  toast: { success: mocks.success, error: mocks.error },
+}));
+vi.mock("@/lib/admin-edit", () => ({
+  useSiteContent: (_key: string, defaults: unknown) => [defaults, async () => {}],
+  uploadSiteImage: mocks.upload,
+}));
+vi.mock("@/components/ImageCropEditor", () => ({
+  ImageCropEditor: ({ aspect, onApply, onCancel }: {
+    aspect: string; onApply: (file: File) => Promise<void>; onCancel: () => void;
+  }) => <div aria-label="Editor de recorte da imagem">
+    <p>Recorte {aspect} com zoom</p>
+    <button type="button" onClick={() => void onApply(new File(["cropped"], "ajustada.webp", { type: "image/webp" }))}>
+      Aplicar recorte
+    </button>
+    <button type="button" onClick={onCancel}>Cancelar recorte</button>
+  </div>,
+}));
+vi.mock("@/integrations/supabase/client", () => ({
+  supabase: {
+    from: () => {
+      const query = {
+        select: () => query,
+        order: () => query,
+        eq: () => query,
+        limit: async () => ({ data: [], error: null }),
+        maybeSingle: async () => ({ data: null, error: null }),
+        then: (resolve: (value: unknown) => void) =>
+          Promise.resolve({ data: [], error: null }).then(resolve),
+      };
+      return query;
+    },
+  },
+}));
+
+import { Route } from "@/routes/admin/promocoes";
+const AdminPromotions = Route.options.component;
+
+beforeEach(() => {
+  vi.clearAllMocks();
+  mocks.upload.mockResolvedValue("https://cdn.example.test/secret-flame-cards/carta-ajustada.webp");
+});
+afterEach(cleanup);
+
+describe("Imagens das quatro cartas na administração", () => {
+  it("provides four file selectors without requiring image URLs", () => {
+    render(<AdminPromotions />);
+    for (let i = 1; i <= 4; i++) {
+      expect(screen.getByLabelText("Enviar imagem da carta " + i)).toHaveAttribute("type", "file");
+    }
+    expect(screen.queryByPlaceholderText(/url.*imagem/i)).not.toBeInTheDocument();
+  });
+
+  it("opens the portrait crop editor and previews the uploaded photo before saving", async () => {
+    render(<AdminPromotions />);
+    const picker = screen.getByLabelText("Enviar imagem da carta 1");
+    fireEvent.change(picker, { target: { files: [
+      new File(["picture"], "minha-carta.png", { type: "image/png" }),
+    ] } });
+    expect(screen.getByText("Recorte portrait com zoom")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Aplicar recorte" }));
+    await waitFor(() => expect(mocks.upload).toHaveBeenCalled());
+    await waitFor(() => expect(screen.getByRole("img", { name: "Imagem da Carta 1" }))
+      .toHaveAttribute("src", "https://cdn.example.test/secret-flame-cards/carta-ajustada.webp"));
+    expect(screen.getByRole("button", { name: "Cortar / dar zoom novamente" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Retirar foto da carta" }));
+    expect(screen.getByText("Carta 1")).toBeInTheDocument();
+  });
+});
