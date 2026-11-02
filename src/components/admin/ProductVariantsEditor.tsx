@@ -134,6 +134,7 @@ export function ProductVariantsEditor({ value, onChange, basePrice, onUpload, ga
           </button>
         </>}
       </div>
+      </div>
       {galleryImages.length === 0 && <p className="text-xs text-muted-foreground">Você também pode adicionar fotos na seção “Fotos do produto” e depois selecioná-las aqui.</p>}
     </div>;
   }
