@@ -30,10 +30,15 @@ export function isCommerceEnabled() {
   const mode=Deno.env.get("HIRAETH_PAYMENTS_MODE");
   // A production credential is never accepted in the sandbox branch. To
   // enable real charges the merchant must explicitly opt in twice.
+  // Mercado Pago may prefix BOTH test and production tokens with APP_USR.
+  // They cannot be identified by prefix alone. Require explicit environment
+  // confirmation without ever exposing an Access Token to the frontend.
   const safePaymentMode=mode==="sandbox"
-    ? token.startsWith("TEST-")
-    : mode==="production" && Deno.env.get("HIRAETH_ALLOW_LIVE_CHARGES")==="true"
-      && token.startsWith("APP_USR-");
+    ? token.startsWith("APP_USR-") &&
+      Deno.env.get("HIRAETH_TEST_CREDENTIALS_CONFIRMED")==="true"
+    : mode==="production" &&
+      Deno.env.get("HIRAETH_ALLOW_LIVE_CHARGES")==="true" &&
+      token.startsWith("APP_USR-");
   return Deno.env.get("HIRAETH_COMMERCE_ENABLED") === "true" &&
     safePaymentMode &&
     Boolean(Deno.env.get("MERCADO_PAGO_PUBLIC_KEY")) &&
