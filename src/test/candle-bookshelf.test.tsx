@@ -129,6 +129,22 @@ describe("Library categories and finished state", () => {
       ),
     );
   });
+  it("renders finished candles in grayscale in the shelf and in their details without changing the image URL", () => {
+    render(<CandleBookshelf items={[
+      { ...candle, id: "lit", title: "Acesa", finished: false },
+      { ...candle, id: "finished", title: "Acabou", finished: true },
+    ]} />);
+    const lit = screen.getByRole("button", { name: "Abrir detalhes da vela Acesa" });
+    const finished = screen.getByRole("button", { name: "Abrir detalhes da vela Acabou" });
+    expect(lit.querySelector("img")).not.toHaveClass("grayscale");
+    expect(finished.querySelector("img")).toHaveClass("grayscale");
+    expect(finished.querySelector("img")).toHaveAttribute("src", candle.image_url);
+    fireEvent.click(finished);
+    const modal = screen.getByRole("dialog");
+    expect(modal.querySelector("img")).toHaveClass("grayscale");
+    expect(modal.querySelector("img")).toHaveAttribute("src", candle.image_url);
+  });
+
   it("preserves the finished state on failure and updates it only after confirmation", async () => {
     const mark = vi
       .fn()
