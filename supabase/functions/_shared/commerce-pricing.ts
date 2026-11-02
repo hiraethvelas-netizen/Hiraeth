@@ -28,9 +28,9 @@ export function validateItems(input: unknown): ItemInput[] {
   return input.map((raw: unknown) => {
     if (!raw || typeof raw !== "object") throw new Error("Produto inválido.");
     const row = raw as Record<string, unknown>;
-    const productId = String(row.productId ?? "");
-    const quantity = Number(row.quantity);
-    const variantKey = typeof row.variantKey === "string" ? row.variantKey : "";
+    const productId = String(row['productId'] ?? "");
+    const quantity = Number(row['quantity']);
+    const variantKey = typeof row['variantKey'] === "string" ? row['variantKey'] : "";
     if (!/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i.test(productId))
       throw new Error("Identificação do produto inválida.");
     if (!Number.isSafeInteger(quantity) || quantity < 1 || quantity > 100)
@@ -44,14 +44,14 @@ export function validateItems(input: unknown): ItemInput[] {
 
 export function snapshotProducts(
   items: ItemInput[],
-  products: Array<Record<string, any>>,
+  products: Array<any>,
   defaultWeightGrams = 0,
 ): SnapshotItem[] {
   return items.map(item => {
     const product = products.find(row => row.id === item.productId);
     if (!product || product.status !== "published") throw new Error("Produto indisponível. Atualize sua sacola.");
-    const variants: Array<Record<string, any>> = Array.isArray(product.variants) ? product.variants : [];
-    let variant: Record<string, any> | null = null;
+    const variants: any[] = Array.isArray(product.variants) ? product.variants : [];
+    let variant: any = null;
     if (item.variantKey) {
       variant = variants.find(row => row.key === item.variantKey) ?? null;
       if (!variant) throw new Error("Uma variação do produto mudou. Revise a sacola.");
