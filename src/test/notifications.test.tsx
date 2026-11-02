@@ -61,6 +61,12 @@ describe("Sinais da Chama", () => {
     expect(screen.getByRole("link", { name: /Sua publicação recebeu uma reação/ }))
       .toHaveAttribute("href", "/comunidade?tab=feed");
     expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
+    // Labels and messages use explicitly contrasting colors on the cream cards,
+    // independent of the light/dark theme inherited from the rest of the store.
+    const title = screen.getByText("Cupom especial");
+    expect(title.className).toContain("text-[#273b2b]");
+    expect(screen.getByText("Confira o Acervo Hiraeth.").className).toContain("text-[#354933]");
+    expect(title.closest("a")?.className).toContain("bg-[#f6eed9]");
   });
 
   it("restricts links to safe internal destinations", () => {
