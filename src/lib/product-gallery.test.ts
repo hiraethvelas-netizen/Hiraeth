@@ -23,6 +23,6 @@ describe("Product images shared with variations", () => {
   });
 
   it("deduplicates the gallery without removing the merchant's order", () => {
-    expect(uniqueProductPhotos([gallery[0], gallery[1], gallery[0], gallery[2]])).toEqual(gallery);
+    expect(uniqueProductPhotos([gallery[0]!, gallery[1]!, gallery[0]!, gallery[2]!])).toEqual(gallery);
   });
 });
