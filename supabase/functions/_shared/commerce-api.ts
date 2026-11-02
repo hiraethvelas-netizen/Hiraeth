@@ -1,5 +1,6 @@
 import { createClient, type SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { calculateShippingPackage, type ShippingPackage, type ShippingItem } from "./commerce-shipping.ts";
+export { canAccessCommerce } from "./commerce-access.ts";
 
 export const corsHeaders = {
   "Access-Control-Allow-Origin": Deno.env.get("COMMERCE_ALLOWED_ORIGIN") || "https://hiraeth-oficial.lovable.app",
@@ -65,15 +66,6 @@ export async function signedInUser(req: Request) {
   if (error || !data.user?.id || !data.user.email)
     throw new Error("Sua sessão expirou. Entre novamente.");
   return { ...data.user, email: data.user.email };
-}
-
-/**
- * Sandbox can be exposed only to confirmed administrators.
- * The public production checkout retains its existing availability rules.
- * Unknown payment modes always fail closed.
- */
-export function canAccessCommerce(enabled: boolean, mode: string | undefined, isAdmin: boolean): boolean {
-  return enabled && (mode === "production" || (mode === "sandbox" && isAdmin));
 }
 
 export async function userIsAdmin(userId: string): Promise<boolean> {
