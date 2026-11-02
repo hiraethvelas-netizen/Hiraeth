@@ -92,7 +92,7 @@ describe("Checkout Hiraeth — precificação sempre no servidor", () => {
 
 describe("Mercado Pago HMAC signature", () => {
   async function sign(id:string,requestId:string,ts:string,secret:string) {
-    const input=\`id:\${id};request-id:\${requestId};ts:\${ts};\`;
+    const input=`id:${id};request-id:${requestId};ts:${ts};`;
     const key=await crypto.subtle.importKey("raw",new TextEncoder().encode(secret),
       {name:"HMAC",hash:"SHA-256"},false,["sign"]);
     const hash=new Uint8Array(await crypto.subtle.sign("HMAC",key,new TextEncoder().encode(input)));
@@ -101,7 +101,7 @@ describe("Mercado Pago HMAC signature", () => {
   it("accepts the authentic HMAC and rejects mutated ids and secrets", async () => {
     const ts="1793580000",requestId="req-example",secret="testing-webhook-secret";
     const digest=await sign("12345",requestId,ts,secret);
-    const signature=\`ts=\${ts},v1=\${digest}\`;
+    const signature=`ts=${ts},v1=${digest}`;
     expect(await validMercadoPagoSignature(signature,requestId,"12345",secret)).toBe(true);
     expect(await validMercadoPagoSignature(signature,requestId,"12346",secret)).toBe(false);
     expect(await validMercadoPagoSignature(signature,requestId,"12345","wrong")).toBe(false);
