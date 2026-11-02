@@ -79,7 +79,7 @@ describe("O Tarô da Fênix: escolha e cópia do cupom", () => {
 
   it("shows the existing uploaded card image unchanged on the separate reveal page", async () => {
     await renderRevealedCard();
-    expect(screen.getByRole("img", { name: "Imagem da Carta 1" })).toHaveAttribute("src", mocks.customImage);
+    expect(screen.getByRole("img", { name: "Imagem da Carta 1", hidden: true })).toHaveAttribute("src", mocks.customImage);
     expect(screen.getByRole("heading", { name: "O Tarô da Fênix" })).toBeInTheDocument();
     expect(screen.getByTestId("phoenix-tarot-flip")).toHaveAttribute("data-revealed", "true");
     expect(screen.getByText("Um presente da chama")).toBeInTheDocument();
