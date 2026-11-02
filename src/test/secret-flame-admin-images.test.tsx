@@ -88,6 +88,33 @@ describe("Imagens das quatro cartas na administração", () => {
     expect(mocks.success).toHaveBeenCalledWith("As imagens das quatro cartas foram salvas.");
   });
 
+  it("saves four rewards even when coupon and discount prizes have no coupon code", async () => {
+    render(<AdminPromotions />);
+    const types = screen.getAllByLabelText("Tipo de benefício");
+    const titles = screen.getAllByLabelText("Nome do benefício");
+    const coupons = screen.getAllByLabelText("Código do cupom (opcional, pode ficar vazio)");
+    expect(types).toHaveLength(4);
+    expect(coupons).toHaveLength(4);
+
+    fireEvent.change(types[0]!, { target: { value: "coupon" } });
+    fireEvent.change(types[1]!, { target: { value: "discount" } });
+    titles.forEach((input, index) =>
+      fireEvent.change(input, { target: { value: "Benefício da carta " + (index + 1) } }));
+    expect(coupons[0]).toHaveValue("");
+    expect(coupons[1]).toHaveValue("");
+
+    fireEvent.click(screen.getByRole("button", { name: "Salvar configuração das Quatro Chamas" }));
+    await waitFor(() => expect(mocks.upsert).toHaveBeenCalledWith(
+      expect.arrayContaining([
+        expect.objectContaining({ candle_index: 0, reward_type: "coupon", coupon_code: null }),
+        expect.objectContaining({ candle_index: 1, reward_type: "discount", coupon_code: null }),
+      ]),
+      { onConflict: "candle_index" },
+    ));
+    expect(mocks.error).not.toHaveBeenCalledWith(expect.stringContaining("cupom"));
+    expect(mocks.success).toHaveBeenCalledWith("O Segredo das Quatro Chamas foi salvo.");
+  });
+
   it("opens the portrait crop editor and previews the uploaded photo before saving", async () => {
     render(<AdminPromotions />);
     const picker = screen.getByLabelText("Enviar imagem da carta 1");
