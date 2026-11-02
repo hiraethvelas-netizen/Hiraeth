@@ -155,6 +155,14 @@ function AdminProdutos() {
         }
         return { ...previous, images: [...previous.images, url] };
       });
+      if (current.replaceIndex !== undefined && typeof current.source === "string") {
+        const originalUrl = current.source;
+        setVariants(previous => ({
+          ...previous,
+          rows: previous.rows.map(row => row.image === originalUrl ? { ...row, image: url } : row),
+          legacy: previous.legacy?.map(row => row.image === originalUrl ? { ...row, image: url } : row) ?? null,
+        }));
+      }
       if (current.pending.length > 0) {
         setPhotoCrop({ source: current.pending[0]!, pending: current.pending.slice(1) });
       } else {
@@ -180,6 +188,13 @@ function AdminProdutos() {
     if (error) throw new Error("Falha ao enviar foto da variação: " + error.message);
     const { data } = supabase.storage.from("product-images").getPublicUrl(path);
     if (!data.publicUrl) throw new Error("Não foi possível gerar o link da foto.");
+    // Every variation photo belongs to the product gallery. No extra image
+    // is inserted into the customer gallery when an option is selected.
+    setForm(current => ({
+      ...current,
+      images: current.images.includes(data.publicUrl)
+        ? current.images : [...current.images, data.publicUrl],
+    }));
     return data.publicUrl;
   }
 
@@ -301,7 +316,7 @@ function AdminProdutos() {
         refreshing={refreshingEssences}
         saving={saving}
       />}
-      <ProductVariantsEditor value={variants} onChange={setVariants} basePrice={Number(form.price) || 0} onUpload={uploadVariantPhoto} disabled={saving || uploading} />
+      <ProductVariantsEditor value={variants} onChange={setVariants} basePrice={Number(form.price) || 0} galleryImages={form.images} onUpload={uploadVariantPhoto} disabled={saving || uploading} />
       <label className="block text-sm text-muted-foreground">Descrição<textarea placeholder="Conte a história, materiais e detalhes do produto..." rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className={`mt-1 ${inputCls}`} /></label>
       <div className="space-y-3">
         <div><p className="text-sm text-foreground">Fotos do produto</p><p className="text-xs text-muted-foreground">Escolha fotos e ajuste corte, zoom, posição e rotação antes de enviar. Você pode ajustar novamente as imagens cadastradas. A primeira é a capa.</p></div>
