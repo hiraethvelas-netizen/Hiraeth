@@ -86,18 +86,18 @@ function AdminNotifications() {
     <form onSubmit={sendNotice} className="space-y-4 rounded-xl border border-primary/25 bg-card p-4 sm:p-6">
       <h2 className="font-display text-2xl text-foreground">Novo recado</h2>
       <label className="block text-sm text-foreground">Título
-        <input required maxLength={120} value={title} onChange={e => setTitle(e.target.value)}
+        <input required aria-label="Título" maxLength={120} value={title} onChange={e => setTitle(e.target.value)}
           placeholder="Uma surpresa está chegando..." className="mt-2 w-full rounded border border-primary/30 bg-background px-3 py-3 text-foreground" />
         <span className="mt-1 block text-right text-xs text-muted-foreground">{title.length}/120</span>
       </label>
       <label className="block text-sm text-foreground">Mensagem
-        <textarea required maxLength={500} rows={5} value={body} onChange={e => setBody(e.target.value)}
+        <textarea required aria-label="Mensagem" maxLength={500} rows={5} value={body} onChange={e => setBody(e.target.value)}
           placeholder="Ex.: O Acervo está com um cupom especial. Passe na Loja para descobrir..."
           className="mt-2 w-full rounded border border-primary/30 bg-background px-3 py-3 text-foreground" />
         <span className="mt-1 block text-right text-xs text-muted-foreground">{body.length}/500</span>
       </label>
       <label className="block text-sm text-foreground">Para onde a pessoa vai ao tocar no aviso?
-        <select value={href} onChange={e => setHref(e.target.value as NotificationDestination)}
+        <select aria-label="Para onde a pessoa vai ao tocar no aviso?" value={href} onChange={e => setHref(e.target.value as NotificationDestination)}
           className="mt-2 w-full rounded border border-primary/30 bg-background px-3 py-3 text-foreground">
           {NOTIFICATION_DESTINATIONS.map(destination => (
             <option key={destination.value} value={destination.value}>{destination.label}</option>
