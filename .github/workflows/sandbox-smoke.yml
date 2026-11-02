@@ -1,0 +1,55 @@
+name: Sandbox connection smoke (read-only)
+on:
+  pull_request:
+    paths:
+      - .github/workflows/sandbox-smoke.yml
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Inspect published Hiraeth and public checkout configuration
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json, urllib.request, urllib.error, sys
+          urls = {
+              "store": "https://hiraeth-oficial.lovable.app/",
+              "commerce": "https://c--486adfc4-5da8-41d9-8d0f-7893dfde1510-prod.lovable.cloud/functions/v1/commerce-checkout"
+          }
+          def request(url, data=None):
+              req = urllib.request.Request(url, data=data, headers={"Content-Type":"application/json"} if data else {}, method="POST" if data else "GET")
+              try:
+                  with urllib.request.urlopen(req, timeout=20) as response:
+                      return response.status,response.read(100000).decode("utf-8","replace")
+              except urllib.error.HTTPError as error:
+                  return error.code,error.read(10000).decode("utf-8","replace")
+          store_status, store_body = request(urls["store"])
+          print("PUBLISHED_STORE_STATUS:", store_status, "HTML:", bool("<html" in store_body.lower()))
+          commerce_status,commerce_body=request(urls["commerce"], b'{"action":"config"}')
+          print("CHECKOUT_CONFIG_STATUS:", commerce_status)
+          if commerce_status == 200:
+              try:
+                  data=json.loads(commerce_body)
+                  print("SANDBOX_MODE:", data.get("sandbox"))
+                  print("CHECKOUT_ENABLED:", data.get("enabled"))
+                  print("SHIPPING_PROVIDER:", data.get("shippingProvider"))
+                  if data.get("sandbox") is not True:
+                      print("ERROR: checkout is not in sandbox mode.")
+                      sys.exit(1)
+              except (ValueError,TypeError):
+                  print("CHECKOUT_CONFIG_JSON_INVALID")
+                  sys.exit(1)
+          elif commerce_status in (401,403):
+              print("CHECKOUT_CONFIG_BLOCKED_BY_API_GATEWAY: cannot confirm secrets or sandbox through unauthenticated request")
+          elif commerce_status == 404:
+              print("CHECKOUT_ENDPOINT_NOT_FOUND")
+              sys.exit(1)
+          else:
+              print("CHECKOUT_ENDPOINT_UNEXPECTED_RESPONSE")
+              sys.exit(1)
+          if store_status != 200 or "<html" not in store_body.lower():
+              print("PUBLISHED_STORE_NOT_HEALTHY")
+              sys.exit(1)
+          PY
