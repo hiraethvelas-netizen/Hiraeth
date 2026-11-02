@@ -63,7 +63,7 @@ export async function signedInUser(req: Request) {
   const { data, error } = await userClient.auth.getUser();
   if (error || !data.user?.id || !data.user.email)
     throw new Error("Sua sessão expirou. Entre novamente.");
-  return data.user;
+  return { ...data.user, email: data.user.email };
 }
 
 export async function requireAdmin(req: Request) {
