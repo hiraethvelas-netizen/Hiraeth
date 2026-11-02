@@ -5,12 +5,13 @@ import { CROP_ASPECTS, getCropGeometry, type CropAspect } from "@/lib/image-crop
 type Props = {
   source: File | string;
   aspect: CropAspect;
+  squarePreview?: "circle" | "square";
   onApply: (file: File) => Promise<void>;
   onCancel: () => void;
 };
 
 /** Crops in the browser before upload: drag to reposition, zoom or turn the photo. */
-export function ImageCropEditor({ source, aspect, onApply, onCancel }: Props) {
+export function ImageCropEditor({ source, aspect, squarePreview = "circle", onApply, onCancel }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const dragRef = useRef<{ pointerId: number; x: number; y: number; offsetX: number; offsetY: number } | null>(null);
   const [image, setImage] = useState<HTMLImageElement | null>(null);
@@ -139,7 +140,7 @@ export function ImageCropEditor({ source, aspect, onApply, onCancel }: Props) {
       <div>
         <h2 className="font-display text-2xl">Ajustar foto</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Arraste a foto para enquadrar. Ajuste o zoom e gire se desejar. Nas bolinhas, a prévia é circular. O recorte será aplicado antes de enviar.
+          Arraste a foto para enquadrar, ajuste o zoom e gire se desejar. {aspect === "square" && squarePreview === "circle" ? "Nas bolinhas, a prévia é circular. " : ""}O recorte será aplicado antes de enviar.
         </p>
       </div>
       <div className="flex justify-center">
@@ -153,7 +154,7 @@ export function ImageCropEditor({ source, aspect, onApply, onCancel }: Props) {
           onPointerMove={pointerMove}
           onPointerUp={pointerEnd}
           onPointerCancel={pointerEnd}
-          className={`block h-auto w-full max-w-[380px] cursor-grab touch-none border border-primary/30 bg-card active:cursor-grabbing ${aspect === "square" ? "rounded-full" : "rounded"}`}
+          className={`block h-auto w-full max-w-[380px] cursor-grab touch-none border border-primary/30 bg-card active:cursor-grabbing ${aspect === "square" && squarePreview === "circle" ? "rounded-full" : "rounded"}`}
           style={{ aspectRatio: String(CROP_ASPECTS[aspect]) }}
         />
       </div>
