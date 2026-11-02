@@ -22,14 +22,14 @@
 SUPABASE_URL, SUPABASE_ANON_KEY e SUPABASE_SERVICE_ROLE_KEY: gerenciadas pelo Supabase.
 HIRAETH_COMMERCE_ENABLED=false inicialmente.
 HIRAETH_PAYMENTS_MODE=sandbox inicialmente.
+HIRAETH_TEST_CREDENTIALS_CONFIRMED=false inicialmente; tornar true apenas depois de confirmar as chaves do ambiente Teste no painel Mercado Pago.
 HIRAETH_ALLOW_LIVE_CHARGES=false inicialmente.
 MERCADO_PAGO_ACCESS_TOKEN=token privado do vendedor.
 MERCADO_PAGO_PUBLIC_KEY=chave pública do Brick.
 MERCADO_PAGO_WEBHOOK_SECRET=assinatura secreta da aplicação Mercado Pago.
 COMMERCE_ALLOWED_ORIGIN=origem permitida, padrão site oficial.
 
-O backend aceita somente token de TESTE no modo sandbox. Em produção,
-exige a liberação adicional HIRAETH_ALLOW_LIVE_CHARGES=true.
+O painel Mercado Pago pode usar o prefixo APP_USR em credenciais de teste e produção. O prefixo, sozinho, não identifica o ambiente. Para testes, confirme explicitamente HIRAETH_TEST_CREDENTIALS_CONFIRMED=true e use exclusivamente as credenciais da aba Teste. Em produção, a liberação exige separadamente HIRAETH_ALLOW_LIVE_CHARGES=true.
 
 ## Frete e etiquetas
 MELHOR_ENVIO_ENV=sandbox inicialmente.
