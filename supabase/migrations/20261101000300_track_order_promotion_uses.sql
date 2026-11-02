@@ -22,7 +22,7 @@ declare
 begin
   for v_order in
     select o.id, o.promotion_summary,
-      (select sum(i.quantity * i.unit_price) from public.order_items i where i.order_id=o.id) as subtotal
+      o.subtotal as subtotal
     from public.orders o
     where o.id in (select distinct order_id from new_order_items)
   loop
