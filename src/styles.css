@@ -958,3 +958,25 @@ body > div {
 .hiraeth-phoenix-editor-panel input { width: 100%; border: 1px solid #9c9b8b; border-radius: 8px; padding: 12px; color: #24352a; background: white; }
 .hiraeth-phoenix-editor-panel button { padding: 9px 13px; border: 1px solid #6e785d; border-radius: 8px; }
 @media (prefers-reduced-motion: reduce) { .hiraeth-phoenix-wordmark, .hiraeth-home-arrival { animation: none !important; } .hiraeth-phoenix-curtain, .hiraeth-phoenix-intro .opening-video { transition: none !important; } }
+
+/* O Tarô da Fênix: a carta da cliente vira na própria página de revelação.
+   A face da frente usa sem alterações a foto previamente cadastrada. */
+.phoenix-tarot-stage { perspective: 1300px; }
+.phoenix-tarot-flip {
+  position: relative;
+  transform-style: preserve-3d;
+  transform: rotateY(0);
+  transition: transform 1.15s cubic-bezier(.18,.8,.22,1);
+  will-change: transform;
+}
+.phoenix-tarot-flip.is-revealed { transform: rotateY(180deg); }
+.phoenix-tarot-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.phoenix-tarot-back { transform: rotateY(180deg); }
+@media (prefers-reduced-motion: reduce) {
+  .phoenix-tarot-flip { transition: none; }
+}
