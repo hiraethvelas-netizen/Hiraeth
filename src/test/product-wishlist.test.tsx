@@ -17,7 +17,7 @@ const mocks = vi.hoisted(() => ({
   }[],
 }));
 vi.mock("@/components/SiteLayout", () => ({ SiteHeader: () => null, SiteFooter: () => null }));
-vi.mock("@/lib/cart", () => ({ useCart: () => ({ add: mocks.add }) }));
+vi.mock("@/lib/cart", () => ({ useCart: () => ({ items: [], add: mocks.add }) }));
 vi.mock("sonner", () => ({ toast: { success: mocks.success, error: mocks.error, info: vi.fn() } }));
 vi.mock("@tanstack/react-router", () => ({
   createFileRoute: () => (options: object) => ({
