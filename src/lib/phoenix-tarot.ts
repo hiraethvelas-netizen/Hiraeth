@@ -17,6 +17,7 @@ export type PhoenixTarotClaim = {
 
 const VISITOR_KEY = "hiraeth-secret-flames-visitor-v1";
 const CHOICE_PREFIX = "hiraeth-phoenix-tarot-choice-v1:";
+let ephemeralVisitorKey: string | null = null;
 
 export function getPhoenixTarotVisitorKey(): string {
   try {
@@ -29,7 +30,13 @@ export function getPhoenixTarotVisitorKey(): string {
     }
     return value;
   } catch {
-    return "anonymous";
+    // Never share a generic visitor identity when browser storage is disabled.
+    if (!ephemeralVisitorKey) {
+      ephemeralVisitorKey = typeof crypto !== "undefined" && "randomUUID" in crypto
+        ? crypto.randomUUID()
+        : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    }
+    return ephemeralVisitorKey;
   }
 }
 
@@ -40,7 +47,7 @@ export function phoenixTarotScope(userId: string | null): string {
 function validClaim(value: unknown): value is PhoenixTarotClaim {
   if (!value || typeof value !== "object") return false;
   const claim = value as Partial<PhoenixTarotClaim>;
-  return Number.isInteger(claim.candle_index)
+  return typeof claim.candle_index === "number" && Number.isInteger(claim.candle_index)
     && Number(claim.candle_index) >= 0 && Number(claim.candle_index) < 4
     && !!claim.reward && typeof claim.reward === "object";
 }
