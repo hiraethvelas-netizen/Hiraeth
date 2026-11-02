@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { Heart, Flame } from "lucide-react";
+import { Heart } from "lucide-react";
 import { toast } from "sonner";
 import { brl } from "@/lib/format";
 import { InlineEditor } from "@/components/InlineEditor";
@@ -42,6 +42,7 @@ export function CuratedProductGrid({
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<Curation>(settings);
   const [saving, setSaving] = useState(false);
+  const [quickSaving, setQuickSaving] = useState<string | null>(null);
   const [filter, setFilter] = useState("");
   const productMap = new Map(products.map(product => [product.id, product]));
   const edited = settings.featured.filter(item => productMap.has(item.id));
@@ -88,6 +89,28 @@ export function CuratedProductGrid({
       return { ...previous, featured: copy };
     });
   }
+  async function changeCardSize(id: string, size: DisplaySize) {
+    if (quickSaving) return;
+    setQuickSaving(id);
+    try {
+      const featured = settings.configured
+        ? [...settings.featured]
+        : products.map(product => ({ id: product.id, size: "normal" as DisplaySize }));
+      const updated = featured.some(item => item.id === id)
+        ? featured.map(item => item.id === id ? { ...item, size } : item)
+        : [...featured, { id, size }];
+      await saveSettings({ ...settings, title: settings.title || fallbackTitle,
+        configured: true, featured: updated });
+      toast.success(size === "large"
+        ? "Vela ampliada na vitrine."
+        : "Vela ajustada para a fileira de três.");
+    } catch (cause) {
+      toast.error(cause instanceof Error ? cause.message : "Não foi possível alterar o tamanho.");
+    } finally {
+      setQuickSaving(null);
+    }
+  }
+
   async function save() {
     setSaving(true);
     try {
@@ -112,7 +135,7 @@ export function CuratedProductGrid({
           {isAdmin && editMode && (
             <button type="button" onClick={begin}
               className="rounded border border-primary/40 px-3 py-2 text-xs text-primary">
-              Escolher velas e tamanhos
+              Personalizar destaques
             </button>
           )}
         </div>
@@ -121,8 +144,8 @@ export function CuratedProductGrid({
         <div className="mb-8 rounded-xl border border-primary/40 bg-card p-4" aria-label="Editar vitrine de produtos">
           <h3 className="font-display text-xl text-foreground">Organizar chamas em evidência</h3>
           <p className="mt-1 text-sm text-muted-foreground">
-            Escolha quais produtos aparecem nesta página e o tamanho de cada um.
-            Na fileira normal cabem três velas; o destaque maior ocupa o espaço de quatro.
+            Escolha as velas que aparecem nesta seção, organize a ordem e decida quais ficam maiores.
+            Você também pode mudar o tamanho diretamente em cada vela da vitrine quando o modo Editar site estiver ligado.
           </p>
           <label className="mt-4 block text-sm text-foreground">Nome da seção
             <input value={draft.title} onChange={e => setDraft(prev => ({ ...prev, title: e.target.value }))}
@@ -146,8 +169,8 @@ export function CuratedProductGrid({
                   <select value={selected.size} onChange={e => updateSize(product.id, e.target.value as DisplaySize)}
                     aria-label={"Tamanho na vitrine: " + product.name}
                     className="max-w-32 rounded border border-primary/30 bg-background px-2 py-2 text-xs text-foreground">
-                    <option value="normal">Fileira (3)</option>
-                    <option value="large">Destaque maior</option>
+                    <option value="normal">3 por fileira</option>
+                    <option value="large">Grande</option>
                   </select>
                   <button type="button" disabled={index === 0} onClick={() => move(product.id, -1)}
                     className="px-2 text-primary disabled:opacity-30" aria-label={"Mover " + product.name + " para cima"}>↑</button>
@@ -176,10 +199,12 @@ export function CuratedProductGrid({
             const badge = (p as Product & { product_badge?: string | null }).product_badge;
             const temporary = categories.some(cat => cat.id === p.category_id &&
               (cat.is_temporary || categories.some(parent => parent.id === cat.parent_id && parent.is_temporary)));
-            return <Link key={p.id} to="/produto/$slug" params={{ slug: p.slug }}
+            return <div key={p.id} data-product-size={size}
+              className={"relative min-w-0 " + (isLarge ? "col-span-2 row-span-2" : "")}>
+              <Link to="/produto/$slug" params={{ slug: p.slug }}
               className={"hiraeth-product-card group relative block min-w-0 bg-transparent text-center transition-transform duration-300 " +
-                (isLarge ? "col-span-2 row-span-2 hiraeth-featured-flame" : "")}
-              data-product-badge={badge ?? undefined} data-product-size={size}>
+                (isLarge ? "hiraeth-featured-flame" : "")}
+              data-product-badge={badge ?? undefined}>
               <div className={"hiraeth-product-visual relative overflow-hidden bg-transparent " +
                 (isLarge ? "aspect-[4/5] sm:aspect-square" : "aspect-square")}>
                 {p.images?.[0] ? (
@@ -218,7 +243,29 @@ export function CuratedProductGrid({
                   {p.sale_price != null && <span className="text-[10px] text-muted-foreground line-through">{brl(Number(p.price))}</span>}
                 </div>
               </div>
-            </Link>;
+              </Link>
+              {isAdmin && editMode && !showFavorites && !searching && (
+                <div role="group" aria-label={"Tamanho da vela " + p.name}
+                  className="mt-1 flex flex-wrap items-center justify-center gap-1.5 rounded-lg border border-primary/25 bg-card/90 p-1.5">
+                  <button type="button" disabled={quickSaving !== null || saving}
+                    onClick={() => void changeCardSize(p.id, "normal")}
+                    aria-label={"Exibir " + p.name + " em fileira de três"}
+                    aria-pressed={!isLarge}
+                    className={"rounded px-2 py-1.5 text-[10px] sm:text-xs " +
+                      (!isLarge ? "bg-primary/20 text-primary" : "text-muted-foreground hover:text-primary")}>
+                    3 por fileira
+                  </button>
+                  <button type="button" disabled={quickSaving !== null || saving}
+                    onClick={() => void changeCardSize(p.id, "large")}
+                    aria-label={"Exibir " + p.name + " grande"}
+                    aria-pressed={isLarge}
+                    className={"rounded px-2 py-1.5 text-[10px] sm:text-xs " +
+                      (isLarge ? "bg-primary/20 text-primary" : "text-muted-foreground hover:text-primary")}>
+                    Grande
+                  </button>
+                </div>
+              )}
+            </div>;
           })}
         </div>
       )}
