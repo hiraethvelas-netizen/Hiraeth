@@ -1,5 +1,6 @@
 import { createClient, type SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { calculateShippingPackage, type ShippingPackage, type ShippingItem } from "./commerce-shipping.ts";
+export { canAccessCommerce } from "./commerce-access.ts";
 
 export const corsHeaders = {
   "Access-Control-Allow-Origin": Deno.env.get("COMMERCE_ALLOWED_ORIGIN") || "https://hiraeth-oficial.lovable.app",
@@ -67,12 +68,16 @@ export async function signedInUser(req: Request) {
   return { ...data.user, email: data.user.email };
 }
 
+export async function userIsAdmin(userId: string): Promise<boolean> {
+  const { data, error } = await serviceClient().rpc("has_role", {
+    _user_id: userId, _role: "admin",
+  });
+  return !error && data === true;
+}
+
 export async function requireAdmin(req: Request) {
   const user = await signedInUser(req);
-  const { data, error } = await serviceClient().rpc("has_role", {
-    _user_id: user.id, _role: "admin",
-  });
-  if (error || data !== true) throw new Error("Acesso reservado à administração.");
+  if (!await userIsAdmin(user.id)) throw new Error("Acesso reservado à administração.");
   return user;
 }
 

@@ -1,6 +1,6 @@
 import {
-  corsHeaders, json, errorResponse, env, isCommerceEnabled,
-  signedInUser, serviceClient, postalCode, validateRecipient,
+  corsHeaders, json, errorResponse, env, isCommerceEnabled, canAccessCommerce,
+  signedInUser, userIsAdmin, serviceClient, postalCode, validateRecipient,
   freightQuotes, mercadoPagoRequest,
 } from "../_shared/commerce-api.ts";
 import { validateItems, snapshotProducts, calculateCheckoutPrice } from "../_shared/commerce-pricing.ts";
@@ -17,10 +17,24 @@ Deno.serve(async (req: Request) => {
   }
 
   if (body?.action === "config") {
+    const mode = Deno.env.get("HIRAETH_PAYMENTS_MODE");
+    const commerceReady = isCommerceEnabled();
+    let isAdmin = false;
+    if (commerceReady && mode === "sandbox") {
+      // This endpoint is requested on the public store too. Never reveal
+      // sandbox checkout availability/public key to a non-admin visitor.
+      try {
+        const user = await signedInUser(req);
+        isAdmin = await userIsAdmin(user.id);
+      } catch {
+        isAdmin = false;
+      }
+    }
+    const enabled = canAccessCommerce(commerceReady, mode, isAdmin);
     return json({
-      enabled: isCommerceEnabled(),
-      publicKey: isCommerceEnabled() ? env("MERCADO_PAGO_PUBLIC_KEY") : null,
-      sandbox: Deno.env.get("HIRAETH_PAYMENTS_MODE") !== "production",
+      enabled,
+      publicKey: enabled ? env("MERCADO_PAGO_PUBLIC_KEY") : null,
+      sandbox: mode !== "production",
       shippingProvider: "Melhor Envio",
       fiscalProvider: "Focus NFe",
     });
@@ -28,10 +42,17 @@ Deno.serve(async (req: Request) => {
 
   try {
     const user = await signedInUser(req);
-    if (!isCommerceEnabled()) return json({
+    const ready = isCommerceEnabled();
+    if (!ready) return json({
       error: "O checkout está em configuração. Nenhuma cobrança foi iniciada.",
       code: "COMMERCE_NOT_ENABLED",
     }, 503);
+    const mode = Deno.env.get("HIRAETH_PAYMENTS_MODE");
+    const isAdmin = mode === "sandbox" ? await userIsAdmin(user.id) : false;
+    if (!canAccessCommerce(ready, mode, isAdmin)) return json({
+      error: "O checkout de testes está disponível apenas para a administração.",
+      code: "SANDBOX_ADMIN_ONLY",
+    }, 403);
     const db = serviceClient();
 
     if (body.action === "status") {
