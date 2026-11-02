@@ -94,35 +94,18 @@ beforeEach(() => {
   );
 });
 afterEach(cleanup);
-it("calculates automatic benefits and includes gifts and free shipping in the simulated order", async () => {
-  render(
-    <CartProvider>
-      <Cart />
-    </CartProvider>,
-  );
+it("shows automatic benefits and opens secure checkout without creating an unpaid order", async () => {
+  render(<CartProvider><Cart /></CartProvider>);
   expect(await screen.findByText("Brinde: Marcador")).toBeInTheDocument();
   expect(screen.getByText("Frete grátis aplicado.")).toBeInTheDocument();
   const checkout = screen.getByRole("button", { name: "Finalizar pedido" });
   await waitFor(() => expect(checkout).toBeEnabled());
   fireEvent.click(checkout);
-  await waitFor(() =>
-    expect(mocks.insert).toHaveBeenCalledWith(
-      "orders",
-      expect.objectContaining({
-        subtotal: 40,
-        discount: 8,
-        total: 32,
-        shipping: 0,
-        promotion_summary: expect.objectContaining({ free_shipping: true, gifts: ["Marcador"] }),
-      }),
-    ),
-  );
-  await waitFor(() => expect(mocks.navigate).toHaveBeenCalledWith({ to: "/pedidos" }));
-  expect(mocks.insert).toHaveBeenCalledWith(
-    "order_items",
-    expect.arrayContaining([expect.objectContaining({ product_id: "test", quantity: 2 })]),
-  );
+  await waitFor(() => expect(mocks.navigate).toHaveBeenCalledWith({ to: "/checkout" }));
+  expect(mocks.insert).not.toHaveBeenCalled();
+  expect(screen.getByText("Vela teste")).toBeInTheDocument();
 });
+
 it("blocks finalization and offers retry if promotions cannot be checked", async () => {
   mocks.failed = true;
   render(
