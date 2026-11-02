@@ -128,76 +128,26 @@ function Carrinho() {
   }
 
   async function checkout() {
+    if (placing || !cart.items.length) return;
     setPlacing(true);
-    const { data: userData } = await supabase.auth.getUser();
-    if (!userData.user) {
-      setPlacing(false);
-      navigate({ to: "/auth", search: { redirect: "/carrinho" } });
-      return;
-    }
-
-    // Valida estoque antes de criar o pedido
-    const ids = cart.items.map((i) => i.productId);
-    const { data: products, error: productsError } = await supabase.from("products").select("id, name, stock, variants").in("id", ids);
-    if (productsError) { toast.error("Não foi possível validar o estoque. Tente novamente."); setPlacing(false); return; }
-    for (const item of cart.items) {
-      const p = products?.find((x) => x.id === item.productId);
-      const currentVariants = managedVariants(p?.variants);
-      const selected = item.variantKey ? currentVariants.find(row => row.key === item.variantKey) : null;
-      const variantStock = currentVariants.length
-        ? (selected?.stock ?? 0)
-        : typeof item.variantDetails?.["stock"] === "number" ? item.variantDetails["stock"] : null;
-      if (!p || (variantStock !== null ? variantStock < item.quantity : p.stock < item.quantity)) {
-        toast.error(`Estoque insuficiente para "${item.name}".`);
-        setPlacing(false);
+    try {
+      // An unpaid cart must NEVER create an order, alter inventory, or
+      // increment promotion usage. The secure server checkout owns those.
+      const { data } = await supabase.auth.getUser();
+      if (!data.user) {
+        navigate({ to: "/auth", search: { redirect: "/carrinho" } });
         return;
       }
-    }
-
-    const { data: order, error } = await db
-      .from("orders")
-      .insert({
-        user_id: userData.user.id,
-        total: payableTotal,
-        subtotal: cart.total,
-        discount: totalDiscount,
-        coupon_code: couponCode,
-        ...(benefits.freeShipping ? { shipping: 0 } : {}),
-        promotion_summary: { applied: benefits.applied, free_shipping: benefits.freeShipping, gifts: benefits.gifts },
-        customer_email: userData.user.email ?? null,
-        status: "pending",
-      })
-      .select("id")
-      .single();
-
-    if (error || !order) {
-      toast.error("Não foi possível criar o pedido. Tente novamente.");
+      try {
+        sessionStorage.setItem("hiraeth-checkout-coupon", couponIsCurrent
+          ? (appliedCoupon?.code ?? "") : "");
+      } catch { /* Optional local preference only. */ }
+      await navigate({ to: "/checkout" });
+    } catch {
+      toast.error("Não foi possível abrir o checkout. Tente novamente.");
+    } finally {
       setPlacing(false);
-      return;
     }
-
-    const { error: itemError } = await db.from("order_items").insert(
-      cart.items.map((i) => ({
-        order_id: order.id,
-        product_id: i.productId,
-        product_name: i.name,
-        quantity: i.quantity,
-        unit_price: i.price,
-        variant_details: i.variantDetails ?? {},
-      })),
-    );
-    if (itemError) {
-      const cleanup = await db.rpc("discard_incomplete_order", { p_order_id: order.id });
-      setRefreshPromotions(value => value + 1);
-      toast.error(cleanup.error || cleanup.data !== true ? "Não foi possível salvar os itens. Um registro pendente pode ter ficado no histórico; contate o suporte antes de repetir a compra." : "Não foi possível salvar os itens. Confira as promoções atualizadas e tente novamente.");
-      setPlacing(false);
-      return;
-    }
-
-    cart.clear();
-    setPlacing(false);
-    toast.success("Pedido registrado! O pagamento será configurado em breve.");
-    navigate({ to: "/pedidos" });
   }
 
   return (
@@ -290,7 +240,7 @@ function Carrinho() {
               <p className="text-xl sm:text-2xl">
                 Total: <span className="text-primary">{brl(payableTotal)}</span>
               </p>
-              <p className="mt-1 text-sm text-muted-foreground">{benefits.freeShipping ? "Frete grátis nesta compra." : "Frete calculado na finalização."}</p>
+              <p className="mt-1 text-sm text-muted-foreground">{benefits.freeShipping ? "Frete grátis nesta compra." : "O frete será calculado e confirmado antes do pagamento."}</p>
               <button onClick={checkout} disabled={placing || validatingCoupon || promotionsLoading || promotionsError} className="btn-gold mt-6 w-full max-w-full justify-center sm:w-auto">
                 {placing ? "Processando..." : "Finalizar pedido"}
               </button>
