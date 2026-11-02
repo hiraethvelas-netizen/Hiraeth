@@ -1,4 +1,4 @@
-export const CROP_ASPECTS = { square: 1, landscape: 16 / 9, photo: 4 / 3 } as const;
+export const CROP_ASPECTS = { square: 1, portrait: 4 / 5, landscape: 16 / 9, photo: 4 / 3 } as const;
 export type CropAspect = keyof typeof CROP_ASPECTS;
 
 /** Keep the image covering the frame while limiting drag to the available image edges. */
