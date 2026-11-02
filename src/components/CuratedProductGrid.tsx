@@ -3,6 +3,8 @@ import { Link } from "@tanstack/react-router";
 import { Heart } from "lucide-react";
 import { toast } from "sonner";
 import { brl } from "@/lib/format";
+import { visiblePrice } from "@/lib/store-pricing";
+import type { Promotion, PromotionCategory } from "@/lib/promotions";
 import { InlineEditor } from "@/components/InlineEditor";
 import { useAdminEdit, useSiteContent } from "@/lib/admin-edit";
 import type { Tables } from "@/integrations/supabase/types";
@@ -27,12 +29,15 @@ type Props = {
   onSaveProduct: (product: Product, values: Record<string, unknown>) => Promise<void>;
   showFavorites?: boolean;
   searching?: boolean;
+  automaticPromotions?: Promotion[];
+  promotionCategories?: PromotionCategory[];
 };
 
 /** One instance per collection. Every category and subcategory has its own curation. */
 export function CuratedProductGrid({
   scope, products, categories, wishlistIds, onWishlist, onSaveProduct,
   showFavorites = false, searching = false,
+  automaticPromotions = [], promotionCategories = [],
 }: Props) {
   const { isAdmin, editMode } = useAdminEdit();
   const fallbackTitle = scope === "home" ? "Chamas em Evidência" : "Tesouros deste Universo";
@@ -197,6 +202,10 @@ export function CuratedProductGrid({
           {visible.map(({ product: p, size }) => {
             const isLarge = size === "large" && !searching && !showFavorites;
             const badge = (p as Product & { product_badge?: string | null }).product_badge;
+            const pricePreview = visiblePrice({
+              id: p.id, category_id: p.category_id,
+              price: Number(p.price), sale_price: p.sale_price === null ? null : Number(p.sale_price),
+            }, automaticPromotions, promotionCategories);
             const temporary = categories.some(cat => cat.id === p.category_id &&
               (cat.is_temporary || categories.some(parent => parent.id === cat.parent_id && parent.is_temporary)));
             return <div key={p.id} data-product-size={size}
@@ -239,8 +248,11 @@ export function CuratedProductGrid({
                 <h3 className={"font-display break-words font-medium leading-snug text-foreground " +
                   (isLarge ? "text-xl sm:text-3xl" : "text-xs sm:text-lg")}>{p.name}</h3>
                 <div className={"mt-1 flex flex-wrap items-baseline justify-center gap-1 text-primary " + (isLarge ? "text-xl" : "text-xs sm:text-base")}>
-                  <span>{brl(Number(p.sale_price ?? p.price))}</span>
-                  {p.sale_price != null && <span className="text-[10px] text-muted-foreground line-through">{brl(Number(p.price))}</span>}
+                  {pricePreview.hasDiscount && <span aria-label={"Valor original " + brl(pricePreview.original)}
+                    className="text-[10px] text-muted-foreground line-through sm:text-sm">{brl(pricePreview.original)}</span>}
+                  <span className={pricePreview.hasDiscount ? "font-semibold text-[#68763c] dark:text-[#d9ca9e]" : ""}>
+                    {brl(pricePreview.current)}
+                  </span>
                 </div>
               </div>
               </Link>
