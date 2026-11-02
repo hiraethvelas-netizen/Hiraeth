@@ -158,14 +158,16 @@ Deno.serve(async (req:Request) => {
       if(!checkout)return json({error:"Informações da cotação não encontradas."},409);
       const sender=JSON.parse(env("MELHOR_ENVIO_SENDER_JSON"));
       const recipient=checkout.recipient;
-      const width=Number(env("HIRAETH_PACKAGE_WIDTH_CM"));
-      const height=Number(env("HIRAETH_PACKAGE_HEIGHT_CM"));
-      const length=Number(env("HIRAETH_PACKAGE_LENGTH_CM"));
-      const measuredWeightGrams=(checkout.items as any[]).reduce((n:number,i:any)=>
-        n+Number(i.quantity)*Number(i.weightGrams??0),0);
-      if(!Number.isFinite(measuredWeightGrams)||measuredWeightGrams<=0)
-        throw new Error("O peso salvo no pedido está inválido. Confira a expedição.");
-      const weight=Math.max(0.1,measuredWeightGrams/1000);
+      // Use the exact parcel quoted and paid for, never mutable default
+      // dimensions or a recalculated weight at label-creation time.
+      const quotedPackage=checkout.freight?.package;
+      const width=Number(quotedPackage?.width);
+      const height=Number(quotedPackage?.height);
+      const length=Number(quotedPackage?.length);
+      const weight=Number(quotedPackage?.weight);
+      if (![width,height,length,weight].every(n=>Number.isFinite(n)&&n>0)) {
+        throw new Error("A cotação não contém as medidas e o peso do pacote. Refaça o checkout.");
+      }
       const payload={
         service:Number(checkout.freight.id),
         from:sender,
