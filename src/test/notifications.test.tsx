@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { safeNotificationHref, notificationDate } from "@/lib/notifications";
+import { safeNotificationHref, notificationDate, getNotificationsViewedAt } from "@/lib/notifications";
 
 const mocks = vi.hoisted(() => ({
   inserted: vi.fn(),
@@ -49,7 +49,7 @@ import { Route as AdminRoute } from "@/routes/admin/notificacoes";
 const Notifications = NotificationsRoute.options.component!;
 const AdminNotifications = AdminRoute.options.component!;
 
-beforeEach(() => { vi.clearAllMocks(); });
+beforeEach(() => { vi.clearAllMocks(); localStorage.clear(); });
 afterEach(() => { cleanup(); vi.restoreAllMocks(); });
 
 describe("Sinais da Chama", () => {
@@ -67,6 +67,15 @@ describe("Sinais da Chama", () => {
     expect(title.className).toContain("text-[#273b2b]");
     expect(screen.getByText("Confira o Acervo Hiraeth.").className).toContain("text-[#354933]");
     expect(title.closest("a")?.className).toContain("bg-[#f6eed9]");
+  });
+
+  it("removes the notification dot when Sinais da Chama opens, keeping all alerts listed", async () => {
+    expect(getNotificationsViewedAt("u1")).toBe(0);
+    render(<Notifications />);
+    expect(await screen.findByText("Cupom especial")).toBeInTheDocument();
+    await waitFor(() => expect(getNotificationsViewedAt("u1")).toBeGreaterThan(0));
+    expect(screen.getByText("Sua publicação recebeu uma reação")).toBeInTheDocument();
+    expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
   });
 
   it("restricts links to safe internal destinations", () => {
