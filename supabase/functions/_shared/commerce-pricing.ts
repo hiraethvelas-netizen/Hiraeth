@@ -5,6 +5,7 @@ export type SnapshotItem = {
   quantity: number;
   price: number;
   variantKey: string;
+  stockVariantKey: string;
   variantDetails: Record<string, unknown>;
   categoryId: string | null;
   weightGrams: number;
@@ -52,9 +53,25 @@ export function snapshotProducts(
     if (!product || product.status !== "published") throw new Error("Produto indisponível. Atualize sua sacola.");
     const variants: any[] = Array.isArray(product.variants) ? product.variants : [];
     let variant: any = null;
+    let stockVariantKey = item.variantKey ?? "";
+    let houseLabel: string | undefined;
     if (item.variantKey) {
-      variant = variants.find(row => row.key === item.variantKey) ?? null;
-      if (!variant) throw new Error("Uma variação do produto mudou. Revise a sacola.");
+      variant = variants.find(row => String(row.key ?? row.id ?? row.label ?? "") === item.variantKey) ?? null;
+      if (!variant) {
+        // Legacy candles can have a size + house stored as "sizeKey::houseKey".
+        // Only the size variant owns the inventory and price. A house is a
+        // selectable scent, not an additional independent stock pool.
+        const [sizeKey, houseKey] = item.variantKey.split("::");
+        variant = variants.find(row => row.type !== "house" &&
+          String(row.key ?? row.id ?? row.label ?? "") === sizeKey) ?? null;
+        if (!variant || !houseKey || !variants.some(row => row.type === "house" &&
+          String(row.key ?? row.id ?? row.label ?? "") === houseKey))
+          throw new Error("Uma variação do produto mudou. Revise a sacola.");
+        stockVariantKey = String(variant.key ?? variant.id ?? variant.label);
+        const house = variants.find(row => row.type === "house" &&
+          String(row.key ?? row.id ?? row.label ?? "") === houseKey);
+        houseLabel = String(house?.label ?? houseKey);
+      }
     } else if (variants.length) {
       throw new Error("Escolha uma variação deste produto antes de continuar.");
     }
@@ -76,10 +93,13 @@ export function snapshotProducts(
       quantity: item.quantity,
       price: money(price),
       variantKey: item.variantKey ?? "",
+      stockVariantKey,
       variantDetails: variant ? {
         options: variant.options ?? {},
         label: variant.label ?? "",
+        ...(houseLabel ? {house:houseLabel} : {}),
         variantKey: item.variantKey,
+        stockVariantKey,
         originalPrice: original,
       } : { originalPrice: original },
       categoryId: product.category_id ?? null,
