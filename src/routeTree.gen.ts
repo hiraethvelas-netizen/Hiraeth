@@ -14,8 +14,10 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as CarrinhoRouteImport } from './routes/carrinho'
+import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as ClubeDoLivroRouteImport } from './routes/clube-do-livro'
 import { Route as CuidadosRouteImport } from './routes/cuidados'
+import { Route as FavoritosRouteImport } from './routes/favoritos'
 import { Route as InicioRouteImport } from './routes/inicio'
 import { Route as LojaRouteImport } from './routes/loja'
 import { Route as PrivacidadeRouteImport } from './routes/privacidade'
@@ -23,10 +25,12 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SegurancaRouteImport } from './routes/seguranca'
 import { Route as SobreRouteImport } from './routes/sobre'
 import { Route as SuporteRouteImport } from './routes/suporte'
+import { Route as TaroDaFenixRouteImport } from './routes/taro-da-fenix'
 import { Route as TermosRouteImport } from './routes/termos'
 import { Route as AuthenticatedBibliotecaRouteImport } from './routes/_authenticated/biblioteca'
 import { Route as AuthenticatedComunidadeRouteImport } from './routes/_authenticated/comunidade'
 import { Route as AuthenticatedConfiguracoesRouteImport } from './routes/_authenticated/configuracoes'
+import { Route as AuthenticatedNotificacoesRouteImport } from './routes/_authenticated/notificacoes'
 import { Route as AuthenticatedPedidosRouteImport } from './routes/_authenticated/pedidos'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminAparenciaRouteImport } from './routes/admin/aparencia'
@@ -34,7 +38,9 @@ import { Route as AdminAvaliacoesRouteImport } from './routes/admin/avaliacoes'
 import { Route as AdminBannersRouteImport } from './routes/admin/banners'
 import { Route as AdminCategoriasRouteImport } from './routes/admin/categorias'
 import { Route as AdminEssenciasRouteImport } from './routes/admin/essencias'
+import { Route as AdminExpedicaoRouteImport } from './routes/admin/expedicao'
 import { Route as AdminFinanceiroRouteImport } from './routes/admin/financeiro'
+import { Route as AdminNotificacoesRouteImport } from './routes/admin/notificacoes'
 import { Route as AdminPedidosRouteImport } from './routes/admin/pedidos'
 import { Route as AdminPortaisRouteImport } from './routes/admin/portais'
 import { Route as AdminProdutosRouteImport } from './routes/admin/produtos'
@@ -67,6 +73,11 @@ const CarrinhoRoute = CarrinhoRouteImport.update({
   path: '/carrinho',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CheckoutRoute = CheckoutRouteImport.update({
+  id: '/checkout',
+  path: '/checkout',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ClubeDoLivroRoute = ClubeDoLivroRouteImport.update({
   id: '/clube-do-livro',
   path: '/clube-do-livro',
@@ -75,6 +86,11 @@ const ClubeDoLivroRoute = ClubeDoLivroRouteImport.update({
 const CuidadosRoute = CuidadosRouteImport.update({
   id: '/cuidados',
   path: '/cuidados',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FavoritosRoute = FavoritosRouteImport.update({
+  id: '/favoritos',
+  path: '/favoritos',
   getParentRoute: () => rootRouteImport,
 } as any)
 const InicioRoute = InicioRouteImport.update({
@@ -112,6 +128,11 @@ const SuporteRoute = SuporteRouteImport.update({
   path: '/suporte',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TaroDaFenixRoute = TaroDaFenixRouteImport.update({
+  id: '/taro-da-fenix',
+  path: '/taro-da-fenix',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TermosRoute = TermosRouteImport.update({
   id: '/termos',
   path: '/termos',
@@ -131,6 +152,12 @@ const AuthenticatedConfiguracoesRoute =
   AuthenticatedConfiguracoesRouteImport.update({
     id: '/configuracoes',
     path: '/configuracoes',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedNotificacoesRoute =
+  AuthenticatedNotificacoesRouteImport.update({
+    id: '/notificacoes',
+    path: '/notificacoes',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedPedidosRoute = AuthenticatedPedidosRouteImport.update({
@@ -168,9 +195,19 @@ const AdminEssenciasRoute = AdminEssenciasRouteImport.update({
   path: '/essencias',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminExpedicaoRoute = AdminExpedicaoRouteImport.update({
+  id: '/expedicao',
+  path: '/expedicao',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminFinanceiroRoute = AdminFinanceiroRouteImport.update({
   id: '/financeiro',
   path: '/financeiro',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminNotificacoesRoute = AdminNotificacoesRouteImport.update({
+  id: '/notificacoes',
+  path: '/notificacoes',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminPedidosRoute = AdminPedidosRouteImport.update({
@@ -214,8 +251,10 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
   '/carrinho': typeof CarrinhoRoute
+  '/checkout': typeof CheckoutRoute
   '/clube-do-livro': typeof ClubeDoLivroRoute
   '/cuidados': typeof CuidadosRoute
+  '/favoritos': typeof FavoritosRoute
   '/inicio': typeof InicioRoute
   '/loja': typeof LojaRoute
   '/privacidade': typeof PrivacidadeRoute
@@ -223,17 +262,21 @@ export interface FileRoutesByFullPath {
   '/seguranca': typeof SegurancaRoute
   '/sobre': typeof SobreRoute
   '/suporte': typeof SuporteRoute
+  '/taro-da-fenix': typeof TaroDaFenixRoute
   '/termos': typeof TermosRoute
   '/biblioteca': typeof AuthenticatedBibliotecaRoute
   '/comunidade': typeof AuthenticatedComunidadeRoute
   '/configuracoes': typeof AuthenticatedConfiguracoesRoute
+  '/notificacoes': typeof AuthenticatedNotificacoesRoute
   '/pedidos': typeof AuthenticatedPedidosRoute
   '/admin/aparencia': typeof AdminAparenciaRoute
   '/admin/avaliacoes': typeof AdminAvaliacoesRoute
   '/admin/banners': typeof AdminBannersRoute
   '/admin/categorias': typeof AdminCategoriasRoute
   '/admin/essencias': typeof AdminEssenciasRoute
+  '/admin/expedicao': typeof AdminExpedicaoRoute
   '/admin/financeiro': typeof AdminFinanceiroRoute
+  '/admin/notificacoes': typeof AdminNotificacoesRoute
   '/admin/pedidos': typeof AdminPedidosRoute
   '/admin/portais': typeof AdminPortaisRoute
   '/admin/produtos': typeof AdminProdutosRoute
@@ -247,8 +290,10 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/carrinho': typeof CarrinhoRoute
+  '/checkout': typeof CheckoutRoute
   '/clube-do-livro': typeof ClubeDoLivroRoute
   '/cuidados': typeof CuidadosRoute
+  '/favoritos': typeof FavoritosRoute
   '/inicio': typeof InicioRoute
   '/loja': typeof LojaRoute
   '/privacidade': typeof PrivacidadeRoute
@@ -256,17 +301,21 @@ export interface FileRoutesByTo {
   '/seguranca': typeof SegurancaRoute
   '/sobre': typeof SobreRoute
   '/suporte': typeof SuporteRoute
+  '/taro-da-fenix': typeof TaroDaFenixRoute
   '/termos': typeof TermosRoute
   '/biblioteca': typeof AuthenticatedBibliotecaRoute
   '/comunidade': typeof AuthenticatedComunidadeRoute
   '/configuracoes': typeof AuthenticatedConfiguracoesRoute
+  '/notificacoes': typeof AuthenticatedNotificacoesRoute
   '/pedidos': typeof AuthenticatedPedidosRoute
   '/admin/aparencia': typeof AdminAparenciaRoute
   '/admin/avaliacoes': typeof AdminAvaliacoesRoute
   '/admin/banners': typeof AdminBannersRoute
   '/admin/categorias': typeof AdminCategoriasRoute
   '/admin/essencias': typeof AdminEssenciasRoute
+  '/admin/expedicao': typeof AdminExpedicaoRoute
   '/admin/financeiro': typeof AdminFinanceiroRoute
+  '/admin/notificacoes': typeof AdminNotificacoesRoute
   '/admin/pedidos': typeof AdminPedidosRoute
   '/admin/portais': typeof AdminPortaisRoute
   '/admin/produtos': typeof AdminProdutosRoute
@@ -283,8 +332,10 @@ export interface FileRoutesById {
   '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
   '/carrinho': typeof CarrinhoRoute
+  '/checkout': typeof CheckoutRoute
   '/clube-do-livro': typeof ClubeDoLivroRoute
   '/cuidados': typeof CuidadosRoute
+  '/favoritos': typeof FavoritosRoute
   '/inicio': typeof InicioRoute
   '/loja': typeof LojaRoute
   '/privacidade': typeof PrivacidadeRoute
@@ -292,17 +343,21 @@ export interface FileRoutesById {
   '/seguranca': typeof SegurancaRoute
   '/sobre': typeof SobreRoute
   '/suporte': typeof SuporteRoute
+  '/taro-da-fenix': typeof TaroDaFenixRoute
   '/termos': typeof TermosRoute
   '/_authenticated/biblioteca': typeof AuthenticatedBibliotecaRoute
   '/_authenticated/comunidade': typeof AuthenticatedComunidadeRoute
   '/_authenticated/configuracoes': typeof AuthenticatedConfiguracoesRoute
+  '/_authenticated/notificacoes': typeof AuthenticatedNotificacoesRoute
   '/_authenticated/pedidos': typeof AuthenticatedPedidosRoute
   '/admin/aparencia': typeof AdminAparenciaRoute
   '/admin/avaliacoes': typeof AdminAvaliacoesRoute
   '/admin/banners': typeof AdminBannersRoute
   '/admin/categorias': typeof AdminCategoriasRoute
   '/admin/essencias': typeof AdminEssenciasRoute
+  '/admin/expedicao': typeof AdminExpedicaoRoute
   '/admin/financeiro': typeof AdminFinanceiroRoute
+  '/admin/notificacoes': typeof AdminNotificacoesRoute
   '/admin/pedidos': typeof AdminPedidosRoute
   '/admin/portais': typeof AdminPortaisRoute
   '/admin/produtos': typeof AdminProdutosRoute
@@ -319,8 +374,10 @@ export interface FileRouteTypes {
     | '/admin'
     | '/auth'
     | '/carrinho'
+    | '/checkout'
     | '/clube-do-livro'
     | '/cuidados'
+    | '/favoritos'
     | '/inicio'
     | '/loja'
     | '/privacidade'
@@ -328,17 +385,21 @@ export interface FileRouteTypes {
     | '/seguranca'
     | '/sobre'
     | '/suporte'
+    | '/taro-da-fenix'
     | '/termos'
     | '/biblioteca'
     | '/comunidade'
     | '/configuracoes'
+    | '/notificacoes'
     | '/pedidos'
     | '/admin/aparencia'
     | '/admin/avaliacoes'
     | '/admin/banners'
     | '/admin/categorias'
     | '/admin/essencias'
+    | '/admin/expedicao'
     | '/admin/financeiro'
+    | '/admin/notificacoes'
     | '/admin/pedidos'
     | '/admin/portais'
     | '/admin/produtos'
@@ -352,8 +413,10 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/carrinho'
+    | '/checkout'
     | '/clube-do-livro'
     | '/cuidados'
+    | '/favoritos'
     | '/inicio'
     | '/loja'
     | '/privacidade'
@@ -361,17 +424,21 @@ export interface FileRouteTypes {
     | '/seguranca'
     | '/sobre'
     | '/suporte'
+    | '/taro-da-fenix'
     | '/termos'
     | '/biblioteca'
     | '/comunidade'
     | '/configuracoes'
+    | '/notificacoes'
     | '/pedidos'
     | '/admin/aparencia'
     | '/admin/avaliacoes'
     | '/admin/banners'
     | '/admin/categorias'
     | '/admin/essencias'
+    | '/admin/expedicao'
     | '/admin/financeiro'
+    | '/admin/notificacoes'
     | '/admin/pedidos'
     | '/admin/portais'
     | '/admin/produtos'
@@ -387,8 +454,10 @@ export interface FileRouteTypes {
     | '/admin'
     | '/auth'
     | '/carrinho'
+    | '/checkout'
     | '/clube-do-livro'
     | '/cuidados'
+    | '/favoritos'
     | '/inicio'
     | '/loja'
     | '/privacidade'
@@ -396,17 +465,21 @@ export interface FileRouteTypes {
     | '/seguranca'
     | '/sobre'
     | '/suporte'
+    | '/taro-da-fenix'
     | '/termos'
     | '/_authenticated/biblioteca'
     | '/_authenticated/comunidade'
     | '/_authenticated/configuracoes'
+    | '/_authenticated/notificacoes'
     | '/_authenticated/pedidos'
     | '/admin/aparencia'
     | '/admin/avaliacoes'
     | '/admin/banners'
     | '/admin/categorias'
     | '/admin/essencias'
+    | '/admin/expedicao'
     | '/admin/financeiro'
+    | '/admin/notificacoes'
     | '/admin/pedidos'
     | '/admin/portais'
     | '/admin/produtos'
@@ -423,8 +496,10 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRouteWithChildren
   AuthRoute: typeof AuthRoute
   CarrinhoRoute: typeof CarrinhoRoute
+  CheckoutRoute: typeof CheckoutRoute
   ClubeDoLivroRoute: typeof ClubeDoLivroRoute
   CuidadosRoute: typeof CuidadosRoute
+  FavoritosRoute: typeof FavoritosRoute
   InicioRoute: typeof InicioRoute
   LojaRoute: typeof LojaRoute
   PrivacidadeRoute: typeof PrivacidadeRoute
@@ -432,6 +507,7 @@ export interface RootRouteChildren {
   SegurancaRoute: typeof SegurancaRoute
   SobreRoute: typeof SobreRoute
   SuporteRoute: typeof SuporteRoute
+  TaroDaFenixRoute: typeof TaroDaFenixRoute
   TermosRoute: typeof TermosRoute
   PortalSlugRoute: typeof PortalSlugRoute
   ProdutoSlugRoute: typeof ProdutoSlugRoute
@@ -474,6 +550,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CarrinhoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/checkout': {
+      id: '/checkout'
+      path: '/checkout'
+      fullPath: '/checkout'
+      preLoaderRoute: typeof CheckoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/clube-do-livro': {
       id: '/clube-do-livro'
       path: '/clube-do-livro'
@@ -486,6 +569,13 @@ declare module '@tanstack/react-router' {
       path: '/cuidados'
       fullPath: '/cuidados'
       preLoaderRoute: typeof CuidadosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/favoritos': {
+      id: '/favoritos'
+      path: '/favoritos'
+      fullPath: '/favoritos'
+      preLoaderRoute: typeof FavoritosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/inicio': {
@@ -537,6 +627,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SuporteRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/taro-da-fenix': {
+      id: '/taro-da-fenix'
+      path: '/taro-da-fenix'
+      fullPath: '/taro-da-fenix'
+      preLoaderRoute: typeof TaroDaFenixRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/termos': {
       id: '/termos'
       path: '/termos'
@@ -563,6 +660,13 @@ declare module '@tanstack/react-router' {
       path: '/configuracoes'
       fullPath: '/configuracoes'
       preLoaderRoute: typeof AuthenticatedConfiguracoesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/notificacoes': {
+      id: '/_authenticated/notificacoes'
+      path: '/notificacoes'
+      fullPath: '/notificacoes'
+      preLoaderRoute: typeof AuthenticatedNotificacoesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/pedidos': {
@@ -614,11 +718,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminEssenciasRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/expedicao': {
+      id: '/admin/expedicao'
+      path: '/expedicao'
+      fullPath: '/admin/expedicao'
+      preLoaderRoute: typeof AdminExpedicaoRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/financeiro': {
       id: '/admin/financeiro'
       path: '/financeiro'
       fullPath: '/admin/financeiro'
       preLoaderRoute: typeof AdminFinanceiroRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/notificacoes': {
+      id: '/admin/notificacoes'
+      path: '/notificacoes'
+      fullPath: '/admin/notificacoes'
+      preLoaderRoute: typeof AdminNotificacoesRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/pedidos': {
@@ -677,6 +795,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedBibliotecaRoute: typeof AuthenticatedBibliotecaRoute
   AuthenticatedComunidadeRoute: typeof AuthenticatedComunidadeRoute
   AuthenticatedConfiguracoesRoute: typeof AuthenticatedConfiguracoesRoute
+  AuthenticatedNotificacoesRoute: typeof AuthenticatedNotificacoesRoute
   AuthenticatedPedidosRoute: typeof AuthenticatedPedidosRoute
 }
 
@@ -684,6 +803,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedBibliotecaRoute: AuthenticatedBibliotecaRoute,
   AuthenticatedComunidadeRoute: AuthenticatedComunidadeRoute,
   AuthenticatedConfiguracoesRoute: AuthenticatedConfiguracoesRoute,
+  AuthenticatedNotificacoesRoute: AuthenticatedNotificacoesRoute,
   AuthenticatedPedidosRoute: AuthenticatedPedidosRoute,
 }
 
@@ -696,7 +816,9 @@ interface AdminRouteChildren {
   AdminBannersRoute: typeof AdminBannersRoute
   AdminCategoriasRoute: typeof AdminCategoriasRoute
   AdminEssenciasRoute: typeof AdminEssenciasRoute
+  AdminExpedicaoRoute: typeof AdminExpedicaoRoute
   AdminFinanceiroRoute: typeof AdminFinanceiroRoute
+  AdminNotificacoesRoute: typeof AdminNotificacoesRoute
   AdminPedidosRoute: typeof AdminPedidosRoute
   AdminPortaisRoute: typeof AdminPortaisRoute
   AdminProdutosRoute: typeof AdminProdutosRoute
@@ -711,7 +833,9 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminBannersRoute: AdminBannersRoute,
   AdminCategoriasRoute: AdminCategoriasRoute,
   AdminEssenciasRoute: AdminEssenciasRoute,
+  AdminExpedicaoRoute: AdminExpedicaoRoute,
   AdminFinanceiroRoute: AdminFinanceiroRoute,
+  AdminNotificacoesRoute: AdminNotificacoesRoute,
   AdminPedidosRoute: AdminPedidosRoute,
   AdminPortaisRoute: AdminPortaisRoute,
   AdminProdutosRoute: AdminProdutosRoute,
@@ -728,8 +852,10 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRouteWithChildren,
   AuthRoute: AuthRoute,
   CarrinhoRoute: CarrinhoRoute,
+  CheckoutRoute: CheckoutRoute,
   ClubeDoLivroRoute: ClubeDoLivroRoute,
   CuidadosRoute: CuidadosRoute,
+  FavoritosRoute: FavoritosRoute,
   InicioRoute: InicioRoute,
   LojaRoute: LojaRoute,
   PrivacidadeRoute: PrivacidadeRoute,
@@ -737,6 +863,7 @@ const rootRouteChildren: RootRouteChildren = {
   SegurancaRoute: SegurancaRoute,
   SobreRoute: SobreRoute,
   SuporteRoute: SuporteRoute,
+  TaroDaFenixRoute: TaroDaFenixRoute,
   TermosRoute: TermosRoute,
   PortalSlugRoute: PortalSlugRoute,
   ProdutoSlugRoute: ProdutoSlugRoute,
@@ -744,13 +871,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

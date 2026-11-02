@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      app_notifications: {
+        Row: {
+          actor_id: string | null
+          body: string
+          created_at: string
+          href: string
+          id: string
+          kind: string
+          origin_id: string | null
+          recipient_id: string | null
+          title: string
+        }
+        Insert: {
+          actor_id?: string | null
+          body: string
+          created_at?: string
+          href?: string
+          id?: string
+          kind: string
+          origin_id?: string | null
+          recipient_id?: string | null
+          title: string
+        }
+        Update: {
+          actor_id?: string | null
+          body?: string
+          created_at?: string
+          href?: string
+          id?: string
+          kind?: string
+          origin_id?: string | null
+          recipient_id?: string | null
+          title?: string
+        }
+        Relationships: []
+      }
       categories: {
         Row: {
           created_at: string
@@ -67,6 +103,204 @@ export type Database = {
           },
         ]
       }
+      commerce_checkouts: {
+        Row: {
+          coupon_code: string | null
+          created_at: string
+          discount: number
+          email: string
+          expires_at: string
+          freight: Json
+          id: string
+          items: Json
+          last_error: string | null
+          mp_payment_id: string | null
+          order_id: string | null
+          paid_at: string | null
+          payment_method: string | null
+          payment_request_key: string
+          pix_qr_code: string | null
+          pix_qr_code_base64: string | null
+          promotion_summary: Json
+          recipient: Json
+          shipping: number
+          status: string
+          subtotal: number
+          total: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          coupon_code?: string | null
+          created_at?: string
+          discount?: number
+          email: string
+          expires_at?: string
+          freight: Json
+          id?: string
+          items: Json
+          last_error?: string | null
+          mp_payment_id?: string | null
+          order_id?: string | null
+          paid_at?: string | null
+          payment_method?: string | null
+          payment_request_key?: string
+          pix_qr_code?: string | null
+          pix_qr_code_base64?: string | null
+          promotion_summary?: Json
+          recipient: Json
+          shipping: number
+          status?: string
+          subtotal: number
+          total: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          coupon_code?: string | null
+          created_at?: string
+          discount?: number
+          email?: string
+          expires_at?: string
+          freight?: Json
+          id?: string
+          items?: Json
+          last_error?: string | null
+          mp_payment_id?: string | null
+          order_id?: string | null
+          paid_at?: string | null
+          payment_method?: string | null
+          payment_request_key?: string
+          pix_qr_code?: string | null
+          pix_qr_code_base64?: string | null
+          promotion_summary?: Json
+          recipient?: Json
+          shipping?: number
+          status?: string
+          subtotal?: number
+          total?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commerce_checkouts_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: true
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      commerce_invoices: {
+        Row: {
+          access_key: string | null
+          created_at: string
+          danfe_url: string | null
+          id: string
+          last_error: string | null
+          nfe_number: string | null
+          order_id: string
+          provider: string
+          reference: string
+          status: string
+          updated_at: string
+          xml_url: string | null
+        }
+        Insert: {
+          access_key?: string | null
+          created_at?: string
+          danfe_url?: string | null
+          id?: string
+          last_error?: string | null
+          nfe_number?: string | null
+          order_id: string
+          provider?: string
+          reference: string
+          status?: string
+          updated_at?: string
+          xml_url?: string | null
+        }
+        Update: {
+          access_key?: string | null
+          created_at?: string
+          danfe_url?: string | null
+          id?: string
+          last_error?: string | null
+          nfe_number?: string | null
+          order_id?: string
+          provider?: string
+          reference?: string
+          status?: string
+          updated_at?: string
+          xml_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commerce_invoices_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: true
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      commerce_shipments: {
+        Row: {
+          carrier_name: string | null
+          created_at: string
+          id: string
+          label_url: string | null
+          last_error: string | null
+          order_id: string
+          provider: string
+          provider_label_id: string | null
+          quoted_freight: number | null
+          service_name: string | null
+          status: string
+          tracking_code: string | null
+          updated_at: string
+        }
+        Insert: {
+          carrier_name?: string | null
+          created_at?: string
+          id?: string
+          label_url?: string | null
+          last_error?: string | null
+          order_id: string
+          provider?: string
+          provider_label_id?: string | null
+          quoted_freight?: number | null
+          service_name?: string | null
+          status?: string
+          tracking_code?: string | null
+          updated_at?: string
+        }
+        Update: {
+          carrier_name?: string | null
+          created_at?: string
+          id?: string
+          label_url?: string | null
+          last_error?: string | null
+          order_id?: string
+          provider?: string
+          provider_label_id?: string | null
+          quoted_freight?: number | null
+          service_name?: string | null
+          status?: string
+          tracking_code?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commerce_shipments_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: true
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       community_interests: {
         Row: {
           created_at: string
@@ -101,6 +335,7 @@ export type Database = {
           category: string | null
           created_at: string
           favorite: boolean
+          finished: boolean
           id: string
           image_url: string | null
           notes: string | null
@@ -120,6 +355,7 @@ export type Database = {
           category?: string | null
           created_at?: string
           favorite?: boolean
+          finished?: boolean
           id?: string
           image_url?: string | null
           notes?: string | null
@@ -139,6 +375,7 @@ export type Database = {
           category?: string | null
           created_at?: string
           favorite?: boolean
+          finished?: boolean
           id?: string
           image_url?: string | null
           notes?: string | null
@@ -475,38 +712,50 @@ export type Database = {
       essences: {
         Row: {
           active: boolean
+          base_notes: string[]
           created_at: string
+          heart_notes: string[]
           id: string
+          is_pure: boolean
           minimum_stock_ml: number
           name: string
           notes: string | null
           stock_ml: number
           supplier: string | null
           target_stock_ml: number
+          top_notes: string[]
           updated_at: string
         }
         Insert: {
           active?: boolean
+          base_notes?: string[]
           created_at?: string
+          heart_notes?: string[]
           id?: string
+          is_pure?: boolean
           minimum_stock_ml?: number
           name: string
           notes?: string | null
           stock_ml?: number
           supplier?: string | null
           target_stock_ml?: number
+          top_notes?: string[]
           updated_at?: string
         }
         Update: {
           active?: boolean
+          base_notes?: string[]
           created_at?: string
+          heart_notes?: string[]
           id?: string
+          is_pure?: boolean
           minimum_stock_ml?: number
           name?: string
           notes?: string | null
           stock_ml?: number
           supplier?: string | null
           target_stock_ml?: number
+          top_notes?: string[]
           updated_at?: string
         }
         Relationships: []
@@ -626,6 +875,7 @@ export type Database = {
           payment_id: string | null
           payment_method: string | null
           payment_status: string | null
+          promotion_summary: Json
           shipping: number
           shipping_address: Json | null
           status: string
@@ -644,6 +894,7 @@ export type Database = {
           payment_id?: string | null
           payment_method?: string | null
           payment_status?: string | null
+          promotion_summary?: Json
           shipping?: number
           shipping_address?: Json | null
           status?: string
@@ -662,6 +913,7 @@ export type Database = {
           payment_id?: string | null
           payment_method?: string | null
           payment_status?: string | null
+          promotion_summary?: Json
           shipping?: number
           shipping_address?: Json | null
           status?: string
@@ -845,6 +1097,7 @@ export type Database = {
           portal_id: string | null
           price: number
           product_badge: string | null
+          product_type: string | null
           sale_price: number | null
           sku: string | null
           slug: string
@@ -868,6 +1121,7 @@ export type Database = {
           portal_id?: string | null
           price?: number
           product_badge?: string | null
+          product_type?: string | null
           sale_price?: number | null
           sku?: string | null
           slug: string
@@ -891,6 +1145,7 @@ export type Database = {
           portal_id?: string | null
           price?: number
           product_badge?: string | null
+          product_type?: string | null
           sale_price?: number | null
           sku?: string | null
           slug?: string
@@ -934,6 +1189,39 @@ export type Database = {
           id?: string
         }
         Relationships: []
+      }
+      promotion_redemptions: {
+        Row: {
+          created_at: string
+          order_id: string
+          promotion_id: string
+        }
+        Insert: {
+          created_at?: string
+          order_id: string
+          promotion_id: string
+        }
+        Update: {
+          created_at?: string
+          order_id?: string
+          promotion_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "promotion_redemptions_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "promotion_redemptions_promotion_id_fkey"
+            columns: ["promotion_id"]
+            isOneToOne: false
+            referencedRelation: "promotions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       promotions: {
         Row: {
@@ -1290,12 +1578,30 @@ export type Database = {
         Args: { p_candle_index: number; p_visitor_key?: string }
         Returns: Json
       }
+      confirm_paid_commerce_checkout: {
+        Args: {
+          p_amount: number
+          p_checkout_id: string
+          p_method: string
+          p_payment_id: string
+        }
+        Returns: Json
+      }
+      discard_incomplete_order: {
+        Args: { p_order_id: string }
+        Returns: boolean
+      }
+      get_product_aroma_notes: { Args: { p_product_id: string }; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
         Returns: boolean
+      }
+      set_product_essences: {
+        Args: { p_ingredients: Json; p_product_id: string }
+        Returns: undefined
       }
     }
     Enums: {
