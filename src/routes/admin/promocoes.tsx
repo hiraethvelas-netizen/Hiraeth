@@ -1,4 +1,5 @@
 import { SecretFlameCard } from "@/components/SecretFlameCard";
+import { PHOENIX_TAROT_TITLE, PHOENIX_TAROT_SUBTITLE } from "@/lib/phoenix-tarot";
 import { ImageCropEditor } from "@/components/ImageCropEditor";
 import { uploadSiteImage } from "@/lib/admin-edit";
 import { createFileRoute } from "@tanstack/react-router";
@@ -10,7 +11,7 @@ export const Route = createFileRoute("/admin/promocoes")({ component: PromocoesA
 const blank = {name:"",kind:"coupon",code:"",discount_type:"percent",discount_value:"10",buy_quantity:"3",pay_quantity:"2",min_cart_value:"0",gift_name:"",visible:false,active:false,starts_at:"",ends_at:"",usage_limit:"",all_products:true,eligible_product_ids:[] as string[],eligible_category_ids:[] as string[]};
 function PromocoesAdmin(){
  const [items,setItems]=useState<any[]>([]); const [form,setForm]=useState(blank); const [editing,setEditing]=useState<string|null>(null); const [loading,setLoading]=useState(true); const db=supabase as any;
-  const [flameSettings,setFlameSettings]=useState<any>({active:false,title:"O Segredo das Quatro Chamas",subtitle:"Escolha uma vela e descubra a surpresa que ela guarda.",candle_images:[{image_url:""},{image_url:""},{image_url:""},{image_url:""}],min_cart_value:"0",starts_at:"",ends_at:""});
+  const [flameSettings,setFlameSettings]=useState<any>({active:false,title:PHOENIX_TAROT_TITLE,subtitle:PHOENIX_TAROT_SUBTITLE,candle_images:[{image_url:""},{image_url:""},{image_url:""},{image_url:""}],min_cart_value:"0",starts_at:"",ends_at:""});
   const [flameRewards,setFlameRewards]=useState<any[]>([0,1,2,3].map(candle_index=>({candle_index,reward_type:"message",reward_title:"",reward_description:"",coupon_code:""})));
   const [flameClaims,setFlameClaims]=useState<any[]>([]);
   const [savedWelcomeSettings,saveWelcomeSettings]=useSiteContent("customer-welcome-message",{
@@ -40,10 +41,10 @@ function PromocoesAdmin(){
      db.from("secret_flame_rewards").select("*").order("candle_index"),
      db.from("secret_flame_claims").select("id,user_id,candle_index,reward_snapshot,created_at").order("created_at",{ascending:false}).limit(100)
    ]);
-   if(s) setFlameSettings({...s,min_cart_value:String(s.min_cart_value??0),starts_at:s.starts_at?.slice(0,16)??"",ends_at:s.ends_at?.slice(0,16)??"",candle_images:Array.from({length:4},(_,i)=>s.candle_images?.[i]??{image_url:""})});
+   if(s) setFlameSettings({...s,title:PHOENIX_TAROT_TITLE,subtitle:(!s.subtitle||s.subtitle==="Escolha uma vela e descubra a surpresa que ela guarda.")?PHOENIX_TAROT_SUBTITLE:s.subtitle,min_cart_value:String(s.min_cart_value??0),starts_at:s.starts_at?.slice(0,16)??"",ends_at:s.ends_at?.slice(0,16)??"",candle_images:Array.from({length:4},(_,i)=>s.candle_images?.[i]??{image_url:""})});
    if(r) setFlameRewards([0,1,2,3].map(i=>r.find((x:any)=>x.candle_index===i)??{candle_index:i,reward_type:"message",reward_title:"",reward_description:"",coupon_code:""}));
    setFlameClaims(c??[]);
-   } catch {toast.error("Não foi possível carregar a configuração das Quatro Chamas.");}
+   } catch {toast.error("Não foi possível carregar a configuração de O Tarô da Fênix.");}
  }
  function updateFlameImage(index:number,image_url:string){
    setFlameSettings((previous:any)=>({
@@ -89,14 +90,14 @@ function PromocoesAdmin(){
    if(flameRewards.some(reward=>!String(reward.reward_title??"").trim())){toast.error("Informe somente o nome do benefício de cada carta. O código do cupom é opcional.");return;}
    setFlamesSaving(true);
    try {
-   const settings={id:true,active:flameSettings.active,title:flameSettings.title,subtitle:flameSettings.subtitle,candle_images:flameSettings.candle_images,min_cart_value:Number(flameSettings.min_cart_value)||0,starts_at:flameSettings.starts_at?new Date(flameSettings.starts_at).toISOString():null,ends_at:flameSettings.ends_at?new Date(flameSettings.ends_at).toISOString():null,updated_at:new Date().toISOString()};
+   const settings={id:true,active:flameSettings.active,title:PHOENIX_TAROT_TITLE,subtitle:flameSettings.subtitle,candle_images:flameSettings.candle_images,min_cart_value:Number(flameSettings.min_cart_value)||0,starts_at:flameSettings.starts_at?new Date(flameSettings.starts_at).toISOString():null,ends_at:flameSettings.ends_at?new Date(flameSettings.ends_at).toISOString():null,updated_at:new Date().toISOString()};
    const {error}=await db.from("secret_flame_settings").upsert(settings,{onConflict:"id"});
    if(error){toast.error("Não foi possível salvar a promoção: "+error.message);return;}
    const rewards=flameRewards.map((r:any)=>({...r,reward_title:r.reward_title.trim(),reward_description:String(r.reward_description??"").trim(),coupon_code:String(r.coupon_code??"").trim()||null,updated_at:new Date().toISOString()}));
    const {error:rewardError}=await db.from("secret_flame_rewards").upsert(rewards,{onConflict:"candle_index"});
    if(rewardError){toast.error("Configuração salva, mas houve erro nos benefícios: "+rewardError.message);return;}
-   toast.success("O Segredo das Quatro Chamas foi salvo.");void loadFlames();
-   } catch {toast.error("Não foi possível salvar as Quatro Chamas.");}
+   toast.success("O Tarô da Fênix foi salvo.");void loadFlames();
+   } catch {toast.error("Não foi possível salvar O Tarô da Fênix.");}
    finally {setFlamesSaving(false);}
  }
  async function saveWelcome(e:React.FormEvent){
@@ -143,10 +144,10 @@ function PromocoesAdmin(){
  <div className="flex flex-wrap gap-5 border-t pt-4"><label className="flex items-center gap-2 text-sm text-foreground"><input type="checkbox" checked={form.active} onChange={e=>setForm({...form,active:e.target.checked})}/>Ativa</label><label className="flex items-center gap-2 text-sm text-foreground"><input type="checkbox" checked={form.visible} onChange={e=>setForm({...form,visible:e.target.checked})}/>Visível para clientes</label></div><div className="flex gap-3"><button className="btn-gold" disabled={saving} type="submit">{saving?"Salvando...":"Salvar promoção"}</button>{editing&&<button type="button" className="border px-4 py-2 text-sm text-foreground" onClick={()=>{setForm(blank);setEditing(null)}}>Cancelar</button>}</div></form>
  <section className="mt-8"><h2 className="text-xl text-foreground">Promoções cadastradas</h2>{loading?<p className="mt-4 text-muted-foreground">Carregando...</p>:<div className="mt-4 space-y-3">{items.map(p=><article key={p.id} className="flex flex-wrap items-center justify-between gap-4 border bg-card p-4"><div><h3 className="text-foreground">{p.name}</h3><p className="mt-1 text-xs text-muted-foreground">{p.kind==="coupon"?"Cupom "+p.code:p.kind} · {p.active?"Ativa":"Pausada"} · {p.visible?"Visível":"Oculta"}</p></div><div className="flex gap-2"><button className="border px-3 py-2 text-sm text-foreground" onClick={()=>{setEditing(p.id);setScope(p.all_products?"all":p.eligible_category_ids?.length?"categories":"products");setForm({...blank,...p,eligible_product_ids:p.eligible_product_ids??[],eligible_category_ids:p.eligible_category_ids??[],discount_value:String(p.discount_value??0),min_cart_value:String(p.min_cart_value??0),buy_quantity:String(p.buy_quantity??3),pay_quantity:String(p.pay_quantity??2),starts_at:p.starts_at?.slice(0,16)??"",ends_at:p.ends_at?.slice(0,16)??"",usage_limit:p.usage_limit==null?"":String(p.usage_limit)})}}>Editar</button><button className="border px-3 py-2 text-sm text-foreground" onClick={()=>void toggle(p)}>{p.active?"Pausar":"Ativar"}</button><button className="border px-3 py-2 text-sm text-destructive" onClick={()=>void remove(p)}>Excluir</button></div></article>)}</div>}</section>
  <section className="mt-10 border border-primary/30 bg-card p-5 sm:p-7">
-  <div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-xs uppercase tracking-[.18em] text-primary">Experiência exclusiva</p><h2 className="mt-2 font-display text-2xl text-foreground">O Segredo das Quatro Chamas</h2><p className="mt-1 text-sm text-muted-foreground">Escolha uma foto para cada carta, ajuste corte e zoom no próprio aplicativo e edite o prêmio revelado. Não é necessário usar URL.</p></div><label className="flex items-center gap-2 text-sm text-foreground"><input type="checkbox" checked={!!flameSettings.active} onChange={e=>setFlameSettings({...flameSettings,active:e.target.checked})}/>Promoção ativa</label></div>
+  <div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-xs uppercase tracking-[.18em] text-primary">Experiência exclusiva</p><h2 className="mt-2 font-display text-2xl text-foreground">{PHOENIX_TAROT_TITLE}</h2><p className="mt-1 text-sm text-muted-foreground">Escolha uma foto para cada carta, ajuste corte e zoom no próprio aplicativo e edite o prêmio revelado. Não é necessário usar URL.</p></div><label className="flex items-center gap-2 text-sm text-foreground"><input type="checkbox" checked={!!flameSettings.active} onChange={e=>setFlameSettings({...flameSettings,active:e.target.checked})}/>Promoção ativa</label></div>
   <form onSubmit={saveFlames} className="mt-6 space-y-5">
    <div className="grid gap-4 md:grid-cols-2">
-    <label className="text-sm text-foreground">Título<input className={input+" mt-1"} value={flameSettings.title} onChange={e=>setFlameSettings({...flameSettings,title:e.target.value})}/></label>
+    <p className="rounded-lg border border-primary/30 bg-primary/5 px-3 py-3 text-sm text-foreground">Nome da experiência: <strong>{PHOENIX_TAROT_TITLE}</strong></p>
     <label className="text-sm text-foreground">Texto de apresentação<input className={input+" mt-1"} value={flameSettings.subtitle} onChange={e=>setFlameSettings({...flameSettings,subtitle:e.target.value})}/></label>
     <label className="text-sm text-foreground">Compra mínima (R$)<input type="number" min="0" step="0.01" className={input+" mt-1"} value={flameSettings.min_cart_value} onChange={e=>setFlameSettings({...flameSettings,min_cart_value:e.target.value})}/></label>
     <label className="text-sm text-foreground">Início<input type="datetime-local" className={input+" mt-1"} value={flameSettings.starts_at} onChange={e=>setFlameSettings({...flameSettings,starts_at:e.target.value})}/></label>
@@ -198,7 +199,7 @@ function PromocoesAdmin(){
        className="rounded border border-primary/50 px-4 py-2.5 text-sm font-semibold text-primary disabled:opacity-50">
        {flameImagesSaving?"Salvando imagens...":"Salvar apenas imagens das cartas"}
      </button>
-     <button type="submit" disabled={flamesSaving||flameImagesSaving||flameImageSaving||!!flameCrop} className="btn-gold">{flamesSaving?"Salvando...":flameImageSaving?"Enviando foto...":"Salvar configuração das Quatro Chamas"}</button>
+     <button type="submit" disabled={flamesSaving||flameImagesSaving||flameImageSaving||!!flameCrop} className="btn-gold">{flamesSaving?"Salvando...":flameImageSaving?"Enviando foto...":"Salvar configuração do Tarô da Fênix"}</button>
    </div>
   </form>
   <div className="mt-8 border-t pt-5"><h3 className="font-display text-xl text-foreground">Participações registradas</h3><p className="mt-1 text-xs text-muted-foreground">Últimas 100 escolhas registradas.</p>{flameClaims.length===0?<p className="mt-3 text-sm text-muted-foreground">Nenhuma participação registrada.</p>:<div className="mt-3 space-y-2">{flameClaims.map((c:any)=><div key={c.id} className="flex flex-wrap justify-between gap-2 border-b py-2 text-sm"><span>Vela {c.candle_index+1} · {c.reward_snapshot?.title??"Benefício"}</span><span className="text-muted-foreground">{new Date(c.created_at).toLocaleString("pt-BR")}</span></div>)}</div>}</div>
