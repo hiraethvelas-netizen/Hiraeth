@@ -149,19 +149,15 @@ function ProdutoPage() {
   // Cart quantity is only a per-customer limit, not a reservation of stock.
   // "Estoque esgotado" refers strictly to stock persisted for the product/variation.
   const outOfStock = !requiresChoice && availableStock <= 0;
-  const alreadyInCart = cart.items.find(item =>
-    item.productId === product.id && (item.variantKey ?? "") ===
-    ((hasCombinedVariants ? chosenCombination?.key : [
-      activeVariant ? String(activeVariant.key ?? activeVariant.id ?? activeVariant.label ?? "") : "",
-      houseVariants.length > 0 ? String(chosenHouse?.key ?? chosenHouse?.id ?? selectedHouse) : "",
-    ].filter(Boolean).join("::")) || ""))?.quantity ?? 0;
-  const remainingToAdd = Math.max(0, availableStock - alreadyInCart);
-  const cartQuantityLimitReached = !requiresChoice && !outOfStock && remainingToAdd === 0;
   const sizeVariantKey = activeVariant ? String(activeVariant.key ?? activeVariant.id ?? activeVariant.label ?? "") : "";
   const houseVariantKey = houseVariants.length > 0 ? String(chosenHouse?.key ?? chosenHouse?.id ?? selectedHouse) : "";
   const variantKey = hasCombinedVariants
     ? chosenCombination?.key
     : [sizeVariantKey, houseVariantKey].filter(Boolean).join("::") || undefined;
+  const alreadyInCart = cart.items.find(item =>
+    item.productId === product.id && (item.variantKey ?? "") === (variantKey ?? ""))?.quantity ?? 0;
+  const remainingToAdd = Math.max(0, availableStock - alreadyInCart);
+  const cartQuantityLimitReached = !requiresChoice && !outOfStock && remainingToAdd === 0;
   const variantDetails: Record<string, unknown> = hasCombinedVariants
     ? { options: { ...selectedOptions }, stock: availableStock, variantKey: chosenCombination?.key }
     : {
