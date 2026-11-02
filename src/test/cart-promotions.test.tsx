@@ -6,6 +6,7 @@ const mocks = vi.hoisted(() => ({
   insert: vi.fn(),
   navigate: vi.fn(),
   failed: false,
+  stock: 10,
   promotions: [
     {
       id: "discount",
@@ -69,7 +70,7 @@ vi.mock("@/integrations/supabase/client", () => ({
                 : table === "categories"
                   ? [{ id: "hp", parent_id: null }]
                   : table === "products"
-                    ? [{ id: "test", category_id: "hp", stock: 10 }]
+                    ? [{ id: "test", category_id: "hp", stock: mocks.stock }]
                     : [],
             error: mocks.failed && table === "promotions" ? { message: "Read refused" } : null,
           }).then(resolve),
@@ -83,6 +84,7 @@ const Cart = Route.options.component!;
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.failed = false;
+  mocks.stock = 10;
   localStorage.clear();
   localStorage.setItem(
     "hiraeth-cart:v2:test-user",
@@ -138,4 +140,14 @@ it("blocks finalization and offers retry if promotions cannot be checked", async
     expect(screen.getByRole("button", { name: "Finalizar pedido" })).toBeEnabled(),
   );
   expect(mocks.insert).not.toHaveBeenCalled();
+});
+
+it("does not increase quantity beyond the inventory but keeps the item available to other customers", async () => {
+  mocks.stock = 2;
+  render(<CartProvider><Cart /></CartProvider>);
+  expect(await screen.findByText("Vela teste")).toBeInTheDocument();
+  await waitFor(() => expect(screen.getByText(/Subtotal: R\$ 40,00/)).toBeInTheDocument());
+  fireEvent.click(screen.getByRole("button", { name: "Aumentar quantidade de Vela teste" }));
+  expect(screen.getByText(/Subtotal: R\$ 40,00/)).toBeInTheDocument();
+  expect(screen.getByText("Vela teste")).toBeInTheDocument();
 });
