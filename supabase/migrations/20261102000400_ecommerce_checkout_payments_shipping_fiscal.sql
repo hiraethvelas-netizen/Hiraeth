@@ -1,12 +1,9 @@
 -- Hiraeth commerce: prepared tables and atomic paid-order fulfillment.
 -- Deployment is opt-in: real payments are disabled until credentials, freight,
 -- and sandbox verification are complete. No changes to existing orders.
--- Prior promotion-tracking migrations expect this JSONB column. It may be
--- absent from older database snapshots, even when other fields already exist.
+-- Add only the missing promotion snapshot field, without rewriting orders.
 alter table public.orders
   add column if not exists promotion_summary jsonb not null default '{}'::jsonb;
--- Keep existing orders while adding only the missing promotion snapshot field.
-alter table public.orders add column if not exists promotion_summary jsonb not null default '{}'::jsonb;
 
 create table if not exists public.commerce_checkouts (
   id uuid primary key default gen_random_uuid(),
