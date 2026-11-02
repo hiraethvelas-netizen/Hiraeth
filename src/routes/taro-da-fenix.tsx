@@ -122,7 +122,7 @@ function PhoenixTarotReveal() {
                 className={`phoenix-tarot-flip h-full w-full ${revealed ? "is-revealed" : ""}`}>
                 <div className="phoenix-tarot-face overflow-hidden rounded-2xl border-2 border-[#c9ae78] bg-[#e6d3af] p-2 shadow-[0_20px_48px_rgba(0,0,0,.5)]"
                   aria-hidden={revealed}>
-                  <SecretFlameCard index={claim.candle_index} imageUrl={imageUrl}/>
+                  <SecretFlameCard index={claim.candle_index} imageUrl={imageUrl ?? null}/>
                 </div>
                 <div className="phoenix-tarot-face phoenix-tarot-back flex flex-col items-center justify-center overflow-y-auto rounded-2xl border-2 border-[#c9ae78] bg-[radial-gradient(ellipse_at_top,#fdf4dd,#e0cfaa)] px-5 py-8 text-[#273b2b] shadow-[0_20px_48px_rgba(0,0,0,.5)]"
                   aria-hidden={!revealed}>
