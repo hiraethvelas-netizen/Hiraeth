@@ -14,6 +14,7 @@ const NAV = [
   { to: "/admin", label: "Dashboard" },
   { to: "/admin/produtos", label: "Produtos" },
   { to: "/admin/promocoes", label: "Promoções" },
+  { to: "/admin/notificacoes", label: "Enviar notificações" },
   { to: "/admin/essencias", label: "Estoque de essências" },
   { to: "/admin/categorias", label: "Categorias" },
   { to: "/admin/pedidos", label: "Pedidos" },
