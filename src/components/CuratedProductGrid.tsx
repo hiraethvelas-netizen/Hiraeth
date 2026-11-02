@@ -200,10 +200,10 @@ export function CuratedProductGrid({
             const temporary = categories.some(cat => cat.id === p.category_id &&
               (cat.is_temporary || categories.some(parent => parent.id === cat.parent_id && parent.is_temporary)));
             return <div key={p.id} data-product-size={size}
-              className={"relative min-w-0 " + (isLarge ? "col-span-2 row-span-2" : "")}>
+              className={"relative min-w-0 " + (isLarge ? "col-span-3 flex flex-col items-center" : "")}>
               <Link to="/produto/$slug" params={{ slug: p.slug }}
               className={"hiraeth-product-card group relative block min-w-0 bg-transparent text-center transition-transform duration-300 " +
-                (isLarge ? "hiraeth-featured-flame" : "")}
+                (isLarge ? "hiraeth-featured-flame mx-auto w-[88%] max-w-lg" : "")}
               data-product-badge={badge ?? undefined}>
               <div className={"hiraeth-product-visual relative overflow-hidden bg-transparent " +
                 (isLarge ? "aspect-[4/5] sm:aspect-square" : "aspect-square")}>
@@ -246,7 +246,7 @@ export function CuratedProductGrid({
               </Link>
               {isAdmin && editMode && !showFavorites && !searching && (
                 <div role="group" aria-label={"Tamanho da vela " + p.name}
-                  className="mt-1 flex flex-wrap items-center justify-center gap-1.5 rounded-lg border border-primary/25 bg-card/90 p-1.5">
+                  className={"mt-1 flex flex-wrap items-center justify-center gap-1.5 rounded-lg border border-primary/25 bg-card/90 p-1.5 " + (isLarge ? "mx-auto w-[88%] max-w-lg" : "")}>
                   <button type="button" disabled={quickSaving !== null || saving}
                     onClick={() => void changeCardSize(p.id, "normal")}
                     aria-label={"Exibir " + p.name + " em fileira de três"}
