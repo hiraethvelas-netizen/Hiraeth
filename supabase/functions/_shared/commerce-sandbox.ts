@@ -17,3 +17,9 @@ export function providerModeMatchesCheckout(sandbox: boolean, liveMode: unknown)
 export function mayCreateRealOrder(sandbox: boolean, liveMode: unknown): boolean {
   return !sandbox && providerModeMatchesCheckout(false, liveMode);
 }
+
+export function paymentAmountMatchesCheckout(actual: unknown, expected: unknown): boolean {
+  const amount=Number(actual), total=Number(expected);
+  return Number.isFinite(amount) && Number.isFinite(total) && amount>0 && total>0 &&
+    Math.round(amount*100) === Math.round(total*100);
+}
