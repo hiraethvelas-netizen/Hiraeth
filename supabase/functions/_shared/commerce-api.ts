@@ -1,5 +1,6 @@
 import { createClient, type SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { calculateShippingPackage, type ShippingPackage, type ShippingItem } from "./commerce-shipping.ts";
+import { hasAllowedMercadoPagoCredential } from "./mercado-pago-credentials.ts";
 export { canAccessCommerce } from "./commerce-access.ts";
 
 export const corsHeaders = {
@@ -30,17 +31,15 @@ export function env(name: string) {
 export function isCommerceEnabled() {
   const token=Deno.env.get("MERCADO_PAGO_ACCESS_TOKEN")?.trim() ?? "";
   const mode=Deno.env.get("HIRAETH_PAYMENTS_MODE");
-  // A production credential is never accepted in the sandbox branch. To
-  // enable real charges the merchant must explicitly opt in twice.
-  // Mercado Pago may prefix BOTH test and production tokens with APP_USR.
-  // They cannot be identified by prefix alone. Require explicit environment
-  // confirmation without ever exposing an Access Token to the frontend.
-  const safePaymentMode=mode==="sandbox"
-    ? token.startsWith("APP_USR-") &&
-      Deno.env.get("HIRAETH_TEST_CREDENTIALS_CONFIRMED")==="true"
-    : mode==="production" &&
-      Deno.env.get("HIRAETH_ALLOW_LIVE_CHARGES")==="true" &&
-      token.startsWith("APP_USR-");
+  // Only test-confirmed sandbox credentials may use TEST- or APP_USR-.
+  // The latter is ambiguous and can also denote production: this is a
+  // readiness check, not proof of token validity or its true environment.
+  // A TEST- credential can never pass production enablement.
+  const safePaymentMode = hasAllowedMercadoPagoCredential(
+    token,mode,
+    Deno.env.get("HIRAETH_TEST_CREDENTIALS_CONFIRMED")==="true",
+    Deno.env.get("HIRAETH_ALLOW_LIVE_CHARGES")==="true",
+  );
   // When customer access is open, require freight and payment providers
   // to use the same environment; never mix live freight with test payments.
   const freightMode = Deno.env.get("MELHOR_ENVIO_ENV");
@@ -67,7 +66,9 @@ export function commerceSetupIssues(): string[] {
     failures.push("HIRAETH_COMMERCE_ENABLED");
   if (mode !== "sandbox" && mode !== "production")
     failures.push("HIRAETH_PAYMENTS_MODE");
-  if (!token.startsWith("APP_USR-"))
+  if (mode === "sandbox"
+    ? !token.startsWith("APP_USR-") && !token.startsWith("TEST-")
+    : !token.startsWith("APP_USR-"))
     failures.push("MERCADO_PAGO_ACCESS_TOKEN");
   if (mode === "sandbox" && Deno.env.get("HIRAETH_TEST_CREDENTIALS_CONFIRMED") !== "true")
     failures.push("HIRAETH_TEST_CREDENTIALS_CONFIRMED");
