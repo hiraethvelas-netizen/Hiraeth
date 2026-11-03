@@ -292,11 +292,15 @@ function CheckoutHiraeth() {
           <p className="mt-3 flex justify-between font-display text-2xl text-foreground"><span>Total</span><span className="text-primary">{brl(checkout.total)}</span></p>
         </div>
         {outcome?.status==="paid" ? <div role="status" className="mt-6 rounded-lg border border-primary/40 p-5 text-center">
-          <h3 className="font-display text-2xl text-primary">Pagamento confirmado!</h3>
-          <p className="mt-2 text-sm text-foreground">Sua compra está registrada. Acompanhe tudo em Meus pedidos.</p>
-          <Link to="/pedidos" className="btn-gold mt-4">Ver meus pedidos</Link>
+          <h3 className="font-display text-2xl text-primary">{config.sandbox?"Pagamento de teste aprovado!":"Pagamento confirmado!"}</h3>
+          <p className="mt-2 text-sm text-foreground">{config.sandbox
+            ?"Simulação concluída. Nenhuma venda real foi criada e o estoque não foi alterado."
+            :"Sua compra está registrada. Acompanhe tudo em Meus pedidos."}</p>
+          {!config.sandbox&&<Link to="/pedidos" className="btn-gold mt-4">Ver meus pedidos</Link>}
         </div> : outcome?.status==="paid_attention" ? (
-          <p role="alert" className="mt-5 text-sm text-foreground">Seu pagamento foi recebido e precisa de conferência pela equipe Hiraeth. Não faça outro pagamento.</p>
+          <p role="alert" className="mt-5 text-sm text-foreground">{config.sandbox
+            ?"O pagamento simulado precisa de conferência. Nenhuma venda real foi registrada."
+            :"Seu pagamento foi recebido e precisa de conferência pela equipe Hiraeth. Não faça outro pagamento."}</p>
         ) : outcome?.qrCode ? <div className="mt-6 text-center">
           <h3 className="font-display text-xl text-foreground">Seu Pix está aguardando pagamento</h3>
           {outcome.qrCodeBase64&&<img alt="Código QR para pagamento Pix"

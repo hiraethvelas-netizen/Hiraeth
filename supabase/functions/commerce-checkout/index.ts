@@ -4,6 +4,7 @@ import {
   freightQuotes, mercadoPagoRequest,
 } from "../_shared/commerce-api.ts";
 import { validateItems, snapshotProducts, calculateCheckoutPrice } from "../_shared/commerce-pricing.ts";
+import { isSandboxCheckout, providerModeMatchesCheckout, paymentAmountMatchesCheckout, mayCreateRealOrder } from "../_shared/commerce-sandbox.ts";
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -73,6 +74,11 @@ Deno.serve(async (req: Request) => {
       const { data: session, error } = await db.from("commerce_checkouts")
         .select("*").eq("id",id).eq("user_id",user.id).maybeSingle();
       if (error || !session) return json({error:"Sessão de compra não encontrada."},404);
+      const sandboxSession = isSandboxCheckout(session.promotion_summary);
+      // A checkout created under sandbox can never be paid under production
+      // credentials (or vice versa), even if the environment is changed later.
+      if ((mode === "sandbox") !== sandboxSession)
+        return json({ error:"O ambiente de pagamento mudou. Recomece o checkout." },409);
       if (session.status === "paid" || session.status === "paid_attention")
         return json({checkoutId:id,status:session.status,orderId:session.order_id});
       if (session.mp_payment_id) {
@@ -118,6 +124,8 @@ Deno.serve(async (req: Request) => {
       const result = await mercadoPagoRequest("/v1/payments", "POST", request, session.payment_request_key);
       const paymentId = String(result.id ?? "");
       if (!/^\d+$/.test(paymentId)) throw new Error("Mercado Pago não confirmou a criação do pagamento.");
+      if (!providerModeMatchesCheckout(sandboxSession, result.live_mode))
+        throw new Error("O Mercado Pago retornou uma cobrança de ambiente diferente. Revise a integração antes de continuar.");
 
       const updates: Record<string, unknown> = {
         mp_payment_id: paymentId,
@@ -150,13 +158,38 @@ Deno.serve(async (req: Request) => {
       let status = updates.status;
       let orderId: string | null = null;
       if (result.status === "approved") {
-        const { data: confirmed, error: rpcError } = await db.rpc("confirm_paid_commerce_checkout", {
-          p_checkout_id: id, p_payment_id: paymentId,
-          p_amount: Number(result.transaction_amount), p_method: body.method,
-        });
-        if (rpcError) throw new Error("Pagamento aprovado e em conciliação. Consulte Meus pedidos.");
-        status = confirmed.status;
-        orderId = confirmed.order_id ?? null;
+        if (sandboxSession) {
+          // Approval is recorded ONLY on the test checkout. Never call the
+          // real-order/stock RPC for sandbox funds or create invoices/labels.
+          const amountOk = paymentAmountMatchesCheckout(result.transaction_amount, session.total);
+          const sandboxStatus = amountOk ? "paid" : "paid_attention";
+          const { data: settled, error: settleError } = await db.from("commerce_checkouts")
+            .update({ status:sandboxStatus, paid_at:new Date().toISOString(),
+              last_error:amountOk ? null : "Sandbox payment amount mismatch",
+              updated_at:new Date().toISOString() })
+            .eq("id",id).eq("user_id",user.id).eq("mp_payment_id",paymentId)
+            .in("status",["processing","pending"])
+            .select("id");
+          if (settleError) throw new Error("Não foi possível registrar o pagamento de teste.");
+          if (!settled?.length) {
+            const { data: current } = await db.from("commerce_checkouts")
+              .select("status,mp_payment_id").eq("id",id).eq("user_id",user.id).maybeSingle();
+            if (!current || current.mp_payment_id !== paymentId ||
+                !["paid","paid_attention"].includes(current.status))
+              throw new Error("O pagamento de teste precisa de conciliação.");
+            status = current.status;
+          } else status = sandboxStatus;
+        } else if (mayCreateRealOrder(sandboxSession, result.live_mode)) {
+          const { data: confirmed, error: rpcError } = await db.rpc("confirm_paid_commerce_checkout", {
+            p_checkout_id: id, p_payment_id: paymentId,
+            p_amount: Number(result.transaction_amount), p_method: body.method,
+          });
+          if (rpcError) throw new Error("Pagamento aprovado e em conciliação. Consulte Meus pedidos.");
+          status = confirmed.status;
+          orderId = confirmed.order_id ?? null;
+        } else {
+          throw new Error("Ambiente de pagamento inválido para confirmar este pedido.");
+        }
       }
       return json({
         checkoutId: id, paymentId, status, orderId,
@@ -209,6 +242,9 @@ Deno.serve(async (req: Request) => {
       promotion_summary: {
         applied: summary.applied, gifts: summary.gifts,
         freeShipping: summary.freeShipping,
+        // Server-defined marker that travels with the checkout; the browser
+        // cannot set this field or turn a test payment into a real order.
+        sandbox: mode === "sandbox",
       },
       subtotal:summary.subtotal, discount:summary.discount,
       shipping:summary.shipping,total:summary.total,

@@ -5,6 +5,7 @@ import {
 import { validMercadoPagoSignature } from "../../supabase/functions/_shared/mercado-pago-signature";
 import { calculateShippingPackage } from "../../supabase/functions/_shared/commerce-shipping";
 import { canAccessCommerce } from "../../supabase/functions/_shared/commerce-access";
+import { isSandboxCheckout, providerModeMatchesCheckout, mayCreateRealOrder, paymentAmountMatchesCheckout } from "../../supabase/functions/_shared/commerce-sandbox";
 
 const id = "6c3efc18-cdbc-4cc1-918a-1fc53087d522";
 const otherId = "e3c182d1-6a9d-45bc-b3e7-89a1180f9772";
@@ -167,6 +168,41 @@ describe("Hiraeth — sandbox checkout only for authenticated admins", () => {
   it("preserves production customer access only after the separate live-mode checks succeeded", () => {
     expect(canAccessCommerce(true, "production", false)).toBe(true);
     expect(canAccessCommerce(false, "production", true)).toBe(false);
+  });
+});
+
+
+describe("Hiraeth — checkout sandbox cannot create real orders or affect stock", () => {
+  it("recognizes only server-marked sandbox checkout summaries", () => {
+    expect(isSandboxCheckout({ sandbox:true, applied:[] })).toBe(true);
+    expect(isSandboxCheckout({ sandbox:"true" })).toBe(false);
+    expect(isSandboxCheckout({ sandbox:false })).toBe(false);
+    expect(isSandboxCheckout(null)).toBe(false);
+    expect(isSandboxCheckout([])).toBe(false);
+  });
+
+  it("rejects payments from the wrong provider environment, including missing live_mode", () => {
+    expect(providerModeMatchesCheckout(true,false)).toBe(true);
+    expect(providerModeMatchesCheckout(true,true)).toBe(false);
+    expect(providerModeMatchesCheckout(false,true)).toBe(true);
+    expect(providerModeMatchesCheckout(false,false)).toBe(false);
+    expect(providerModeMatchesCheckout(false,undefined)).toBe(false);
+    expect(providerModeMatchesCheckout(true,undefined)).toBe(false);
+  });
+
+  it("never authorizes real-order fulfillment for sandbox transactions", () => {
+    expect(mayCreateRealOrder(true,false)).toBe(false);
+    expect(mayCreateRealOrder(true,true)).toBe(false);
+    expect(mayCreateRealOrder(false,false)).toBe(false);
+    expect(mayCreateRealOrder(false,true)).toBe(true);
+  });
+
+  it("compares the returned Mercado Pago amount to the server total", () => {
+    expect(paymentAmountMatchesCheckout(59.9,59.90)).toBe(true);
+    expect(paymentAmountMatchesCheckout("59.90",59.9)).toBe(true);
+    expect(paymentAmountMatchesCheckout(59.89,59.9)).toBe(false);
+    expect(paymentAmountMatchesCheckout(0,59.9)).toBe(false);
+    expect(paymentAmountMatchesCheckout("invalid",59.9)).toBe(false);
   });
 });
 
