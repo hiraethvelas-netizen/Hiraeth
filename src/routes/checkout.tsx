@@ -235,7 +235,7 @@ function CheckoutHiraeth() {
 
   return <div className="min-h-screen min-w-0">
     <SiteHeader/>
-    <main className="mx-auto w-full max-w-3xl px-4 pb-20 pt-8 sm:px-6 sm:pt-12">
+    <main className="hiraeth-checkout mx-auto w-full max-w-3xl px-4 pb-20 pt-8 sm:px-6 sm:pt-12">
       <Link to="/carrinho" className="inline-flex items-center gap-2 text-sm text-primary"><ArrowLeft size={16}/> Voltar à sacola</Link>
       <p className="eyebrow mt-8">O Correio da Fênix</p>
       <h1 className="mt-2 font-display text-4xl text-foreground sm:text-5xl">Finalizar Compra</h1>
@@ -243,7 +243,7 @@ function CheckoutHiraeth() {
         Entrega, pagamento e acompanhamento do seu pedido, com segurança e sem sair da Hiraeth.
       </p>
       {loading&&<p role="status" className="mt-10 text-muted-foreground">Preparando checkout seguro...</p>}
-      {config?.enabled&&config.sandbox&&<p role="status" className="mt-5 rounded-lg border border-primary/35 bg-card px-4 py-3 text-sm text-foreground">
+      {config?.enabled&&config.sandbox&&<p role="status" className="hiraeth-checkout-sandbox-note mt-5 rounded-lg border border-primary/35 bg-card px-4 py-3 text-sm text-foreground">
         Ambiente de testes: você pode simular frete e pagamento, mas não será gerado um pedido real nem haverá envio.
         Não use cartão ou Pix reais nesta etapa.
       </p>}
