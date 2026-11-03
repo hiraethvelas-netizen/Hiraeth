@@ -108,3 +108,15 @@ Focus NFe: https://doc.focusnfe.com.br/reference/introducao
 - O deploy do site/frontend via Lovable **não garante** deploy da Edge Function. Sem acesso para publicar a função, manter `HIRAETH_COMMERCE_ENABLED` ausente ou `false`.
 - O limite temporário continua `HIRAETH_MAX_ITEMS_PER_PACKAGE=1`; os testes do carrinho devem usar uma vela por vez. A cotação de frete não é validada ao vivo sem autorização e teste de conectividade do Melhor Envio.
 - A volta ao modo de vendas reais requer uma revisão específica de credenciais e controles, não apenas trocar `HIRAETH_PAYMENTS_MODE`. A habilitação de produção precisa de autorização da proprietária e validação independente de todas as integrações.
+
+## Isolamento de pagamentos simulados — atualização de segurança
+
+A aprovação de um pagamento com `live_mode=false` no Mercado Pago **não deve** criar um pedido real, gerar nota fiscal, comprar etiqueta ou baixar o estoque da loja. O checkout grava em `promotion_summary.sandbox` (definido pelo servidor no momento da criação) se a tentativa é de teste; o resultado do provedor precisa trazer um `live_mode` compatível, senão é rejeitado. Este marcador não é confiado ao navegador.
+
+- No modo de testes, somente contas com papel administrativo validado pelo backend podem fazer cotação, criar checkout ou efetuar pagamento simulado.
+- O resultado aprovado de teste atualiza apenas o registro `commerce_checkouts` para `paid`, sem chamar `confirm_paid_commerce_checkout` e sem criar linha em `orders`. O valor pago informado pelo provedor é conferido contra o total calculado no servidor; divergências resultam em `paid_attention`.
+- O webhook, após validar assinatura criptográfica e consultar o pagamento na API oficial, repete a verificação do ambiente, do valor e do marcador de teste antes de fazer qualquer alteração. Um teste que chegue pelo webhook também não registra pedido real.
+- A interface administrativa mostra explicitamente **Pagamento de teste aprovado**, sem apresentar o pedido de teste como uma venda em **Meus pedidos**.
+- A homologação fiscal e a compra simulada de etiqueta são fluxos separados; **não podem ser consideradas verificadas** apenas por uma cotação de frete ou por um pagamento de teste.
+
+**ATENÇÃO: somente depois de implantar novamente as Edge Functions `commerce-checkout` e `commerce-webhook` (incluindo os módulos `_shared`) na infraestrutura real da Hiraeth é seguro considerar a ativação do checkout administrativo com `HIRAETH_COMMERCE_ENABLED=true`. GitHub sincronizado e frontend publicado não comprovam atualização das funções. Não ativar o Secret antes dessas verificações.**
