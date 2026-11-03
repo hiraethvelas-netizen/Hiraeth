@@ -120,3 +120,9 @@ A aprovação de um pagamento com `live_mode=false` no Mercado Pago **não deve*
 - A homologação fiscal e a compra simulada de etiqueta são fluxos separados; **não podem ser consideradas verificadas** apenas por uma cotação de frete ou por um pagamento de teste.
 
 **ATENÇÃO: somente depois de implantar novamente as Edge Functions `commerce-checkout` e `commerce-webhook` (incluindo os módulos `_shared`) na infraestrutura real da Hiraeth é seguro considerar a ativação do checkout de testes para clientes autenticados com `HIRAETH_COMMERCE_ENABLED=true`. GitHub sincronizado e frontend publicado não comprovam atualização das funções. Não ativar o Secret antes dessas verificações.**
+
+## Diagnóstico seguro de checkout inativo (03/11/2026)
+
+Se a tela indicar **Pagamento em preparação** mesmo após cadastrar `HIRAETH_COMMERCE_ENABLED`, o endpoint `commerce-checkout` responde `enabled: false` sempre que algum dos critérios do servidor não for atendido. A resposta de `config` pode incluir `setupIssues` com **somente os nomes das configurações que falharam**, mas exclusivamente após confirmar a função `admin` do usuário autenticado por `has_role`. Compradores comuns não recebem esse detalhe. Nunca transmitir valores de Secrets, tokens, assinaturas de webhook ou credenciais para o frontend.
+
+Para conferir, entrar com conta administrativa, abrir o checkout e tocar em **Verificar novamente**. Os nomes mostrados devem ser conferidos no painel de Secrets da Lovable, sem compartilhar valores no chat. Nenhuma verificação ou publicação por si só habilita cobranças reais; a homologação deve permanecer em Sandbox até validação completa.
