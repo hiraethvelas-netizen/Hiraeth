@@ -140,7 +140,16 @@ function CheckoutHiraeth() {
         setPayerEmail(auth.user.email??"");
         try{setCoupon(sessionStorage.getItem("hiraeth-checkout-coupon")??"");}catch{/* optional */}
         if (!data['enabled']) {
-          setConfigIssue("Os pagamentos ainda não foram liberados pelo servidor. Confira as configurações do Mercado Pago e do Melhor Envio.");
+          // The API returns only failing setup field names, and only after
+          // verifying this user is an administrator. Never show secret values.
+          const issues = Array.isArray(data['setupIssues'])
+            ? data['setupIssues'].filter((issue: unknown): issue is string =>
+                typeof issue === "string" && /^[A-Z][A-Z0-9_]{2,90}$/.test(issue))
+            : [];
+          setConfigIssue(issues.length
+            ? "Configurações que impedem a liberação: " + issues.join(", ") +
+              ". Confira os valores na Lovable, sem copiar chaves aqui."
+            : "Os pagamentos ainda não foram liberados pelo servidor. Confira as configurações do Mercado Pago e do Melhor Envio.");
         }
       } catch(cause) {
         if (!active) return;
