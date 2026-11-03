@@ -34,7 +34,14 @@ const emptyRecipient = {
 type RecipientField = keyof typeof emptyRecipient;
 
 async function commerceCall(payload: Record<string,unknown>) {
-  const { data, error } = await supabase.functions.invoke("commerce-checkout", { body:payload });
+  // Sandbox is admin-only on the server. Always send the signed-in user's
+  // session, never an anonymous/public project API key.
+  const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+  const accessToken = sessionData.session?.access_token;
+  if (sessionError || !accessToken) throw new Error("Sua sessão expirou. Entre novamente para testar o checkout.");
+  const { data, error } = await supabase.functions.invoke("commerce-checkout", {
+    body: payload, headers: { Authorization: `Bearer ${accessToken}` },
+  });
   if (error) throw new Error(data?.error || "Não foi possível conectar ao checkout. Tente novamente.");
   if (data?.error) throw new Error(String(data.error));
   return data as Record<string,any>;
@@ -110,6 +117,8 @@ function CheckoutHiraeth() {
   const [error,setError]=useState("");
   const [busy,setBusy]=useState(false);
   const [loading,setLoading]=useState(true);
+  const [configIssue,setConfigIssue]=useState("");
+  const [configAttempt,setConfigAttempt]=useState(0);
 
   const itemInputs=cart.items.map(item=>({
     productId:item.productId,quantity:item.quantity,variantKey:item.variantKey??"",
@@ -117,18 +126,39 @@ function CheckoutHiraeth() {
   const inputClass="mt-1 w-full min-w-0 rounded border border-primary/35 bg-card px-3 py-2.5 text-foreground placeholder:text-muted-foreground";
   useEffect(()=>{
     let active=true;
-    void Promise.all([
-      commerceCall({action:"config"}),
-      supabase.auth.getUser(),
-    ]).then(([data,auth])=>{
-      if(!active)return;
-      setConfig({enabled:!!data['enabled'],publicKey:data['publicKey']??null,sandbox:data['sandbox']!==false});
-      setPayerEmail(auth.data.user?.email??"");
-      try{setCoupon(sessionStorage.getItem("hiraeth-checkout-coupon")??"");}catch{/* optional */}
-    }).catch(()=>{if(active)setConfig({enabled:false,publicKey:null,sandbox:true});})
-      .finally(()=>{if(active)setLoading(false);});
+    setLoading(true);
+    setConfigIssue("");
+    const loadConfig=async()=>{
+      try {
+        // Wait for authentication to finish before asking the admin-only
+        // function whether the current user can access the sandbox checkout.
+        const { data: auth, error: authError } = await supabase.auth.getUser();
+        if (authError || !auth.user) throw new Error("Sua sessão expirou. Entre novamente para testar o checkout.");
+        const data = await commerceCall({action:"config"});
+        if (!active) return;
+        setConfig({enabled:!!data['enabled'],publicKey:data['publicKey']??null,sandbox:data['sandbox']!==false});
+        setPayerEmail(auth.user.email??"");
+        try{setCoupon(sessionStorage.getItem("hiraeth-checkout-coupon")??"");}catch{/* optional */}
+        if (!data['enabled']) {
+          // The server still owns the security decision. The local role check
+          // is only for explaining an already-denied checkout to its owner.
+          const { data: admin, error: roleError } = await supabase.rpc("has_role", {
+            _user_id:auth.user.id, _role:"admin",
+          });
+          if (active && !roleError && admin === true)
+            setConfigIssue("Sua conta é administradora, mas o servidor ainda não liberou o Sandbox. Verifique as configurações do checkout na Lovable.");
+        }
+      } catch(cause) {
+        if (!active) return;
+        setConfig({enabled:false,publicKey:null,sandbox:true});
+        setConfigIssue(cause instanceof Error?cause.message:"Não foi possível verificar o checkout.");
+      } finally {
+        if(active)setLoading(false);
+      }
+    };
+    void loadConfig();
     return ()=>{active=false;};
-  },[]);
+  },[configAttempt]);
 
   async function quote() {
     if(busy)return;
@@ -213,6 +243,9 @@ function CheckoutHiraeth() {
       {!loading&&!config?.enabled&&<section className="mt-8 rounded-xl border border-primary/30 bg-card p-5">
         <h2 className="font-display text-2xl text-foreground">Pagamento em preparação</h2>
         <p className="mt-2 text-sm text-muted-foreground">O checkout ainda está em homologação. Nenhum valor será cobrado até a integração do Mercado Pago e do frete ser ativada com segurança.</p>
+        {configIssue&&<p role="status" className="mt-3 text-sm text-foreground">{configIssue}</p>}
+        <button type="button" onClick={()=>setConfigAttempt(n=>n+1)}
+          className="mt-4 mr-3 border border-primary/50 px-4 py-2 text-sm text-primary">Verificar novamente</button>
         <Link to="/carrinho" className="btn-gold mt-5">Voltar à sacola</Link>
       </section>}
       {config?.enabled&&cart.items.length===0&&!outcome&&<p className="mt-8 text-muted-foreground">Sua sacola está vazia. Escolha suas velas antes de continuar.</p>}
