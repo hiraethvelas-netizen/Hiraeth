@@ -35,6 +35,7 @@ function AccountSettings() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [documentNumber, setDocumentNumber] = useState("");
   const [address, setAddress] = useState<DeliveryAddress>(emptyAddress);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -54,6 +55,7 @@ function AccountSettings() {
       setName(user.user_metadata?.["display_name"] ?? user.user_metadata?.["full_name"] ?? "");
       setEmail(user.email ?? "");
       setPhone(user.user_metadata?.["phone"] ?? "");
+      setDocumentNumber(String(user.user_metadata?.["document"] ?? user.user_metadata?.["cpf_cnpj"] ?? ""));
       const savedAddress = user.user_metadata?.["address"];
       if (savedAddress && typeof savedAddress === "object") {
         setAddress({ ...emptyAddress, ...savedAddress });
@@ -101,6 +103,11 @@ function AccountSettings() {
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
+    const digits = documentNumber.replace(/\D/g, "");
+    if (digits && ![11,14].includes(digits.length)) {
+      toast.error("Informe CPF com 11 dígitos ou CNPJ com 14 dígitos.");
+      return;
+    }
     setSaving(true);
     try {
       const { error } = await supabase.auth.updateUser({
@@ -108,6 +115,7 @@ function AccountSettings() {
         data: {
           display_name: name.trim(),
           phone: phone.trim(),
+          document: digits,
           address: Object.fromEntries(Object.entries(address).map(([key, value]) => [key, value.trim()])),
         },
       });
@@ -185,6 +193,12 @@ function AccountSettings() {
             </label>
             <label className={labelClass + " sm:col-span-2"}>Telefone
               <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} autoComplete="tel" placeholder="(00) 00000-0000" className={fieldClass} />
+            </label>
+            <label className={labelClass + " sm:col-span-2"}>CPF ou CNPJ (para suas compras)
+              <input type="text" inputMode="numeric" autoComplete="off"
+                value={documentNumber} onChange={e => setDocumentNumber(e.target.value.replace(/[^\d.\/-]/g,"").slice(0,18))}
+                placeholder="CPF ou CNPJ" className={fieldClass} />
+              <span className="mt-1 block text-xs text-muted-foreground">Dado privado usado somente para preencher suas próximas compras. Nunca aparece na comunidade.</span>
             </label>
           </div>
         </section>
