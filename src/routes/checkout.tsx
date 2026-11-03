@@ -6,6 +6,7 @@ import { useCart } from "@/lib/cart";
 import { brl } from "@/lib/format";
 import { supabase } from "@/integrations/supabase/client";
 import { requireAuthenticatedUser } from "@/lib/require-auth";
+import { checkoutRecipientFromMetadata, checkoutMetadataFromRecipient, emptyCheckoutRecipient } from "@/lib/checkout-recipient";
 
 export const Route = createFileRoute("/checkout")({
   ssr: false,
@@ -27,10 +28,8 @@ type MercadoPagoInstance = {
 };
 declare global { interface Window { MercadoPago?: new (publicKey: string, options?: Record<string,unknown>) => MercadoPagoInstance } }
 
-const emptyRecipient = {
-  name:"", document:"", phone:"", postal_code:"", street:"", number:"",
-  complement:"", district:"", city:"", state:"",
-};
+const emptyRecipient = emptyCheckoutRecipient;
+type RecipientMode = "profile" | "manual" | "gift";
 type RecipientField = keyof typeof emptyRecipient;
 
 async function commerceCall(payload: Record<string,unknown>) {
@@ -106,7 +105,12 @@ function SecureCardBrick({ publicKey, amount, email, onSubmit }: {
 
 function CheckoutHiraeth() {
   const cart=useCart();
-  const [recipient,setRecipient]=useState(emptyRecipient);
+  const [recipient,setRecipient]=useState({...emptyRecipient});
+  const [recipientMode,setRecipientMode]=useState<RecipientMode>("profile");
+  const [savedRecipient,setSavedRecipient]=useState({...emptyRecipient});
+  const [buyerDocument,setBuyerDocument]=useState("");
+  const [saveNewDetails,setSaveNewDetails]=useState(false);
+  const profileInitialized=useRef(false);
   const [coupon,setCoupon]=useState("");
   const [config,setConfig]=useState<{enabled:boolean;publicKey:string|null;sandbox:boolean}|null>(null);
   const [quotes,setQuotes]=useState<FreightQuote[]>([]);
@@ -134,6 +138,14 @@ function CheckoutHiraeth() {
         // signed-in checkout configuration used by ordinary shoppers.
         const { data: auth, error: authError } = await supabase.auth.getUser();
         if (authError || !auth.user) throw new Error("Sua sessão expirou. Entre novamente para testar o checkout.");
+        const fromAccount=checkoutRecipientFromMetadata(auth.user.user_metadata);
+        if (!active) return;
+        setSavedRecipient(fromAccount);
+        if (!profileInitialized.current) {
+          setRecipient({...fromAccount});
+          setBuyerDocument(fromAccount.document);
+          profileInitialized.current=true;
+        }
         const data = await commerceCall({action:"config"});
         if (!active) return;
         setConfig({enabled:!!data['enabled'],publicKey:data['publicKey']??null,sandbox:data['sandbox']!==false});
@@ -180,9 +192,22 @@ function CheckoutHiraeth() {
     if(busy||selectedFreight==null)return;
     setBusy(true);setError("");
     try{
-      const data=await commerceCall({action:"init",items:itemInputs,recipient,
+      if (recipientMode==="gift" && ![11,14].includes(buyerDocument.replace(/\D/g,"").length))
+        throw new Error("Para enviar um presente, informe o CPF/CNPJ de quem está comprando.");
+      const data=await commerceCall({action:"init",items:itemInputs,
+        recipient:{...recipient,gift:recipientMode==="gift",
+          payer_document:recipientMode==="gift"?buyerDocument.replace(/\D/g,""):recipient.document.replace(/\D/g,"")},
         freightServiceId:selectedFreight,couponCode:coupon.trim()});
       setCheckout(data['checkout'] as CheckoutSummary);
+      // Optional account save is requested explicitly and only for purchases
+      // in the shopper's own name. Gift recipients are never saved as owner.
+      if (recipientMode==="manual" && saveNewDetails) {
+        const {error:saveError}=await supabase.auth.updateUser({
+          data:checkoutMetadataFromRecipient(recipient),
+        });
+        if (saveError) setError("Dados do pedido conferidos, mas não foi possível salvar seus dados na conta.");
+        else setSavedRecipient({...recipient});
+      }
       setQuotes([]);
       window.scrollTo({top:0,behavior:"smooth"});
     }catch(cause){setError(cause instanceof Error?cause.message:"Revise seus dados de entrega.");}
@@ -231,7 +256,23 @@ function CheckoutHiraeth() {
     return ()=>{active=false;window.clearInterval(interval);};
   },[checkout,outcome?.status]);
 
-  function update(field:RecipientField,value:string){setRecipient(prev=>({...prev,[field]:value}));}
+  function update(field:RecipientField,value:string){
+    setRecipient(prev=>({...prev,[field]:value}));
+    // A changed address or delivery identity invalidates the previous freight choice.
+    setQuotes([]);
+    setSelectedFreight(null);
+  }
+
+  function selectRecipientMode(next:RecipientMode) {
+    if (busy) return;
+    setRecipientMode(next);
+    setError("");
+    setQuotes([]);
+    setSelectedFreight(null);
+    setSaveNewDetails(false);
+    setRecipient(next==="profile"?{...savedRecipient}:{...emptyRecipient});
+    if (next==="gift") setBuyerDocument(savedRecipient.document);
+  }
 
   return <div className="min-h-screen min-w-0">
     <SiteHeader/>
@@ -275,21 +316,58 @@ function CheckoutHiraeth() {
           <section className="rounded-xl border border-primary/25 bg-card p-4 sm:p-6">
             <div className="flex items-center gap-2"><Truck size={19} className="text-primary"/>
               <h2 className="font-display text-2xl text-foreground">Destino das chamas</h2></div>
+            <fieldset className="mt-5">
+              <legend className="mb-2 text-sm font-medium text-foreground">Dados para esta entrega</legend>
+              <div className="grid gap-2 sm:grid-cols-3">
+                {([
+                  ["profile","Usar meus dados cadastrados"],
+                  ["manual","Preencher novos dados"],
+                  ["gift","Enviar de presente para outra pessoa"],
+                ] as const).map(([mode,label])=><label key={mode}
+                  className={`flex cursor-pointer items-start gap-2 rounded-lg border px-3 py-3 text-sm text-foreground ${recipientMode===mode?"border-primary bg-primary/10":"border-primary/30"}`}>
+                  <input type="radio" name="delivery-mode" checked={recipientMode===mode}
+                    onChange={()=>selectRecipientMode(mode)} className="mt-1 accent-primary"/>
+                  <span>{label}</span>
+                </label>)}
+              </div>
+            </fieldset>
+            {recipientMode==="profile"&&<p className="mt-3 text-sm text-muted-foreground">
+              Preenchemos o que existe na sua conta. Você pode completar ou ajustar abaixo.
+              <Link to="/configuracoes" search={{tab:"perfil"}} className="ml-1 underline underline-offset-2 text-primary">Atualizar meu cadastro</Link>
+            </p>}
+            {recipientMode==="gift"&&<div className="mt-4 rounded-lg border border-primary/30 bg-primary/5 p-4">
+              <p className="text-sm font-medium text-foreground">Você compra, outra pessoa recebe. 🎁</p>
+              <p className="mt-1 text-xs text-muted-foreground">Informe seu documento para o pagamento. Abaixo, preencha o nome, documento, telefone e endereço de quem vai receber o presente.</p>
+              <label className="mt-3 block text-sm text-foreground">Seu CPF ou CNPJ (de quem está comprando)
+                <input required inputMode="numeric" autoComplete="off" maxLength={18}
+                  value={buyerDocument} onChange={e=>setBuyerDocument(e.target.value)}
+                  className={inputClass} aria-label="Documento de quem está comprando"/>
+              </label>
+            </div>}
             <div className="mt-5 grid gap-3 sm:grid-cols-2">
               {([
-                ["name","Nome completo"],["document","CPF ou CNPJ"],["phone","Celular"],["postal_code","CEP"],
+                ["name",recipientMode==="gift"?"Nome completo de quem vai receber":"Nome completo"],
+                ["document",recipientMode==="gift"?"CPF ou CNPJ de quem vai receber":"CPF ou CNPJ"],
+                ["phone",recipientMode==="gift"?"Celular de quem vai receber":"Celular"],
+                ["postal_code","CEP"],
                 ["street","Rua / Avenida"],["number","Número"],["complement","Complemento (opcional)"],
                 ["district","Bairro"],["city","Cidade"],["state","UF"],
               ] as const).map(([field,label])=><label key={field} className={
                   field==="street"?"sm:col-span-2 text-sm text-foreground":"text-sm text-foreground"}>
                 {label}
                 <input value={recipient[field]} required={field!=="complement"}
-                  maxLength={field==="postal_code"?9:field==="state"?2:140}
-                  onChange={e=>{update(field,e.target.value);if(quotes.length)setQuotes([]);}}
+                  maxLength={field==="postal_code"?9:field==="state"?2:field==="document"?18:140}
+                  inputMode={field==="document"||field==="postal_code"||field==="phone"?"numeric":undefined}
+                  onChange={e=>update(field,e.target.value)}
                   className={inputClass} aria-label={label} autoComplete={
-                    field==="postal_code"?"postal-code":field==="name"?"name":undefined}/>
+                    recipientMode==="gift"?"off":field==="postal_code"?"postal-code":field==="name"?"name":undefined}/>
               </label>)}
             </div>
+            {recipientMode==="manual"&&<label className="mt-4 flex items-start gap-2 text-sm text-foreground">
+              <input type="checkbox" checked={saveNewDetails} onChange={e=>setSaveNewDetails(e.target.checked)}
+                className="mt-1 accent-primary"/>
+              <span>Salvar estes dados na minha conta para as próximas compras</span>
+            </label>}
             <button type="button" onClick={()=>void quote()} disabled={busy||!recipient.postal_code}
               className="mt-5 rounded-lg border border-primary/50 px-4 py-2.5 text-sm font-semibold text-primary disabled:opacity-40">
               {busy?"Consultando transportadoras...":"Calcular frete"}

@@ -5,6 +5,7 @@ import {
 } from "../_shared/commerce-api.ts";
 import { validateItems, snapshotProducts, calculateCheckoutPrice } from "../_shared/commerce-pricing.ts";
 import { isSandboxCheckout, providerModeMatchesCheckout, paymentAmountMatchesCheckout, mayCreateRealOrder } from "../_shared/commerce-sandbox.ts";
+import { payerDocumentForPayment } from "../_shared/checkout-identification.ts";
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -96,9 +97,10 @@ Deno.serve(async (req: Request) => {
       // The client cannot set transaction_amount, merchant token or order id.
       // Card numbers, CVV and expiry never enter this endpoint. Only the
       // one-time Mercado Pago token is passed directly to its payment API.
+      const payerDocument=payerDocumentForPayment(session.recipient);
       const payer = { email: user.email,
-        identification: { type: session.recipient.document.length === 14 ? "CNPJ" : "CPF",
-          number: session.recipient.document } };
+        identification: { type: payerDocument.length === 14 ? "CNPJ" : "CPF",
+          number: payerDocument } };
       const request: Record<string, unknown> = {
         transaction_amount: Number(session.total),
         description: "Pedido Hiraeth",
