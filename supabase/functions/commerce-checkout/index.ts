@@ -1,6 +1,6 @@
 import {
   corsHeaders, json, errorResponse, env, isCommerceEnabled, canAccessCommerce,
-  signedInUser, serviceClient, postalCode, validateRecipient,
+  signedInUser, userIsAdmin, commerceSetupIssues, serviceClient, postalCode, validateRecipient,
   freightQuotes, mercadoPagoRequest,
 } from "../_shared/commerce-api.ts";
 import { validateItems, snapshotProducts, calculateCheckoutPrice } from "../_shared/commerce-pricing.ts";
@@ -24,12 +24,24 @@ Deno.serve(async (req: Request) => {
     // gates are met. Sensitive tokens never leave the server. Actual quote,
     // checkout and payment actions still require a valid user session.
     const enabled = canAccessCommerce(commerceReady, mode);
+    let setupIssues: string[] | undefined;
+    if (!enabled) {
+      // Only a verified administrator can see names of failing setup checks.
+      // Never return credentials, token fragments or environment values.
+      try {
+        const user = await signedInUser(req);
+        if (await userIsAdmin(user.id)) setupIssues = commerceSetupIssues();
+      } catch {
+        // Ordinary visitors still receive only generic checkout availability.
+      }
+    }
     return json({
       enabled,
       publicKey: enabled ? env("MERCADO_PAGO_PUBLIC_KEY") : null,
       sandbox: mode !== "production",
       shippingProvider: "Melhor Envio",
       fiscalProvider: "Focus NFe",
+      ...(setupIssues ? { setupIssues } : {}),
     });
   }
 
