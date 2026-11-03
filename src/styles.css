@@ -980,3 +980,58 @@ body > div {
 @media (prefers-reduced-motion: reduce) {
   .phoenix-tarot-flip { transition: none; }
 }
+
+/*
+ * Hiraeth checkout: contrast corrections scoped exclusively to the light theme.
+ * Keep the existing Dark Academia layout, dark theme, and site-wide palette.
+ * Olive used for text, prices, buttons and icons must be darker on vanilla.
+ */
+:root:not(.dark) .hiraeth-checkout {
+  --primary: #525c2a;
+  --color-primary: #525c2a;
+  --primary-foreground: #fff9eb;
+  --color-primary-foreground: #fff9eb;
+  --foreground: #283823;
+  --color-foreground: #283823;
+  --muted-foreground: #505640;
+  --color-muted-foreground: #505640;
+  --card: #fff9ed;
+  --color-card: #fff9ed;
+  --card-foreground: #283823;
+  --color-card-foreground: #283823;
+  --border: #9c9f74;
+  --color-border: #9c9f74;
+  --input: #969e75;
+  --color-input: #969e75;
+  --ring: #525c2a;
+  --color-ring: #525c2a;
+}
+
+:root:not(.dark) .hiraeth-checkout input:not([type="radio"]),
+:root:not(.dark) .hiraeth-checkout textarea {
+  background-color: #fffdf8;
+  border-color: #a0a580;
+  color: #283823;
+}
+
+:root:not(.dark) .hiraeth-checkout input:not([type="radio"])::placeholder,
+:root:not(.dark) .hiraeth-checkout textarea::placeholder {
+  color: #666b50;
+  opacity: 1;
+}
+
+:root:not(.dark) .hiraeth-checkout input:not([type="radio"]):focus-visible,
+:root:not(.dark) .hiraeth-checkout textarea:focus-visible {
+  outline: 2px solid #525c2a;
+  outline-offset: 2px;
+}
+
+:root:not(.dark) .hiraeth-checkout input[type="radio"] {
+  accent-color: #525c2a;
+}
+
+:root:not(.dark) .hiraeth-checkout .hiraeth-checkout-sandbox-note {
+  background-color: #f2ead4;
+  border-color: #b8ab80;
+  color: #283823;
+}
