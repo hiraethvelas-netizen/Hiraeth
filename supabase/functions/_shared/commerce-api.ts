@@ -143,6 +143,9 @@ export type Recipient = {
   document: string;
   email: string;
   phone: string;
+  // For gifts, this identifies the buyer; document above identifies the receiver.
+  payer_document: string;
+  gift: boolean;
   postal_code: string;
   street: string;
   number: string;
@@ -161,8 +164,13 @@ export function validateRecipient(input: any, email: string): Recipient {
   if (name.length < 3 || street.length < 3 || !number || !district || !city || !/^[A-Z]{2}$/.test(state))
     throw new Error("Confira nome, rua, número, bairro, cidade e UF da entrega.");
   if (![11,14].includes(document.length)) throw new Error("Informe um CPF ou CNPJ válido.");
+  const gift = input.gift === true;
+  const payerDocument = gift ? str("payer_document").replace(/\D/g,"") : document;
+  if (![11,14].includes(payerDocument.length))
+    throw new Error("Informe o CPF ou CNPJ de quem está comprando o presente.");
   return {
     name, document, email, phone: str("phone").replace(/\D/g,""),
+    gift, payer_document:payerDocument,
     postal_code: postalCode(input.postal_code), street, number,
     complement: str("complement"), district, city, state,
   };
