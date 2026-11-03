@@ -54,6 +54,36 @@ export function isCommerceEnabled() {
     Boolean(Deno.env.get("MELHOR_ENVIO_ORIGIN_POSTAL_CODE"));
 }
 
+/**
+ * Names-only troubleshooting for authenticated administrators.
+ * Never return environment values, credentials, or tokens to the client.
+ * The authoritative enabling gate remains isCommerceEnabled().
+ */
+export function commerceSetupIssues(): string[] {
+  const mode = Deno.env.get("HIRAETH_PAYMENTS_MODE");
+  const token = Deno.env.get("MERCADO_PAGO_ACCESS_TOKEN")?.trim() ?? "";
+  const failures: string[] = [];
+  if (Deno.env.get("HIRAETH_COMMERCE_ENABLED") !== "true")
+    failures.push("HIRAETH_COMMERCE_ENABLED");
+  if (mode !== "sandbox" && mode !== "production")
+    failures.push("HIRAETH_PAYMENTS_MODE");
+  if (!token.startsWith("APP_USR-"))
+    failures.push("MERCADO_PAGO_ACCESS_TOKEN");
+  if (mode === "sandbox" && Deno.env.get("HIRAETH_TEST_CREDENTIALS_CONFIRMED") !== "true")
+    failures.push("HIRAETH_TEST_CREDENTIALS_CONFIRMED");
+  if (mode === "production" && Deno.env.get("HIRAETH_ALLOW_LIVE_CHARGES") !== "true")
+    failures.push("HIRAETH_ALLOW_LIVE_CHARGES");
+  if (Deno.env.get("MELHOR_ENVIO_ENV") !== mode)
+    failures.push("MELHOR_ENVIO_ENV");
+  for (const key of [
+    "MERCADO_PAGO_PUBLIC_KEY", "MERCADO_PAGO_WEBHOOK_SECRET",
+    "MELHOR_ENVIO_TOKEN", "MELHOR_ENVIO_ORIGIN_POSTAL_CODE",
+  ]) {
+    if (!Deno.env.get(key)?.trim()) failures.push(key);
+  }
+  return failures;
+}
+
 export function serviceClient(): SupabaseClient {
   return createClient(env("SUPABASE_URL"), env("SUPABASE_SERVICE_ROLE_KEY"), {
     auth: { persistSession: false, autoRefreshToken: false },
