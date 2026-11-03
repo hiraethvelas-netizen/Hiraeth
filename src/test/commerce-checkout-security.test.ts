@@ -6,6 +6,7 @@ import { validMercadoPagoSignature } from "../../supabase/functions/_shared/merc
 import { calculateShippingPackage } from "../../supabase/functions/_shared/commerce-shipping";
 import { canAccessCommerce } from "../../supabase/functions/_shared/commerce-access";
 import { isSandboxCheckout, providerModeMatchesCheckout, mayCreateRealOrder, paymentAmountMatchesCheckout } from "../../supabase/functions/_shared/commerce-sandbox";
+import { hasAllowedMercadoPagoCredential } from "../../supabase/functions/_shared/mercado-pago-credentials";
 
 const id = "6c3efc18-cdbc-4cc1-918a-1fc53087d522";
 const otherId = "e3c182d1-6a9d-45bc-b3e7-89a1180f9772";
@@ -202,6 +203,35 @@ describe("Hiraeth — checkout sandbox cannot create real orders or affect stock
     expect(paymentAmountMatchesCheckout(59.89,59.9)).toBe(false);
     expect(paymentAmountMatchesCheckout(0,59.9)).toBe(false);
     expect(paymentAmountMatchesCheckout("invalid",59.9)).toBe(false);
+  });
+});
+
+describe("Mercado Pago credential format — sandbox-only compatibility", () => {
+  it("allows legacy TEST- credentials only after explicit sandbox confirmation", () => {
+    expect(hasAllowedMercadoPagoCredential("TEST-example", "sandbox", true, false)).toBe(true);
+    expect(hasAllowedMercadoPagoCredential("TEST-example", "sandbox", false, false)).toBe(false);
+  });
+
+  it("accepts APP_USR- in sandbox only with separately confirmed test credentials", () => {
+    expect(hasAllowedMercadoPagoCredential("APP_USR-example", "sandbox", true, false)).toBe(true);
+    expect(hasAllowedMercadoPagoCredential("APP_USR-example", "sandbox", false, false)).toBe(false);
+  });
+
+  it("never accepts TEST- for production, even with live approval", () => {
+    expect(hasAllowedMercadoPagoCredential("TEST-example", "production", true, true)).toBe(false);
+    expect(hasAllowedMercadoPagoCredential("TEST-example", "production", false, true)).toBe(false);
+  });
+
+  it("still requires explicit live opt-in for production APP_USR- credentials", () => {
+    expect(hasAllowedMercadoPagoCredential("APP_USR-example", "production", false, true)).toBe(true);
+    expect(hasAllowedMercadoPagoCredential("APP_USR-example", "production", true, false)).toBe(false);
+  });
+
+  it("rejects missing credentials and unknown payment modes", () => {
+    expect(hasAllowedMercadoPagoCredential("", "sandbox", true, false)).toBe(false);
+    expect(hasAllowedMercadoPagoCredential("PK-test", "sandbox", true, false)).toBe(false);
+    expect(hasAllowedMercadoPagoCredential("TEST-example", "other", true, false)).toBe(false);
+    expect(hasAllowedMercadoPagoCredential("APP_USR-example", undefined, true, true)).toBe(false);
   });
 });
 
