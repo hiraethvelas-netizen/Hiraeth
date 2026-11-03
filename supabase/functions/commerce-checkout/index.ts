@@ -4,7 +4,7 @@ import {
   freightQuotes, mercadoPagoRequest,
 } from "../_shared/commerce-api.ts";
 import { validateItems, snapshotProducts, calculateCheckoutPrice } from "../_shared/commerce-pricing.ts";
-import { isSandboxCheckout, providerModeMatchesCheckout, paymentAmountMatchesCheckout } from "../_shared/commerce-sandbox.ts";
+import { isSandboxCheckout, providerModeMatchesCheckout, paymentAmountMatchesCheckout, mayCreateRealOrder } from "../_shared/commerce-sandbox.ts";
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -179,7 +179,7 @@ Deno.serve(async (req: Request) => {
               throw new Error("O pagamento de teste precisa de conciliação.");
             status = current.status;
           } else status = sandboxStatus;
-        } else {
+        } else if (mayCreateRealOrder(sandboxSession, result.live_mode)) {
           const { data: confirmed, error: rpcError } = await db.rpc("confirm_paid_commerce_checkout", {
             p_checkout_id: id, p_payment_id: paymentId,
             p_amount: Number(result.transaction_amount), p_method: body.method,
