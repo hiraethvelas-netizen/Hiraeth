@@ -4,7 +4,7 @@ import {
   freightQuotes, mercadoPagoRequest,
 } from "../_shared/commerce-api.ts";
 import { validateItems, snapshotProducts, calculateCheckoutPrice } from "../_shared/commerce-pricing.ts";
-import { isSandboxCheckout, providerModeMatchesCheckout } from "../_shared/commerce-sandbox.ts";
+import { isSandboxCheckout, providerModeMatchesCheckout, paymentAmountMatchesCheckout } from "../_shared/commerce-sandbox.ts";
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -161,8 +161,12 @@ Deno.serve(async (req: Request) => {
         if (sandboxSession) {
           // Approval is recorded ONLY on the test checkout. Never call the
           // real-order/stock RPC for sandbox funds or create invoices/labels.
+          const amountOk = paymentAmountMatchesCheckout(result.transaction_amount, session.total);
+          const sandboxStatus = amountOk ? "paid" : "paid_attention";
           const { data: settled, error: settleError } = await db.from("commerce_checkouts")
-            .update({ status:"paid", paid_at:new Date().toISOString(), updated_at:new Date().toISOString() })
+            .update({ status:sandboxStatus, paid_at:new Date().toISOString(),
+              last_error:amountOk ? null : "Sandbox payment amount mismatch",
+              updated_at:new Date().toISOString() })
             .eq("id",id).eq("user_id",user.id).eq("mp_payment_id",paymentId)
             .in("status",["processing","pending"])
             .select("id");
@@ -170,10 +174,11 @@ Deno.serve(async (req: Request) => {
           if (!settled?.length) {
             const { data: current } = await db.from("commerce_checkouts")
               .select("status,mp_payment_id").eq("id",id).eq("user_id",user.id).maybeSingle();
-            if (!current || current.mp_payment_id !== paymentId || current.status !== "paid")
+            if (!current || current.mp_payment_id !== paymentId ||
+                !["paid","paid_attention"].includes(current.status))
               throw new Error("O pagamento de teste precisa de conciliação.");
-          }
-          status = "paid";
+            status = current.status;
+          } else status = sandboxStatus;
         } else {
           const { data: confirmed, error: rpcError } = await db.rpc("confirm_paid_commerce_checkout", {
             p_checkout_id: id, p_payment_id: paymentId,
