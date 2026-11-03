@@ -150,24 +150,23 @@ describe("Hiraeth — candle size and protected parcel calculations", () => {
 });
 
 
-describe("Hiraeth — sandbox checkout only for authenticated admins", () => {
-  it("keeps test checkout disabled for visitors and regular customers even with all secrets configured", () => {
-    expect(canAccessCommerce(true, "sandbox", false)).toBe(false);
+describe("Hiraeth — open test checkout with secure server-side environment gate", () => {
+  it("advertises complete sandbox checkout for ordinary customers when safely enabled", () => {
+    expect(canAccessCommerce(true, "sandbox")).toBe(true);
   });
 
-  it("allows an administrator to test only when commerce is explicitly enabled", () => {
-    expect(canAccessCommerce(true, "sandbox", true)).toBe(true);
-    expect(canAccessCommerce(false, "sandbox", true)).toBe(false);
+  it("blocks checkout for every visitor if commerce is not enabled by the server", () => {
+    expect(canAccessCommerce(false, "sandbox")).toBe(false);
+    expect(canAccessCommerce(false, "production")).toBe(false);
   });
 
   it("fails closed for missing or unknown payment modes", () => {
-    expect(canAccessCommerce(true, undefined, true)).toBe(false);
-    expect(canAccessCommerce(true, "staging", true)).toBe(false);
+    expect(canAccessCommerce(true, undefined)).toBe(false);
+    expect(canAccessCommerce(true, "staging")).toBe(false);
   });
 
-  it("preserves production customer access only after the separate live-mode checks succeeded", () => {
-    expect(canAccessCommerce(true, "production", false)).toBe(true);
-    expect(canAccessCommerce(false, "production", true)).toBe(false);
+  it("retains public production checkout after separate live-mode verification", () => {
+    expect(canAccessCommerce(true, "production")).toBe(true);
   });
 });
 
