@@ -1,6 +1,6 @@
 import { json, errorResponse, env, mercadoPagoRequest, serviceClient } from "../_shared/commerce-api.ts";
 import { validMercadoPagoSignature } from "../_shared/mercado-pago-signature.ts";
-import { isSandboxCheckout, providerModeMatchesCheckout, paymentAmountMatchesCheckout } from "../_shared/commerce-sandbox.ts";
+import { isSandboxCheckout, providerModeMatchesCheckout, paymentAmountMatchesCheckout, mayCreateRealOrder } from "../_shared/commerce-sandbox.ts";
 
 Deno.serve(async req => {
   if (req.method !== "POST") return json({ error: "Método não permitido." },405);
@@ -49,6 +49,8 @@ Deno.serve(async req => {
         }
         return json({received:true,settlement:status,sandbox:true});
       }
+      if (!mayCreateRealOrder(sandboxCheckout, payment.live_mode))
+        return json({ error:"Pagamento de teste não pode criar pedido real." },409);
       const { data: outcome, error: confirmationError } = await db.rpc(
         "confirm_paid_commerce_checkout", {
           p_checkout_id:checkoutId,
