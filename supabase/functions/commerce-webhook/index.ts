@@ -1,5 +1,6 @@
 import { json, errorResponse, env, mercadoPagoRequest, serviceClient } from "../_shared/commerce-api.ts";
 import { validMercadoPagoSignature } from "../_shared/mercado-pago-signature.ts";
+import { isSandboxCheckout, providerModeMatchesCheckout, paymentAmountMatchesCheckout } from "../_shared/commerce-sandbox.ts";
 
 Deno.serve(async req => {
   if (req.method !== "POST") return json({ error: "Método não permitido." },405);
@@ -23,12 +24,31 @@ Deno.serve(async req => {
     const checkoutId = String(payment.external_reference);
     const db = serviceClient();
     const { data: checkout, error } = await db.from("commerce_checkouts")
-      .select("id,status,mp_payment_id,total").eq("id",checkoutId).maybeSingle();
+      .select("id,status,mp_payment_id,total,promotion_summary").eq("id",checkoutId).maybeSingle();
     if (error || !checkout) return json({ error:"Checkout não encontrado." },404);
     if (checkout.mp_payment_id && checkout.mp_payment_id !== paymentId)
       return json({ error:"Pagamento não pertence ao checkout." },409);
+    const sandboxCheckout = isSandboxCheckout(checkout.promotion_summary);
+    // A test payment must never become a real order, including after mode changes.
+    if (!providerModeMatchesCheckout(sandboxCheckout, payment.live_mode))
+      return json({ error:"O pagamento pertence a um ambiente diferente deste checkout." },409);
     const providerStatus = String(payment.status ?? "");
     if (providerStatus === "approved") {
+      if (sandboxCheckout) {
+        const amountOk = paymentAmountMatchesCheckout(payment.transaction_amount, checkout.total);
+        const status = amountOk ? "paid" : "paid_attention";
+        if (!["paid","paid_attention"].includes(checkout.status)) {
+          const { error: updateError } = await db.from("commerce_checkouts").update({
+            status,mp_payment_id:paymentId,
+            payment_method:String(payment.payment_method_id ?? "mercadopago"),
+            paid_at:new Date().toISOString(),
+            last_error:amountOk ? null : "Sandbox payment amount mismatch",
+            updated_at:new Date().toISOString(),
+          }).eq("id",checkoutId).in("status",["awaiting_payment","processing","pending","rejected"]);
+          if (updateError) throw new Error("Não foi possível conciliar o pagamento de teste.");
+        }
+        return json({received:true,settlement:status,sandbox:true});
+      }
       const { data: outcome, error: confirmationError } = await db.rpc(
         "confirm_paid_commerce_checkout", {
           p_checkout_id:checkoutId,
