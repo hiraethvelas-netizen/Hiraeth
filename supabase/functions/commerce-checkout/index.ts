@@ -1,6 +1,6 @@
 import {
   corsHeaders, json, errorResponse, env, isCommerceEnabled, canAccessCommerce,
-  signedInUser, userIsAdmin, serviceClient, postalCode, validateRecipient,
+  signedInUser, serviceClient, postalCode, validateRecipient,
   freightQuotes, mercadoPagoRequest,
 } from "../_shared/commerce-api.ts";
 import { validateItems, snapshotProducts, calculateCheckoutPrice } from "../_shared/commerce-pricing.ts";
@@ -20,18 +20,10 @@ Deno.serve(async (req: Request) => {
   if (body?.action === "config") {
     const mode = Deno.env.get("HIRAETH_PAYMENTS_MODE");
     const commerceReady = isCommerceEnabled();
-    let isAdmin = false;
-    if (commerceReady && mode === "sandbox") {
-      // This endpoint is requested on the public store too. Never reveal
-      // sandbox checkout availability/public key to a non-admin visitor.
-      try {
-        const user = await signedInUser(req);
-        isAdmin = await userIsAdmin(user.id);
-      } catch {
-        isAdmin = false;
-      }
-    }
-    const enabled = canAccessCommerce(commerceReady, mode, isAdmin);
+    // The public config only advertises whether the server-side provider
+    // gates are met. Sensitive tokens never leave the server. Actual quote,
+    // checkout and payment actions still require a valid user session.
+    const enabled = canAccessCommerce(commerceReady, mode);
     return json({
       enabled,
       publicKey: enabled ? env("MERCADO_PAGO_PUBLIC_KEY") : null,
@@ -49,11 +41,10 @@ Deno.serve(async (req: Request) => {
       code: "COMMERCE_NOT_ENABLED",
     }, 503);
     const mode = Deno.env.get("HIRAETH_PAYMENTS_MODE");
-    const isAdmin = mode === "sandbox" ? await userIsAdmin(user.id) : false;
-    if (!canAccessCommerce(ready, mode, isAdmin)) return json({
-      error: "O checkout de testes está disponível apenas para a administração.",
-      code: "SANDBOX_ADMIN_ONLY",
-    }, 403);
+    if (!canAccessCommerce(ready, mode)) return json({
+      error: "O checkout está temporariamente indisponível.",
+      code: "COMMERCE_MODE_DISABLED",
+    }, 503);
     const db = serviceClient();
 
     if (body.action === "status") {

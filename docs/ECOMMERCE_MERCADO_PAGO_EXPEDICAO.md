@@ -99,24 +99,24 @@ Focus NFe: https://doc.focusnfe.com.br/reference/introducao
 - Com o limite de 1 vela por pacote, pedidos com mais de uma vela são bloqueados com mensagem clara, sem cotação subestimada. Uma futura implementação de múltiplos volumes exige rechecagem completa de cotação, checkout e etiquetas.
 - **Não ativar cobrança real nem comprar etiquetas reais durante os testes.** Verificar as credenciais de teste na origem, executar testes reais de ponta a ponta e liberar somente após aprovação.
 
-## Checkout Sandbox restrito à administração (02/11/2026)
+## Checkout completo para clientes, em Sandbox (03/11/2026)
 
-- No ambiente `HIRAETH_PAYMENTS_MODE=sandbox`, a resposta pública de `commerce-checkout` (ação `config`) fica `enabled: false` para visitantes e compradores comuns, **mesmo quando** `HIRAETH_COMMERCE_ENABLED=true`; a chave pública de pagamentos também não é devolvida.
-- Todas as ações de checkout (`quote`, `init`, `pay`, `status`) são igualmente bloqueadas na API para usuários que não tenham a função `admin` no Supabase. A verificação é feita no servidor, consultando `has_role`, sem confiar no frontend ou no e-mail do usuário.
-- Apenas o administrador autenticado poderá ver o formulário completo, cotar o frete e testar transações simuladas quando o comércio for explicitamente habilitado.
-- **Ordem de habilitação:** (1) fazer deploy da Edge Function `commerce-checkout` **atualizada**, incluindo os arquivos `_shared`; (2) verificar em execução que os usuários comuns recebem `enabled: false` mesmo com o sistema habilitado; (3) confirmar no painel que ambas as credenciais Mercado Pago são de teste, Melhor Envio é Sandbox e a função `admin` está correta; (4) somente então definir `HIRAETH_COMMERCE_ENABLED=true` para ensaios administrativos. Não antecipar o passo 4.
-- O deploy do site/frontend via Lovable **não garante** deploy da Edge Function. Sem acesso para publicar a função, manter `HIRAETH_COMMERCE_ENABLED` ausente ou `false`.
-- O limite temporário continua `HIRAETH_MAX_ITEMS_PER_PACKAGE=1`; os testes do carrinho devem usar uma vela por vez. A cotação de frete não é validada ao vivo sem autorização e teste de conectividade do Melhor Envio.
-- A volta ao modo de vendas reais requer uma revisão específica de credenciais e controles, não apenas trocar `HIRAETH_PAYMENTS_MODE`. A habilitação de produção precisa de autorização da proprietária e validação independente de todas as integrações.
+- O fluxo de checkout é público para **clientes autenticados** quando o servidor valida os Secrets e `HIRAETH_COMMERCE_ENABLED=true`. Isso simula a jornada real: endereço, CEP, cotação Melhor Envio, cupons, Pix/cartão de teste e retorno. Login continua obrigatório como na loja real.
+- A ação pública `config` só informa o estado de habilitação e a chave *pública* do SDK; não disponibiliza token privado. As ações `quote`, `init`, `pay` e `status` exigem JWT de usuário válido e conferem preço, estoque e titularidade no servidor.
+- A verificação de `isCommerceEnabled()` exige modo de pagamentos **sandbox**, credenciais de teste confirmadas e modo Melhor Envio também **sandbox**; ambientes incompatíveis bloqueiam a habilitação. O prefixo APP_USR sozinho não comprova credencial de teste: a proprietária deve validá-la no painel.
+- O checkout mostra aviso visível de que está em **ambiente de testes**. Não utilizar cartões reais, nem pagar Pix reais, nem anunciar o site como aberto para vendas reais.
+- Com `HIRAETH_MAX_ITEMS_PER_PACKAGE=1`, somente simulações com uma vela por pacote serão aceitas. Pedidos maiores aguardam implementação segura de múltiplas caixas/volumes.
+- O código precisa ser integrado, seguido de **deploy efetivo da Edge Function `commerce-checkout`** (incluindo `_shared`), além da publicação da versão de frontend correspondente. O deploy do site não implica deploy das Edge Functions.
+- Cobranças reais exigirão homologação à parte e aprovação explícita antes de alterar `HIRAETH_PAYMENTS_MODE`, `MELHOR_ENVIO_ENV` ou `HIRAETH_ALLOW_LIVE_CHARGES`.
 
 ## Isolamento de pagamentos simulados — atualização de segurança
 
 A aprovação de um pagamento com `live_mode=false` no Mercado Pago **não deve** criar um pedido real, gerar nota fiscal, comprar etiqueta ou baixar o estoque da loja. O checkout grava em `promotion_summary.sandbox` (definido pelo servidor no momento da criação) se a tentativa é de teste; o resultado do provedor precisa trazer um `live_mode` compatível, senão é rejeitado. Este marcador não é confiado ao navegador.
 
-- No modo de testes, somente contas com papel administrativo validado pelo backend podem fazer cotação, criar checkout ou efetuar pagamento simulado.
+- No modo de testes, qualquer conta autenticada pode simular cotação e pagamento, respeitando as validações do backend. Isso não cria uma venda real.
 - O resultado aprovado de teste atualiza apenas o registro `commerce_checkouts` para `paid`, sem chamar `confirm_paid_commerce_checkout` e sem criar linha em `orders`. O valor pago informado pelo provedor é conferido contra o total calculado no servidor; divergências resultam em `paid_attention`.
 - O webhook, após validar assinatura criptográfica e consultar o pagamento na API oficial, repete a verificação do ambiente, do valor e do marcador de teste antes de fazer qualquer alteração. Um teste que chegue pelo webhook também não registra pedido real.
-- A interface administrativa mostra explicitamente **Pagamento de teste aprovado**, sem apresentar o pedido de teste como uma venda em **Meus pedidos**.
+- A interface do checkout mostra explicitamente **Pagamento de teste aprovado**, sem apresentar o pedido de teste como uma venda em **Meus pedidos**.
 - A homologação fiscal e a compra simulada de etiqueta são fluxos separados; **não podem ser consideradas verificadas** apenas por uma cotação de frete ou por um pagamento de teste.
 
-**ATENÇÃO: somente depois de implantar novamente as Edge Functions `commerce-checkout` e `commerce-webhook` (incluindo os módulos `_shared`) na infraestrutura real da Hiraeth é seguro considerar a ativação do checkout administrativo com `HIRAETH_COMMERCE_ENABLED=true`. GitHub sincronizado e frontend publicado não comprovam atualização das funções. Não ativar o Secret antes dessas verificações.**
+**ATENÇÃO: somente depois de implantar novamente as Edge Functions `commerce-checkout` e `commerce-webhook` (incluindo os módulos `_shared`) na infraestrutura real da Hiraeth é seguro considerar a ativação do checkout de testes para clientes autenticados com `HIRAETH_COMMERCE_ENABLED=true`. GitHub sincronizado e frontend publicado não comprovam atualização das funções. Não ativar o Secret antes dessas verificações.**

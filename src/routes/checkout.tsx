@@ -130,8 +130,8 @@ function CheckoutHiraeth() {
     setConfigIssue("");
     const loadConfig=async()=>{
       try {
-        // Wait for authentication to finish before asking the admin-only
-        // function whether the current user can access the sandbox checkout.
+        // Wait for authentication to finish before requesting the same
+        // signed-in checkout configuration used by ordinary shoppers.
         const { data: auth, error: authError } = await supabase.auth.getUser();
         if (authError || !auth.user) throw new Error("Sua sessão expirou. Entre novamente para testar o checkout.");
         const data = await commerceCall({action:"config"});
@@ -140,13 +140,7 @@ function CheckoutHiraeth() {
         setPayerEmail(auth.user.email??"");
         try{setCoupon(sessionStorage.getItem("hiraeth-checkout-coupon")??"");}catch{/* optional */}
         if (!data['enabled']) {
-          // The server still owns the security decision. The local role check
-          // is only for explaining an already-denied checkout to its owner.
-          const { data: admin, error: roleError } = await supabase.rpc("has_role", {
-            _user_id:auth.user.id, _role:"admin",
-          });
-          if (active && !roleError && admin === true)
-            setConfigIssue("Sua conta é administradora, mas o servidor ainda não liberou o Sandbox. Verifique as configurações do checkout na Lovable.");
+          setConfigIssue("Os pagamentos ainda não foram liberados pelo servidor. Confira as configurações do Mercado Pago e do Melhor Envio.");
         }
       } catch(cause) {
         if (!active) return;
@@ -240,6 +234,10 @@ function CheckoutHiraeth() {
         Entrega, pagamento e acompanhamento do seu pedido, com segurança e sem sair da Hiraeth.
       </p>
       {loading&&<p role="status" className="mt-10 text-muted-foreground">Preparando checkout seguro...</p>}
+      {config?.enabled&&config.sandbox&&<p role="status" className="mt-5 rounded-lg border border-primary/35 bg-card px-4 py-3 text-sm text-foreground">
+        Ambiente de testes: você pode simular frete e pagamento, mas não será gerado um pedido real nem haverá envio.
+        Não use cartão ou Pix reais nesta etapa.
+      </p>}
       {!loading&&!config?.enabled&&<section className="mt-8 rounded-xl border border-primary/30 bg-card p-5">
         <h2 className="font-display text-2xl text-foreground">Pagamento em preparação</h2>
         <p className="mt-2 text-sm text-muted-foreground">O checkout ainda está em homologação. Nenhum valor será cobrado até a integração do Mercado Pago e do frete ser ativada com segurança.</p>
