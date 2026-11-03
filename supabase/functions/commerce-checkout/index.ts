@@ -187,6 +187,8 @@ Deno.serve(async (req: Request) => {
           if (rpcError) throw new Error("Pagamento aprovado e em conciliação. Consulte Meus pedidos.");
           status = confirmed.status;
           orderId = confirmed.order_id ?? null;
+        } else {
+          throw new Error("Ambiente de pagamento inválido para confirmar este pedido.");
         }
       }
       return json({
