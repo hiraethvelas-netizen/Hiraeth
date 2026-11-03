@@ -41,8 +41,13 @@ export function isCommerceEnabled() {
     : mode==="production" &&
       Deno.env.get("HIRAETH_ALLOW_LIVE_CHARGES")==="true" &&
       token.startsWith("APP_USR-");
+  // When customer access is open, require freight and payment providers
+  // to use the same environment; never mix live freight with test payments.
+  const freightMode = Deno.env.get("MELHOR_ENVIO_ENV");
+  const safeFreightMode = (mode === "sandbox" && freightMode === "sandbox") ||
+    (mode === "production" && freightMode === "production");
   return Deno.env.get("HIRAETH_COMMERCE_ENABLED") === "true" &&
-    safePaymentMode &&
+    safePaymentMode && safeFreightMode &&
     Boolean(Deno.env.get("MERCADO_PAGO_PUBLIC_KEY")) &&
     Boolean(Deno.env.get("MERCADO_PAGO_WEBHOOK_SECRET")) &&
     Boolean(Deno.env.get("MELHOR_ENVIO_TOKEN")) &&
