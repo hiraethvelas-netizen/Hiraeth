@@ -5,7 +5,7 @@
  */
 export function isSandboxCheckout(summary: unknown): boolean {
   return !!summary && typeof summary === "object" &&
-    !Array.isArray(summary) && (summary as Record<string, unknown>).sandbox === true;
+    !Array.isArray(summary) && (summary as Record<string, unknown>)["sandbox"] === true;
 }
 
 export function providerModeMatchesCheckout(sandbox: boolean, liveMode: unknown): boolean {
