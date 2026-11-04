@@ -79,7 +79,7 @@ export function nextSafeOrderStatus(
   shipmentStatus: string | null | undefined,
 ): "shipped" | "delivered" | null {
   if (paymentStatus !== "approved") return null;
-  if (orderStatus === "paid" && (shipmentStatus === "posted" || shipmentStatus === "delivered")) return "shipped";
-  if (orderStatus === "shipped" && shipmentStatus === "delivered") return "delivered";
+  if (orderStatus === "paid" && (shipmentStatus === "generated" || shipmentStatus === "posted")) return "shipped";
+  if (orderStatus === "shipped" && shipmentStatus === "posted") return "delivered";
   return null;
 }
