@@ -30,11 +30,12 @@ describe("Hiraeth: dados de entrega e acompanhamento de pedidos", () => {
     expect(nextSafeOrderStatus("pending","pending","posted")).toBeNull();
     expect(nextSafeOrderStatus("paid",null,"posted")).toBeNull();
     expect(nextSafeOrderStatus("paid","approved","pending")).toBeNull();
-    expect(nextSafeOrderStatus("paid","approved","generated")).toBeNull();
+    expect(nextSafeOrderStatus("paid","approved","generated")).toBe("shipped");
     expect(nextSafeOrderStatus("paid","approved","posted")).toBe("shipped");
-    expect(nextSafeOrderStatus("paid","approved","delivered")).toBe("shipped");
-    expect(nextSafeOrderStatus("shipped","approved","posted")).toBeNull();
-    expect(nextSafeOrderStatus("shipped","approved","delivered")).toBe("delivered");
+    expect(nextSafeOrderStatus("paid","approved","delivered")).toBeNull();
+    expect(nextSafeOrderStatus("shipped","approved","generated")).toBeNull();
+    expect(nextSafeOrderStatus("shipped","approved","posted")).toBe("delivered");
+    expect(nextSafeOrderStatus("shipped","approved","delivered")).toBeNull();
     expect(nextSafeOrderStatus("delivered","approved","delivered")).toBeNull();
     expect(nextSafeOrderStatus("cancelled","approved","delivered")).toBeNull();
     expect(nextSafeOrderStatus("refunded","approved","delivered")).toBeNull();
