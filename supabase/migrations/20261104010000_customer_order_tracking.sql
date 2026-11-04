@@ -26,4 +26,4 @@ revoke all on function public.get_my_order_tracking(uuid[]) from public, anon, a
 grant execute on function public.get_my_order_tracking(uuid[]) to authenticated;
 
 comment on function public.get_my_order_tracking(uuid[]) is
-  'Returns only carrier/service/status/tracking for the signed-in customer\'s own orders. No invoice, label URL, secrets or internal error fields.';
+  'Returns only carrier/service/status/tracking for the signed-in customer''s own orders. No invoice, label URL, secrets or internal error fields.';
