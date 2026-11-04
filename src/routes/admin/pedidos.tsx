@@ -80,23 +80,18 @@ function AdminPedidos() {
     const next = nextSafeOrderStatus(order.status, order.payment_status, shipment?.status);
     if (!next || updatingOrder) return;
     const text = next === "shipped"
-      ? "Confirmar que este pedido já foi postado e marcar como Enviado?"
-      : "Confirmar a entrega registrada pela transportadora?";
+      ? "Você confirma que o pacote já foi entregue à transportadora? Marcar como Enviado?"
+      : "Você confirma que a transportadora já entregou o pacote à cliente?";
     if (!window.confirm(text)) return;
     setUpdatingOrder(order.id);
     try {
-      // The existing database trigger independently protects paid/payment
-      // fields and verifies that only admins can change fulfillment states.
-      const { data, error } = await supabase.from("orders")
-        .update({ status: next, updated_at: new Date().toISOString() })
-        .eq("id", order.id).eq("status", order.status)
-        .eq("payment_status", "approved").select("id");
+      // The privileged RPC performs a second admin / paid-order / shipment
+      // verification and updates the order and shipment atomically.
+      const { error } = await (supabase as any).rpc("advance_order_delivery_status", {
+        p_order_id: order.id, p_next_status: next,
+      });
       if (error) throw error;
-      if (!data?.length) {
-        toast.error("O pedido mudou desde a última consulta. Atualize a lista antes de continuar.");
-      } else {
-        toast.success(next === "shipped" ? "Pedido marcado como enviado." : "Pedido marcado como entregue.");
-      }
+      toast.success(next === "shipped" ? "Postagem confirmada e pedido marcado como enviado." : "Entrega confirmada.");
       await load();
     } catch {
       toast.error("Não foi possível atualizar a entrega. Confira as permissões e o status da expedição.");
@@ -216,7 +211,7 @@ function AdminPedidos() {
                 </div>
                 {!nextStatus && ["paid","shipped"].includes(o.status) &&
                   <p className="mt-2 text-xs text-muted-foreground">
-                    O próximo status será liberado quando a expedição confirmar a postagem ou entrega.
+                    A geração da etiqueta libera a confirmação manual da postagem. A entrega é confirmada depois do envio.
                   </p>}
                 <p className="mt-2 text-xs text-muted-foreground">
                   Pagamentos e reembolsos são controlados separadamente; alterar o status não realiza estorno.
