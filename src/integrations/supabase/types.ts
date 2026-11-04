@@ -1574,6 +1574,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      advance_order_delivery_status: {
+        Args: { p_next_status: string; p_order_id: string }
+        Returns: string
+      }
       claim_secret_flame: {
         Args: { p_candle_index: number; p_visitor_key?: string }
         Returns: Json
@@ -1590,6 +1594,17 @@ export type Database = {
       discard_incomplete_order: {
         Args: { p_order_id: string }
         Returns: boolean
+      }
+      get_my_order_tracking: {
+        Args: { p_order_ids: string[] }
+        Returns: {
+          carrier_name: string
+          order_id: string
+          service_name: string
+          status: string
+          tracking_code: string
+          updated_at: string
+        }[]
       }
       get_product_aroma_notes: { Args: { p_product_id: string }; Returns: Json }
       has_role: {

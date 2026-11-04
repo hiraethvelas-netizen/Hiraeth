@@ -15,6 +15,13 @@
       "when": 1793062211054,
       "tag": "0001_site_content_and_banners",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793760888612,
+      "tag": "0002_customer_order_tracking",
+      "breakpoints": true
     }
   ]
 }
