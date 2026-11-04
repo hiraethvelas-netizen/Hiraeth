@@ -223,7 +223,7 @@ function AdminPedidos() {
                 </p>
               </div>
             </article>;
-          })}}
+          })}
         </div>
       )}
     </div>
