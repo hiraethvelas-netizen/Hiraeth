@@ -122,8 +122,8 @@ function PortalPage() {
     }}>
       {intro && (magicWorld || portal.intro_enabled) && <PortalIntro
         key={portal.id}
-        title={portal.intro_title || displayTitle}
-        subtitle={portal.intro_subtitle}
+        title={magicWorld ? "O Mundo da Magia" : portal.intro_title || displayTitle}
+        subtitle={magicWorld ? null : portal.intro_subtitle}
         videoUrl={portal.intro_video_url}
         posterUrl={portal.cover_url}
         ctaText="Atravesse o Portal"
@@ -140,9 +140,12 @@ function PortalPage() {
           <p className="text-xs uppercase tracking-[.37em] text-[var(--portal-accent)]">
             {magicWorld?"Uma temporada de Natal e encantamentos":portal.universe||"Universo da coleção"}
           </p>
-          <h1 className="mt-6 font-display text-5xl leading-[1.04] text-[var(--portal-text)] md:text-7xl">
+          {magicWorld ? <h1 className="portal-magic-welcome mt-6 font-display text-[var(--portal-text)]">
+            <span className="portal-magic-welcome-lead">Seja bem-vindo ao</span>
+            <span className="portal-magic-welcome-title">Mundo da Magia</span>
+          </h1> : <h1 className="mt-6 font-display text-5xl leading-[1.04] text-[var(--portal-text)] md:text-7xl">
             {displayTitle}
-          </h1>
+          </h1>}
           <p className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-[var(--portal-text)]/85">
             {portal.intro_subtitle || (magicWorld ? "Entre pinheiros, luzes douradas e histórias encantadas, o Natal encontra um novo lar." : "Cada chama guarda uma história. Escolha o caminho que deseja explorar.")}
           </p>
