@@ -4,10 +4,11 @@ export function OrderPromotionSummary({ value }: { value?: unknown }) {
   const gifts = Array.isArray(summary["gifts"])
     ? summary["gifts"].filter((gift): gift is string => typeof gift === "string")
     : [];
-  if (summary["free_shipping"] !== true && !gifts.length) return null;
+  const freeShipping=summary["free_shipping"]===true || summary["freeShipping"]===true;
+  if (!freeShipping && !gifts.length) return null;
   return (
     <div className="mt-3 space-y-1 text-sm text-primary">
-      {summary["free_shipping"] === true && <p>Frete grátis aplicado</p>}
+      {freeShipping && <p>Frete grátis aplicado</p>}
       {gifts.map((gift) => (
         <p key={gift}>Brinde: {gift}</p>
       ))}

@@ -50,7 +50,7 @@ function AdminDashboard() {
       const created = new Date(o.created_at);
       return (!from || created >= from) && (!to || created <= to);
     });
-    const paidOrders = filteredOrders.filter((o) => ["paid", "shipped", "delivered", "completed"].includes(o.status));
+    const paidOrders = filteredOrders.filter((o) => ["paid", "preparing", "shipped", "delivered", "completed"].includes(o.status));
     setStats({
       products: ps.length, published: ps.filter((p) => p.status === "published").length,
       orders: filteredOrders.length, pending: filteredOrders.filter((o) => ["pending", "awaiting_payment"].includes(o.status)).length,

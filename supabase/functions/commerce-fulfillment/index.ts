@@ -1,7 +1,9 @@
 import {
   corsHeaders, json, errorResponse, env, requireAdmin, serviceClient,
-  betterShippingUrl, melhorEnvioHeaders,
+  betterShippingUrl, melhorEnvioHeaders, mercadoPagoRequest,
 } from "../_shared/commerce-api.ts";
+import { isVerifiedFullRefund } from "../_shared/commerce-refund-check.ts";
+import { isSandboxCheckout } from "../_shared/commerce-sandbox.ts";
 
 async function melhorEnvio(path: string, payload: Record<string, unknown>) {
   const response=await fetch(betterShippingUrl()+path,{
@@ -94,7 +96,40 @@ Deno.serve(async (req:Request) => {
     const db=serviceClient();
     const {data:order,error:orderError}=await db.from("orders").select("*,order_items(*)")
       .eq("id",orderId).maybeSingle();
-    if(orderError||!order||!["paid","shipped","delivered"].includes(order.status) ||
+    if (body.action==="verify_refund") {
+      if (orderError || !order || !order.payment_id)
+        return json({error:"Pedido ou referência de pagamento não encontrados."},404);
+      // All requests here are admin-only and financial READS at the provider.
+      // Never initiate a refund from the app: the merchant must do so via
+      // their Mercado Pago account, with the required human confirmation.
+      const {data:review}=await db.from("commerce_order_reviews")
+        .select("id,status").eq("order_id",orderId)
+        .in("status",["pending_review","awaiting_provider"])
+        .limit(1).maybeSingle();
+      if (!review)
+        return json({error:"Registre uma análise financeira antes de verificar o reembolso."},409);
+      const {data:checkout}=await db.from("commerce_checkouts")
+        .select("id,mp_payment_id,promotion_summary,total")
+        .eq("order_id",orderId).maybeSingle();
+      if (!checkout || checkout.mp_payment_id!==order.payment_id ||
+          isSandboxCheckout(checkout.promotion_summary))
+        return json({error:"Referência de checkout não verificada. Conciliação manual necessária."},409);
+      const payment=await mercadoPagoRequest("/v1/payments/"+encodeURIComponent(order.payment_id),"GET");
+      if(!isVerifiedFullRefund(payment,{
+        checkoutId:checkout.id,paymentId:order.payment_id,total:Number(order.total),
+      })) {
+        return json({status:"awaiting_provider",confirmed:false,
+          message:"O Mercado Pago ainda não confirmou o reembolso total. Verifique no painel do provedor."});
+      }
+      const {data:confirmed,error:confirmError}=await db.rpc("confirm_verified_commerce_refund",{
+        p_order_id:orderId,p_payment_id:order.payment_id,
+        p_total:Number(payment.transaction_amount),p_provider_status:"refunded",
+      });
+      if(confirmError)throw new Error("Não foi possível conciliar o reembolso. Solicite revisão administrativa.");
+      return json({status:String(confirmed),confirmed:true,
+        message:"Reembolso integral confirmado pelo Mercado Pago. Revise estoque, etiqueta e nota fiscal manualmente."});
+    }
+    if(orderError||!order||!["paid","preparing","shipped","delivered"].includes(order.status) ||
        order.payment_status!=="approved"||!order.payment_id)
       return json({error:"Somente pedidos com pagamento aprovado podem ser expedidos."},409);
     const {data:shipment}=await db.from("commerce_shipments")
