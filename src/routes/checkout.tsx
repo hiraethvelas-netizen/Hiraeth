@@ -30,7 +30,7 @@ type MercadoPagoInstance = {
 declare global { interface Window { MercadoPago?: new (publicKey: string, options?: Record<string,unknown>) => MercadoPagoInstance } }
 
 const emptyRecipient = emptyCheckoutRecipient;
-type RecipientMode = "profile" | "manual" | "gift";
+type RecipientMode = "profile" | "other";
 type RecipientField = keyof typeof emptyRecipient;
 
 async function commerceCall(payload: Record<string,unknown>) {
@@ -111,6 +111,9 @@ function CheckoutHiraeth() {
   const [savedRecipient,setSavedRecipient]=useState({...emptyRecipient});
   const [buyerDocument,setBuyerDocument]=useState("");
   const [saveNewDetails,setSaveNewDetails]=useState(false);
+  const [isGift,setIsGift]=useState(false);
+  const [customerNote,setCustomerNote]=useState("");
+  const [packingVideoRequested,setPackingVideoRequested]=useState(false);
   const profileInitialized=useRef(false);
   const [coupon,setCoupon]=useState("");
   const [config,setConfig]=useState<{enabled:boolean;publicKey:string|null;sandbox:boolean}|null>(null);
@@ -194,20 +197,23 @@ function CheckoutHiraeth() {
     if(busy||selectedFreight==null)return;
     setBusy(true);setError("");
     try{
-      if (recipientMode==="gift" && ![11,14].includes(buyerDocument.replace(/\D/g,"").length))
+      if (isGift && ![11,14].includes(buyerDocument.replace(/\D/g,"").length))
         throw new Error("Para enviar um presente, informe o CPF/CNPJ de quem está comprando.");
       const data=await commerceCall({action:"init",items:itemInputs,
-        recipient:{...recipient,gift:recipientMode==="gift",
-          payer_document:recipientMode==="gift"?buyerDocument.replace(/\D/g,""):recipient.document.replace(/\D/g,"")},
+        recipient:{...recipient,gift:isGift,
+          payer_document:isGift?buyerDocument.replace(/\D/g,""):recipient.document.replace(/\D/g,""),
+          customer_note:customerNote.trim(),
+          packing_video_requested:packingVideoRequested},
         freightServiceId:selectedFreight,couponCode:coupon.trim()});
       setCheckout(data['checkout'] as CheckoutSummary);
-      // Optional account save is requested explicitly and only for purchases
-      // in the shopper's own name. Gift recipients are never saved as owner.
-      if (recipientMode==="manual" && saveNewDetails) {
+      // Save corrected own-profile data automatically; for other addresses,
+      // save only when explicitly requested. Never replace account details
+      // with information about a gift recipient.
+      if (!isGift && (recipientMode==="profile" || saveNewDetails)) {
         const {error:saveError}=await supabase.auth.updateUser({
           data:checkoutMetadataFromRecipient(recipient),
         });
-        if (saveError) setError("Dados do pedido conferidos, mas não foi possível salvar seus dados na conta.");
+        if (saveError) setError("Pedido preparado, mas não foi possível atualizar seus dados cadastrais.");
         else setSavedRecipient({...recipient});
       }
       setQuotes([]);
@@ -306,11 +312,20 @@ function CheckoutHiraeth() {
     setQuotes([]);
     setSelectedFreight(null);
     setSaveNewDetails(false);
+    setIsGift(false);
     setRecipient(next==="profile"?{...savedRecipient}:{...emptyRecipient});
-    if (next==="gift") setBuyerDocument(savedRecipient.document);
+    setBuyerDocument(savedRecipient.document);
   }
 
-  return <div className="min-h-screen min-w-0">
+  function toggleGift(checked:boolean) {
+    if (busy || recipientMode!=="other") return;
+    setIsGift(checked);
+    setSaveNewDetails(false);
+    setError("");
+    if (checked) setBuyerDocument(savedRecipient.document);
+  }
+
+  return <div className="hiraeth-checkout-page min-h-screen min-w-0">
     <SiteHeader/>
     <main className="hiraeth-checkout mx-auto w-full max-w-3xl px-4 pb-20 pt-8 sm:px-6 sm:pt-12">
       <Link to="/carrinho" className="inline-flex items-center gap-2 text-sm text-primary"><ArrowLeft size={16}/> Voltar à sacola</Link>
@@ -354,11 +369,10 @@ function CheckoutHiraeth() {
               <h2 className="font-display text-2xl text-foreground">Destino das chamas</h2></div>
             <fieldset className="mt-5">
               <legend className="mb-2 text-sm font-medium text-foreground">Dados para esta entrega</legend>
-              <div className="grid gap-2 sm:grid-cols-3">
+              <div className="grid gap-2 sm:grid-cols-2">
                 {([
-                  ["profile","Usar meus dados cadastrados"],
-                  ["manual","Preencher novos dados"],
-                  ["gift","Enviar de presente para outra pessoa"],
+                  ["profile","Usar meus dados cadastrais"],
+                  ["other","Usar outros dados"],
                 ] as const).map(([mode,label])=><label key={mode}
                   className={`flex cursor-pointer items-start gap-2 rounded-lg border px-3 py-3 text-sm text-foreground ${recipientMode===mode?"border-primary bg-primary/10":"border-primary/30"}`}>
                   <input type="radio" name="delivery-mode" checked={recipientMode===mode}
@@ -371,9 +385,26 @@ function CheckoutHiraeth() {
               Preenchemos o que existe na sua conta. Você pode completar ou ajustar abaixo.
               <Link to="/configuracoes" search={{tab:"perfil"}} className="ml-1 underline underline-offset-2 text-primary">Atualizar meu cadastro</Link>
             </p>}
-            {recipientMode==="gift"&&<div className="mt-4 rounded-lg border border-primary/30 bg-primary/5 p-4">
+            {recipientMode==="other"&&<>
+              <p className="mt-3 text-sm text-muted-foreground">
+                Informe os dados para esta entrega, seja em outro endereço ou para outra pessoa.
+              </p>
+              <label className="mt-4 flex cursor-pointer items-start gap-3 rounded-lg border border-primary/30 bg-primary/5 px-4 py-3 text-sm text-foreground">
+                <input type="checkbox" checked={isGift} disabled={busy}
+                  onChange={e=>toggleGift(e.target.checked)}
+                  className="mt-1 accent-primary"/>
+                <span><strong>Este pedido é um presente 🎁</strong>
+                  <span className="mt-1 block text-xs text-muted-foreground">
+                    Marque para indicar que a encomenda será enviada para outra pessoa.
+                  </span>
+                </span>
+              </label>
+            </>}
+            {isGift&&<div className="mt-4 rounded-lg border border-primary/30 bg-primary/5 p-4">
               <p className="text-sm font-medium text-foreground">Você compra, outra pessoa recebe. 🎁</p>
-              <p className="mt-1 text-xs text-muted-foreground">Informe seu documento para o pagamento. Abaixo, preencha o nome, documento, telefone e endereço de quem vai receber o presente.</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Informe seu CPF/CNPJ para o pagamento. Abaixo, preencha os dados de quem receberá o presente.
+              </p>
               <label className="mt-3 block text-sm text-foreground">Seu CPF ou CNPJ (de quem está comprando)
                 <input required inputMode="numeric" autoComplete="off" maxLength={18}
                   value={buyerDocument} onChange={e=>setBuyerDocument(e.target.value)}
@@ -382,9 +413,9 @@ function CheckoutHiraeth() {
             </div>}
             <div className="mt-5 grid gap-3 sm:grid-cols-2">
               {([
-                ["name",recipientMode==="gift"?"Nome completo de quem vai receber":"Nome completo"],
-                ["document",recipientMode==="gift"?"CPF ou CNPJ de quem vai receber":"CPF ou CNPJ"],
-                ["phone",recipientMode==="gift"?"Celular de quem vai receber":"Celular"],
+                ["name",isGift?"Nome completo de quem vai receber":"Nome completo"],
+                ["document",isGift?"CPF ou CNPJ de quem vai receber":"CPF ou CNPJ"],
+                ["phone",isGift?"Celular de quem vai receber":"Celular"],
                 ["postal_code","CEP"],
                 ["street","Rua / Avenida"],["number","Número"],["complement","Complemento (opcional)"],
                 ["district","Bairro"],["city","Cidade"],["state","UF"],
@@ -396,10 +427,10 @@ function CheckoutHiraeth() {
                   inputMode={field==="document"||field==="postal_code"||field==="phone"?"numeric":undefined}
                   onChange={e=>update(field,e.target.value)}
                   className={inputClass} aria-label={label} autoComplete={
-                    recipientMode==="gift"?"off":field==="postal_code"?"postal-code":field==="name"?"name":undefined}/>
+                    isGift?"off":field==="postal_code"?"postal-code":field==="name"?"name":undefined}/>
               </label>)}
             </div>
-            {recipientMode==="manual"&&<label className="mt-4 flex items-start gap-2 text-sm text-foreground">
+            {recipientMode==="other"&&!isGift&&<label className="mt-4 flex items-start gap-2 text-sm text-foreground">
               <input type="checkbox" checked={saveNewDetails} onChange={e=>setSaveNewDetails(e.target.checked)}
                 className="mt-1 accent-primary"/>
               <span>Salvar estes dados na minha conta para as próximas compras</span>
@@ -421,6 +452,29 @@ function CheckoutHiraeth() {
                 <strong className="text-primary">{brl(option.price)}</strong>
               </label>)}
             </fieldset>}
+          </section>
+          <section className="rounded-xl border border-primary/25 bg-card p-4 sm:p-6">
+            <h2 className="font-display text-2xl text-foreground">Recados para a Hiraeth</h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Quer uma cartinha para presente, fazer um pedido especial ou deixar uma mensagem para a equipe? Escreva aqui.
+            </p>
+            <label className="mt-4 block text-sm text-foreground">Seu recado (opcional)
+              <textarea value={customerNote} maxLength={800} rows={4}
+                onChange={e=>setCustomerNote(e.target.value)}
+                placeholder="Ex.: gostaria de uma cartinha com esta mensagem... ou queria que gravassem embalando meu pedido."
+                className={inputClass} aria-label="Recado para a Hiraeth"/>
+            </label>
+            <p className="mt-1 text-right text-xs text-muted-foreground">{customerNote.length}/800 caracteres</p>
+            <label className="mt-3 flex cursor-pointer items-start gap-2 text-sm text-foreground">
+              <input type="checkbox" checked={packingVideoRequested}
+                onChange={e=>setPackingVideoRequested(e.target.checked)}
+                className="mt-1 accent-primary"/>
+              <span>Gostaria que gravassem um vídeo embalando meu pedido
+                <span className="mt-1 block text-xs text-muted-foreground">
+                  Vamos considerar seu pedido conforme a disponibilidade da equipe.
+                </span>
+              </span>
+            </label>
           </section>
           <section className="rounded-xl border border-primary/25 bg-card p-4 sm:p-6">
             <label className="text-sm text-foreground">Cupom (opcional)
@@ -482,7 +536,7 @@ function CheckoutHiraeth() {
         </div> : <div className="mt-6 space-y-4">
           <button type="button" disabled={busy} onClick={()=>void pay("pix").catch(()=>{})}
             className="flex w-full items-center justify-center gap-2 rounded-xl border border-primary/50 bg-primary/10 px-5 py-4 text-sm font-semibold text-foreground disabled:opacity-40">
-            <QrCode size={19}/> {busy?"Aguarde...":"Pagar com Pix pelo Mercado Pago"}
+            <QrCode size={19}/> {busy?"Aguarde...":"Pagamento Pix"}
           </button>
           {config.publicKey&&payerEmail&&(
             <SecureCardBrick publicKey={config.publicKey} amount={checkout.total} email={payerEmail}

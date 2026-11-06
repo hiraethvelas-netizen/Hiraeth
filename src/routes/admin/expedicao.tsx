@@ -4,6 +4,8 @@ import { FileCheck2, FileText, PackageCheck, Printer, RefreshCw, Truck } from "l
 import { supabase } from "@/integrations/supabase/client";
 import { brl } from "@/lib/format";
 import { isCancelledHealthCheck } from "@/lib/integration-health-errors";
+import { orderDeliveryInfo } from "@/lib/order-details";
+import type { Json } from "@/integrations/supabase/types";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/expedicao")({
@@ -16,6 +18,7 @@ type Order = {
   id: string; status: string; payment_status: string | null;
   customer_name: string | null; customer_email: string | null;
   total: number; shipping: number; created_at: string;
+  shipping_address: Json | null;
   order_items: Array<{id:string;product_name:string;quantity:number}>;
 };
 type Shipment = {
@@ -38,6 +41,7 @@ type PaymentReview = {
 type SandboxAttempt = {
   id:string;status:string;total:number;created_at:string;
   payment_method:string|null;promotion_summary:unknown;
+  recipient:Json|null;
 };
 function isSandboxRecord(value:unknown) {
   return !!value && typeof value === "object" && !Array.isArray(value) &&
@@ -66,6 +70,7 @@ async function freightAction(orderId:string,action:string,extra?:Record<string,u
 }
 
 function OrderExpedition({order}:{order:Order}) {
+  const delivery=orderDeliveryInfo(order.shipping_address);
   const [details,setDetails]=useState<ShippingDetails|null>(null);
   const [loading,setLoading]=useState(false);
   const [operation,setOperation]=useState("");
@@ -114,6 +119,17 @@ function OrderExpedition({order}:{order:Order}) {
         <p className="text-xs text-muted-foreground">Pago · frete {brl(Number(order.shipping))}</p>
       </div>
     </div>
+    {delivery && (delivery.customerNote || delivery.packingVideoRequested || delivery.isGift) &&
+      <section className="mt-4 rounded-lg border border-primary/30 bg-primary/5 p-4 text-sm text-foreground">
+        {delivery.isGift && <p className="font-medium">🎁 Pedido para presente — {delivery.name || "Destinatário"}</p>}
+        <h4 className="mt-2 font-display text-lg text-primary">Recados para a Hiraeth</h4>
+        {delivery.packingVideoRequested && <p className="mt-2 font-medium">
+          🎥 Pedido de vídeo embalando a encomenda
+        </p>}
+        {delivery.customerNote && <p className="mt-2 whitespace-pre-wrap break-words">{delivery.customerNote}</p>}
+        {!delivery.customerNote && !delivery.packingVideoRequested &&
+          <p className="mt-1 text-xs text-muted-foreground">Sem recados adicionais.</p>}
+      </section>}
     <button type="button" disabled={loading||!!operation} onClick={()=>void refresh()}
       className="mt-4 inline-flex items-center gap-2 rounded-lg border border-primary/40 px-4 py-2 text-sm text-primary disabled:opacity-50">
       <RefreshCw size={16} aria-hidden="true"/> {loading?"Carregando...":"Ver expedição e nota fiscal"}
@@ -215,13 +231,13 @@ function CorreioDaFenix() {
     setLoading(true);
     try{
       const [ordersResult,reviewResult,sandboxResult]=await Promise.all([
-        supabase.from("orders").select("id,status,payment_status,customer_name,customer_email,total,shipping,created_at,order_items(id,product_name,quantity)")
+        supabase.from("orders").select("id,status,payment_status,customer_name,customer_email,total,shipping,created_at,shipping_address,order_items(id,product_name,quantity)")
           .in("status",["paid","shipped","delivered"]).order("created_at",{ascending:false}).limit(100),
         (supabase as any).from("commerce_checkouts")
           .select("id,status,total,paid_at,last_error,email,promotion_summary")
           .eq("status","paid_attention").order("created_at",{ascending:false}).limit(100),
         (supabase as any).from("commerce_checkouts")
-          .select("id,status,total,created_at,payment_method,promotion_summary")
+          .select("id,status,total,created_at,payment_method,promotion_summary,recipient")
           .order("created_at",{ascending:false}).limit(50),
       ]);
       if(ordersResult.error||reviewResult.error||sandboxResult.error)throw new Error(
@@ -320,16 +336,27 @@ function CorreioDaFenix() {
         e não devem ser enviados pelo Correio da Fênix.
       </p>
       <div className="mt-3 space-y-3">
-        {sandboxAttempts.map(test=><div key={test.id}
-          className="flex flex-wrap items-center justify-between gap-2 border-t border-primary/20 pt-3 text-sm text-foreground">
-          <div>
-            <p><strong>Teste #{test.id.slice(0,8)}</strong> · {testStatusLabel[test.status]??test.status}</p>
-            <p className="text-xs text-muted-foreground">
-              {new Date(test.created_at).toLocaleString("pt-BR")} · {test.payment_method??"Método ainda não selecionado"}
-            </p>
-          </div>
-          <span className="font-semibold text-primary">{brl(Number(test.total))}</span>
-        </div>)}
+        {sandboxAttempts.map(test=>{
+          const delivery=orderDeliveryInfo(test.recipient);
+          return <div key={test.id} className="border-t border-primary/20 pt-3 text-sm text-foreground">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <p><strong>Teste #{test.id.slice(0,8)}</strong> · {testStatusLabel[test.status]??test.status}</p>
+                <p className="text-xs text-muted-foreground">
+                  {new Date(test.created_at).toLocaleString("pt-BR")} · {test.payment_method??"Método ainda não selecionado"}
+                </p>
+              </div>
+              <span className="font-semibold text-primary">{brl(Number(test.total))}</span>
+            </div>
+            {delivery && (delivery.isGift || delivery.customerNote || delivery.packingVideoRequested) &&
+              <div className="mt-2 rounded-lg bg-primary/5 p-3">
+                {delivery.isGift && <p>🎁 Presente para {delivery.name || "Destinatário"}</p>}
+                {delivery.packingVideoRequested && <p>🎥 Solicitou vídeo embalando o pedido</p>}
+                {delivery.customerNote && <p className="mt-1 whitespace-pre-wrap break-words">{delivery.customerNote}</p>}
+                <p className="mt-1 text-xs text-muted-foreground">Recados de teste; nenhuma encomenda real será preparada.</p>
+              </div>}
+          </div>;
+        })}
       </div>
     </section>}
     {!!attention.length&&<section className="rounded-xl border border-[#c78b6a] bg-card p-5">

@@ -163,3 +163,13 @@ A administração também mostra **Histórico de pagamentos simulados**, separad
 - **Pagamento e webhook:** concluir simulações com Pix e cartão de teste, retorno do pagamento, duplicação de webhook, status pendente/recusado, cupons e última unidade em estoque; a aprovação real do provedor não pode ser presumida por CI.
 - **Fisco/expedição:** cadastro completo do remetente, classificação fiscal, NCM/CFOP/tributação, documento fiscal e homologação da NF-e com contador/Focus NFe; depois, etiqueta e rastreio em Melhor Envio Sandbox.
 - **Produção:** somente com autorização da proprietária, testes aprovados, credenciais comerciais reais verificadas, estoque físico conferido e contabilidade regularizada. Não habilitar `HIRAETH_ALLOW_LIVE_CHARGES`, `HIRAETH_ALLOW_LIVE_LABEL_PURCHASES` ou modo de produção durante esta revisão.
+
+## Entrega simplificada e recados da cliente (06/11/2026)
+
+No checkout, o cliente escolhe entre **Usar meus dados cadastrais** ou **Usar outros dados**. A segunda opção permite informar um endereço ou destinatário diferente e apresenta, separadamente, o checkbox **Este pedido é um presente**. Para presentes, o CPF/CNPJ da compradora é informado em um campo próprio e nunca é substituído pelo documento da destinatária no Mercado Pago.
+
+Alterações informadas nos próprios dados cadastrais são salvas na conta após preparar a compra. Na opção de outros dados sem marcar presente, a cliente pode escolher salvar as informações. Dados de pessoas presenteadas **não** sobrescrevem o perfil da compradora.
+
+O checkout inclui **Recados para a Hiraeth**: campo de texto opcional (máximo 800 caracteres) para uma carta, instrução de embalagem ou pedido especial, mais checkbox específico de solicitação de vídeo embalando o pedido. Vídeos estão sujeitos à disponibilidade e **não são prometidos automaticamente**. O backend normaliza e limita esses campos e os guarda apenas no objeto privado `recipient` do checkout, que é transferido para `orders.shipping_address` exclusivamente quando um pedido real tiver o pagamento confirmado. Não altera dados fiscais, cupons ou cálculo do frete; os recados não são enviados para APIs de transportadora nem de nota fiscal.
+
+Os recados aparecem em **Administração → Pedidos**, na tela de **Correio da Fênix → Expedição**, e, durante homologação, no **Histórico de pagamentos simulados** (sem criar venda real). A área pública de perfil e a comunidade não expõem essas informações. O botão do Pix exibe somente **Pagamento Pix**. As cores verde-sálvia reforçadas afetam somente o checkout em modo claro.

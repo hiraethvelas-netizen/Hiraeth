@@ -6,6 +6,7 @@ describe("Hiraeth: dados de entrega e acompanhamento de pedidos", () => {
     const recipient = orderDeliveryInfo({
       gift:true, name:"Pessoa Presenteada", document:"11111111111",
       payer_document:"22222222222", phone:"47999999999",
+      customer_note:"Quero uma cartinha e um laço bonito.", packing_video_requested:true,
       street:"Rua Exemplo", number:"615", complement:"Casa B",
       district:"Centro",city:"Camboriú",state:"SC",postal_code:"88340-000",
     });
@@ -13,6 +14,8 @@ describe("Hiraeth: dados de entrega e acompanhamento de pedidos", () => {
       isGift:true, name:"Pessoa Presenteada",
       document:"11111111111", buyerDocument:"22222222222",
       phone:"47999999999",
+      customerNote:"Quero uma cartinha e um laço bonito.",
+      packingVideoRequested:true,
     });
     expect(recipient?.addressLines).toContain("Rua Exemplo, 615");
     expect(recipient?.addressLines).toContain("CEP 88340-000");
@@ -23,6 +26,7 @@ describe("Hiraeth: dados de entrega e acompanhamento de pedidos", () => {
     expect(orderDeliveryInfo("texto")).toBeNull();
     expect(orderDeliveryInfo({ name:"Cliente" })).toMatchObject({
       name:"Cliente",isGift:false,addressLines:[],
+      customerNote:"",packingVideoRequested:false,
     });
   });
 

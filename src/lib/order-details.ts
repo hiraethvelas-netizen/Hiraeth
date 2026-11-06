@@ -6,6 +6,8 @@ export type OrderDeliveryInfo = {
   buyerDocument: string;
   phone: string;
   isGift: boolean;
+  customerNote: string;
+  packingVideoRequested: boolean;
   addressLines: string[];
 };
 
@@ -44,6 +46,8 @@ export function orderDeliveryInfo(value: Json | null | undefined): OrderDelivery
     buyerDocument: field(item,"payer_document"),
     phone: field(item,"phone"),
     isGift: item["gift"] === true,
+    customerNote: field(item,"customer_note").slice(0,800),
+    packingVideoRequested: item["packing_video_requested"] === true,
     addressLines,
   };
 }
