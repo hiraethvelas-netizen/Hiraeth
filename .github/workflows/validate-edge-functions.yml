@@ -1,0 +1,35 @@
+name: Hiraeth - Verificar Edge Functions
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "supabase/functions/**"
+      - ".github/workflows/validate-edge-functions.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "supabase/functions/**"
+      - ".github/workflows/validate-edge-functions.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  deno-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Install Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Check checkout function
+        run: deno check supabase/functions/commerce-checkout/index.ts
+      - name: Check webhook function
+        run: deno check supabase/functions/commerce-webhook/index.ts
+      - name: Check fulfillment function
+        run: deno check supabase/functions/commerce-fulfillment/index.ts
