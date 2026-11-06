@@ -1694,3 +1694,33 @@ body > div {
   }
   .portal-cinematic-intro .portal-intro-enter { transition: none; }
 }
+
+
+/* Magic-world title and welcome: cinematic, legible and mobile-first. */
+.portal-cinematic-intro--christmas .portal-intro-eyebrow {
+  font: italic 500 clamp(1.3rem, 4.6vw, 1.9rem)/1.15 "Cormorant Garamond", Georgia, serif;
+  text-transform: none;
+  letter-spacing: .075em;
+  color: #dfc48c;
+}
+.portal-cinematic-intro--christmas .portal-intro-title {
+  margin-top: .3rem;
+}
+.portal-world--christmas .portal-magic-welcome {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .45rem;
+  max-width: 900px;
+  text-wrap: balance;
+}
+.portal-world--christmas .portal-magic-welcome-lead {
+  font: italic 500 clamp(1.65rem, 5.2vw, 2.6rem)/1.2 "Cormorant Garamond", Georgia, serif;
+  letter-spacing: .025em;
+  color: #f0d59f;
+}
+.portal-world--christmas .portal-magic-welcome-title {
+  font: 500 clamp(2.7rem, 10vw, 5.9rem)/1.05 "Italiana", "Cormorant Garamond", Georgia, serif;
+  letter-spacing: -.018em;
+  color: #fff5df;
+}
