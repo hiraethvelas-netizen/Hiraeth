@@ -113,11 +113,11 @@ function PortalPage() {
 
   return (
     <div className="portal-world min-h-screen" style={{
-      ["--portal-bg" as string]: palette.background || "#17251d",
-      ["--portal-surface" as string]: palette.surface || "#26382d",
-      ["--portal-text" as string]: palette.text || "#f5edda",
-      ["--portal-accent" as string]: palette.accent || "#c6a65b",
-      ["--portal-button-text" as string]: palette.buttonText || "#17251d",
+      ["--portal-bg" as string]: palette["background"] || "#17251d",
+      ["--portal-surface" as string]: palette["surface"] || "#26382d",
+      ["--portal-text" as string]: palette["text"] || "#f5edda",
+      ["--portal-accent" as string]: palette["accent"] || "#c6a65b",
+      ["--portal-button-text" as string]: palette["buttonText"] || "#17251d",
     }}>
       {intro && (magicWorld || portal.intro_enabled) && <PortalIntro
         key={portal.id}
