@@ -245,6 +245,47 @@ export type Database = {
           },
         ]
       }
+      commerce_order_reviews: {
+        Row: {
+          created_at: string
+          created_by: string
+          id: string
+          kind: string
+          order_id: string
+          reason: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          id?: string
+          kind: string
+          order_id: string
+          reason: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          id?: string
+          kind?: string
+          order_id?: string
+          reason?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commerce_order_reviews_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       commerce_shipments: {
         Row: {
           carrier_name: string | null
@@ -1591,6 +1632,15 @@ export type Database = {
         }
         Returns: Json
       }
+      confirm_verified_commerce_refund: {
+        Args: {
+          p_order_id: string
+          p_payment_id: string
+          p_provider_status: string
+          p_total: number
+        }
+        Returns: string
+      }
       discard_incomplete_order: {
         Args: { p_order_id: string }
         Returns: boolean
@@ -1613,6 +1663,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      request_commerce_order_review: {
+        Args: { p_kind: string; p_order_id: string; p_reason: string }
+        Returns: string
       }
       set_product_essences: {
         Args: { p_ingredients: Json; p_product_id: string }
