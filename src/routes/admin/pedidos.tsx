@@ -25,6 +25,7 @@ function AdminPedidos() {
   const [reviewForm, setReviewForm] = useState<{orderId:string;kind:"cancellation"|"refund"}|null>(null);
   const [reviewReason, setReviewReason] = useState("");
   const [submittingReview, setSubmittingReview] = useState(false);
+  const [checkingRefund, setCheckingRefund] = useState<string|null>(null);
   const [shipmentWarning, setShipmentWarning] = useState("");
   const [updatingOrder, setUpdatingOrder] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -138,6 +139,25 @@ function AdminPedidos() {
     }catch {
       toast.error("Não foi possível registrar a análise. Verifique as permissões e a migração.");
     }finally{setSubmittingReview(false);}
+  }
+
+  async function verifyRefundWithProvider(order:Order) {
+    if(checkingRefund || !window.confirm(
+      "Consultar no Mercado Pago se a devolução total foi confirmada? Esta verificação NÃO inicia estorno."
+    )) return;
+    setCheckingRefund(order.id);
+    try {
+      const {data,error}=await supabase.functions.invoke("commerce-fulfillment",{
+        body:{orderId:order.id,action:"verify_refund"},
+      });
+      if(error||data?.error)throw new Error(String(data?.error??"Consulta indisponível."));
+      toast[data?.confirmed?"success":"info"](
+        String(data?.message??"Conciliação financeira ainda pendente."),
+      );
+      await load();
+    } catch {
+      toast.error("Não foi possível conferir o reembolso. Consulte a transação no Mercado Pago.");
+    }finally{setCheckingRefund(null);}
   }
 
   const filtered = orders.filter((o) => {
@@ -299,9 +319,20 @@ function AdminPedidos() {
                         :review.status==="completed"?"Concluído":review.status==="rejected"?"Rejeitado":review.status}</p>
                     <p className="mt-1 whitespace-pre-wrap break-words text-muted-foreground">{review.reason}</p>
                   </div>)}
-                  {hasOpenReview&&<p className="text-xs text-muted-foreground">
-                    A expedição fica pausada até a análise financeira ser resolvida.
-                  </p>}
+                  {hasOpenReview&&<div className="mt-3 space-y-2">
+                    <p className="text-xs text-muted-foreground">
+                      A expedição fica pausada até a análise financeira ser resolvida.
+                      Realize o estorno, se cabível, diretamente na sua conta do Mercado Pago.
+                    </p>
+                    <button type="button" disabled={Boolean(checkingRefund)}
+                      onClick={()=>void verifyRefundWithProvider(o)}
+                      className="rounded border border-primary/50 px-3 py-2 text-sm text-primary disabled:opacity-40">
+                      {checkingRefund===o.id?"Conferindo...":"Conferir reembolso no Mercado Pago"}
+                    </button>
+                    <p className="text-xs text-muted-foreground">
+                      Este botão consulta o pagamento: não solicita o reembolso nem recompõe estoque.
+                    </p>
+                  </div>}
                 </section>}
                 {!reviewWarning && !hasOpenReview && canRequestFinancialReview(o.status,o.payment_status)&&
                   <div className="mt-4">
