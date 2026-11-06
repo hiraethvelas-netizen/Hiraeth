@@ -1650,3 +1650,527 @@ body > div {
   letter-spacing: -.018em;
   color: #fff5df;
 }
+
+
+/* Natal no Mundo da Magia — acabamento editorial de luxo.
+   Fundo sólido e elementos decorativos separados das imagens de produto. */
+.portal-world--christmas .portal-magic-hero {
+  background: #142f25;
+  box-shadow: inset 0 0 0 1px rgba(214, 174, 94, .21);
+}
+.portal-world--christmas .portal-magic-hero::before,
+.portal-world--christmas .portal-christmas-hall::before {
+  content: "";
+  position: absolute;
+  inset: 13px;
+  pointer-events: none;
+  border: 1px solid rgba(217, 176, 101, .22);
+  border-radius: 110px 110px 8px 8px;
+  z-index: 2;
+}
+.portal-world--christmas .portal-magic-hero::after {
+  content: "✦";
+  position: absolute;
+  bottom: 25px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #d9b977;
+  font: 25px/1 Georgia, serif;
+  text-shadow: 0 0 12px rgba(245, 213, 142, .35);
+  pointer-events: none;
+}
+.portal-world--christmas .portal-christmas-hall::before {
+  inset: 18px;
+  border-radius: 12px;
+  border-color: rgba(241, 200, 120, .25);
+}
+.portal-world--christmas .portal-christmas-hall {
+  background: #3e161b;
+}
+.portal-world--christmas .portal-action-grid {
+  max-width: 840px;
+  margin-inline: auto;
+  gap: clamp(12px, 3vw, 22px);
+}
+.portal-world--christmas .portal-action-card {
+  position: relative;
+  min-height: 106px;
+  padding: 1.2rem 1.35rem;
+  border: 1.5px solid #bb8b4d;
+  border-radius: 15px 4px 15px 4px;
+  background: #31171a;
+  box-shadow:
+    inset 0 0 0 4px #31171a,
+    inset 0 0 0 5px rgba(224, 175, 89, .65),
+    0 1px 0 rgba(255, 235, 195, .22),
+    0 14px 28px rgba(10, 6, 5, .34);
+  overflow: hidden;
+  gap: 1rem;
+  transition: transform .28s ease, box-shadow .28s ease, border-color .28s ease;
+}
+.portal-world--christmas .portal-action-card:nth-child(even) {
+  background: #172e25;
+  box-shadow:
+    inset 0 0 0 4px #172e25,
+    inset 0 0 0 5px rgba(224, 175, 89, .68),
+    0 1px 0 rgba(255, 235, 195, .18),
+    0 14px 28px rgba(10, 6, 5, .35);
+}
+.portal-world--christmas .portal-action-card::before {
+  content: "";
+  position: absolute;
+  inset: 9px;
+  border: 1px solid rgba(226, 184, 111, .31);
+  border-radius: 8px 2px 8px 2px;
+  pointer-events: none;
+}
+.portal-world--christmas .portal-action-card::after {
+  content: "✦";
+  right: 11px;
+  top: 7px;
+  font-size: 12px;
+  color: #e1b46e;
+}
+.portal-world--christmas .portal-action-card strong {
+  font: 500 clamp(1.25rem, 2.9vw, 1.7rem)/1.15 "Cormorant Garamond", Georgia, serif;
+  letter-spacing: .055em;
+  text-transform: uppercase;
+  color: #fff1d6;
+}
+.portal-world--christmas .portal-action-card small {
+  font: 400 .82rem/1.4 "DM Sans", sans-serif;
+  margin-top: .35rem;
+  color: #ead8bd;
+}
+.portal-world--christmas .portal-action-card > svg {
+  color: #dcb778;
+  filter: drop-shadow(0 1px 4px rgba(225, 164, 72, .24));
+}
+.portal-world--christmas .portal-action-card > svg:first-child {
+  width: 29px;
+  height: 29px;
+  stroke-width: 1.4;
+}
+.portal-world--christmas a.portal-action-card:hover,
+.portal-world--christmas a.portal-action-card:focus-visible {
+  border-color: #ffe3a7;
+  transform: translateY(-3px);
+  box-shadow: inset 0 0 0 4px #3b2020,
+    inset 0 0 0 5px #e3b66f,
+    0 16px 34px rgba(4, 12, 8, .48),
+    0 0 19px rgba(255, 199, 91, .18);
+}
+.portal-world--christmas .portal-action-card--pending {
+  opacity: .78;
+}
+/* Dimensional fir-tree silhouettes — needles, reflective glass baubles and gold garlands. */
+.portal-world--christmas .portal-xmas-tree {
+  position: absolute;
+  z-index: 0;
+  bottom: -24px;
+  width: clamp(140px, 21vw, 270px);
+  height: clamp(230px, 34vw, 380px);
+  opacity: .95;
+  filter: drop-shadow(7px 13px 18px rgba(1, 8, 5, .38));
+}
+.portal-world--christmas .portal-xmas-tree--left {
+  left: -23px;
+}
+.portal-world--christmas .portal-xmas-tree--right {
+  right: -24px;
+  transform: scale(.78);
+  transform-origin: bottom right;
+}
+.portal-world--christmas .portal-xmas-tree-crown {
+  position: absolute;
+  inset: 27px 0 15px;
+}
+.portal-world--christmas .portal-xmas-tree-tier {
+  position: absolute;
+  display: block;
+  left: 50%;
+  transform: translateX(-50%);
+  clip-path: polygon(50% 0, 60% 14%, 74% 30%, 88% 55%, 100% 100%, 0 100%, 12% 55%, 26% 30%, 40% 14%);
+  background:
+    radial-gradient(ellipse at 23% 38%, rgba(130, 171, 110, .50), transparent 49%),
+    repeating-conic-gradient(from 18deg at 50% 15%, #17462f 0deg 6deg, #326b42 8deg 11deg, #0a2b22 13deg 18deg),
+    linear-gradient(90deg, #102d25, #326340 47%, #09261d);
+  box-shadow: inset 14px 0 15px rgba(2, 15, 10, .5);
+}
+.portal-world--christmas .portal-xmas-tree-tier--top {
+  top: 0;
+  width: 61%;
+  height: 49%;
+}
+.portal-world--christmas .portal-xmas-tree-tier--middle {
+  top: 22%;
+  width: 83%;
+  height: 51%;
+}
+.portal-world--christmas .portal-xmas-tree-tier--bottom {
+  top: 46%;
+  width: 100%;
+  height: 54%;
+}
+.portal-world--christmas .portal-xmas-tree-star {
+  position: absolute;
+  top: 3px;
+  left: calc(50% - 12px);
+  width: 24px;
+  height: 24px;
+  clip-path: polygon(50% 0, 62% 37%, 100% 50%, 62% 63%, 50% 100%, 38% 63%, 0 50%, 38% 37%);
+  background: radial-gradient(circle at 34% 27%, #fff9d0, #f2d48b 39%, #bd863d 71%, #5a391f);
+  filter: drop-shadow(0 0 12px #f2d48b);
+  z-index: 3;
+}
+.portal-world--christmas .portal-xmas-tree-trunk {
+  position: absolute;
+  bottom: 0;
+  left: calc(50% - 8px);
+  height: 29px;
+  width: 16px;
+  background: linear-gradient(90deg, #352016, #684330, #24160e);
+}
+.portal-world--christmas .portal-xmas-tree-garland {
+  position: absolute;
+  z-index: 2;
+  border-bottom: 2px solid rgba(229, 192, 111, .77);
+  border-radius: 50%;
+  box-shadow: 0 4px 6px rgba(250, 206, 115, .15);
+}
+.portal-world--christmas .portal-xmas-tree-garland--first {
+  left: 27%;
+  top: 43%;
+  width: 49%;
+  height: 18%;
+  transform: rotate(-12deg);
+}
+.portal-world--christmas .portal-xmas-tree-garland--second {
+  left: 11%;
+  top: 67%;
+  width: 76%;
+  height: 21%;
+  transform: rotate(8deg);
+}
+.portal-world--christmas .portal-xmas-tree-bauble {
+  position: absolute;
+  z-index: 3;
+  border-radius: 50%;
+  width: 11px;
+  aspect-ratio: 1;
+  border: 1px solid rgba(255, 226, 165, .35);
+  box-shadow: inset -4px -4px 5px rgba(0, 0, 0, .46),
+    inset 2px 2px 3px rgba(255, 247, 210, .6),
+    0 0 8px rgba(248, 210, 132, .35);
+}
+.portal-world--christmas .portal-xmas-tree-bauble--one {
+  left: 44%; top: 31%;
+  background: radial-gradient(circle at 30% 25%, #fff1ae, #cc9b50 43%, #70441f);
+}
+.portal-world--christmas .portal-xmas-tree-bauble--two {
+  left: 28%; top: 60%;
+  background: radial-gradient(circle at 30% 25%, #ffc2b0, #a83d42 38%, #4d111d);
+}
+.portal-world--christmas .portal-xmas-tree-bauble--three {
+  left: 70%; top: 70%;
+  background: radial-gradient(circle at 30% 25%, #ffe9b6, #c69445 38%, #5c3720);
+}
+.portal-world--christmas .portal-xmas-tree-bauble--four {
+  left: 50%; top: 84%;
+  background: radial-gradient(circle at 30% 25%, #fff6d8, #8eae80 41%, #2f5c3d);
+}
+/* Gift boxes use foil highlights, dimension, velvet tones and ribbon ties. */
+.portal-world--christmas .portal-xmas-presents {
+  position: absolute;
+  z-index: 1;
+  right: 0;
+  bottom: -10px;
+  width: clamp(132px, 22vw, 260px);
+  height: clamp(140px, 17vw, 200px);
+  filter: drop-shadow(-5px 9px 13px rgba(0, 0, 0, .38));
+}
+.portal-world--christmas .portal-xmas-presents--left { right: auto; left: 10px; transform: scale(.84); transform-origin: bottom left; }
+.portal-world--christmas .portal-xmas-present {
+  position: absolute;
+  bottom: 0;
+  width: 42%;
+  height: 48%;
+  border: 1px solid rgba(244, 207, 142, .42);
+  border-radius: 2px;
+  box-shadow: inset 8px 5px 16px rgba(255, 225, 168, .16),
+    inset -11px -10px 13px rgba(0, 0, 0, .31),
+    6px 8px 12px rgba(0,0,0,.25);
+}
+.portal-world--christmas .portal-xmas-present::before {
+  content: "";
+  position: absolute;
+  inset: -2px 39%;
+  background: linear-gradient(90deg, #99713c, #f8df9e 38%, #ab8041 85%);
+  box-shadow: 0 0 2px rgba(255, 226, 163, .65);
+}
+.portal-world--christmas .portal-xmas-present::after {
+  content: "";
+  position: absolute;
+  width: 33%;
+  height: 13%;
+  left: 34%;
+  top: -12%;
+  border: 5px solid #d9b776;
+  border-radius: 70% 70% 12% 12%;
+  transform: rotate(12deg);
+  box-shadow: 0 2px 6px rgba(0,0,0,.25);
+}
+.portal-world--christmas .portal-xmas-present--wine {
+  left: 5%;
+  bottom: 3%;
+  width: 52%;
+  height: 55%;
+  background: #641d27;
+}
+.portal-world--christmas .portal-xmas-present--forest {
+  right: 4%;
+  bottom: 0;
+  width: 46%;
+  height: 43%;
+  background: #24503b;
+}
+.portal-world--christmas .portal-xmas-present--gold {
+  right: 22%;
+  bottom: 45%;
+  width: 39%;
+  height: 38%;
+  background: #997142;
+}
+.portal-world--christmas .portal-xmas-present--gold::before {
+  background: linear-gradient(90deg, #55242a, #a44549 50%, #5a1c27);
+}
+/* Framed editable product photography gallery. No fabricated candle imagery. */
+.portal-world--christmas .portal-collection-frame {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  isolation: isolate;
+  border: 1px solid #ad7d43;
+  border-radius: 44px 9px 44px 9px;
+  background: #3b161c;
+  box-shadow: inset 0 0 0 6px #3b161c,
+    inset 0 0 0 7px rgba(211, 167, 93, .55),
+    0 20px 40px rgba(2, 11, 6, .32);
+}
+.portal-world--christmas .portal-collection-frame::before {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  z-index: 0;
+  inset: 13px;
+  border: 1px solid rgba(216, 173, 98, .42);
+  border-radius: 34px 5px 34px 5px;
+}
+.portal-world--christmas .portal-collection-frame > * {
+  position: relative;
+  z-index: 2;
+}
+.portal-world--christmas .portal-collection-heading h2 {
+  font: 500 clamp(2.5rem, 7vw, 4.3rem)/1 "Italiana", "Cormorant Garamond", Georgia, serif;
+  color: #f7e5c4;
+}
+.portal-world--christmas .portal-collection-divider {
+  display: inline-block;
+  margin-top: 1.2rem;
+  width: min(55vw, 270px);
+  color: #e5bc73;
+  font: 17px/1 Georgia, serif;
+  position: relative;
+}
+.portal-world--christmas .portal-collection-divider::before,
+.portal-world--christmas .portal-collection-divider::after {
+  content: "";
+  position: absolute;
+  width: calc(50% - 22px);
+  height: 1px;
+  top: 50%;
+  background: linear-gradient(90deg, transparent, #c89957);
+}
+.portal-world--christmas .portal-collection-divider::before {left:0;}
+.portal-world--christmas .portal-collection-divider::after {right:0;transform: rotate(180deg);}
+.portal-world--christmas .portal-gallery-shell {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+.portal-world--christmas .portal-gallery-viewport {
+  width: 100%;
+  scroll-behavior: smooth;
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-inline: contain;
+  scrollbar-color: #a77e46 transparent;
+  scrollbar-width: thin;
+  padding-inline: 3px;
+}
+.portal-world--christmas .portal-gallery-photo {
+  scroll-snap-align: center;
+  padding: 10px 10px 17px;
+  border-radius: 13px 3px 13px 3px;
+  background: #241e19;
+  border: 1px solid rgba(227, 188, 114, .72);
+  box-shadow: inset 0 0 0 4px #241e19,
+    inset 0 0 0 5px rgba(222, 181, 109, .33),
+    0 12px 24px rgba(0,0,0,.23);
+}
+.portal-world--christmas .portal-gallery-photo img {
+  border: 1px solid rgba(230, 185, 101, .52);
+  border-radius: 6px;
+  display: block;
+}
+.portal-world--christmas .portal-gallery-photo h3 {
+  font-size: 1.35rem;
+  color: #fbeacc;
+}
+.portal-world--christmas .portal-gallery-controls button {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid #cda164;
+  color: #f8e7c5;
+  background: #281a1a;
+  font-size: 1.4rem;
+  transition: background .2s ease, transform .2s ease;
+}
+.portal-world--christmas .portal-gallery-controls button:hover,
+.portal-world--christmas .portal-gallery-controls button:focus-visible {
+  background: #68402c;
+  transform: scale(1.04);
+}
+.portal-world--christmas .portal-collection-shop-link {
+  padding: .78rem 1.75rem;
+  border: 1px solid #cda164;
+  border-radius: 12px 3px 12px 3px;
+  color: #f7e8c7;
+  background: #162f25;
+  font: 500 1.35rem/1.2 "Cormorant Garamond", Georgia, serif;
+  transition: filter .25s ease, transform .25s ease;
+}
+.portal-world--christmas .portal-collection-shop-link:hover,
+.portal-world--christmas .portal-collection-shop-link:focus-visible {
+  filter: brightness(1.13);
+  transform: translateY(-2px);
+}
+.portal-world--christmas .portal-gallery-empty {
+  border: 1px solid rgba(219, 177, 103, .51);
+  border-radius: 12px 4px 12px 4px;
+  background: #26191c;
+}
+.portal-world--christmas .portal-gallery-empty-icon {
+  color: #e3b96e;
+  font: 1.9rem/1 Georgia, serif;
+}
+/* A single phoenix courier flies over the page only on explicit interaction. */
+.portal-xmas-phoenix-flight {
+  position: fixed;
+  z-index: 1000;
+  top: max(18px, env(safe-area-inset-top));
+  left: 0;
+  width: min(65vw, 410px);
+  height: 190px;
+  pointer-events: none;
+  will-change: transform, opacity;
+  animation: portal-phoenix-delivery 4.6s cubic-bezier(.27,.54,.38,1) both;
+}
+.portal-xmas-phoenix-courier {
+  position: absolute;
+  inset: 0;
+  animation: portal-phoenix-hover .55s ease-in-out infinite alternate;
+  filter: drop-shadow(0 0 18px rgba(243, 179, 88, .42));
+}
+.portal-xmas-phoenix-bird {
+  position: absolute;
+  left: 12%;
+  top: 0;
+  width: 70%;
+  height: 145px;
+  filter: sepia(.6) saturate(1.3) brightness(1.8) drop-shadow(0 4px 8px rgba(2, 7, 4, .4));
+}
+.portal-xmas-parcel {
+  position: absolute;
+  width: 63px;
+  height: 43px;
+  left: 46%;
+  top: 113px;
+  border: 1px solid rgba(255, 220, 153, .5);
+  border-radius: 2px;
+  background: linear-gradient(140deg, #9a6743, #d5a875 44%, #70472d 100%);
+  box-shadow: inset -9px -6px 9px rgba(44, 24, 13, .3), 4px 8px 10px rgba(0,0,0,.3);
+  transform: rotate(8deg);
+}
+.portal-xmas-parcel-ribbon {
+  position: absolute;
+  inset: 0 43%;
+  background: linear-gradient(90deg, #4d1b23, #872e31, #541a23);
+}
+.portal-xmas-parcel-tag {
+  position: absolute;
+  top: 54%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font: 600 6px/1.05 "DM Sans", sans-serif;
+  color: #25180e;
+  text-align: center;
+  width: 76%;
+  background: rgba(240, 208, 161, .88);
+  padding: 2px 1px;
+}
+.portal-xmas-phoenix-trail {
+  position: absolute;
+  inset: 25px 0 0 0;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, rgba(252, 193, 89, .16), transparent 69%);
+  filter: blur(14px);
+}
+@keyframes portal-phoenix-delivery {
+  0% { transform: translate3d(105vw, 70px, 0) scale(.85) rotate(-5deg); opacity: 0; }
+  12% { opacity: 1; }
+  46% { transform: translate3d(35vw, 10px, 0) scale(1.08) rotate(0deg); opacity: 1; }
+  88% { opacity: 1; }
+  100% { transform: translate3d(-120vw, -35px, 0) scale(.76) rotate(-7deg); opacity: 0; }
+}
+@keyframes portal-phoenix-hover {
+  from { transform: translateY(-6px) rotate(-2deg); }
+  to { transform: translateY(6px) rotate(1.5deg); }
+}
+@media (max-width: 640px) {
+  .portal-world--christmas .portal-magic-hero::before { inset: 10px; border-radius: 76px 76px 6px 6px; }
+  .portal-world--christmas .portal-christmas-hall::before { inset: 10px; }
+  .portal-world--christmas .portal-xmas-tree {
+    width: 145px;
+    height: 235px;
+    left: -48px;
+    opacity: .73;
+  }
+  .portal-world--christmas .portal-xmas-tree--right {
+    left: auto;
+    right: -55px;
+    transform: scale(.78);
+  }
+  .portal-world--christmas .portal-xmas-presents { right: -49px; transform: scale(.81); transform-origin: bottom right; }
+  .portal-world--christmas .portal-xmas-presents--left { right:auto; left:-52px; transform-origin: bottom left; }
+  .portal-world--christmas .portal-action-card { min-height: 100px; }
+  .portal-world--christmas .portal-collection-frame {
+    border-radius: 29px 7px 29px 7px;
+    margin-inline: 12px;
+  }
+  .portal-world--christmas .portal-collection-frame::before { inset: 9px; border-radius: 20px 4px 20px 4px; }
+  .portal-world--christmas .portal-gallery-photo { width: 72vw; max-width: 250px; }
+  .portal-xmas-phoenix-flight { width: min(80vw, 330px); height: 160px; }
+  .portal-xmas-phoenix-bird { height: 125px; }
+  .portal-xmas-parcel { top: 102px; transform: scale(.78) rotate(8deg); transform-origin: top left; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .portal-xmas-phoenix-flight { animation-duration: 1ms; }
+  .portal-xmas-phoenix-courier { animation: none; }
+  .portal-world--christmas .portal-action-card,
+  .portal-world--christmas .portal-gallery-controls button,
+  .portal-world--christmas .portal-collection-shop-link {
+    transition: none;
+  }
+}
