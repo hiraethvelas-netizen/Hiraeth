@@ -3,7 +3,7 @@ import { ArrowUpRight, BookOpenText, Headphones, LibraryBig, Smartphone } from "
 import { PortalIntro } from "@/components/PortalIntro";
 import { PortalChristmasDecor } from "@/components/PortalChristmasDecor";
 import { carouselFromTheme, isMagicWorld, magicWorldTitle, portalCatalogDestination, spotifyPlaylistUrl } from "@/lib/portal-experience";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { SiteFooter } from "@/components/SiteLayout";
 import type { Tables } from "@/integrations/supabase/types";
@@ -29,6 +29,7 @@ function PortalPage() {
   const [loading, setLoading] = useState(true);
   const [intro, setIntro] = useState(true);
   const [loadError, setLoadError] = useState(false);
+  const galleryRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -110,6 +111,12 @@ function PortalPage() {
   const catalogUrl = portalCatalogDestination(slug,portal.store_category_url);
   const magicWorld = isMagicWorld(slug);
 
+  function scrollGallery(direction: -1 | 1) {
+    const element = galleryRef.current;
+    if (!element) return;
+    element.scrollBy({ left: direction * Math.min(element.clientWidth * .88, 720), behavior: "smooth" });
+  }
+
 
 
   return (
@@ -160,7 +167,7 @@ function PortalPage() {
             <p className="text-xs uppercase tracking-[.28em] text-[var(--portal-accent)]">Escolha seu caminho</p>
             <h2 className="mt-3 font-display text-3xl md:text-4xl">Portas para este universo</h2>
           </div>
-          <div className="portal-action-grid relative z-10 grid gap-4 sm:grid-cols-2">
+          <div className="portal-action-grid portal-action-grid--ornate relative z-10 grid gap-4 sm:grid-cols-2">
             {spotifyUrl && portal.spotify_visible ? <a className="portal-action-card" href={spotifyUrl}
                 target="_blank" rel="noopener noreferrer" aria-label="Ouvir playlist da coleção no Spotify">
                 <Headphones aria-hidden="true" size={26}/><span><strong>Playlist no Spotify</strong>
@@ -225,29 +232,44 @@ function PortalPage() {
 
       <section data-portal-reveal className="portal-reveal portal-carousel-section mt-12 py-16">
         {magicWorld && <PortalChristmasDecor scene="gallery" />}
-        <div className="mx-auto max-w-6xl px-6 text-center">
-          <p className="text-xs uppercase tracking-[.28em] text-[var(--portal-accent)]">Edição especial de Natal</p>
-          <h2 className="mt-3 font-display text-3xl md:text-4xl">Um vislumbre da coleção</h2>
-          <p className="mx-auto mt-3 max-w-lg text-sm opacity-80">Imagens, detalhes e pequenos encantamentos que merecem ser descobertos.</p>
-        </div>
-        {carouselItems.length>0 ? <div className="portal-gallery-marquee mt-10 overflow-hidden"
-          aria-label="Fotos da coleção de Natal em rolagem horizontal">
-          <div className="portal-gallery-track flex w-max">
-            {[0,1].map(copy=><div key={copy} className="flex shrink-0 gap-4 pr-4"
-              aria-hidden={copy===1}>
-              {carouselItems.map((item,index)=><div key={item.id+"-"+copy+"-"+index}
-                className="portal-gallery-photo relative w-44 shrink-0 sm:w-56">
-                {item.url ? <a href={item.url} className="block focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--portal-accent)]">
-                  <img src={item.image_url} alt={copy===0?item.title:""} className="aspect-square w-full rounded-xl object-cover" loading="lazy"/>
-                </a> : <img src={item.image_url} alt={copy===0?item.title:""} className="aspect-square w-full rounded-xl object-cover" loading="lazy" />}
-                <p className="mt-3 text-center font-display text-base">{item.title}</p>
-                {item.description && <p className="mt-1 text-center text-xs opacity-75">{item.description}</p>}
-              </div>)}
-            </div>)}
+        <div className={magicWorld ? "portal-collection-frame mx-auto max-w-6xl px-5 py-10 sm:px-8 sm:py-14" : "mx-auto max-w-6xl px-6"}>
+          <div className="portal-collection-heading text-center">
+            <p className="text-xs uppercase tracking-[.28em] text-[var(--portal-accent)]">Edição especial de Natal</p>
+            <h2 className="mt-3 font-display text-3xl md:text-5xl">
+              {magicWorld ? "Conheça a Coleção" : "Um vislumbre da coleção"}
+            </h2>
+            <p className="mx-auto mt-4 max-w-lg text-sm leading-relaxed opacity-80">
+              Um Natal entre histórias, memórias e aromas que merecem ser descobertos.
+            </p>
+            {magicWorld && <span className="portal-collection-divider" aria-hidden="true">✦</span>}
           </div>
-        </div> : <div className="portal-gallery-empty mx-auto mt-10 flex max-w-xl items-center justify-center rounded-xl border border-dashed px-6 py-12 text-center text-sm opacity-80">
-          As fotos da edição natalina aparecerão aqui. Adicione-as em “Meus Portais NFC” na administração.
-        </div>}
+          {carouselItems.length>0 ? <div className="portal-gallery-shell mt-9">
+            <div ref={galleryRef} className="portal-gallery-viewport flex gap-4 overflow-x-auto pb-5"
+              role="region" aria-label="Fotos da coleção de Natal">
+              {carouselItems.map((item,index)=><article key={item.id+"-"+index}
+                className="portal-gallery-photo relative w-56 shrink-0 sm:w-64">
+                {item.url ? <a href={item.url} className="block focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--portal-accent)]">
+                  <img src={item.image_url} alt={item.title} className="aspect-[4/5] w-full rounded-md object-cover" loading="lazy"/>
+                </a> : <img src={item.image_url} alt={item.title} className="aspect-[4/5] w-full rounded-md object-cover" loading="lazy" />}
+                <h3 className="mt-4 text-center font-display text-xl">{item.title}</h3>
+                {item.description && <p className="mt-1 text-center text-xs leading-relaxed opacity-75">{item.description}</p>}
+              </article>)}
+            </div>
+            {carouselItems.length>1 && <div className="portal-gallery-controls mt-5 flex justify-center gap-3">
+              <button type="button" aria-label="Ver fotos anteriores da coleção" onClick={()=>scrollGallery(-1)}>←</button>
+              <button type="button" aria-label="Ver próximas fotos da coleção" onClick={()=>scrollGallery(1)}>→</button>
+            </div>}
+          </div> : <div className="portal-gallery-empty mx-auto mt-10 flex max-w-xl flex-col items-center justify-center px-8 py-12 text-center">
+            <span className="portal-gallery-empty-icon" aria-hidden="true">✦</span>
+            <p className="mt-3 font-display text-2xl">As histórias ganham forma em breve.</p>
+            <p className="mt-3 text-sm leading-relaxed opacity-80">
+              As fotografias oficiais da coleção aparecerão aqui assim que forem adicionadas em “Meus Portais NFC”.
+            </p>
+          </div>}
+          {magicWorld && <a href={catalogUrl} className="portal-collection-shop-link mx-auto mt-9 inline-flex items-center justify-center gap-3">
+            Explorar o acervo <ArrowUpRight size={17} aria-hidden="true"/>
+          </a>}
+        </div>
       </section>
       </main>
 
