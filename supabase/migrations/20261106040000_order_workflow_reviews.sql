@@ -187,3 +187,57 @@ grant execute on function public.advance_order_delivery_status(uuid,text)
 comment on function public.advance_order_delivery_status(uuid,text) is
  'Admin-only order preparation, verified posting and delivery. Blocks progress during pending refund review and cannot move money.';
 
+-- Called solely with service-role credentials after the edge function checks
+-- GET /v1/payments/{id} and confirms a REAL, FULL refund linked to this checkout.
+-- This RPC never initiates provider refunds or restocks inventory.
+create or replace function public.confirm_verified_commerce_refund(
+  p_order_id uuid,p_payment_id text,p_total numeric,p_provider_status text
+) returns text language plpgsql security definer set search_path=public
+as $$
+declare
+  v_order public.orders%rowtype;
+  v_review public.commerce_order_reviews%rowtype;
+  v_next text;
+begin
+  if auth.role()<>'service_role' then
+    raise exception 'Somente o servidor pode confirmar devoluções financeiras' using errcode='42501';
+  end if;
+  select * into v_order from public.orders where id=p_order_id for update;
+  if not found then raise exception 'Pedido não encontrado'; end if;
+  if v_order.payment_status='refunded' and v_order.status in ('refunded','cancelled') then
+    return v_order.status;
+  end if;
+  if p_provider_status<>'refunded' or v_order.payment_id is distinct from p_payment_id
+    or round(v_order.total,2) is distinct from round(p_total,2)
+    or v_order.payment_status<>'approved'
+  then
+    raise exception 'Reembolso não confirmado pelo Mercado Pago';
+  end if;
+  select * into v_review from public.commerce_order_reviews
+    where order_id=p_order_id and status in ('pending_review','awaiting_provider')
+    order by created_at desc limit 1 for update;
+  if not found then raise exception 'Não há solicitação administrativa de análise financeira'; end if;
+  -- A cancelled order must not have shipped or entered an issued fiscal
+  -- document/paid shipping workflow. Otherwise label it refunded instead.
+  if v_review.kind='cancellation' and v_order.status in ('paid','preparing')
+    and not exists(select 1 from public.commerce_shipments
+      where order_id=p_order_id and status not in ('pending','quoted'))
+    and not exists(select 1 from public.commerce_invoices
+      where order_id=p_order_id and status not in ('pending','needs_configuration'))
+  then
+    v_next:='cancelled';
+  else
+    v_next:='refunded';
+  end if;
+  update public.orders set status=v_next,payment_status='refunded',updated_at=now()
+    where id=p_order_id;
+  update public.commerce_order_reviews set status='completed',updated_at=now()
+    where id=v_review.id;
+  return v_next;
+end; $$;
+revoke all on function public.confirm_verified_commerce_refund(uuid,text,numeric,text)
+  from public,anon,authenticated;
+grant execute on function public.confirm_verified_commerce_refund(uuid,text,numeric,text)
+  to service_role;
+comment on function public.confirm_verified_commerce_refund(uuid,text,numeric,text) is
+ 'Server-only reconciliation after Mercado Pago GET confirms full refunded status; no payout, invoice void, label cancellation or automatic stock restock.';
