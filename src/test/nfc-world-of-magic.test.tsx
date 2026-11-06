@@ -102,6 +102,13 @@ describe("Portal NFC: fotos de Natal configuráveis",()=>{
 
 
 describe("Natal no portal mágico: decoração isolada e interativa",()=>{
+  it("usa ornamentos sem carregar fotografias como fundos de página",()=>{
+    const {container}=render(<PortalChristmasDecor scene="hero"/>);
+    expect(container.querySelector(".portal-xmas-photographic-scene")).toBeNull();
+    expect(container.querySelectorAll(".portal-xmas-bauble").length).toBeGreaterThan(3);
+    expect(container.querySelectorAll(".portal-xmas-bulb").length).toBeGreaterThan(10);
+  });
+
   it("distribui luzes, enfeites e velas sem bloquear o conteúdo",()=>{
     const {container}=render(<PortalChristmasDecor scene="hero"/>);
     expect(container.querySelectorAll(".portal-xmas-bulb")).toHaveLength(16);
