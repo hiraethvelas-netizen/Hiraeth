@@ -1,0 +1,26 @@
+name: Hiraeth - Smoke Test Publico Seguro
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "scripts/commerce-public-smoke.mjs"
+      - ".github/workflows/commerce-public-smoke.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Public site and unauthorized route smoke checks
+        run: node scripts/commerce-public-smoke.mjs
