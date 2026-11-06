@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { PortalIntro } from "@/components/PortalIntro";
+import { PortalChristmasDecor } from "@/components/PortalChristmasDecor";
 import {
   carouselFromTheme,galleryDraftFromTheme,isSafePortalUrl,
   magicWorldTitle,portalCatalogDestination,spotifyPlaylistUrl,updatePortalGallery,
@@ -96,5 +97,36 @@ describe("Portal NFC: fotos de Natal configuráveis",()=>{
     const edited=updatePortalGallery(theme,[{id:"b",title:"",description:"",image_url:"https://",url:""}]);
     expect(galleryDraftFromTheme(edited)[0]?.image_url).toBe("https://");
     expect(carouselFromTheme(edited)[0]?.image_url).toBe("");
+  });
+});
+
+
+describe("Natal no portal mágico: decoração isolada e interativa",()=>{
+  it("distribui luzes, enfeites e velas sem bloquear o conteúdo",()=>{
+    const {container}=render(<PortalChristmasDecor scene="hero"/>);
+    expect(container.querySelectorAll(".portal-xmas-bulb")).toHaveLength(16);
+    expect(container.querySelectorAll(".portal-xmas-bauble")).toHaveLength(10);
+    expect(container.querySelectorAll(".portal-xmas-candle")).toHaveLength(7);
+    expect(container.querySelector(".portal-xmas-atmosphere")?.getAttribute("aria-hidden")).toBe("true");
+  });
+  it("permite aumentar ou suavizar o brilho da decoração",()=>{
+    const {container}=render(<PortalChristmasDecor scene="hero"/>);
+    const toggle=screen.getByRole("button",{name:/intensificar as luzes mágicas/i});
+    expect(toggle.getAttribute("aria-pressed")).toBe("false");
+    fireEvent.click(toggle);
+    expect(container.querySelector(".portal-xmas-decor--bright")).not.toBeNull();
+    const pressed=screen.getByRole("button",{name:/suavizar as luzes mágicas/i});
+    expect(pressed.getAttribute("aria-pressed")).toBe("true");
+    fireEvent.click(pressed);
+    expect(container.querySelector(".portal-xmas-decor--bright")).toBeNull();
+  });
+  it("posiciona coruja e vassoura como elementos fotográficos de seções diferentes",()=>{
+    const {container:inspiration}=render(<PortalChristmasDecor scene="inspirations"/>);
+    expect(inspiration.querySelector(".portal-xmas-owl-photo")).not.toBeNull();
+    expect(inspiration.querySelector(".portal-xmas-broom-photo")).toBeNull();
+    cleanup();
+    const {container:gallery}=render(<PortalChristmasDecor scene="gallery"/>);
+    expect(gallery.querySelector(".portal-xmas-broom-photo")).not.toBeNull();
+    expect(gallery.querySelector(".portal-xmas-owl-photo")).toBeNull();
   });
 });
