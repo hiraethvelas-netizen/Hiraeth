@@ -1,6 +1,12 @@
 -- Hiraeth — admin-only order lifecycle and financial review queue.
 -- Safe to apply in an existing production database: no paid order is modified.
 -- A refund request is NOT a refund. No funds move and no stock is replenished.
+-- Existing orders_status_check permits pending/paid/shipped/delivered/cancelled/refunded,
+-- but needs the new preparing stage. This expands the accepted set without
+-- modifying existing order records.
+alter table public.orders drop constraint if exists orders_status_check;
+alter table public.orders add constraint orders_status_check
+  check (status in ('pending','paid','preparing','shipped','delivered','cancelled','refunded'));
 
 create table if not exists public.commerce_order_reviews (
   id uuid primary key default gen_random_uuid(),
@@ -126,8 +132,12 @@ begin
   return new;
 end; $$;
 
--- The existing guard_order_payment_integrity trigger invokes this updated
--- function automatically; no trigger replacement or table rewrite required.
+-- Some Lovable Cloud environments did not apply the earlier guard trigger.
+-- Ensure payment protection is actually installed (safe on existing records).
+drop trigger if exists guard_order_payment_integrity on public.orders;
+create trigger guard_order_payment_integrity
+  before insert or update on public.orders
+  for each row execute function public.guard_order_payment_integrity();
 
 create or replace function public.advance_order_delivery_status(
   p_order_id uuid,p_next_status text
