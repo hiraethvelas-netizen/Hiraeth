@@ -146,6 +146,9 @@ export type Recipient = {
   // For gifts, this identifies the buyer; document above identifies the receiver.
   payer_document: string;
   gift: boolean;
+  // Merchant-only order requests, not sent to carriers or fiscal providers.
+  customer_note: string;
+  packing_video_requested: boolean;
   postal_code: string;
   street: string;
   number: string;
@@ -171,6 +174,9 @@ export function validateRecipient(input: any, email: string): Recipient {
   return {
     name, document, email, phone: str("phone").replace(/\D/g,""),
     gift, payer_document:payerDocument,
+    customer_note: typeof input.customer_note === "string"
+      ? input.customer_note.trim().slice(0,800) : "",
+    packing_video_requested: input.packing_video_requested === true,
     postal_code: postalCode(input.postal_code), street, number,
     complement: str("complement"), district, city, state,
   };
