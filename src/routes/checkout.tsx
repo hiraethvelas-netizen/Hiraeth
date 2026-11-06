@@ -325,7 +325,7 @@ function CheckoutHiraeth() {
     if (checked) setBuyerDocument(savedRecipient.document);
   }
 
-  return <div className="min-h-screen min-w-0">
+  return <div className="hiraeth-checkout-page min-h-screen min-w-0">
     <SiteHeader/>
     <main className="hiraeth-checkout mx-auto w-full max-w-3xl px-4 pb-20 pt-8 sm:px-6 sm:pt-12">
       <Link to="/carrinho" className="inline-flex items-center gap-2 text-sm text-primary"><ArrowLeft size={16}/> Voltar à sacola</Link>
@@ -536,7 +536,7 @@ function CheckoutHiraeth() {
         </div> : <div className="mt-6 space-y-4">
           <button type="button" disabled={busy} onClick={()=>void pay("pix").catch(()=>{})}
             className="flex w-full items-center justify-center gap-2 rounded-xl border border-primary/50 bg-primary/10 px-5 py-4 text-sm font-semibold text-foreground disabled:opacity-40">
-            <QrCode size={19}/> {busy?"Aguarde...":"Pagar com Pix pelo Mercado Pago"}
+            <QrCode size={19}/> {busy?"Aguarde...":"Pagamento Pix"}
           </button>
           {config.publicKey&&payerEmail&&(
             <SecureCardBrick publicKey={config.publicKey} amount={checkout.total} email={payerEmail}
