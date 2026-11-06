@@ -986,6 +986,10 @@ body > div {
  * Keep the existing Dark Academia layout, dark theme, and site-wide palette.
  * Olive used for text, prices, buttons and icons must be darker on vanilla.
  */
+:root:not(.dark) .hiraeth-checkout-page {
+  background-color: #e9eddf;
+}
+
 :root:not(.dark) .hiraeth-checkout {
   --primary: #525c2a;
   --color-primary: #525c2a;
@@ -995,8 +999,8 @@ body > div {
   --color-foreground: #283823;
   --muted-foreground: #505640;
   --color-muted-foreground: #505640;
-  --card: #fff9ed;
-  --color-card: #fff9ed;
+  --card: #f3f6e9;
+  --color-card: #f3f6e9;
   --card-foreground: #283823;
   --color-card-foreground: #283823;
   --border: #9c9f74;
@@ -1009,8 +1013,8 @@ body > div {
 
 :root:not(.dark) .hiraeth-checkout input:not([type="radio"]),
 :root:not(.dark) .hiraeth-checkout textarea {
-  background-color: #fffdf8;
-  border-color: #a0a580;
+  background-color: #fdfef9;
+  border-color: #929e70;
   color: #283823;
 }
 
@@ -1034,4 +1038,14 @@ body > div {
   background-color: #f2ead4;
   border-color: #b8ab80;
   color: #283823;
+}
+
+:root:not(.dark) .hiraeth-checkout .btn-gold {
+  border-color: #52632c;
+  color: #fffdf5;
+  background-color: #637641;
+}
+
+:root:not(.dark) .hiraeth-checkout .btn-gold:hover {
+  background-color: #52632c;
 }
