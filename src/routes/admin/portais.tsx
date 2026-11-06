@@ -128,7 +128,9 @@ function AdminPortais() {
       spotify_title: form.spotify_title || null,
       spotify_description: form.spotify_description || null,
       spotify_visible: form.spotify_visible,
-      status: form.status,
+      // Um portal publicado pode estar gravado em velas já vendidas.
+      // Edições de conteúdo jamais despublicam o destino NFC existente.
+      status: editing?.status === "published" ? "published" : form.status,
       updated_at: new Date().toISOString(),
     };
     let parsedTheme: Json;
@@ -191,6 +193,10 @@ function AdminPortais() {
   }
 
   async function archive(p: Portal) {
+    if (p.status === "published") {
+      toast.error("Este portal já está publicado e pode estar gravado em velas vendidas. Para preservar o NFC, ele deve continuar acessível.");
+      return;
+    }
     const { error } = await supabase.from("portals").update({ status: "archived" }).eq("id", p.id);
     if (error) {
       toast.error("Não foi possível arquivar o portal.");
@@ -213,6 +219,12 @@ function AdminPortais() {
       {showForm && (
         <form onSubmit={save} className="relative mt-6 space-y-5 overflow-hidden rounded-sm border border-amber-500/40 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-amber-900/35 via-slate-950 to-slate-950 p-5 shadow-[0_20px_70px_rgba(0,0,0,0.35)] md:p-8">
           <div className="pointer-events-none absolute inset-0 opacity-25" aria-hidden="true"><div className="absolute -right-8 -top-10 h-48 w-48 rounded-full border border-amber-300/40" /><div className="absolute -right-3 -top-5 h-36 w-36 rounded-full border border-amber-300/30" /><div className="absolute bottom-8 left-8 h-1 w-1 rounded-full bg-amber-200 shadow-[0_0_18px_5px_rgba(251,191,36,0.25)]" /></div><div className="relative z-10"><p className="font-display text-2xl tracking-wide text-amber-200">{editing ? `✦ Editar portal: ${editing.name} ✦` : "✦ Abrir novo portal ✦"}</p><p className="mt-2 max-w-2xl text-sm text-amber-100/70">Personalize esta passagem mágica: abertura, vídeo, destino e trilha sonora.</p></div>
+          <div role="note" className="relative z-10 rounded-lg border border-amber-300/55 bg-emerald-950/55 p-4 text-sm leading-relaxed text-amber-50">
+            <strong className="block text-base text-amber-200">Link NFC permanente para velas já vendidas</strong>
+            {editing ? <p className="mt-2">Você pode alterar vídeo, fotos, títulos, decoração, playlist e detalhes deste portal sem mudar o endereço gravado nas tags NFC. O link permanece <span className="break-all font-semibold text-amber-200">/portal/{editing.slug}</span>. O nome visível também pode mudar, mas o identificador do link não é renomeado.</p>
+              : <p className="mt-2">Após criar e publicar o portal, o endereço NFC será mantido ao editar seu conteúdo. Grave o link somente depois de publicar o portal definitivo.</p>}
+            <p className="mt-2 text-amber-100/75">Para manter o acesso das clientes, portais publicados ficam protegidos contra despublicação e arquivamento nesta administração. Preserve também o domínio da loja e não exclua o portal original.</p>
+          </div>
           <div className="relative z-10 rounded-lg border border-amber-300/30 p-3 text-sm text-amber-100/85">
             <strong>Botões já preparados:</strong> Playlist no Spotify, Conheça o acervo,
             Conheça as inspirações e Baixe o aplicativo. A playlist ficará indicada como
@@ -223,7 +235,7 @@ function AdminPortais() {
             <input required placeholder="Nome do portal" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className={inputCls} />
             <input placeholder="Universo (livro, filme, série)" value={form.universe} onChange={(e) => setForm({ ...form, universe: e.target.value })} className={inputCls} />
             <input placeholder="URL da capa" value={form.cover_url} onChange={(e) => setForm({ ...form, cover_url: e.target.value })} className={inputCls} />
-            <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })} className={inputCls}>
+            <select value={form.status} disabled={editing?.status === "published"} onChange={(e) => setForm({ ...form, status: e.target.value })} className={inputCls}>
               <option value="draft">Rascunho</option>
               <option value="published">Publicado</option>
               <option value="archived">Arquivado</option>
@@ -326,6 +338,7 @@ function AdminPortais() {
                 </div>
               </div>
               <p className="mt-3 break-all text-sm text-muted-foreground">/portal/{p.slug}</p>
+              {p.status === "published" && <p className="mt-1 text-xs text-emerald-700 dark:text-emerald-300">Link NFC protegido: edições da página não mudam este endereço.</p>}
               <div className="mt-4 flex flex-wrap gap-3 text-sm">
                 <button onClick={() => copyLink(p)} className="border border-primary px-3 py-1 text-primary hover:bg-primary hover:text-primary-foreground">
                   {copiedId === p.id ? "✓ Copiado!" : "Copiar link NFC"}
@@ -337,7 +350,7 @@ function AdminPortais() {
                 )}
                 <button onClick={() => startEdit(p)} className="px-3 py-1 text-muted-foreground hover:text-primary">Editar</button>
                 <button onClick={() => duplicate(p)} className="px-3 py-1 text-muted-foreground hover:text-primary">Duplicar</button>
-                {p.status !== "archived" && (
+                {p.status === "draft" && (
                   <button onClick={() => archive(p)} className="px-3 py-1 text-muted-foreground hover:text-destructive">Arquivar</button>
                 )}
               </div>
