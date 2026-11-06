@@ -48,7 +48,7 @@ describe("Hiraeth: dados de entrega e acompanhamento de pedidos", () => {
   });
 
   it("mantém as legendas de status utilizadas nos dois painéis", () => {
-    expect(ORDER_STATUS_LABEL["paid"]).toBe("Pago");
+    expect(ORDER_STATUS_LABEL["paid"]).toBe("Pago — aguardando preparação");
     expect(SHIPMENT_STATUS_LABEL["posted"]).toBe("Postado");
     expect(SHIPMENT_STATUS_LABEL["failed"]).toBe("Aguardando revisão da entrega");
   });
