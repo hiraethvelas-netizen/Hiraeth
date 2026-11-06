@@ -34,6 +34,21 @@ export function spotifyPlaylistUrl(value: unknown): string | null {
   }
 }
 
+export function galleryDraftFromTheme(theme: unknown): PortalGalleryItem[] {
+  if (!record(theme) || !Array.isArray(theme["carousel_items"])) return [];
+  return theme["carousel_items"].flatMap((value: unknown, index: number) => {
+    if (!record(value)) return [];
+    const getText = (key:string) => typeof value[key] === "string" ? value[key] as string : "";
+    return [{
+      id:getText("id") || `photo-${index}`,
+      title:getText("title"),
+      image_url:getText("image_url"),
+      description:getText("description"),
+      url:getText("url"),
+    }];
+  });
+}
+
 export function carouselFromTheme(theme: unknown): PortalGalleryItem[] {
   if (!record(theme) || !Array.isArray(theme["carousel_items"])) return [];
   return theme["carousel_items"].flatMap((value: unknown, index: number) => {
