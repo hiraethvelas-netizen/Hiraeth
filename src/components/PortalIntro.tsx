@@ -79,7 +79,7 @@ export function PortalIntro({ title, subtitle, videoUrl, posterUrl, ctaText, chr
       <div className="portal-intro-content relative z-10 flex min-h-full w-full flex-col items-center justify-end px-6 text-center">
         {showCopy && <div className="portal-intro-copy w-full max-w-2xl">
           <p className="portal-intro-eyebrow">
-            {christmas ? "Hiraeth · Uma temporada encantada" : "Uma experiência Hiraeth"}
+            {christmas ? "Hiraeth em" : "Uma experiência Hiraeth"}
           </p>
           <h1 className="portal-intro-title">{title}</h1>
           {subtitle && <p className="portal-intro-subtitle">{subtitle}</p>}
