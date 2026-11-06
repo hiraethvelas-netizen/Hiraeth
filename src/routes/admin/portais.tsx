@@ -5,6 +5,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { slugify } from "@/lib/format";
 import { toast } from "sonner";
 import { PortalFragmentsEditor } from "@/components/admin/PortalFragmentsEditor";
+import { PortalGalleryEditor } from "@/components/admin/PortalGalleryEditor";
+import { galleryDraftFromTheme, isMagicWorld, isSafePortalUrl, spotifyPlaylistUrl } from "@/lib/portal-experience";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Portal = Tables<"portals">;
@@ -19,7 +21,7 @@ const emptyForm = {
   name: "",
   universe: "",
   cover_url: "",
-  intro_title: "Seja bem-vindo ao mundo de magia",
+  intro_title: "O Mundo da Magia",
   intro_subtitle: "",
   intro_video_url: "",
   intro_cta_text: "Atravesse o Portal",
@@ -120,7 +122,7 @@ function AdminPortais() {
       intro_video_url: form.intro_video_url || null,
       intro_cta_text: form.intro_cta_text.trim() || "Atravesse o Portal",
       store_category_url: form.store_category_url.trim() || "/loja",
-      intro_enabled: form.intro_enabled,
+      intro_enabled: editing && isMagicWorld(editing.slug) ? true : form.intro_enabled,
       intro_duration_ms: Number(form.intro_duration_ms) || 3000,
       spotify_playlist_url: form.spotify_playlist_url || null,
       spotify_title: form.spotify_title || null,
@@ -132,6 +134,20 @@ function AdminPortais() {
     let parsedTheme: Json;
     try { parsedTheme = JSON.parse(form.theme_json || "{}"); }
     catch { toast.error("O JSON do tema está inválido. Revise a paleta e os itens do carrossel."); return; }
+    if (form.spotify_playlist_url.trim() && !spotifyPlaylistUrl(form.spotify_playlist_url)) {
+      toast.error("Cole um link válido de playlist do Spotify, como https://open.spotify.com/playlist/...");
+      return;
+    }
+    if (form.intro_video_url.trim() && !isSafePortalUrl(form.intro_video_url)) {
+      toast.error("Informe um link HTTPS ou um caminho válido para o vídeo de abertura.");
+      return;
+    }
+    const photos=galleryDraftFromTheme(parsedTheme);
+    if (photos.some(photo=>photo.image_url && !isSafePortalUrl(photo.image_url)) ||
+        photos.some(photo=>photo.url && !isSafePortalUrl(photo.url))) {
+      toast.error("Revise as URLs das fotos do Natal. Use links HTTPS ou caminhos internos válidos.");
+      return;
+    }
     const safePayload = { ...payload, theme: parsedTheme };
     const { error } = editing
       ? await supabase.from("portals").update(safePayload).eq("id", editing.id)
@@ -197,6 +213,12 @@ function AdminPortais() {
       {showForm && (
         <form onSubmit={save} className="relative mt-6 space-y-5 overflow-hidden rounded-sm border border-amber-500/40 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-amber-900/35 via-slate-950 to-slate-950 p-5 shadow-[0_20px_70px_rgba(0,0,0,0.35)] md:p-8">
           <div className="pointer-events-none absolute inset-0 opacity-25" aria-hidden="true"><div className="absolute -right-8 -top-10 h-48 w-48 rounded-full border border-amber-300/40" /><div className="absolute -right-3 -top-5 h-36 w-36 rounded-full border border-amber-300/30" /><div className="absolute bottom-8 left-8 h-1 w-1 rounded-full bg-amber-200 shadow-[0_0_18px_5px_rgba(251,191,36,0.25)]" /></div><div className="relative z-10"><p className="font-display text-2xl tracking-wide text-amber-200">{editing ? `✦ Editar portal: ${editing.name} ✦` : "✦ Abrir novo portal ✦"}</p><p className="mt-2 max-w-2xl text-sm text-amber-100/70">Personalize esta passagem mágica: abertura, vídeo, destino e trilha sonora.</p></div>
+          <div className="relative z-10 rounded-lg border border-amber-300/30 p-3 text-sm text-amber-100/85">
+            <strong>Botões já preparados:</strong> Playlist no Spotify, Conheça o acervo,
+            Conheça as inspirações e Baixe o aplicativo. A playlist ficará indicada como
+            “em preparação” até você cadastrar o link. Para incluir trechos e referências
+            da coleção, salve o portal e use “Imagens e fragmentos”.
+          </div>
           <div className="relative z-10 grid gap-4 md:grid-cols-2">
             <input required placeholder="Nome do portal" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className={inputCls} />
             <input placeholder="Universo (livro, filme, série)" value={form.universe} onChange={(e) => setForm({ ...form, universe: e.target.value })} className={inputCls} />
@@ -236,21 +258,31 @@ function AdminPortais() {
               className={inputCls}
             />
             <label className="relative z-10 flex items-center gap-2 text-sm text-amber-100/80">
-              <input type="checkbox" checked={form.intro_enabled} onChange={(e) => setForm({ ...form, intro_enabled: e.target.checked })} />
-              Abertura animada ativa
+              <input type="checkbox"
+                checked={editing && isMagicWorld(editing.slug) ? true : form.intro_enabled}
+                disabled={Boolean(editing && isMagicWorld(editing.slug))}
+                onChange={(e) => setForm({ ...form, intro_enabled: e.target.checked })} />
+              Vídeo de abertura obrigatório para o mundo da magia
             </label>
-            <label className="text-sm text-muted-foreground">
-              Duração da abertura (ms)
-              <input type="number" min="500" max="10000" value={form.intro_duration_ms} onChange={(e) => setForm({ ...form, intro_duration_ms: Number(e.target.value) })} className={`mt-1 ${inputCls}`} />
-            </label>
-            <input placeholder="Link da playlist do Spotify" value={form.spotify_playlist_url} onChange={(e) => setForm({ ...form, spotify_playlist_url: e.target.value })} className={inputCls} />
+            <div className="text-sm text-amber-100/75">
+              <p>A abertura não tem botão de pular. “Atravesse o Portal” aparece somente depois que o vídeo termina.</p>
+              <p className="mt-1 text-xs text-amber-100/60">
+                O vídeo atual pode ser substituído pelo novo MP4 sem trocar o link NFC gravado na vela.
+              </p>
+            </div>
+            <input type="url" placeholder="Playlist: https://open.spotify.com/playlist/..."
+              value={form.spotify_playlist_url} onChange={(e) => setForm({ ...form, spotify_playlist_url: e.target.value })} className={inputCls} />
             <input placeholder="Título da seção de playlist" value={form.spotify_title} onChange={(e) => setForm({ ...form, spotify_title: e.target.value })} className={inputCls} />
           </div>
           <div className="relative z-10"><label className="mb-2 block text-sm text-amber-100/80">Descrição da playlist</label><textarea placeholder="Descrição da playlist" rows={2} value={form.spotify_description} onChange={(e) => setForm({ ...form, spotify_description: e.target.value })} className={inputCls} /></div>
+          <PortalGalleryEditor themeJson={form.theme_json}
+            onChange={theme_json=>setForm(previous=>({...previous,theme_json}))}/>
           <div className="relative z-10">
-            <label className="mb-2 block text-sm text-amber-100/80">Paleta visual e carrossel temático (JSON)</label>
+            <label className="mb-2 block text-sm text-amber-100/80">Configurações avançadas de paleta (JSON)</label>
             <textarea rows={9} spellCheck={false} value={form.theme_json} onChange={(e) => setForm({ ...form, theme_json: e.target.value })} className={inputCls} />
-            <p className="mt-2 text-xs text-amber-100/60">Use palette.background, palette.surface, palette.text, palette.accent e palette.buttonText para personalizar as cores. carousel_items aceita objetos com title, description, image_url e url.</p>
+            <p className="mt-2 text-xs text-amber-100/60">
+              A paleta da coleção poderá ser personalizada depois. Para adicionar fotos do Natal, use o editor visual acima.
+            </p>
             <p className="mt-1 text-xs text-amber-100/60">Exemplo: {"{\"palette\":{\"background\":\"#17251d\",\"surface\":\"#26382d\",\"text\":\"#f5edda\",\"accent\":\"#c6a65b\",\"buttonText\":\"#17251d\"},\"carousel_items\":[{\"title\":\"Item especial\",\"description\":\"Uma peça deste universo\",\"image_url\":\"https://...\",\"url\":\"\"}]}"}</p>
           </div>
           <label className="flex items-center gap-2 text-sm text-muted-foreground">
