@@ -1,6 +1,7 @@
 import { createClient, type SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { calculateShippingPackage, type ShippingPackage, type ShippingItem } from "./commerce-shipping.ts";
 import { hasAllowedMercadoPagoCredential } from "./mercado-pago-credentials.ts";
+import { normalizeCustomerRequests } from "./checkout-requests.ts";
 export { canAccessCommerce } from "./commerce-access.ts";
 
 export const corsHeaders = {
@@ -174,9 +175,7 @@ export function validateRecipient(input: any, email: string): Recipient {
   return {
     name, document, email, phone: str("phone").replace(/\D/g,""),
     gift, payer_document:payerDocument,
-    customer_note: typeof input.customer_note === "string"
-      ? input.customer_note.trim().slice(0,800) : "",
-    packing_video_requested: input.packing_video_requested === true,
+    ...normalizeCustomerRequests(input.customer_note, input.packing_video_requested),
     postal_code: postalCode(input.postal_code), street, number,
     complement: str("complement"), district, city, state,
   };
