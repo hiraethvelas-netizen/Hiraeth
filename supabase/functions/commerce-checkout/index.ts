@@ -48,7 +48,7 @@ Deno.serve(async (req: Request) => {
         // Read-only booleans cannot verify the legal/tax or physical
         // fulfillment requirements needed for production launch.
         packageWeightMeasured:(Number(Deno.env.get("HIRAETH_PACKAGE_TARE_GRAMS")) > 0),
-        fiscalReady:Boolean(Deno.env.get("FOCUSNFE_TOKEN")) &&
+        fiscalSecretsPresent:Boolean(Deno.env.get("FOCUSNFE_TOKEN")) &&
           Boolean(Deno.env.get("FOCUSNFE_TEMPLATE_JSON")) &&
           Boolean(Deno.env.get("FOCUSNFE_ITEM_RULES_JSON")),
         productionPaymentsEnabled:false,
