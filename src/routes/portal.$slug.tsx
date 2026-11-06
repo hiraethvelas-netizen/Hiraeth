@@ -1,6 +1,7 @@
 import { createFileRoute, notFound } from "@tanstack/react-router";
 import { ArrowUpRight, BookOpenText, Headphones, LibraryBig, Smartphone } from "lucide-react";
 import { PortalIntro } from "@/components/PortalIntro";
+import { PortalChristmasDecor } from "@/components/PortalChristmasDecor";
 import { carouselFromTheme, isMagicWorld, magicWorldTitle, portalCatalogDestination, spotifyPlaylistUrl } from "@/lib/portal-experience";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -133,13 +134,8 @@ function PortalPage() {
       <div inert={intro} aria-hidden={intro}>
       <header data-portal-reveal className="portal-reveal portal-magic-hero relative flex min-h-[52vh] items-center justify-center overflow-hidden px-5 py-24">
         {portal.cover_url && <img src={portal.cover_url} alt="" className="absolute inset-0 h-full w-full object-cover" />}
-        {magicWorld && <div className="portal-christmas-hero-photo" aria-hidden="true" />}
         <div className="absolute inset-0 bg-gradient-to-b from-[#10251d]/65 via-[#10251d]/80 to-[var(--portal-bg)]" />
-        {magicWorld && <div className="portal-christmas-hanging" aria-hidden="true">
-          <span className="portal-christmas-bauble portal-christmas-bauble--wine" />
-          <span className="portal-christmas-bauble portal-christmas-bauble--gold" />
-          <span className="portal-christmas-bauble portal-christmas-bauble--forest" />
-        </div>}
+        {magicWorld && <PortalChristmasDecor scene="hero" />}
         <div className="relative mx-auto max-w-4xl text-center">
           <p className="text-xs uppercase tracking-[.37em] text-[var(--portal-accent)]">
             {magicWorld?"Uma temporada de Natal e encantamentos":portal.universe||"Universo da coleção"}
@@ -155,8 +151,8 @@ function PortalPage() {
       </header>
 
       <main>
-        <section data-portal-reveal className="portal-reveal portal-christmas-hall relative mx-auto max-w-5xl px-5 pb-20 pt-10 md:px-8">
-          {magicWorld && <div className="portal-christmas-hall-photo" aria-hidden="true" />}
+        <section data-portal-reveal className="portal-reveal portal-christmas-hall relative mx-auto max-w-5xl overflow-hidden px-5 pb-20 pt-10 md:px-8">
+          {magicWorld && <PortalChristmasDecor scene="actions" />}
           <div className="relative z-10 mb-10 text-center">
             <p className="text-xs uppercase tracking-[.28em] text-[var(--portal-accent)]">Escolha seu caminho</p>
             <h2 className="mt-3 font-display text-3xl md:text-4xl">Portas para este universo</h2>
@@ -198,6 +194,7 @@ function PortalPage() {
       </section>}
 
       <section id="portal-inspiracoes" data-portal-reveal className="portal-reveal mx-auto max-w-4xl scroll-mt-10 px-5 py-16 md:px-8">
+        {magicWorld && <PortalChristmasDecor scene="inspirations" />}
         <div className="mb-10 text-center">
           <p className="text-xs uppercase tracking-[.28em] text-[var(--portal-accent)]">Nos bastidores de cada chama</p>
           <h2 className="mt-3 font-display text-3xl md:text-4xl">Conheça as inspirações</h2>
@@ -224,6 +221,7 @@ function PortalPage() {
       </section>
 
       <section data-portal-reveal className="portal-reveal portal-carousel-section mt-12 py-16">
+        {magicWorld && <PortalChristmasDecor scene="gallery" />}
         <div className="mx-auto max-w-6xl px-6 text-center">
           <p className="text-xs uppercase tracking-[.28em] text-[var(--portal-accent)]">Edição especial de Natal</p>
           <h2 className="mt-3 font-display text-3xl md:text-4xl">Um vislumbre da coleção</h2>
