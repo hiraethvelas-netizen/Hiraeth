@@ -37,7 +37,16 @@ function PhoenixDelivery({ onFinish }: { onFinish: () => void }) {
     onAnimationEnd={event => { if (event.currentTarget === event.target) onFinish(); }}>
     <div className="portal-xmas-phoenix-trail" />
     <div className="portal-xmas-phoenix-courier">
-      <img src={phoenixImage} alt="" className="portal-xmas-phoenix-bird" />
+      <svg className="portal-xmas-phoenix-bird" viewBox="75 65 350 345" role="presentation" aria-hidden="true">
+        <defs>
+          <filter id="portal-phoenix-cutout" colorInterpolationFilters="sRGB">
+            <feColorMatrix type="matrix"
+              values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 -2.25 0 0 1.25" />
+          </filter>
+        </defs>
+        <image href={phoenixImage} x="0" y="0" width="500" height="500"
+          filter="url(#portal-phoenix-cutout)" />
+      </svg>
       <div className="portal-xmas-parcel">
         <span className="portal-xmas-parcel-ribbon" />
         <span className="portal-xmas-parcel-tag">Correio da Fênix</span>
