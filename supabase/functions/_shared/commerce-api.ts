@@ -2,6 +2,7 @@ import { createClient, type SupabaseClient } from "https://esm.sh/@supabase/supa
 import { calculateShippingPackage, type ShippingPackage, type ShippingItem } from "./commerce-shipping.ts";
 import { hasAllowedMercadoPagoCredential } from "./mercado-pago-credentials.ts";
 import { normalizeCustomerRequests } from "./checkout-requests.ts";
+import { safeMercadoPagoError } from "./mercado-pago-safe-errors.ts";
 export { canAccessCommerce } from "./commerce-access.ts";
 
 export const corsHeaders = {
@@ -129,7 +130,7 @@ export async function mercadoPagoRequest(path: string, method: string, body?: un
     method, headers, ...(body === undefined ? {} : {body: JSON.stringify(body)}),
   });
   const response = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error("O Mercado Pago não conseguiu processar a operação. Tente novamente.");
+  if (!res.ok) throw new Error(safeMercadoPagoError(res.status));
   return response;
 }
 
