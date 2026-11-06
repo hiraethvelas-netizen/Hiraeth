@@ -3,6 +3,7 @@ import {
   betterShippingUrl, melhorEnvioHeaders, mercadoPagoRequest,
 } from "../_shared/commerce-api.ts";
 import { isVerifiedFullRefund } from "../_shared/commerce-refund-check.ts";
+import { shippingProductsFromCheckoutItems } from "../_shared/commerce-label-products.ts";
 import { isSandboxCheckout } from "../_shared/commerce-sandbox.ts";
 
 async function melhorEnvio(path: string, payload: Record<string, unknown>) {
@@ -215,8 +216,7 @@ Deno.serve(async (req:Request) => {
           city:recipient.city,state_abbr:recipient.state,
           postal_code:recipient.postal_code,country_id:"BR",
         },
-        products:items.map((i:any)=>({name:i.product_name,quantity:i.quantity,
-          unitary_value:Number(i.unit_price)})),
+        products:shippingProductsFromCheckoutItems(items),
         volumes:[{height,width,length,weight}],
         options:{insurance_value:Number(order.subtotal),receipt:false,
           own_hand:false,invoice:{key:invoice.access_key}},
