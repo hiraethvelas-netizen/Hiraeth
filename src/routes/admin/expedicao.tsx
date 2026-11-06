@@ -170,11 +170,30 @@ function OrderExpedition({order}:{order:Order}) {
   </article>;
 }
 
+type ProviderStatus = "connected" | "rejected" | "unavailable" | "not_configured";
+type IntegrationHealth = {
+  sandbox: boolean;
+  mercadoPago: ProviderStatus;
+  melhorEnvio: ProviderStatus;
+  packageWeightMeasured: boolean;
+  fiscalSecretsPresent: boolean;
+};
+
+const PROVIDER_STATUS: Record<ProviderStatus,string> = {
+  connected: "Credencial aceita pela API",
+  rejected: "Credencial ou permissão recusada",
+  unavailable: "Não foi possível conferir",
+  not_configured: "Configuração ausente",
+};
+
 function CorreioDaFenix() {
   const [orders,setOrders]=useState<Order[]>([]);
   const [attention,setAttention]=useState<PaymentReview[]>([]);
   const [loading,setLoading]=useState(true);
   const [error,setError]=useState("");
+  const [health,setHealth]=useState<IntegrationHealth|null>(null);
+  const [healthError,setHealthError]=useState("");
+  const [checkingHealth,setCheckingHealth]=useState(false);
 
   const load=useCallback(async()=>{
     setLoading(true);
@@ -196,6 +215,22 @@ function CorreioDaFenix() {
   },[]);
   useEffect(()=>{void load();},[load]);
 
+  async function checkIntegrations() {
+    if (checkingHealth) return;
+    setCheckingHealth(true);
+    setHealth(null);
+    setHealthError("");
+    try {
+      const {data,error:checkError}=await supabase.functions.invoke("commerce-checkout", {
+        body:{action:"health"},
+      });
+      if(checkError || data?.error)throw new Error(data?.error||"Não foi possível consultar os serviços.");
+      setHealth(data as IntegrationHealth);
+    }catch(cause){
+      setHealthError(cause instanceof Error?cause.message:"Consulta indisponível.");
+    }finally{setCheckingHealth(false);}
+  }
+
   return <div className="space-y-7">
     <header>
       <p className="eyebrow">Correio da Fênix</p>
@@ -210,6 +245,28 @@ function CorreioDaFenix() {
         <RefreshCw size={16}/> Atualizar pedidos
       </button>
     </header>
+    <section className="rounded-xl border border-primary/25 bg-card p-4 sm:p-5">
+      <h2 className="font-display text-2xl text-foreground">Conferência das integrações</h2>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Consulta de leitura para verificar se as credenciais de teste são aceitas.
+        Não cria pagamentos, pedidos, etiquetas ou notas fiscais.
+      </p>
+      <button type="button" disabled={checkingHealth} onClick={()=>void checkIntegrations()}
+        className="mt-3 rounded-lg border border-primary/50 px-4 py-2 text-sm font-semibold text-primary disabled:opacity-50">
+        {checkingHealth?"Conferindo...":"Verificar integrações de teste"}
+      </button>
+      {healthError&&<p role="alert" className="mt-3 text-sm text-destructive">{healthError}</p>}
+      {health&&<div role="status" className="mt-4 space-y-2 text-sm text-foreground">
+        <p><strong>Mercado Pago:</strong> {PROVIDER_STATUS[health.mercadoPago]??"Não verificado"}</p>
+        <p><strong>Melhor Envio:</strong> {PROVIDER_STATUS[health.melhorEnvio]??"Não verificado"}</p>
+        <p><strong>Embalagem pesada:</strong> {health.packageWeightMeasured?"Peso de embalagem configurado":"Falta confirmar peso físico da caixa e proteções"}</p>
+        <p><strong>Documentação fiscal:</strong> {health.fiscalSecretsPresent?"Configurações fiscais presentes (não homologadas)":"Configurações fiscais incompletas"}</p>
+        <p className="text-xs text-muted-foreground">
+          Uma credencial aceita não comprova que pertence ao ambiente Teste nem que Pix,
+          cartão, emissão fiscal ou etiquetas funcionam. Não autoriza vendas reais.
+        </p>
+      </div>}
+    </section>
     {error&&<p role="alert" className="rounded border border-destructive/40 p-4 text-sm text-destructive">{error}</p>}
     {loading&&<p className="text-muted-foreground">Carregando expedição...</p>}
     {!!attention.length&&<section className="rounded-xl border border-[#c78b6a] bg-card p-5">
