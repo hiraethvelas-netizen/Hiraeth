@@ -39,7 +39,6 @@ function PhoenixDelivery({ onFinish }: { onFinish: () => void }) {
     <div className="portal-xmas-phoenix-courier">
       <img src={phoenixCourierImage} alt="" className="portal-xmas-phoenix-bird" />
       <span className="portal-xmas-phoenix-caption">Correio da Fênix</span>
-      </div>
     </div>
   </div>;
 }
@@ -47,8 +46,8 @@ function PhoenixDelivery({ onFinish }: { onFinish: () => void }) {
 /**
  * Seasonal decoration belongs exclusively to the magic NFC page. No large
  * background photos or external scripts. Real-time links and NFC URLs remain
- * untouched. A click on "Mais magia" animates the existing phoenix artwork
- * carrying a parcel across the upper viewport.
+ * untouched. A click on "Mais magia" animates a transparent still extracted from the
+ * owner-provided phoenix delivery video across the upper viewport.
  */
 export function PortalChristmasDecor({ scene }: Props) {
   const [brighter, setBrighter] = useState(false);
