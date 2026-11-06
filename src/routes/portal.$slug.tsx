@@ -112,11 +112,11 @@ function PortalPage() {
 
 
   return (
-    <div className="portal-world min-h-screen" style={{
-      ["--portal-bg" as string]: palette["background"] || "#17251d",
-      ["--portal-surface" as string]: palette["surface"] || "#26382d",
-      ["--portal-text" as string]: palette["text"] || "#f5edda",
-      ["--portal-accent" as string]: palette["accent"] || "#c6a65b",
+    <div className={`portal-world min-h-screen${magicWorld ? " portal-world--christmas" : ""}`} style={{
+      ["--portal-bg" as string]: magicWorld ? "#101e19" : palette["background"] || "#17251d",
+      ["--portal-surface" as string]: magicWorld ? "#26362b" : palette["surface"] || "#26382d",
+      ["--portal-text" as string]: magicWorld ? "#f7efda" : palette["text"] || "#f5edda",
+      ["--portal-accent" as string]: magicWorld ? "#d3b575" : palette["accent"] || "#c6a65b",
       ["--portal-button-text" as string]: palette["buttonText"] || "#17251d",
     }}>
       {intro && (magicWorld || portal.intro_enabled) && <PortalIntro
@@ -132,28 +132,35 @@ function PortalPage() {
       <div inert={intro} aria-hidden={intro}>
       <header data-portal-reveal className="portal-reveal portal-magic-hero relative flex min-h-[52vh] items-center justify-center overflow-hidden px-5 py-24">
         {portal.cover_url && <img src={portal.cover_url} alt="" className="absolute inset-0 h-full w-full object-cover" />}
+        {magicWorld && <div className="portal-christmas-hero-photo" aria-hidden="true" />}
         <div className="absolute inset-0 bg-gradient-to-b from-[#10251d]/65 via-[#10251d]/80 to-[var(--portal-bg)]" />
+        {magicWorld && <div className="portal-christmas-hanging" aria-hidden="true">
+          <span className="portal-christmas-bauble portal-christmas-bauble--wine" />
+          <span className="portal-christmas-bauble portal-christmas-bauble--gold" />
+          <span className="portal-christmas-bauble portal-christmas-bauble--forest" />
+        </div>}
         <div className="relative mx-auto max-w-4xl text-center">
           <p className="text-xs uppercase tracking-[.37em] text-[var(--portal-accent)]">
-            {magicWorld?"Uma coleção de inverno e encantamentos":portal.universe||"Universo da coleção"}
+            {magicWorld?"Uma temporada de Natal e encantamentos":portal.universe||"Universo da coleção"}
           </p>
           <h1 className="mt-6 font-display text-5xl leading-[1.04] text-[var(--portal-text)] md:text-7xl">
             {displayTitle}
           </h1>
           <p className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-[var(--portal-text)]/85">
-            {portal.intro_subtitle || "Cada chama guarda uma história. Escolha o caminho que deseja explorar."}
+            {portal.intro_subtitle || (magicWorld ? "Entre pinheiros, luzes douradas e histórias encantadas, o Natal encontra um novo lar." : "Cada chama guarda uma história. Escolha o caminho que deseja explorar.")}
           </p>
           <div className="mx-auto mt-8 h-px w-28 bg-[var(--portal-accent)]/70" />
         </div>
       </header>
 
       <main>
-        <section data-portal-reveal className="portal-reveal mx-auto max-w-5xl px-5 pb-20 pt-10 md:px-8">
-          <div className="mb-10 text-center">
+        <section data-portal-reveal className="portal-reveal portal-christmas-hall relative mx-auto max-w-5xl px-5 pb-20 pt-10 md:px-8">
+          {magicWorld && <div className="portal-christmas-hall-photo" aria-hidden="true" />}
+          <div className="relative z-10 mb-10 text-center">
             <p className="text-xs uppercase tracking-[.28em] text-[var(--portal-accent)]">Escolha seu caminho</p>
             <h2 className="mt-3 font-display text-3xl md:text-4xl">Portas para este universo</h2>
           </div>
-          <div className="portal-action-grid grid gap-4 sm:grid-cols-2">
+          <div className="portal-action-grid relative z-10 grid gap-4 sm:grid-cols-2">
             {spotifyUrl && portal.spotify_visible ? <a className="portal-action-card" href={spotifyUrl}
                 target="_blank" rel="noopener noreferrer" aria-label="Ouvir playlist da coleção no Spotify">
                 <Headphones aria-hidden="true" size={26}/><span><strong>Playlist no Spotify</strong>
@@ -175,7 +182,7 @@ function PortalPage() {
               <small>Abra o Portal Digital Hiraeth no navegador</small></span><ArrowUpRight aria-hidden="true" size={19}/>
             </a>
           </div>
-          <p className="mt-6 text-center text-xs text-[var(--portal-text)]/65">
+          <p className="relative z-10 mt-6 text-center text-xs text-[var(--portal-text)]/65">
             Para instalar no celular, abra o aplicativo no navegador e escolha “Adicionar à tela inicial”, quando disponível.
           </p>
         </section>
