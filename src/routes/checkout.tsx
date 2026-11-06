@@ -7,6 +7,7 @@ import { brl } from "@/lib/format";
 import { supabase } from "@/integrations/supabase/client";
 import { requireAuthenticatedUser } from "@/lib/require-auth";
 import { checkoutRecipientFromMetadata, checkoutMetadataFromRecipient, emptyCheckoutRecipient } from "@/lib/checkout-recipient";
+import { commerceFailureMessage, isResolvedCheckoutStatus } from "@/lib/commerce-errors";
 
 export const Route = createFileRoute("/checkout")({
   ssr: false,
@@ -33,16 +34,16 @@ type RecipientMode = "profile" | "manual" | "gift";
 type RecipientField = keyof typeof emptyRecipient;
 
 async function commerceCall(payload: Record<string,unknown>) {
-  // Sandbox is admin-only on the server. Always send the signed-in user's
-  // session, never an anonymous/public project API key.
+  // Checkout requires the signed-in user's session; never use an anonymous
+  // project key in place of the customer's JWT.
   const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
   const accessToken = sessionData.session?.access_token;
   if (sessionError || !accessToken) throw new Error("Sua sessão expirou. Entre novamente para testar o checkout.");
   const { data, error } = await supabase.functions.invoke("commerce-checkout", {
     body: payload, headers: { Authorization: `Bearer ${accessToken}` },
   });
-  if (error) throw new Error(data?.error || "Não foi possível conectar ao checkout. Tente novamente.");
   if (data?.error) throw new Error(String(data.error));
+  if (error) throw new Error(await commerceFailureMessage(error,String(payload["action"]??"")));
   return data as Record<string,any>;
 }
 
@@ -117,6 +118,7 @@ function CheckoutHiraeth() {
   const [selectedFreight,setSelectedFreight]=useState<number|null>(null);
   const [checkout,setCheckout]=useState<CheckoutSummary|null>(null);
   const [outcome,setOutcome]=useState<PaymentOutcome|null>(null);
+  const [paymentNeedsReview,setPaymentNeedsReview]=useState(false);
   const [payerEmail,setPayerEmail]=useState("");
   const [error,setError]=useState("");
   const [busy,setBusy]=useState(false);
@@ -217,20 +219,54 @@ function CheckoutHiraeth() {
   async function pay(method:"pix"|"card",paymentData:Record<string,unknown>={}) {
     if(!checkout)throw new Error("Confira os dados antes de pagar.");
     if(busy)throw new Error("Aguarde a operação anterior.");
+    if(paymentNeedsReview)throw new Error("Confira o status da tentativa anterior antes de realizar outro pagamento.");
     setBusy(true);setError("");
     try{
       const data=await commerceCall({action:"pay",checkoutId:checkout.id,method,paymentData});
       const payment=data as PaymentOutcome;
       setOutcome(payment);
+      setPaymentNeedsReview(false);
       if(payment.status==="paid") cart.clear();
       else if(payment.status==="paid_attention")
         setError("Pagamento recebido, mas o pedido precisa de revisão da Hiraeth. Não pague novamente.");
       else if(payment.status==="rejected") setError("Pagamento recusado. Para tentar novamente, revise a compra.");
       return;
     }catch(cause){
-      setError(cause instanceof Error?cause.message:"Não foi possível processar. Confira o status antes de repetir.");
+      setPaymentNeedsReview(true);
+      setError(cause instanceof Error?cause.message:"Não foi possível confirmar a tentativa. Confira o status antes de repetir.");
       throw cause;
     }finally{setBusy(false);}
+  }
+
+  async function verifyPaymentStatus() {
+    if (!checkout || busy) return;
+    setBusy(true);
+    setError("");
+    try {
+      // This read-only request never repeats the financial operation.
+      const result=await commerceCall({action:"status",checkoutId:checkout.id});
+      const current=result["checkout"];
+      const status=current?.status;
+      if (isResolvedCheckoutStatus(status)) {
+        setOutcome({
+          checkoutId:checkout.id,
+          status,
+          orderId:current.order_id??null,
+          qrCode:current.pix_qr_code??null,
+          qrCodeBase64:current.pix_qr_code_base64??null,
+        });
+        setPaymentNeedsReview(false);
+        if(status==="paid") cart.clear();
+        if(status==="paid_attention")
+          setError("Pagamento recebido, mas precisa de conferência. Não pague novamente.");
+      } else {
+        // An awaiting_payment DB status cannot prove that Mercado Pago never
+        // received the request during a network timeout.
+        setError("Ainda não há confirmação da tentativa. Não pague novamente. Consulte o suporte da Hiraeth para conciliação.");
+      }
+    } catch(cause) {
+      setError(cause instanceof Error?cause.message:"Não foi possível consultar o status. Não repita o pagamento.");
+    } finally {setBusy(false);}
   }
 
   useEffect(()=>{
@@ -434,7 +470,16 @@ function CheckoutHiraeth() {
           <p role="status" className="mt-5 text-sm text-foreground">Pagamento em análise pelo Mercado Pago. Aguarde a confirmação.</p>
         ) : outcome?.status==="rejected" ? (
           <p role="alert" className="mt-5 text-sm text-foreground">Pagamento recusado. Revise seus dados e inicie uma nova tentativa sem cobranças duplicadas.</p>
-        ) : <div className="mt-6 space-y-4">
+        ) : paymentNeedsReview ? <div className="mt-6 space-y-3" role="status">
+          <p className="text-sm text-foreground">
+            Não conseguimos confirmar a última tentativa. Para evitar cobranças duplicadas,
+            o pagamento ficou bloqueado até a consulta de status.
+          </p>
+          <button type="button" disabled={busy} onClick={()=>void verifyPaymentStatus()}
+            className="rounded-lg border border-primary/50 px-4 py-3 text-sm font-semibold text-primary disabled:opacity-50">
+            {busy?"Conferindo...":"Conferir status do pagamento"}
+          </button>
+        </div> : <div className="mt-6 space-y-4">
           <button type="button" disabled={busy} onClick={()=>void pay("pix").catch(()=>{})}
             className="flex w-full items-center justify-center gap-2 rounded-xl border border-primary/50 bg-primary/10 px-5 py-4 text-sm font-semibold text-foreground disabled:opacity-40">
             <QrCode size={19}/> {busy?"Aguarde...":"Pagar com Pix pelo Mercado Pago"}
