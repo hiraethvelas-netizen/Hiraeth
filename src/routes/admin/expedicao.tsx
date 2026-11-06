@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { FileCheck2, FileText, PackageCheck, Printer, RefreshCw, Truck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { brl } from "@/lib/format";
+import { isCancelledHealthCheck } from "@/lib/integration-health-errors";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/expedicao")({
@@ -242,13 +243,35 @@ function CorreioDaFenix() {
     setHealth(null);
     setHealthError("");
     try {
-      const {data,error:checkError}=await supabase.functions.invoke("commerce-checkout", {
-        body:{action:"health"},
-      });
-      if(checkError || data?.error)throw new Error(data?.error||"Não foi possível consultar os serviços.");
-      setHealth(data as IntegrationHealth);
+      // Request the diagnostic using the signed-in admin session explicitly.
+      // It is a read-only endpoint; no payment or shipment operation is retried.
+      const {data:auth,error:authError}=await supabase.auth.getSession();
+      const accessToken=auth.session?.access_token;
+      if(authError || !accessToken)
+        throw new Error("Sua sessão expirou. Entre novamente na administração da Hiraeth.");
+      for(let attempt=0;attempt<2;attempt++){
+        try {
+          const {data,error:checkError}=await supabase.functions.invoke("commerce-checkout", {
+            body:{action:"health"},
+            headers:{Authorization:`Bearer ${accessToken}`},
+          });
+          if(data?.error)throw new Error(String(data.error));
+          if(checkError)throw checkError;
+          if(!data || typeof data.mercadoPago!=="string" || typeof data.melhorEnvio!=="string")
+            throw new Error("O servidor não retornou o diagnóstico esperado.");
+          setHealth(data as IntegrationHealth);
+          return;
+        }catch(cause){
+          // A transient browser cancellation can happen on mobile networks.
+          // Retry at most once, and only for this GET-only diagnostic.
+          if(!isCancelledHealthCheck(cause) || attempt===1 || document.hidden) throw cause;
+          await new Promise<void>(resolve=>window.setTimeout(resolve,300));
+        }
+      }
     }catch(cause){
-      setHealthError(cause instanceof Error?cause.message:"Consulta indisponível.");
+      setHealthError(isCancelledHealthCheck(cause)
+        ? "A consulta foi cancelada pela conexão ou pelo navegador. Nenhum pagamento foi realizado. Confira sua internet, mantenha a página aberta e toque em Verificar novamente."
+        : cause instanceof Error?cause.message:"Não foi possível conferir as integrações.");
     }finally{setCheckingHealth(false);}
   }
 
