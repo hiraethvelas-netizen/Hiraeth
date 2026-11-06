@@ -190,6 +190,15 @@ function AdminPedidos() {
                   </>}
                 </div> : <p className="mt-2 text-muted-foreground">Dados de entrega não registrados neste pedido.</p>}
               </details>
+              {delivery && (delivery.customerNote || delivery.packingVideoRequested) && (
+                <section className="mt-4 rounded-lg border border-primary/30 bg-primary/5 p-4 text-sm text-foreground">
+                  <h3 className="font-display text-lg text-primary">Recados para a Hiraeth</h3>
+                  {delivery.packingVideoRequested && <p className="mt-2 font-medium">
+                    🎥 Cliente gostaria de um vídeo embalando o pedido
+                  </p>}
+                  {delivery.customerNote && <p className="mt-2 whitespace-pre-wrap break-words">{delivery.customerNote}</p>}
+                </section>
+              )}
               <div className="mt-4 border-t border-primary/20 pt-3 text-sm text-foreground">
                 <p><strong>Frete:</strong> {brl(Number(o.shipping))}</p>
                 {shipment ? <>
