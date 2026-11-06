@@ -18,7 +18,6 @@ export function PortalChristmasDecor({ scene }: Props) {
   return (
     <div className={`portal-xmas-decor portal-xmas-decor--${scene}${brighter ? " portal-xmas-decor--bright" : ""}`}>
       <div className="portal-xmas-atmosphere" aria-hidden="true">
-        <div className="portal-xmas-photographic-scene" />
         <div className="portal-xmas-fairy-lights">
           {Array.from({ length: bulbs }, (_, index) =>
             <span key={index} className="portal-xmas-bulb" />
