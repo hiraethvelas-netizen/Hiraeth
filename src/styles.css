@@ -1488,15 +1488,6 @@ body > div {
 @media (max-width: 640px) {
   .portal-world--christmas .portal-magic-hero { min-height: 67svh; }
   .portal-world--christmas .portal-magic-hero > .relative { padding: 24px 5px; }
-  .portal-world--christmas .portal-xmas-decor--hero .portal-xmas-photographic-scene {
-    background-position: center, center, 52% center;
-  }
-  .portal-world--christmas .portal-xmas-decor--hero .portal-xmas-photographic-scene::before {
-    width: 39%;left:-16%;opacity:.64;
-  }
-  .portal-world--christmas .portal-xmas-decor--hero .portal-xmas-photographic-scene::after {
-    width: 40%;right:-18%;opacity:.65;
-  }
   .portal-world--christmas .portal-xmas-bauble:nth-child(2n) { transform: scale(.74); }
   .portal-world--christmas .portal-xmas-candle:nth-child(2),
   .portal-world--christmas .portal-xmas-candle:nth-child(3),
