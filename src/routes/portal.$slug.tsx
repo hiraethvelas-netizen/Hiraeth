@@ -126,6 +126,7 @@ function PortalPage() {
         videoUrl={portal.intro_video_url}
         posterUrl={portal.cover_url}
         ctaText="Atravesse o Portal"
+        christmas={magicWorld}
         onEnter={()=>setIntro(false)}
       />}
 
