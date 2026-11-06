@@ -16,7 +16,7 @@ export async function checkProviderReadOnly(
   headers: Record<string,string>,
   timeoutMs = 7000,
 ): Promise<ProviderCheck> {
-  if (!headers.Authorization?.trim()) return "not_configured";
+  if (!headers['Authorization']?.trim()) return "not_configured";
   try {
     // No payment, shipping quote, label creation or mutation is performed.
     const result = await fetch(url,{method:"GET",headers,signal:AbortSignal.timeout(timeoutMs)});
