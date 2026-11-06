@@ -1,11 +1,13 @@
 import {
   corsHeaders, json, errorResponse, env, isCommerceEnabled, canAccessCommerce,
-  signedInUser, userIsAdmin, commerceSetupIssues, serviceClient, postalCode, validateRecipient,
+  signedInUser, userIsAdmin, requireAdmin, commerceSetupIssues, serviceClient, postalCode, validateRecipient,
+  melhorEnvioHeaders, betterShippingUrl,
   freightQuotes, mercadoPagoRequest,
 } from "../_shared/commerce-api.ts";
 import { validateItems, snapshotProducts, calculateCheckoutPrice } from "../_shared/commerce-pricing.ts";
 import { isSandboxCheckout, providerModeMatchesCheckout, paymentAmountMatchesCheckout, mayCreateRealOrder } from "../_shared/commerce-sandbox.ts";
 import { payerDocumentForPayment } from "../_shared/checkout-identification.ts";
+import { checkProviderReadOnly, type ProviderCheck } from "../_shared/commerce-readiness.ts";
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -16,6 +18,44 @@ Deno.serve(async (req: Request) => {
     body = await req.json();
   } catch {
     return json({ error: "Solicitação inválida." }, 400);
+  }
+
+  if (body?.action === "health") {
+    // Admin-only and sandbox-only. All external provider calls are GET.
+    // This checks that credentials are accepted, not that a transaction,
+    // shipping label, fiscal document or sandbox identity was verified.
+    try {
+      await requireAdmin(req);
+      if (Deno.env.get("HIRAETH_PAYMENTS_MODE") !== "sandbox" ||
+          Deno.env.get("MELHOR_ENVIO_ENV") !== "sandbox") {
+        return json({ error:"Diagnóstico disponível somente em ambiente de testes." },403);
+      }
+      const mpToken = Deno.env.get("MERCADO_PAGO_ACCESS_TOKEN")?.trim() ?? "";
+      const meToken = Deno.env.get("MELHOR_ENVIO_TOKEN")?.trim() ?? "";
+      const ua = Deno.env.get("MELHOR_ENVIO_USER_AGENT")?.trim() ?? "";
+      const mpResult: Promise<ProviderCheck> = mpToken
+        ? checkProviderReadOnly("https://api.mercadopago.com/users/me", {
+            Authorization:"Bearer "+mpToken,Accept:"application/json",
+          })
+        : Promise.resolve("not_configured");
+      const meResult: Promise<ProviderCheck> = meToken && ua
+        ? checkProviderReadOnly(betterShippingUrl()+"/api/v2/me/orders?status=pending",{
+            ...melhorEnvioHeaders(),
+          })
+        : Promise.resolve("not_configured");
+      const [mercadoPago,melhorEnvio] = await Promise.all([mpResult,meResult]);
+      return json({ sandbox:true, mercadoPago, melhorEnvio,
+        // Read-only booleans cannot verify the legal/tax or physical
+        // fulfillment requirements needed for production launch.
+        packageWeightMeasured:(Number(Deno.env.get("HIRAETH_PACKAGE_TARE_GRAMS")) > 0),
+        fiscalSecretsPresent:Boolean(Deno.env.get("FOCUSNFE_TOKEN")) &&
+          Boolean(Deno.env.get("FOCUSNFE_TEMPLATE_JSON")) &&
+          Boolean(Deno.env.get("FOCUSNFE_ITEM_RULES_JSON")),
+        productionPaymentsEnabled:false,
+      });
+    } catch {
+      return json({error:"Diagnóstico reservado à conta administrativa."},403);
+    }
   }
 
   if (body?.action === "config") {

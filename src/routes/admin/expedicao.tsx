@@ -31,7 +31,21 @@ type ShippingDetails = {
   canIssueInvoice:boolean;
 };
 type PaymentReview = {
-  id:string;status:string;total:number;paid_at:string|null;last_error:string|null;email:string;
+  id:string;status:string;total:number;paid_at:string|null;last_error:string|null;email:string;promotion_summary?:unknown;
+};
+
+type SandboxAttempt = {
+  id:string;status:string;total:number;created_at:string;
+  payment_method:string|null;promotion_summary:unknown;
+};
+function isSandboxRecord(value:unknown) {
+  return !!value && typeof value === "object" && !Array.isArray(value) &&
+    (value as Record<string,unknown>)["sandbox"] === true;
+}
+const testStatusLabel:Record<string,string> = {
+  awaiting_payment:"Aguardando simulação", pending:"Pagamento simulado pendente",
+  processing:"Conferindo teste", paid:"Teste aprovado",
+  paid_attention:"Teste precisa de revisão", rejected:"Teste recusado",
 };
 
 const stageName:Record<string,string> = {
@@ -170,31 +184,73 @@ function OrderExpedition({order}:{order:Order}) {
   </article>;
 }
 
+type ProviderStatus = "connected" | "rejected" | "unavailable" | "not_configured";
+type IntegrationHealth = {
+  sandbox: boolean;
+  mercadoPago: ProviderStatus;
+  melhorEnvio: ProviderStatus;
+  packageWeightMeasured: boolean;
+  fiscalSecretsPresent: boolean;
+};
+
+const PROVIDER_STATUS: Record<ProviderStatus,string> = {
+  connected: "Credencial aceita pela API",
+  rejected: "Credencial ou permissão recusada",
+  unavailable: "Não foi possível conferir",
+  not_configured: "Configuração ausente",
+};
+
 function CorreioDaFenix() {
   const [orders,setOrders]=useState<Order[]>([]);
   const [attention,setAttention]=useState<PaymentReview[]>([]);
+  const [sandboxAttempts,setSandboxAttempts]=useState<SandboxAttempt[]>([]);
   const [loading,setLoading]=useState(true);
   const [error,setError]=useState("");
+  const [health,setHealth]=useState<IntegrationHealth|null>(null);
+  const [healthError,setHealthError]=useState("");
+  const [checkingHealth,setCheckingHealth]=useState(false);
 
   const load=useCallback(async()=>{
     setLoading(true);
     try{
-      const [ordersResult,reviewResult]=await Promise.all([
+      const [ordersResult,reviewResult,sandboxResult]=await Promise.all([
         supabase.from("orders").select("id,status,payment_status,customer_name,customer_email,total,shipping,created_at,order_items(id,product_name,quantity)")
           .in("status",["paid","shipped","delivered"]).order("created_at",{ascending:false}).limit(100),
         (supabase as any).from("commerce_checkouts")
-          .select("id,status,total,paid_at,last_error,email")
+          .select("id,status,total,paid_at,last_error,email,promotion_summary")
           .eq("status","paid_attention").order("created_at",{ascending:false}).limit(100),
+        (supabase as any).from("commerce_checkouts")
+          .select("id,status,total,created_at,payment_method,promotion_summary")
+          .order("created_at",{ascending:false}).limit(50),
       ]);
-      if(ordersResult.error||reviewResult.error)throw new Error(
+      if(ordersResult.error||reviewResult.error||sandboxResult.error)throw new Error(
         "A estrutura da expedição ainda não foi aplicada ao banco, ou faltam permissões.");
       setOrders((ordersResult.data??[]).filter(o=>o.payment_status==="approved") as unknown as Order[]);
-      setAttention((reviewResult.data??[]) as PaymentReview[]);
+      setAttention(((reviewResult.data??[]) as PaymentReview[])
+        .filter(record=>!isSandboxRecord(record.promotion_summary)));
+      setSandboxAttempts(((sandboxResult.data??[]) as SandboxAttempt[])
+        .filter(record=>isSandboxRecord(record.promotion_summary)));
       setError("");
     }catch(cause){setError(cause instanceof Error?cause.message:"Falha ao carregar expedição.");}
     finally{setLoading(false);}
   },[]);
   useEffect(()=>{void load();},[load]);
+
+  async function checkIntegrations() {
+    if (checkingHealth) return;
+    setCheckingHealth(true);
+    setHealth(null);
+    setHealthError("");
+    try {
+      const {data,error:checkError}=await supabase.functions.invoke("commerce-checkout", {
+        body:{action:"health"},
+      });
+      if(checkError || data?.error)throw new Error(data?.error||"Não foi possível consultar os serviços.");
+      setHealth(data as IntegrationHealth);
+    }catch(cause){
+      setHealthError(cause instanceof Error?cause.message:"Consulta indisponível.");
+    }finally{setCheckingHealth(false);}
+  }
 
   return <div className="space-y-7">
     <header>
@@ -210,8 +266,49 @@ function CorreioDaFenix() {
         <RefreshCw size={16}/> Atualizar pedidos
       </button>
     </header>
+    <section className="rounded-xl border border-primary/25 bg-card p-4 sm:p-5">
+      <h2 className="font-display text-2xl text-foreground">Conferência das integrações</h2>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Consulta de leitura para verificar se as credenciais de teste são aceitas.
+        Não cria pagamentos, pedidos, etiquetas ou notas fiscais.
+      </p>
+      <button type="button" disabled={checkingHealth} onClick={()=>void checkIntegrations()}
+        className="mt-3 rounded-lg border border-primary/50 px-4 py-2 text-sm font-semibold text-primary disabled:opacity-50">
+        {checkingHealth?"Conferindo...":"Verificar integrações de teste"}
+      </button>
+      {healthError&&<p role="alert" className="mt-3 text-sm text-destructive">{healthError}</p>}
+      {health&&<div role="status" className="mt-4 space-y-2 text-sm text-foreground">
+        <p><strong>Mercado Pago:</strong> {PROVIDER_STATUS[health.mercadoPago]??"Não verificado"}</p>
+        <p><strong>Melhor Envio:</strong> {PROVIDER_STATUS[health.melhorEnvio]??"Não verificado"}</p>
+        <p><strong>Embalagem pesada:</strong> {health.packageWeightMeasured?"Peso de embalagem configurado":"Falta confirmar peso físico da caixa e proteções"}</p>
+        <p><strong>Documentação fiscal:</strong> {health.fiscalSecretsPresent?"Configurações fiscais presentes (não homologadas)":"Configurações fiscais incompletas"}</p>
+        <p className="text-xs text-muted-foreground">
+          Uma credencial aceita não comprova que pertence ao ambiente Teste nem que Pix,
+          cartão, emissão fiscal ou etiquetas funcionam. Não autoriza vendas reais.
+        </p>
+      </div>}
+    </section>
     {error&&<p role="alert" className="rounded border border-destructive/40 p-4 text-sm text-destructive">{error}</p>}
     {loading&&<p className="text-muted-foreground">Carregando expedição...</p>}
+    {!loading&&!error&&sandboxAttempts.length>0&&<section className="rounded-xl border border-primary/25 bg-card p-5">
+      <h2 className="font-display text-2xl text-foreground">Histórico de pagamentos simulados</h2>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Estes registros são apenas testes. Não representam vendas, não geram pedidos reais
+        e não devem ser enviados pelo Correio da Fênix.
+      </p>
+      <div className="mt-3 space-y-3">
+        {sandboxAttempts.map(test=><div key={test.id}
+          className="flex flex-wrap items-center justify-between gap-2 border-t border-primary/20 pt-3 text-sm text-foreground">
+          <div>
+            <p><strong>Teste #{test.id.slice(0,8)}</strong> · {testStatusLabel[test.status]??test.status}</p>
+            <p className="text-xs text-muted-foreground">
+              {new Date(test.created_at).toLocaleString("pt-BR")} · {test.payment_method??"Método ainda não selecionado"}
+            </p>
+          </div>
+          <span className="font-semibold text-primary">{brl(Number(test.total))}</span>
+        </div>)}
+      </div>
+    </section>}
     {!!attention.length&&<section className="rounded-xl border border-[#c78b6a] bg-card p-5">
       <h2 className="font-display text-2xl text-foreground">Pagamentos que exigem revisão</h2>
       <p className="mt-1 text-sm text-muted-foreground">Esses pagamentos foram recebidos, mas não puderam gerar pedidos automaticamente. Verifique o estoque ou a conciliação antes de qualquer reembolso ou envio.</p>
