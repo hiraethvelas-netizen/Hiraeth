@@ -4,6 +4,8 @@ import { FileCheck2, FileText, PackageCheck, Printer, RefreshCw, Truck } from "l
 import { supabase } from "@/integrations/supabase/client";
 import { brl } from "@/lib/format";
 import { isCancelledHealthCheck } from "@/lib/integration-health-errors";
+import { orderDeliveryInfo } from "@/lib/order-details";
+import type { Json } from "@/integrations/supabase/types";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/expedicao")({
@@ -16,6 +18,7 @@ type Order = {
   id: string; status: string; payment_status: string | null;
   customer_name: string | null; customer_email: string | null;
   total: number; shipping: number; created_at: string;
+  shipping_address: Json | null;
   order_items: Array<{id:string;product_name:string;quantity:number}>;
 };
 type Shipment = {
@@ -66,6 +69,7 @@ async function freightAction(orderId:string,action:string,extra?:Record<string,u
 }
 
 function OrderExpedition({order}:{order:Order}) {
+  const delivery=orderDeliveryInfo(order.shipping_address);
   const [details,setDetails]=useState<ShippingDetails|null>(null);
   const [loading,setLoading]=useState(false);
   const [operation,setOperation]=useState("");
@@ -114,6 +118,17 @@ function OrderExpedition({order}:{order:Order}) {
         <p className="text-xs text-muted-foreground">Pago · frete {brl(Number(order.shipping))}</p>
       </div>
     </div>
+    {delivery && (delivery.customerNote || delivery.packingVideoRequested || delivery.isGift) &&
+      <section className="mt-4 rounded-lg border border-primary/30 bg-primary/5 p-4 text-sm text-foreground">
+        {delivery.isGift && <p className="font-medium">🎁 Pedido para presente — {delivery.name || "Destinatário"}</p>}
+        <h4 className="mt-2 font-display text-lg text-primary">Recados para a Hiraeth</h4>
+        {delivery.packingVideoRequested && <p className="mt-2 font-medium">
+          🎥 Pedido de vídeo embalando a encomenda
+        </p>}
+        {delivery.customerNote && <p className="mt-2 whitespace-pre-wrap break-words">{delivery.customerNote}</p>}
+        {!delivery.customerNote && !delivery.packingVideoRequested &&
+          <p className="mt-1 text-xs text-muted-foreground">Sem recados adicionais.</p>}
+      </section>}
     <button type="button" disabled={loading||!!operation} onClick={()=>void refresh()}
       className="mt-4 inline-flex items-center gap-2 rounded-lg border border-primary/40 px-4 py-2 text-sm text-primary disabled:opacity-50">
       <RefreshCw size={16} aria-hidden="true"/> {loading?"Carregando...":"Ver expedição e nota fiscal"}
@@ -215,7 +230,7 @@ function CorreioDaFenix() {
     setLoading(true);
     try{
       const [ordersResult,reviewResult,sandboxResult]=await Promise.all([
-        supabase.from("orders").select("id,status,payment_status,customer_name,customer_email,total,shipping,created_at,order_items(id,product_name,quantity)")
+        supabase.from("orders").select("id,status,payment_status,customer_name,customer_email,total,shipping,created_at,shipping_address,order_items(id,product_name,quantity)")
           .in("status",["paid","shipped","delivered"]).order("created_at",{ascending:false}).limit(100),
         (supabase as any).from("commerce_checkouts")
           .select("id,status,total,paid_at,last_error,email,promotion_summary")
