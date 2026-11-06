@@ -33,10 +33,12 @@ describe("Hiraeth: dados de entrega e acompanhamento de pedidos", () => {
   it("não permite marcar pago, cancelado ou reembolsado pelo seletor de expedição", () => {
     expect(nextSafeOrderStatus("pending","pending","posted")).toBeNull();
     expect(nextSafeOrderStatus("paid",null,"posted")).toBeNull();
-    expect(nextSafeOrderStatus("paid","approved","pending")).toBeNull();
-    expect(nextSafeOrderStatus("paid","approved","generated")).toBe("shipped");
-    expect(nextSafeOrderStatus("paid","approved","posted")).toBe("shipped");
-    expect(nextSafeOrderStatus("paid","approved","delivered")).toBeNull();
+    expect(nextSafeOrderStatus("paid","approved","pending")).toBe("preparing");
+    expect(nextSafeOrderStatus("paid","approved","generated")).toBe("preparing");
+    expect(nextSafeOrderStatus("paid","approved","posted")).toBe("preparing");
+    expect(nextSafeOrderStatus("preparing","approved","generated")).toBe("shipped");
+    expect(nextSafeOrderStatus("preparing","approved","posted")).toBe("shipped");
+    expect(nextSafeOrderStatus("paid","approved","delivered")).toBe("preparing");
     expect(nextSafeOrderStatus("shipped","approved","generated")).toBeNull();
     expect(nextSafeOrderStatus("shipped","approved","posted")).toBe("delivered");
     expect(nextSafeOrderStatus("shipped","approved","delivered")).toBeNull();
