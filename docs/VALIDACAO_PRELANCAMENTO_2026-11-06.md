@@ -4,6 +4,14 @@
 > Verificações feitas por GitHub Actions, leitura agregada do banco e requisições públicas sem credenciais.
 > Não houve pagamento real, reembolso, NF-e ou compra de etiqueta durante estes testes.
 
+## Verificação adicional das Edge Functions
+
+O Deno v2 conferiu os três pontos de entrada do backend da Hiraeth:
+`commerce-checkout`, `commerce-webhook` e `commerce-fulfillment` — **3/3 aprovados**, sem chaves de API, operações financeiras ou acesso autenticado. Evidência:
+https://github.com/hiraethvelas-netizen/Hiraeth/actions/runs/42181760651
+
+Essa checagem não executa Pix, notificação, emissão de documentos ou reembolso em fornecedor real. O workflow `.github/workflows/validate-edge-functions.yml` foi adicionado à main (PR #51).
+
 ## Testes executados
 
 | Verificação | Resultado | Evidência |
