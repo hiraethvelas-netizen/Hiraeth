@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { brl } from "@/lib/format";
 import { isCancelledHealthCheck } from "@/lib/integration-health-errors";
 import { orderDeliveryInfo } from "@/lib/order-details";
+import { orderItemVariantLabel } from "@/lib/order-operations";
 import type { Json } from "@/integrations/supabase/types";
 import { toast } from "sonner";
 
@@ -19,7 +20,7 @@ type Order = {
   customer_name: string | null; customer_email: string | null;
   total: number; shipping: number; created_at: string;
   shipping_address: Json | null;
-  order_items: Array<{id:string;product_name:string;quantity:number}>;
+  order_items: Array<{id:string;product_name:string;quantity:number;unit_price:number;variant_details:Json}>;
 };
 type Shipment = {
   id:string;status:string;provider_label_id:string|null;
@@ -28,7 +29,7 @@ type Shipment = {
 };
 type Invoice = {
   id:string;status:string;reference:string;access_key:string|null;
-  nfe_number:string|null;danfe_url:string|null;last_error:string|null;
+  nfe_number:string|null;danfe_url:string|null;xml_url:string|null;last_error:string|null;
 };
 type ShippingDetails = {
   shipment: Shipment; invoice: Invoice; fiscalSandbox:boolean; shippingSandbox:boolean;
@@ -119,6 +120,27 @@ function OrderExpedition({order}:{order:Order}) {
         <p className="text-xs text-muted-foreground">Pago · frete {brl(Number(order.shipping))}</p>
       </div>
     </div>
+    <details className="mt-4 rounded-lg border border-primary/25 px-4 py-3 text-sm text-foreground">
+      <summary className="cursor-pointer font-medium text-primary">Conferir itens, variações e endereço</summary>
+      <div className="mt-3 space-y-3">
+        <div>
+          <p className="font-semibold">Itens do pedido</p>
+          {order.order_items.map(item=><div key={item.id} className="border-b border-primary/15 py-2">
+            <p>{item.quantity}× {item.product_name} — {brl(Number(item.unit_price)*item.quantity)}</p>
+            {orderItemVariantLabel(item.variant_details)&&
+              <p className="text-xs text-muted-foreground">{orderItemVariantLabel(item.variant_details)}</p>}
+          </div>)}
+        </div>
+        <div className="space-y-1">
+          <p className="font-semibold">Destinatário e entrega</p>
+          <p>{delivery?.name||order.customer_name||"Não informado"}</p>
+          {delivery?.phone&&<p>Telefone: {delivery.phone}</p>}
+          {delivery?.document&&<p>Documento: {delivery.document}</p>}
+          {delivery?.addressLines.map((line,i)=><p key={i}>{line}</p>)}
+          {order.customer_email&&<p>E-mail da compra: {order.customer_email}</p>}
+        </div>
+      </div>
+    </details>
     {delivery && (delivery.customerNote || delivery.packingVideoRequested || delivery.isGift) &&
       <section className="mt-4 rounded-lg border border-primary/30 bg-primary/5 p-4 text-sm text-foreground">
         {delivery.isGift && <p className="font-medium">🎁 Pedido para presente — {delivery.name || "Destinatário"}</p>}
@@ -142,6 +164,16 @@ function OrderExpedition({order}:{order:Order}) {
         <p className="mt-1 text-xs text-muted-foreground">{details.fiscalSandbox?"Homologação: sem validade fiscal.":"Ambiente fiscal de produção."}</p>
         {details.invoice.nfe_number&&<p className="mt-2 text-xs text-foreground">Número: {details.invoice.nfe_number}</p>}
         {details.invoice.access_key&&<p className="mt-2 break-all text-xs text-muted-foreground">Chave: {details.invoice.access_key}</p>}
+        {details.invoice.danfe_url?.startsWith("https://")&&
+          <a href={details.invoice.danfe_url} target="_blank" rel="noopener noreferrer"
+            className="mt-2 inline-block text-sm text-primary underline underline-offset-2">
+            Abrir DANFE / Nota fiscal
+          </a>}
+        {details.invoice.xml_url?.startsWith("https://")&&
+          <a href={details.invoice.xml_url} target="_blank" rel="noopener noreferrer"
+            className="mt-2 ml-3 inline-block text-sm text-primary underline underline-offset-2">
+            Abrir XML
+          </a>}
         {details.invoice.last_error&&<p role="alert" className="mt-2 text-xs text-destructive">{details.invoice.last_error}</p>}
         {!details.canIssueInvoice&&<p className="mt-3 text-xs text-muted-foreground">
           Configure as credenciais Focus NFe e a classificação fiscal aprovada pela contabilidade antes de emitir.
@@ -231,7 +263,7 @@ function CorreioDaFenix() {
     setLoading(true);
     try{
       const [ordersResult,reviewResult,sandboxResult]=await Promise.all([
-        supabase.from("orders").select("id,status,payment_status,customer_name,customer_email,total,shipping,created_at,shipping_address,order_items(id,product_name,quantity)")
+        supabase.from("orders").select("id,status,payment_status,customer_name,customer_email,total,shipping,created_at,shipping_address,order_items(id,product_name,quantity,unit_price,variant_details)")
           .in("status",["paid","shipped","delivered"]).order("created_at",{ascending:false}).limit(100),
         (supabase as any).from("commerce_checkouts")
           .select("id,status,total,paid_at,last_error,email,promotion_summary")
