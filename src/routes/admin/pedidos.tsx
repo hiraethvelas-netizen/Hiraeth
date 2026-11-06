@@ -330,7 +330,7 @@ function AdminPedidos() {
                     className="rounded border border-primary/50 px-3 py-2 text-sm font-semibold text-primary disabled:opacity-50">
                     {updatingOrder === o.id ? "Atualizando..." :
                       nextStatus==="preparing"?"Iniciar preparação"
-                      :nextStatus==="shipped"?"Marcar como enviado":"Marcar como entregue"
+                      :nextStatus==="shipped"?"Marcar como enviado":"Marcar como entregue"}
                   </button>}
                 </div>
                 {!nextStatus && ["paid","preparing","shipped"].includes(o.status) &&
