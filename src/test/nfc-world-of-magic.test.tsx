@@ -9,15 +9,37 @@ import {
 afterEach(()=>cleanup());
 
 describe("Portal NFC: vídeo de abertura obrigatório",()=>{
-  it("não mostra o botão antes do vídeo terminar, mesmo com vídeo carregado",()=>{
+  it("revela o título e o botão só nos segundos finais, sem cobrir o início do vídeo",()=>{
     const enter=vi.fn();
-    const {container}=render(<PortalIntro title="O Mundo da Magia" videoUrl="/video-da-colecao.mp4" onEnter={enter}/>);
+    const {container}=render(<PortalIntro title="O Mundo da Magia" christmas
+      videoUrl="/video-da-colecao.mp4" onEnter={enter}/>);
+    const video=container.querySelector("video")!;
+    Object.defineProperty(video,"duration",{configurable:true,value:8});
+    expect(screen.queryByRole("heading",{name:"O Mundo da Magia"})).toBeNull();
     expect(screen.queryByRole("button",{name:/atravesse o portal/i})).toBeNull();
-    const video=container.querySelector("video");
-    expect(video).not.toBeNull();
-    fireEvent.timeUpdate(video!,{currentTime:9.8});
+
+    Object.defineProperty(video,"currentTime",{configurable:true,value:3});
+    fireEvent.timeUpdate(video);
     expect(screen.queryByRole("button",{name:/atravesse o portal/i})).toBeNull();
-    fireEvent.ended(video!);
+    expect(enter).not.toHaveBeenCalled();
+
+    Object.defineProperty(video,"currentTime",{configurable:true,value:5});
+    fireEvent.timeUpdate(video);
+    expect(screen.getByRole("heading",{name:"O Mundo da Magia"})).toBeTruthy();
+    expect(screen.queryByRole("button",{name:/atravesse o portal/i})).toBeNull();
+
+    Object.defineProperty(video,"currentTime",{configurable:true,value:6.5});
+    fireEvent.timeUpdate(video);
+    fireEvent.click(screen.getByRole("button",{name:/atravesse o portal/i}));
+    expect(enter).toHaveBeenCalledTimes(1);
+  });
+  it("mantém o botão visível ao terminar o vídeo, mesmo sem metadados de duração",()=>{
+    const enter=vi.fn();
+    const {container}=render(<PortalIntro title="O Mundo da Magia" videoUrl="/video.mp4" onEnter={enter}/>);
+    const video=container.querySelector("video")!;
+    fireEvent.timeUpdate(video);
+    expect(screen.queryByRole("button",{name:/atravesse o portal/i})).toBeNull();
+    fireEvent.ended(video);
     fireEvent.click(screen.getByRole("button",{name:/atravesse o portal/i}));
     expect(enter).toHaveBeenCalledTimes(1);
   });
