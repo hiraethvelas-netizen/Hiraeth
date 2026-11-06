@@ -1141,8 +1141,8 @@ body > div {
 
 
 
-/* Mundo da Magia: cenário natalino fotográfico e efeitos sutis, exclusivos do NFC.
-   Arquitetura gótica, árvores e presentes em fotografias Unsplash, sem imagens de filmes. */
+/* Mundo da Magia: fundos sólidos verde, vinho e dourado.
+   Nenhuma fotografia de fundo nesta experiência NFC. */
 .portal-world--christmas {
   position: relative;
   background: #101d17;
@@ -1153,7 +1153,7 @@ body > div {
   isolation: isolate;
   min-height: min(78svh, 830px);
   border-bottom: 1px solid rgba(209, 171, 99, .45);
-  background: #172019;
+  background: #173a2c;
 }
 .portal-world--christmas .portal-magic-hero > .relative {
   position: relative;
@@ -1175,7 +1175,7 @@ body > div {
 .portal-world--christmas .portal-christmas-hall {
   isolation: isolate;
   min-height: 520px;
-  background: #18251e;
+  background: #521e24;
   border-bottom: 1px solid rgba(215, 183, 115, .36);
 }
 .portal-world--christmas #portal-inspiracoes {
@@ -1183,12 +1183,13 @@ body > div {
   isolation: isolate;
   min-height: 340px;
   overflow: hidden;
+  background: #1e3a2d;
 }
 .portal-world--christmas .portal-carousel-section {
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  background: linear-gradient(140deg, #201c1a, #1b3426 67%, #302018);
+  background: #421b20;
   border-top: 1px solid rgba(211, 181, 116, .3);
   border-bottom: 1px solid rgba(211, 181, 116, .3);
 }
@@ -1210,73 +1211,7 @@ body > div {
   overflow: hidden;
   pointer-events: none;
 }
-/* Genuine photographs: gothic corridor; Victorian Christmas parlour;
-   tree & gifts, dark-branch owl, and a woodland broom. */
-.portal-world--christmas .portal-xmas-photographic-scene {
-  position: absolute;
-  inset: 0;
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: cover;
-}
-.portal-world--christmas .portal-xmas-decor--hero .portal-xmas-photographic-scene {
-  background-image:
-    linear-gradient(90deg, rgba(9, 22, 17, .66), rgba(11, 22, 16, .42) 47%, rgba(9, 22, 17, .7)),
-    linear-gradient(0deg, rgba(13, 27, 20, .96), transparent 33%, rgba(17, 23, 18, .2) 76%),
-    url("https://images.unsplash.com/photo-1768741876614-f0e4110dfac3?auto=format&fit=crop&w=1800&q=82");
-  background-color: #281e17;
-  background-blend-mode: normal, normal, luminosity;
-}
-.portal-world--christmas .portal-xmas-decor--hero .portal-xmas-photographic-scene::before,
-.portal-world--christmas .portal-xmas-decor--hero .portal-xmas-photographic-scene::after {
-  content: "";
-  position: absolute;
-  top: 8%;
-  bottom: 4%;
-  width: min(28%, 280px);
-  background-size: cover;
-  background-repeat: no-repeat;
-  opacity: .68;
-  mask-image: radial-gradient(ellipse at center, black 24%, transparent 76%);
-  -webkit-mask-image: radial-gradient(ellipse at center, black 24%, transparent 76%);
-}
-.portal-world--christmas .portal-xmas-decor--hero .portal-xmas-photographic-scene::before {
-  left: -2%;
-  background-image: url("https://images.unsplash.com/photo-1669247164866-f6f440723103?auto=format&fit=crop&w=750&q=78");
-  background-position: center;
-}
-.portal-world--christmas .portal-xmas-decor--hero .portal-xmas-photographic-scene::after {
-  right: -2%;
-  background-image: url("https://images.unsplash.com/photo-1763351866520-a9e3d5489eb6?auto=format&fit=crop&w=750&q=78");
-  background-position: 40% center;
-}
-.portal-world--christmas .portal-xmas-decor--actions .portal-xmas-photographic-scene {
-  background-image:
-    linear-gradient(90deg, rgba(13, 32, 23, .92), rgba(14, 27, 21, .80), rgba(17, 28, 21, .89)),
-    url("https://images.unsplash.com/photo-1669247164866-f6f440723103?auto=format&fit=crop&w=1400&q=80");
-  background-position: center 50%;
-}
-.portal-world--christmas .portal-xmas-decor--actions .portal-xmas-photographic-scene::after {
-  content: "";
-  position: absolute;
-  inset: 15% -10% 0 auto;
-  width: 42%;
-  background: url("https://images.unsplash.com/photo-1544112260-2ddddbbcaffb?auto=format&fit=crop&w=800&q=78") center/cover;
-  opacity: .42;
-  mask-image: radial-gradient(ellipse, black 8%, transparent 75%);
-  -webkit-mask-image: radial-gradient(ellipse, black 8%, transparent 75%);
-}
-.portal-world--christmas .portal-xmas-decor--inspirations .portal-xmas-photographic-scene {
-  background:
-    radial-gradient(circle at 87% 20%, rgba(117, 53, 30, .16), transparent 42%),
-    linear-gradient(110deg, #15241d, #22372b 55%, #16251e);
-}
-.portal-world--christmas .portal-xmas-decor--gallery .portal-xmas-photographic-scene {
-  background-image:
-    linear-gradient(90deg, rgba(15, 27, 21, .96), rgba(28, 28, 21, .82), rgba(18, 31, 24, .94)),
-    url("https://images.unsplash.com/photo-1763351866520-a9e3d5489eb6?auto=format&fit=crop&w=1400&q=76");
-  background-position: center 42%;
-}
+/* Os fundos das seções permanecem sólidos, sem imagens externas ou filtros fotográficos. */
 .portal-world--christmas .portal-xmas-owl-photo,
 .portal-world--christmas .portal-xmas-broom-photo {
   position: absolute;
