@@ -54,7 +54,8 @@ export function orderDeliveryInfo(value: Json | null | undefined): OrderDelivery
 
 export const ORDER_STATUS_LABEL: Record<string, string> = {
   pending: "Aguardando pagamento",
-  paid: "Pago",
+  paid: "Pago — aguardando preparação",
+  preparing: "Em preparação",
   shipped: "Enviado",
   delivered: "Entregue",
   cancelled: "Cancelado",
@@ -81,9 +82,10 @@ export function nextSafeOrderStatus(
   orderStatus: string,
   paymentStatus: string | null,
   shipmentStatus: string | null | undefined,
-): "shipped" | "delivered" | null {
+): "preparing" | "shipped" | "delivered" | null {
   if (paymentStatus !== "approved") return null;
-  if (orderStatus === "paid" && (shipmentStatus === "generated" || shipmentStatus === "posted")) return "shipped";
+  if (orderStatus === "paid") return "preparing";
+  if (orderStatus === "preparing" && (shipmentStatus === "generated" || shipmentStatus === "posted")) return "shipped";
   if (orderStatus === "shipped" && shipmentStatus === "posted") return "delivered";
   return null;
 }
