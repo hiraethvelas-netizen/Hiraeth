@@ -133,8 +133,8 @@ function PortalPage() {
 
       <div inert={intro} aria-hidden={intro}>
       <header data-portal-reveal className="portal-reveal portal-magic-hero relative flex min-h-[52vh] items-center justify-center overflow-hidden px-5 py-24">
-        {portal.cover_url && <img src={portal.cover_url} alt="" className="absolute inset-0 h-full w-full object-cover" />}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#10251d]/65 via-[#10251d]/80 to-[var(--portal-bg)]" />
+        {!magicWorld && portal.cover_url && <img src={portal.cover_url} alt="" className="absolute inset-0 h-full w-full object-cover" />}
+        {!magicWorld && <div className="absolute inset-0 bg-gradient-to-b from-[#10251d]/65 via-[#10251d]/80 to-[var(--portal-bg)]" />}
         {magicWorld && <PortalChristmasDecor scene="hero" />}
         <div className="relative mx-auto max-w-4xl text-center">
           <p className="text-xs uppercase tracking-[.37em] text-[var(--portal-accent)]">
