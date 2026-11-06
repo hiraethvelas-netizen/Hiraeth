@@ -1049,3 +1049,92 @@ body > div {
 :root:not(.dark) .hiraeth-checkout .btn-gold:hover {
   background-color: #52632c;
 }
+
+/* Experiência NFC — O Mundo da Magia. Scoped; doesn't recolor the Hiraeth shop. */
+.portal-world {
+  color: var(--portal-text);
+  background: var(--portal-bg);
+}
+.portal-magic-hero h1,
+.portal-world .portal-action-grid h2 { color: var(--portal-text); }
+.portal-world .portal-action-card {
+  display: flex;
+  align-items: center;
+  gap: 1.1rem;
+  min-height: 106px;
+  padding: 1.25rem 1.4rem;
+  text-decoration: none;
+  color: var(--portal-text);
+  background: linear-gradient(130deg, color-mix(in srgb, var(--portal-surface) 95%, #111c14), var(--portal-surface));
+  border: 1px solid color-mix(in srgb, var(--portal-accent) 40%, transparent);
+  border-radius: 16px;
+  box-shadow: 0 9px 25px rgba(5, 18, 12, .18);
+  transition: transform .25s ease, border-color .25s ease, box-shadow .25s ease;
+}
+.portal-world .portal-action-card > svg:first-child {
+  flex: none;
+  color: var(--portal-accent);
+}
+.portal-world .portal-action-card span { flex: 1; min-width: 0; }
+.portal-world .portal-action-card strong {
+  display: block;
+  color: var(--portal-text);
+  font: 500 clamp(1.2rem, 3vw, 1.5rem)/1.3 var(--font-display), Georgia, serif;
+}
+.portal-world .portal-action-card small {
+  display: block;
+  margin-top: .35rem;
+  font-size: .84rem;
+  line-height: 1.5;
+  color: color-mix(in srgb, var(--portal-text) 77%, transparent);
+}
+.portal-world .portal-action-card > svg:last-child:not(:first-child) {
+  flex: none;
+  opacity: .78;
+}
+.portal-world a.portal-action-card:hover,
+.portal-world a.portal-action-card:focus-visible {
+  border-color: var(--portal-accent);
+  transform: translateY(-3px);
+  box-shadow: 0 14px 32px rgba(5, 18, 12, .26);
+}
+.portal-world a.portal-action-card:focus-visible {
+  outline: 2px solid var(--portal-accent);
+  outline-offset: 3px;
+}
+.portal-world .portal-action-card--pending {
+  opacity: .65;
+  cursor: not-allowed;
+}
+.portal-world .portal-inspiration-card {
+  color: var(--portal-text);
+  background: var(--portal-surface);
+  border: 1px solid color-mix(in srgb, var(--portal-accent) 32%, transparent);
+  border-radius: 14px;
+  box-shadow: 0 10px 34px rgba(5, 18, 12, .13);
+}
+.portal-world .portal-inspiration-card h3 { color: var(--portal-text); }
+.portal-world .portal-carousel-section { background: var(--portal-surface); }
+.portal-world .portal-gallery-track { animation: portal-gallery-scroll 44s linear infinite; }
+.portal-world .portal-gallery-marquee:hover .portal-gallery-track,
+.portal-world .portal-gallery-marquee:focus-within .portal-gallery-track {
+  animation-play-state: paused;
+}
+.portal-world .portal-gallery-photo img {
+  border: 1px solid color-mix(in srgb, var(--portal-accent) 42%, transparent);
+  box-shadow: 0 12px 26px rgba(6, 21, 14, .18);
+}
+.portal-world .portal-gallery-empty { border-color: var(--portal-accent); }
+@keyframes portal-gallery-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .portal-world .portal-gallery-track {
+    animation: none;
+  }
+  .portal-world a.portal-action-card {
+    transition: none;
+  }
+  .portal-world a.portal-action-card:hover { transform: none; }
+}
