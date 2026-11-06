@@ -1324,3 +1324,111 @@ body > div {
 @media (prefers-reduced-motion: reduce) {
   .portal-world--christmas .portal-christmas-bauble { animation: none; }
 }
+
+
+/* Abertura de portal NFC: let the cinematic footage fill the mobile screen.
+   Reveal elegant site typography towards the end; never bake lettering into video. */
+.portal-cinematic-intro {
+  color: #f7efda;
+  isolation: isolate;
+}
+.portal-cinematic-intro .portal-intro-vignette {
+  background: linear-gradient(
+    180deg,
+    rgba(4, 13, 10, .05) 0%,
+    rgba(4, 13, 10, 0) 26%,
+    rgba(4, 13, 10, .08) 45%,
+    rgba(4, 13, 10, .54) 75%,
+    rgba(4, 13, 10, .87) 100%
+  );
+}
+.portal-cinematic-intro .portal-intro-content {
+  padding-top: max(28px, env(safe-area-inset-top));
+  padding-bottom: max(9vh, calc(env(safe-area-inset-bottom) + 36px));
+}
+.portal-cinematic-intro .portal-intro-copy {
+  animation: portal-intro-reveal 820ms cubic-bezier(.22, 1, .36, 1) both;
+}
+.portal-cinematic-intro .portal-intro-eyebrow {
+  font: 500 .7rem/1.5 "DM Sans", sans-serif;
+  letter-spacing: .17em;
+  text-transform: uppercase;
+  color: #dec692;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, .6);
+}
+.portal-cinematic-intro .portal-intro-title {
+  font: 500 clamp(3rem, 10vw, 6.6rem)/.98 "Italiana", "Cormorant Garamond", Georgia, serif;
+  letter-spacing: -.02em;
+  text-wrap: balance;
+  margin-top: .9rem;
+  color: #fff6e4;
+  text-shadow: 0 4px 25px rgba(0, 0, 0, .65);
+}
+.portal-cinematic-intro .portal-intro-subtitle {
+  margin: .9rem auto 0;
+  max-width: 34rem;
+  font: 400 clamp(1rem, 2.4vw, 1.25rem)/1.5 "Cormorant Garamond", Georgia, serif;
+  color: #f3e8cf;
+  text-shadow: 0 3px 14px rgba(0, 0, 0, .7);
+}
+.portal-cinematic-intro .portal-intro-enter {
+  border-color: rgba(221, 187, 126, .85);
+  background: linear-gradient(135deg, rgba(83, 29, 27, .92), rgba(42, 24, 22, .94));
+  box-shadow: inset 0 1px 0 rgba(255, 229, 175, .22), 0 12px 34px rgba(0, 0, 0, .3);
+  color: #fff1d4;
+  font: 500 clamp(1.05rem, 3vw, 1.25rem)/1.2 "Cormorant Garamond", Georgia, serif;
+  letter-spacing: .025em;
+  text-transform: none;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background .25s ease, box-shadow .25s ease, transform .25s ease;
+  animation: portal-intro-reveal 780ms cubic-bezier(.22, 1, .36, 1) both;
+}
+.portal-cinematic-intro .portal-intro-enter:hover {
+  transform: translateY(-2px);
+  background: linear-gradient(135deg, rgba(109, 40, 35, .97), rgba(64, 32, 28, .97));
+  box-shadow: inset 0 1px 0 rgba(255, 229, 175, .3), 0 16px 38px rgba(0, 0, 0, .38);
+}
+.portal-cinematic-intro .portal-intro-enter:focus-visible,
+.portal-cinematic-intro .portal-intro-retry:focus-visible {
+  outline-color: #f7efda;
+}
+.portal-cinematic-intro .portal-intro-feedback {
+  padding: 1rem 1.25rem;
+  border: 1px solid rgba(221, 187, 126, .3);
+  border-radius: 14px;
+  background: rgba(12, 29, 22, .82);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  font-size: .9rem;
+  line-height: 1.55;
+  color: #f7efda;
+}
+.portal-cinematic-intro .portal-intro-retry {
+  border-color: #d1b57c;
+  color: #f7efda;
+}
+@keyframes portal-intro-reveal {
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (max-width: 640px) {
+  .portal-cinematic-intro .portal-intro-content {
+    padding-bottom: max(8vh, calc(env(safe-area-inset-bottom) + 30px));
+  }
+  .portal-cinematic-intro .portal-intro-title {
+    font-size: clamp(2.7rem, 11vw, 4.6rem);
+    line-height: 1.04;
+  }
+  .portal-cinematic-intro .portal-intro-enter {
+    min-height: 52px;
+    padding-inline: 1.8rem;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .portal-cinematic-intro .portal-intro-copy,
+  .portal-cinematic-intro .portal-intro-enter {
+    animation: none;
+  }
+  .portal-cinematic-intro .portal-intro-enter { transition: none; }
+}
