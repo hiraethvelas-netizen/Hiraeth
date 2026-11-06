@@ -193,6 +193,33 @@ function AdminPedidos() {
         </select>
       </div>
 
+      <details className="mt-5 rounded-xl border border-primary/25 bg-card p-4 text-sm text-foreground">
+        <summary className="cursor-pointer font-semibold text-primary">
+          Prévia de um pedido fictício — teste visual da administração
+        </summary>
+        <div className="mt-4 space-y-3">
+          <p className="text-xs text-muted-foreground">
+            DEMONSTRAÇÃO: não é uma venda, não cria pedido, etiqueta, nota ou transação.
+            Para testar o pagamento e a impressão reais, é necessária a homologação das integrações.
+          </p>
+          <p><strong>Cliente:</strong> Cliente de demonstração · exemplo@invalid.example</p>
+          <p><strong>Contato:</strong> (00) 00000-0000</p>
+          <p><strong>Endereço:</strong> Rua Exemplo, 123 — Centro — Cidade Exemplo/SC</p>
+          <p><strong>Status:</strong> Em preparação (exemplo)</p>
+          <div className="border-t border-primary/20 pt-3">
+            <p><strong>1× Vela pequena</strong> — {orderItemVariantLabel({options:{Tamanho:"100g"}})}</p>
+            <p className="mt-1"><strong>1× Chapéu Seletor</strong> — {
+              orderItemVariantLabel({options:{Tamanho:"250g"},house:"Corvinal"})
+            }</p>
+          </div>
+          <p><strong>🎁 Presente:</strong> Sim · Cartinha solicitada</p>
+          <p><strong>🎥 Embalagem:</strong> Vídeo solicitado pela cliente</p>
+          <p className="text-muted-foreground">
+            Etiqueta, nota fiscal, reembolso e rastreio precisam ser testados com serviços de homologação;
+            não há documentos fictícios disponíveis para impressão.
+          </p>
+        </div>
+      </details>
       {shipmentWarning && !loading && <p role="status" className="mt-4 text-sm text-muted-foreground">{shipmentWarning}</p>}
       {reviewWarning && !loading && <p role="status" className="mt-3 text-sm text-muted-foreground">{reviewWarning}</p>}
       {loading ? (
