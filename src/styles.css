@@ -1138,3 +1138,189 @@ body > div {
   }
   .portal-world a.portal-action-card:hover { transform: none; }
 }
+
+
+/* Edição fotográfica de Natal — exclusiva do Mundo da Magia NFC.
+   Fotografias reais de uso livre (Unsplash), sem desenhos ou clip-art.
+   URLs e botões seguem independentes desta camada visual. */
+.portal-world--christmas {
+  background:
+    radial-gradient(ellipse at 92% 9%, rgba(119, 35, 23, .21), transparent 34%),
+    radial-gradient(ellipse at 3% 35%, rgba(191, 150, 81, .11), transparent 42%),
+    var(--portal-bg);
+  color: var(--portal-text);
+}
+.portal-world--christmas .portal-magic-hero {
+  isolation: isolate;
+  border-bottom: 1px solid rgba(202, 164, 98, .32);
+  min-height: min(70svh, 720px);
+}
+.portal-world--christmas .portal-christmas-hero-photo {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(90deg, rgba(12, 29, 22, .74) 5%, rgba(12, 29, 22, .26) 55%, rgba(12, 29, 22, .65) 100%),
+    url("https://images.unsplash.com/photo-1764790858351-7e58effc9f64?auto=format&fit=crop&w=1600&q=80");
+  background-position: center, center 49%;
+  background-size: cover;
+  filter: saturate(.82);
+  opacity: .75;
+  pointer-events: none;
+}
+.portal-world--christmas .portal-magic-hero > .relative {
+  z-index: 2;
+  padding-block: 24px;
+  text-shadow: 0 2px 22px rgba(3, 12, 8, .6);
+}
+.portal-world--christmas .portal-magic-hero h1 {
+  color: #f7efda;
+  text-shadow: 0 5px 28px rgba(8, 13, 9, .7);
+  letter-spacing: .014em;
+}
+.portal-world--christmas .portal-christmas-hanging {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 2;
+  height: 128px;
+  pointer-events: none;
+  overflow: hidden;
+}
+.portal-world--christmas .portal-christmas-bauble {
+  position: absolute;
+  top: 46px;
+  width: 31px;
+  height: 31px;
+  border-radius: 50%;
+  box-shadow: inset -7px -9px 12px rgba(9, 10, 8, .46),
+    inset 3px 4px 7px rgba(255, 244, 215, .20),
+    2px 6px 12px rgba(0, 0, 0, .4);
+  animation: portal-christmas-sway 6.5s ease-in-out infinite alternate;
+}
+.portal-world--christmas .portal-christmas-bauble::before {
+  content: "";
+  position: absolute;
+  width: 1px;
+  height: 47px;
+  left: 50%;
+  bottom: calc(100% + 4px);
+  background: rgba(226, 201, 150, .68);
+}
+.portal-world--christmas .portal-christmas-bauble::after {
+  content: "";
+  position: absolute;
+  left: calc(50% - 5px);
+  top: -5px;
+  width: 10px;
+  height: 6px;
+  border: 1px solid #ac8d50;
+  border-radius: 2px 2px 0 0;
+  background: linear-gradient(90deg, #7d673d, #e4ca89, #8b6b35);
+}
+.portal-world--christmas .portal-christmas-bauble--wine {
+  left: 11%;
+  background: radial-gradient(circle at 32% 25%, #e0a29c 0, #8c2f30 22%, #571619 70%, #290c13 100%);
+}
+.portal-world--christmas .portal-christmas-bauble--gold {
+  right: 12%;
+  top: 61px;
+  width: 24px;
+  height: 24px;
+  background: radial-gradient(circle at 35% 25%, #fff1be 0, #cca869 30%, #755226 76%, #342819 100%);
+  animation-delay: -2s;
+}
+.portal-world--christmas .portal-christmas-bauble--forest {
+  right: 24%;
+  top: 29px;
+  width: 18px;
+  height: 18px;
+  background: radial-gradient(circle at 35% 25%, #94b49e 0, #2d7054 27%, #14382c 77%, #091a18 100%);
+  animation-delay: -4s;
+}
+.portal-world--christmas .portal-christmas-hall {
+  isolation: isolate;
+  border-top: 1px solid rgba(205, 172, 103, .22);
+  border-bottom: 1px solid rgba(205, 172, 103, .22);
+  background: linear-gradient(120deg, rgba(70, 18, 19, .29), rgba(10, 30, 23, .6) 48%, rgba(95, 32, 24, .23));
+}
+.portal-world--christmas .portal-christmas-hall-photo {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(90deg, rgba(11, 26, 20, .79), rgba(12, 27, 20, .60), rgba(11, 27, 19, .68)),
+    url("https://images.unsplash.com/photo-1763351866520-a9e3d5489eb6?auto=format&fit=crop&w=1600&q=80");
+  background-size: cover;
+  background-position: center, center 56%;
+  opacity: .75;
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 13%, #000 91%, transparent);
+  mask-image: linear-gradient(to bottom, transparent, #000 13%, #000 91%, transparent);
+}
+.portal-world--christmas .portal-christmas-hall .portal-action-grid + p {
+  color: #e6d9bd;
+}
+.portal-world--christmas .portal-action-card {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border: 1px solid rgba(215, 178, 108, .60);
+  background:
+    linear-gradient(125deg, rgba(30, 58, 41, .97), rgba(20, 42, 32, .94));
+  box-shadow: inset 0 1px 0 rgba(246, 221, 174, .17),
+    0 14px 35px rgba(3, 13, 9, .35);
+  border-radius: 12px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+.portal-world--christmas .portal-action-card:nth-child(2),
+.portal-world--christmas .portal-action-card:nth-child(4) {
+  background: linear-gradient(125deg, rgba(86, 28, 29, .97), rgba(51, 24, 26, .96));
+}
+.portal-world--christmas .portal-action-card::after {
+  content: "✦";
+  position: absolute;
+  top: 6px;
+  right: 11px;
+  font-size: 12px;
+  font-family: Georgia, serif;
+  color: rgba(226, 195, 128, .52);
+  pointer-events: none;
+}
+.portal-world--christmas .portal-action-card strong {
+  color: #f7efda;
+}
+.portal-world--christmas .portal-action-card small {
+  color: #e9dfc7;
+}
+.portal-world--christmas .portal-action-card > svg:first-child,
+.portal-world--christmas .portal-action-card > svg:last-child:not(:first-child) {
+  color: #dfbf7e;
+}
+.portal-world--christmas a.portal-action-card:hover,
+.portal-world--christmas a.portal-action-card:focus-visible {
+  border-color: #f0d99d;
+  box-shadow: inset 0 1px 0 rgba(246, 221, 174, .27),
+    0 18px 40px rgba(3, 13, 9, .44), 0 0 22px rgba(204, 158, 84, .18);
+}
+.portal-world--christmas .portal-action-card--pending {
+  opacity: .8;
+}
+.portal-world--christmas .portal-carousel-section {
+  background: linear-gradient(170deg, #302420, #1e3127 73%, #291c1b);
+}
+@keyframes portal-christmas-sway {
+  from { transform: rotate(-5deg); transform-origin: 50% -45px; }
+  to { transform: rotate(5deg); transform-origin: 50% -45px; }
+}
+@media (max-width: 640px) {
+  .portal-world--christmas .portal-magic-hero { min-height: 57svh; }
+  .portal-world--christmas .portal-christmas-hero-photo { background-position: center, 56% center; }
+  .portal-world--christmas .portal-christmas-hall-photo { background-position: center, 56% center; }
+  .portal-world--christmas .portal-christmas-bauble--wine { left: 6%; }
+  .portal-world--christmas .portal-christmas-bauble--gold { right: 6%; }
+  .portal-world--christmas .portal-christmas-bauble--forest { right: 19%; }
+  .portal-world--christmas .portal-action-card { min-height: 96px; padding: 1rem 1.1rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .portal-world--christmas .portal-christmas-bauble { animation: none; }
+}
