@@ -31,7 +31,21 @@ type ShippingDetails = {
   canIssueInvoice:boolean;
 };
 type PaymentReview = {
-  id:string;status:string;total:number;paid_at:string|null;last_error:string|null;email:string;
+  id:string;status:string;total:number;paid_at:string|null;last_error:string|null;email:string;promotion_summary?:unknown;
+};
+
+type SandboxAttempt = {
+  id:string;status:string;total:number;created_at:string;
+  payment_method:string|null;promotion_summary:unknown;
+};
+function isSandboxRecord(value:unknown) {
+  return !!value && typeof value === "object" && !Array.isArray(value) &&
+    (value as Record<string,unknown>)["sandbox"] === true;
+}
+const testStatusLabel:Record<string,string> = {
+  awaiting_payment:"Aguardando simulação", pending:"Pagamento simulado pendente",
+  processing:"Conferindo teste", paid:"Teste aprovado",
+  paid_attention:"Teste precisa de revisão", rejected:"Teste recusado",
 };
 
 const stageName:Record<string,string> = {
@@ -189,6 +203,7 @@ const PROVIDER_STATUS: Record<ProviderStatus,string> = {
 function CorreioDaFenix() {
   const [orders,setOrders]=useState<Order[]>([]);
   const [attention,setAttention]=useState<PaymentReview[]>([]);
+  const [sandboxAttempts,setSandboxAttempts]=useState<SandboxAttempt[]>([]);
   const [loading,setLoading]=useState(true);
   const [error,setError]=useState("");
   const [health,setHealth]=useState<IntegrationHealth|null>(null);
@@ -198,17 +213,23 @@ function CorreioDaFenix() {
   const load=useCallback(async()=>{
     setLoading(true);
     try{
-      const [ordersResult,reviewResult]=await Promise.all([
+      const [ordersResult,reviewResult,sandboxResult]=await Promise.all([
         supabase.from("orders").select("id,status,payment_status,customer_name,customer_email,total,shipping,created_at,order_items(id,product_name,quantity)")
           .in("status",["paid","shipped","delivered"]).order("created_at",{ascending:false}).limit(100),
         (supabase as any).from("commerce_checkouts")
-          .select("id,status,total,paid_at,last_error,email")
+          .select("id,status,total,paid_at,last_error,email,promotion_summary")
           .eq("status","paid_attention").order("created_at",{ascending:false}).limit(100),
+        (supabase as any).from("commerce_checkouts")
+          .select("id,status,total,created_at,payment_method,promotion_summary")
+          .order("created_at",{ascending:false}).limit(50),
       ]);
-      if(ordersResult.error||reviewResult.error)throw new Error(
+      if(ordersResult.error||reviewResult.error||sandboxResult.error)throw new Error(
         "A estrutura da expedição ainda não foi aplicada ao banco, ou faltam permissões.");
       setOrders((ordersResult.data??[]).filter(o=>o.payment_status==="approved") as unknown as Order[]);
-      setAttention((reviewResult.data??[]) as PaymentReview[]);
+      setAttention(((reviewResult.data??[]) as PaymentReview[])
+        .filter(record=>!isSandboxRecord(record.promotion_summary)));
+      setSandboxAttempts(((sandboxResult.data??[]) as SandboxAttempt[])
+        .filter(record=>isSandboxRecord(record.promotion_summary)));
       setError("");
     }catch(cause){setError(cause instanceof Error?cause.message:"Falha ao carregar expedição.");}
     finally{setLoading(false);}
@@ -269,6 +290,25 @@ function CorreioDaFenix() {
     </section>
     {error&&<p role="alert" className="rounded border border-destructive/40 p-4 text-sm text-destructive">{error}</p>}
     {loading&&<p className="text-muted-foreground">Carregando expedição...</p>}
+    {!loading&&!error&&sandboxAttempts.length>0&&<section className="rounded-xl border border-primary/25 bg-card p-5">
+      <h2 className="font-display text-2xl text-foreground">Histórico de pagamentos simulados</h2>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Estes registros são apenas testes. Não representam vendas, não geram pedidos reais
+        e não devem ser enviados pelo Correio da Fênix.
+      </p>
+      <div className="mt-3 space-y-3">
+        {sandboxAttempts.map(test=><div key={test.id}
+          className="flex flex-wrap items-center justify-between gap-2 border-t border-primary/20 pt-3 text-sm text-foreground">
+          <div>
+            <p><strong>Teste #{test.id.slice(0,8)}</strong> · {testStatusLabel[test.status]??test.status}</p>
+            <p className="text-xs text-muted-foreground">
+              {new Date(test.created_at).toLocaleString("pt-BR")} · {test.payment_method??"Método ainda não selecionado"}
+            </p>
+          </div>
+          <span className="font-semibold text-primary">{brl(Number(test.total))}</span>
+        </div>)}
+      </div>
+    </section>}
     {!!attention.length&&<section className="rounded-xl border border-[#c78b6a] bg-card p-5">
       <h2 className="font-display text-2xl text-foreground">Pagamentos que exigem revisão</h2>
       <p className="mt-1 text-sm text-muted-foreground">Esses pagamentos foram recebidos, mas não puderam gerar pedidos automaticamente. Verifique o estoque ou a conciliação antes de qualquer reembolso ou envio.</p>
