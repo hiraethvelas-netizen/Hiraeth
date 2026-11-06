@@ -238,6 +238,37 @@ function CheckoutHiraeth() {
     }finally{setBusy(false);}
   }
 
+  async function verifyPaymentStatus() {
+    if (!checkout || busy) return;
+    setBusy(true);
+    setError("");
+    try {
+      // This read-only request never repeats the financial operation.
+      const result=await commerceCall({action:"status",checkoutId:checkout.id});
+      const current=result["checkout"];
+      const status=current?.status;
+      if (isResolvedCheckoutStatus(status)) {
+        setOutcome({
+          checkoutId:checkout.id,
+          status,
+          orderId:current.order_id??null,
+          qrCode:current.pix_qr_code??null,
+          qrCodeBase64:current.pix_qr_code_base64??null,
+        });
+        setPaymentNeedsReview(false);
+        if(status==="paid") cart.clear();
+        if(status==="paid_attention")
+          setError("Pagamento recebido, mas precisa de conferência. Não pague novamente.");
+      } else {
+        // An awaiting_payment DB status cannot prove that Mercado Pago never
+        // received the request during a network timeout.
+        setError("Ainda não há confirmação da tentativa. Não pague novamente. Consulte o suporte da Hiraeth para conciliação.");
+      }
+    } catch(cause) {
+      setError(cause instanceof Error?cause.message:"Não foi possível consultar o status. Não repita o pagamento.");
+    } finally {setBusy(false);}
+  }
+
   useEffect(()=>{
     if(!checkout||!outcome||!["pending","processing"].includes(outcome.status))return;
     let active=true;
@@ -439,7 +470,16 @@ function CheckoutHiraeth() {
           <p role="status" className="mt-5 text-sm text-foreground">Pagamento em análise pelo Mercado Pago. Aguarde a confirmação.</p>
         ) : outcome?.status==="rejected" ? (
           <p role="alert" className="mt-5 text-sm text-foreground">Pagamento recusado. Revise seus dados e inicie uma nova tentativa sem cobranças duplicadas.</p>
-        ) : <div className="mt-6 space-y-4">
+        ) : paymentNeedsReview ? <div className="mt-6 space-y-3" role="status">
+          <p className="text-sm text-foreground">
+            Não conseguimos confirmar a última tentativa. Para evitar cobranças duplicadas,
+            o pagamento ficou bloqueado até a consulta de status.
+          </p>
+          <button type="button" disabled={busy} onClick={()=>void verifyPaymentStatus()}
+            className="rounded-lg border border-primary/50 px-4 py-3 text-sm font-semibold text-primary disabled:opacity-50">
+            {busy?"Conferindo...":"Conferir status do pagamento"}
+          </button>
+        </div> : <div className="mt-6 space-y-4">
           <button type="button" disabled={busy} onClick={()=>void pay("pix").catch(()=>{})}
             className="flex w-full items-center justify-center gap-2 rounded-xl border border-primary/50 bg-primary/10 px-5 py-4 text-sm font-semibold text-foreground disabled:opacity-40">
             <QrCode size={19}/> {busy?"Aguarde...":"Pagar com Pix pelo Mercado Pago"}
