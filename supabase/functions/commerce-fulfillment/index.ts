@@ -94,7 +94,7 @@ Deno.serve(async (req:Request) => {
     const db=serviceClient();
     const {data:order,error:orderError}=await db.from("orders").select("*,order_items(*)")
       .eq("id",orderId).maybeSingle();
-    if(orderError||!order||!["paid","shipped","delivered"].includes(order.status) ||
+    if(orderError||!order||!["paid","preparing","shipped","delivered"].includes(order.status) ||
        order.payment_status!=="approved"||!order.payment_id)
       return json({error:"Somente pedidos com pagamento aprovado podem ser expedidos."},409);
     const {data:shipment}=await db.from("commerce_shipments")
