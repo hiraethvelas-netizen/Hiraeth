@@ -41,6 +41,7 @@ type PaymentReview = {
 type SandboxAttempt = {
   id:string;status:string;total:number;created_at:string;
   payment_method:string|null;promotion_summary:unknown;
+  recipient:Json|null;
 };
 function isSandboxRecord(value:unknown) {
   return !!value && typeof value === "object" && !Array.isArray(value) &&
@@ -236,7 +237,7 @@ function CorreioDaFenix() {
           .select("id,status,total,paid_at,last_error,email,promotion_summary")
           .eq("status","paid_attention").order("created_at",{ascending:false}).limit(100),
         (supabase as any).from("commerce_checkouts")
-          .select("id,status,total,created_at,payment_method,promotion_summary")
+          .select("id,status,total,created_at,payment_method,promotion_summary,recipient")
           .order("created_at",{ascending:false}).limit(50),
       ]);
       if(ordersResult.error||reviewResult.error||sandboxResult.error)throw new Error(
@@ -335,16 +336,27 @@ function CorreioDaFenix() {
         e não devem ser enviados pelo Correio da Fênix.
       </p>
       <div className="mt-3 space-y-3">
-        {sandboxAttempts.map(test=><div key={test.id}
-          className="flex flex-wrap items-center justify-between gap-2 border-t border-primary/20 pt-3 text-sm text-foreground">
-          <div>
-            <p><strong>Teste #{test.id.slice(0,8)}</strong> · {testStatusLabel[test.status]??test.status}</p>
-            <p className="text-xs text-muted-foreground">
-              {new Date(test.created_at).toLocaleString("pt-BR")} · {test.payment_method??"Método ainda não selecionado"}
-            </p>
-          </div>
-          <span className="font-semibold text-primary">{brl(Number(test.total))}</span>
-        </div>)}
+        {sandboxAttempts.map(test=>{
+          const delivery=orderDeliveryInfo(test.recipient);
+          return <div key={test.id} className="border-t border-primary/20 pt-3 text-sm text-foreground">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <p><strong>Teste #{test.id.slice(0,8)}</strong> · {testStatusLabel[test.status]??test.status}</p>
+                <p className="text-xs text-muted-foreground">
+                  {new Date(test.created_at).toLocaleString("pt-BR")} · {test.payment_method??"Método ainda não selecionado"}
+                </p>
+              </div>
+              <span className="font-semibold text-primary">{brl(Number(test.total))}</span>
+            </div>
+            {delivery && (delivery.isGift || delivery.customerNote || delivery.packingVideoRequested) &&
+              <div className="mt-2 rounded-lg bg-primary/5 p-3">
+                {delivery.isGift && <p>🎁 Presente para {delivery.name || "Destinatário"}</p>}
+                {delivery.packingVideoRequested && <p>🎥 Solicitou vídeo embalando o pedido</p>}
+                {delivery.customerNote && <p className="mt-1 whitespace-pre-wrap break-words">{delivery.customerNote}</p>}
+                <p className="mt-1 text-xs text-muted-foreground">Recados de teste; nenhuma encomenda real será preparada.</p>
+              </div>}
+          </div>;
+        })}
       </div>
     </section>}
     {!!attention.length&&<section className="rounded-xl border border-[#c78b6a] bg-card p-5">
