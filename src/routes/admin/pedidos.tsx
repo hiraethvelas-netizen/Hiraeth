@@ -290,8 +290,55 @@ function AdminPedidos() {
                   <p className="mt-2 text-xs text-muted-foreground">
                     Para marcar como enviado, gere a etiqueta e confirme que o pacote foi postado. Depois confirme a entrega.
                   </p>}
-                <p className="mt-2 text-xs text-muted-foreground">
-                  Pagamentos e reembolsos são controlados separadamente; alterar o status não realiza estorno.
+                {orderReviews.length>0&&<section className="mt-4 space-y-2 rounded-lg border border-primary/25 p-3">
+                  <h3 className="font-display text-lg text-foreground">Histórico de análise financeira</h3>
+                  {orderReviews.map(review=><div key={review.id} className="border-t border-primary/20 pt-2 text-sm">
+                    <p className="font-medium">{financialReviewLabel(review.kind)} — {
+                      review.status==="pending_review"?"Aguardando conferência"
+                        :review.status==="awaiting_provider"?"Aguardando Mercado Pago"
+                        :review.status==="completed"?"Concluído":review.status==="rejected"?"Rejeitado":review.status}</p>
+                    <p className="mt-1 whitespace-pre-wrap break-words text-muted-foreground">{review.reason}</p>
+                  </div>)}
+                  {hasOpenReview&&<p className="text-xs text-muted-foreground">
+                    A expedição fica pausada até a análise financeira ser resolvida.
+                  </p>}
+                </section>}
+                {!reviewWarning && !hasOpenReview && canRequestFinancialReview(o.status,o.payment_status)&&
+                  <div className="mt-4">
+                    {reviewForm?.orderId===o.id ? <div className="space-y-2 rounded-lg border border-primary/25 p-3">
+                      <h3 className="font-semibold">
+                        {reviewForm.kind==="cancellation"?"Solicitar cancelamento e reembolso":"Solicitar análise de reembolso"}
+                      </h3>
+                      <p className="text-xs text-muted-foreground">
+                        Este registro não movimenta dinheiro, não altera o estoque nem confirma o cancelamento.
+                        Confira primeiro a transação no Mercado Pago.
+                      </p>
+                      <label className="block text-sm">Motivo do pedido
+                        <textarea rows={3} maxLength={700} value={reviewReason}
+                          onChange={e=>setReviewReason(e.target.value)}
+                          className="mt-1 w-full rounded border border-primary/35 bg-card p-2 text-foreground"
+                          placeholder="Descreva o motivo da análise financeira..."/>
+                      </label>
+                      <div className="flex flex-wrap gap-2">
+                        <button type="button" disabled={submittingReview||reviewReason.trim().length<8}
+                          onClick={()=>void requestFinancialReview(o)}
+                          className="rounded border border-primary/50 px-3 py-2 text-sm text-primary disabled:opacity-40">
+                          {submittingReview?"Registrando...":"Registrar para análise"}
+                        </button>
+                        <button type="button" disabled={submittingReview}
+                          onClick={()=>{setReviewForm(null);setReviewReason("");}}
+                          className="rounded border border-primary/30 px-3 py-2 text-sm text-muted-foreground">
+                          Voltar
+                        </button>
+                      </div>
+                    </div> : <button type="button"
+                      onClick={()=>{setReviewForm({orderId:o.id,kind:["paid","preparing"].includes(o.status)?"cancellation":"refund"});setReviewReason("");}}
+                      className="rounded border border-primary/40 px-3 py-2 text-sm text-primary">
+                      {["paid","preparing"].includes(o.status)?"Analisar cancelamento / reembolso":"Analisar reembolso"}
+                    </button>}
+                  </div>}
+                <p className="mt-3 text-xs text-muted-foreground">
+                  Cancelamento e reembolso exigem conciliação com o Mercado Pago. Este painel não realiza estorno automaticamente.
                 </p>
               </div>
             </article>;
