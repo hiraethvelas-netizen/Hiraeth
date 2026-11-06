@@ -6,21 +6,9 @@ import { SiteFooter, SiteHeader } from "@/components/SiteLayout";
 import { brl } from "@/lib/format";
 import type { Tables } from "@/integrations/supabase/types";
 import { orderDeliveryInfo, ORDER_STATUS_LABEL, SHIPMENT_STATUS_LABEL, type ShipmentProgress } from "@/lib/order-details";
+import { orderItemVariantLabel } from "@/lib/order-operations";
 
 type Order = Tables<"orders"> & { promotion_summary?: unknown; order_items: Tables<"order_items">[] };
-
-function variantLabel(details: Tables<"order_items">["variant_details"]) {
-  if (!details || typeof details !== "object" || Array.isArray(details)) return "";
-  const value = details as Record<string, unknown>;
-  return [
-    typeof value["size"] === "string" ? `Tamanho: ${value["size"]}` : "",
-    typeof value["house"] === "string" ? `Casa: ${value["house"]}` : "",
-  ]
-    .filter(Boolean)
-    .join(" · ");
-}
-
-
 
 export const Route = createFileRoute("/_authenticated/pedidos")({
   head: () => ({ meta: [{ title: "Meus pedidos — Hiraeth" }] }),
@@ -112,7 +100,7 @@ function Pedidos() {
                   {o.order_items.map((item) => (
                     <li key={item.id}>
                       {item.quantity}× {item.product_name} — {brl(Number(item.unit_price) * item.quantity)}
-                      {variantLabel(item.variant_details) && <p className="text-xs text-muted-foreground">{variantLabel(item.variant_details)}</p>}
+                      {orderItemVariantLabel(item.variant_details) && <p className="text-xs text-muted-foreground">{orderItemVariantLabel(item.variant_details)}</p>}
                     </li>
                   ))}
                 </ul>
