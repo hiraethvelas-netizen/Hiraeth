@@ -1,19 +1,13 @@
-# Webhook Mercado Pago — HTTP 500 na simulação (05:07 UTC)
+# Inspirações — O Mundo de Magia
 
-## Diagnóstico (somente leitura)
+- Alterar exclusivamente a apresentação de “Conheça as inspirações” em `/portal/o-mundo-de-magia`, preservando abertura, navegação e todas as outras seções e páginas.
+- Organizar os fragmentos em cinco capítulos: origem da coleção, Vela Seletora, quatro casas, Natal com duas velas e carta. Usar títulos normalizados e ordem dos registros; preservar conteúdos não classificados sem descartá-los.
+- Nomear as casas somente Casa do Leão, Casa do Texugo, Casa da Serpente e Casa da Águia.
+- Criar envelope com selo oliva, abertura/fechamento acessível, pergaminho e movimento reduzido. Não adicionar imagens.
+- Não escrever textos narrativos no código nem alterar o banco: a carta e os relatos serão exibidos dos `portal_fragments` existentes. Se a carta não estiver preenchida, mostrar estado vazio, não inventar uma narrativa. Assinatura e slogan solicitados fazem parte da apresentação.
+- A carta a ser preenchida pela proprietária seguirá os fatos fornecidos: 2021/pandemia, reencontro com filmes e livros de Harry Potter, aromas para compartilhar conforto, primeira vela de pimenta-rosa e desejo de fazer a pessoa se sentir em casa.
 
-- Registros do commerce-webhook: só um evento de inicialização às 05:06:41 UTC. O erro em si não aparece porque a função não registra o erro antes de responder.
-- Segredos: MERCADO_PAGO_ACCESS_TOKEN existe. **MERCADO_PAGO_WEBHOOK_SECRET não existe.**
-- Código: a notificação passa no filtro de tipo payment. Em seguida, a validação da assinatura chama `env("MERCADO_PAGO_WEBHOOK_SECRET")`. Sem esse segredo, ela lança "Configuração comercial pendente", que o bloco catch transforma em HTTP 500.
-
-**Causa comprovada (pelo código e pela lista de segredos):** falta o segredo de assinatura do webhook. A função parou antes de qualquer consulta ao Mercado Pago, então nenhuma chamada de pagamento foi feita.
-
-**Hipótese descartada para este envio:** a busca de `/v1/payments/123456` retornar "não encontrado" (o que também daria 500). Ela não chegou a rodar. Vai acontecer depois que o segredo for cadastrado, porque esse pagamento simulado não existe.
-
-## Próximo teste seguro (precisa de autorização)
-
-1. A proprietária copia a "assinatura secreta" de Webhooks no painel do Mercado Pago e cadastra como MERCADO_PAGO_WEBHOOK_SECRET em Configurações do Projeto → Segredos. Não colar no chat.
-2. Reenviar a simulação. O esperado agora é um erro na busca do pagamento 123456, que não existe (500 com o código atual). Isso confirma que a assinatura passou, e ele nunca será tratado como aprovado.
-3. Opcional, sob autorização: fazer a função responder 200/ignorar quando o pagamento não existir ou vier com live_mode=false, e registrar o motivo do erro sem dados sensíveis.
-
-Nada foi alterado, implantado ou publicado.
+## Detalhes técnicos
+- Componente isolado, ativado apenas pelo slug exato, com agrupamento testável e CSS restrito à seção.
+- Sem migrações, alterações de dados, autenticação adicional ou publicação.
+- Executar testes pertinentes e conferir o resultado da validação automática e a interação pública em computador/celular.
