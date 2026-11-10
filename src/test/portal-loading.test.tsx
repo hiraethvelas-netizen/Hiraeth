@@ -112,7 +112,7 @@ describe("Portal NFC: recuperação de falhas de carregamento", () => {
     expect(screen.queryByText(fragment.body)).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: /Uma história preservada/ }));
     expect(screen.getByText(fragment.body)).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: /Uma história preservada/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Fechar informações da vela" }));
     expect(screen.queryByText(fragment.body)).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Conheça as inspirações/ }))
       .toHaveAttribute("href", "/portal/o-mundo-de-magia/inspiracoes");
