@@ -1,3 +1,5 @@
+import { allocateScopedDiscounts } from "./promotion-allocation.ts";
+
 export type ItemInput = { productId: string; quantity: number; variantKey?: string };
 export type SnapshotItem = {
   productId: string;
@@ -193,13 +195,15 @@ export function calculateCheckoutPrice(
   const candidates=promotions.filter(p => p.kind!=="coupon" || p.id===coupon?.id);
   const benefits=candidates.map(p=>benefit(p,items,categories,now)).filter((b):b is Benefit=>!!b);
   if (code && !benefits.some(b=>b.id===coupon?.id)) throw new Error("Cupom não disponível para esta compra.");
-  let remaining=subtotal;
-  const applied:Benefit[]=benefits.map(b=>{
-    const discount=money(Math.min(remaining,b.discount));
-    remaining=money(remaining-discount);
-    return {...b,discount};
-  }).filter(b=>b.discount>0||b.freeShipping||b.gift);
-  const discount=money(subtotal-remaining);
+  const allocation=allocateScopedDiscounts(items.map(item=>money(item.price*item.quantity)),
+    benefits.map(b=>({discount:b.discount,eligibleItems:items.flatMap((item,index)=>{
+      const promotion=candidates.find(p=>p.id===b.id)!;
+      return eligible(promotion,item,categories)?[index]:[];
+    })})),subtotal);
+  const applied=benefits.map((b,index)=>({...b,discount:allocation.discounts[index]!,
+    itemDiscounts:allocation.allocations[index]!}))
+    .filter(b=>b.discount>0||b.freeShipping||b.gift);
+  const discount=allocation.discount;
   const shipping=applied.some(b=>b.freeShipping)?0:money(shippingPrice);
   const total=money(subtotal-discount+shipping);
   if (total<=0) throw new Error("Pagamento de valor zero exige tratamento especial.");

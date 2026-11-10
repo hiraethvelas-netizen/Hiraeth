@@ -1,3 +1,5 @@
+import { allocateScopedDiscounts } from "../../supabase/functions/_shared/promotion-allocation";
+
 export type Promotion = {
   id: string;
   name: string;
@@ -32,6 +34,8 @@ export type PromotionBenefit = {
   discount: number;
   freeShipping: boolean;
   gift: string | null;
+  eligibleSubtotals?: number[];
+  itemDiscounts?: number[];
 };
 const money = (value: number) => Math.round((value + Number.EPSILON) * 100) / 100;
 
@@ -82,6 +86,8 @@ export function promotionBenefit(
     discount: 0,
     freeShipping: false,
     gift: null,
+    eligibleSubtotals: items.map(item => validItems.includes(item) && eligibleForPromotion(promotion, item, categories)
+      ? money(item.price * item.quantity) : 0),
   };
   if (["coupon", "automatic_discount"].includes(promotion.kind)) {
     const value = Number(promotion.discount_value ?? 0);
@@ -124,12 +130,22 @@ export function combineBenefits(
   benefits: PromotionBenefit[],
   maximumDiscount = Number.POSITIVE_INFINITY,
 ) {
-  let remaining = Math.max(0, maximumDiscount);
+  const scoped = benefits.some(benefit => benefit.eligibleSubtotals !== undefined);
+  const itemCount = Math.max(0, ...benefits.map(benefit => benefit.eligibleSubtotals?.length ?? 0));
+  const subtotals = scoped
+    ? Array.from({ length: itemCount }, (_, index) =>
+        Math.max(0, ...benefits.map(benefit => benefit.eligibleSubtotals?.[index] ?? 0)))
+    : [benefits.reduce((sum, benefit) => sum + benefit.discount, 0)];
+  const allocation = allocateScopedDiscounts(subtotals, benefits.map(benefit => ({
+    discount: benefit.discount,
+    eligibleItems: subtotals.flatMap((_, index) =>
+      !benefit.eligibleSubtotals || benefit.eligibleSubtotals[index]! > 0 ? [index] : []),
+  })), maximumDiscount);
   const applied = benefits
-    .map((benefit) => {
-      const discount = money(Math.min(remaining, benefit.discount));
-      remaining -= discount;
-      return { ...benefit, discount };
+    .map((benefit, index) => {
+      const { eligibleSubtotals: _scope, ...summary } = benefit;
+      return { ...summary, discount: allocation.discounts[index]!,
+        ...(scoped ? { itemDiscounts: allocation.allocations[index]! } : {}) };
     })
     .filter((benefit) => benefit.discount > 0 || benefit.freeShipping || benefit.gift);
   return {

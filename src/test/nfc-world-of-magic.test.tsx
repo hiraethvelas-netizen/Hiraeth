@@ -101,22 +101,22 @@ describe("Portal NFC: fotos de Natal configuráveis",()=>{
 });
 
 
-describe("Natal no portal mágico: decoração isolada e interativa",()=>{
-  it("usa ornamentos sem carregar fotografias como fundos de página",()=>{
+describe("Portal mágico: decoração isolada e interativa",()=>{
+  it("usa estrelas sem carregar fotografias como fundos de página",()=>{
     const {container}=render(<PortalChristmasDecor scene="hero"/>);
     expect(container.querySelector(".portal-xmas-photographic-scene")).toBeNull();
-    expect(container.querySelectorAll(".portal-xmas-bauble").length).toBeGreaterThan(3);
+    expect(container.querySelectorAll(".portal-magic-star").length).toBeGreaterThan(3);
     expect(container.querySelectorAll(".portal-xmas-bulb").length).toBeGreaterThan(10);
   });
 
   it("distribui luzes, enfeites e velas sem bloquear o conteúdo",()=>{
     const {container}=render(<PortalChristmasDecor scene="hero"/>);
     expect(container.querySelectorAll(".portal-xmas-bulb")).toHaveLength(16);
-    expect(container.querySelectorAll(".portal-xmas-bauble")).toHaveLength(10);
+    expect(container.querySelectorAll(".portal-magic-star")).toHaveLength(10);
     expect(container.querySelectorAll(".portal-xmas-candle")).toHaveLength(7);
     expect(container.querySelector(".portal-xmas-atmosphere")?.getAttribute("aria-hidden")).toBe("true");
   });
-  it("aciona o Correio da Fênix ao clicar em Mais magia, sem mudar a rota",()=>{
+  it("alterna somente as luzes coloridas ao clicar em Mais magia",()=>{
     const {container}=render(<PortalChristmasDecor scene="hero"/>);
     const toggle=screen.getByRole("button",{name:/mais magia: acender luzes/i});
     expect(toggle.getAttribute("aria-pressed")).toBe("false");
@@ -124,19 +124,19 @@ describe("Natal no portal mágico: decoração isolada e interativa",()=>{
     fireEvent.click(toggle);
     expect(toggle.getAttribute("aria-pressed")).toBe("true");
     expect(container.querySelector(".portal-xmas-decor--bright")).not.toBeNull();
-    expect(document.querySelector(".portal-xmas-phoenix-flight")).not.toBeNull();
-    const flight=document.querySelector(".portal-xmas-phoenix-flight")!;
-    fireEvent.animationEnd(flight);
     expect(document.querySelector(".portal-xmas-phoenix-flight")).toBeNull();
     fireEvent.click(toggle);
     expect(toggle.getAttribute("aria-pressed")).toBe("false");
     expect(container.querySelector(".portal-xmas-decor--bright")).toBeNull();
-    expect(document.querySelector(".portal-xmas-phoenix-flight")).not.toBeNull();
+    expect(document.querySelector(".portal-xmas-phoenix-flight")).toBeNull();
   });
-  it("tem árvores e presentes nas seções sem imagens de fundo",()=>{
+  it("decora com estrelas e astrolábio sem árvores ou presentes de Natal",()=>{
     const {container}=render(<PortalChristmasDecor scene="actions"/>);
-    expect(container.querySelectorAll(".portal-xmas-tree")).toHaveLength(2);
-    expect(container.querySelectorAll(".portal-xmas-present")).toHaveLength(3);
+    expect(container.querySelector(".portal-magic-astrolabe")).not.toBeNull();
+    expect(container.querySelectorAll(".portal-magic-star")).toHaveLength(6);
+    expect(container.querySelector(".portal-xmas-tree")).toBeNull();
+    expect(container.querySelector(".portal-xmas-present")).toBeNull();
+    expect(container.querySelector(".portal-xmas-bauble")).toBeNull();
     expect(container.querySelector(".portal-xmas-photographic-scene")).toBeNull();
   });
   it("posiciona coruja e vassoura como elementos fotográficos de seções diferentes",()=>{

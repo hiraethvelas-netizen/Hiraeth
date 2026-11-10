@@ -140,7 +140,10 @@ async function newProduct() {
   });
 }
 async function addIngredient(name: string, quantity: string) {
-  fireEvent.change(screen.getByLabelText("Aroma", { exact: true }), { target: { value: name } });
+  fireEvent.change(screen.getByRole("combobox", { name: "Pesquisar aroma no estoque" }), {
+    target: { value: name },
+  });
+  fireEvent.click(screen.getByRole("option", { name }));
   fireEvent.change(screen.getByLabelText("Quantidade (ml)"), { target: { value: quantity } });
   fireEvent.click(screen.getByRole("button", { name: "Adicionar aroma" }));
 }
@@ -150,7 +153,7 @@ describe("Product and essence forms", () => {
     expect(screen.queryByLabelText("Peso da vela")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "+ Adicionar variação" })).toBeInTheDocument();
     fireEvent.click(screen.getByLabelText("Um artefato"));
-    expect(screen.queryByLabelText("Aroma", { exact: true })).not.toBeInTheDocument();
+    expect(screen.queryByRole("combobox", { name: "Pesquisar aroma no estoque" })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Salvar produto" }));
     await waitFor(() =>
       expect(mocks.mutation).toHaveBeenCalledWith(
@@ -166,8 +169,8 @@ describe("Product and essence forms", () => {
     fireEvent.click(screen.getByRole("button", { name: "+ Adicionar variação" }));
     fireEvent.change(screen.getByLabelText("Nome da variação"), { target: { value: "Peso" } });
     fireEvent.change(screen.getByLabelText("Opção 1 de Peso"), { target: { value: "250 g" } });
-    await addIngredient("e1", "8");
-    await addIngredient("e2", "2");
+    await addIngredient("Baunilha", "8");
+    await addIngredient("Canela", "2");
     fireEvent.click(screen.getByRole("button", { name: "Salvar produto" }));
     await waitFor(() =>
       expect(mocks.rpc).toHaveBeenCalledWith("set_product_essences", {
@@ -191,7 +194,7 @@ describe("Product and essence forms", () => {
   });
   it("reports recipe failure without reporting complete product success", async () => {
     await newProduct();
-    await addIngredient("e1", "8");
+    await addIngredient("Baunilha", "8");
     mocks.recipeError = true;
     fireEvent.click(screen.getByRole("button", { name: "Salvar produto" }));
     await waitFor(() =>

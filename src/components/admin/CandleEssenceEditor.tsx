@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 import { Search, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { EssenceNotesFields } from "@/components/admin/EssenceNotesFields";
@@ -39,6 +39,9 @@ export function CandleEssenceEditor({
   const [tab, setTab] = useState<"stock" | "new">("stock");
   const [search, setSearch] = useState("");
   const [selectedId, setSelectedId] = useState("");
+  const [suggestionsOpen, setSuggestionsOpen] = useState(false);
+  const [highlightedIndex, setHighlightedIndex] = useState(-1);
+  const suggestionsId = useId();
   const [quantity, setQuantity] = useState("");
   const [newName, setNewName] = useState("");
   const [newStock, setNewStock] = useState("0");
@@ -50,7 +53,20 @@ export function CandleEssenceEditor({
       .sort((a, b) => a.name.localeCompare(b.name, "pt-BR")),
     [essences, search],
   );
-  const activeSelected = essences.find(item => item.id === selectedId);
+  const activeSelected = essences.find(item => item.id === selectedId && item.active);
+
+  useEffect(() => {
+    if (suggestionsOpen && highlightedIndex >= 0) {
+      document.getElementById(`${suggestionsId}-${highlightedIndex}`)?.scrollIntoView?.({ block: "nearest" });
+    }
+  }, [suggestionsOpen, suggestionsId, highlightedIndex]);
+
+  function selectEssence(item: StockEssence) {
+    setSelectedId(item.id);
+    setSearch(item.name);
+    setSuggestionsOpen(false);
+    setHighlightedIndex(-1);
+  }
 
   function addIngredient() {
     const essence = essences.find(item => item.id === selectedId && item.active);
@@ -80,7 +96,10 @@ export function CandleEssenceEditor({
     if (essences.some(item => fold(item.name) === fold(name))) {
       toast.error("Essa essência já existe. Pesquise e selecione no estoque.");
       setSearch(name);
+      setSelectedId("");
+      setHighlightedIndex(-1);
       setTab("stock");
+      setSuggestionsOpen(true);
       return;
     }
     if (!notes.is_pure && ![notes.top, notes.heart, notes.base].some(value => value.trim())) {
@@ -91,8 +110,7 @@ export function CandleEssenceEditor({
     setCreating(true);
     try {
       const item = await onCreate({ name, stock_ml: stock, notes });
-      setSelectedId(item.id);
-      setSearch(item.name);
+      selectEssence(item);
       setTab("stock");
       setQuantity("");
       setNewName("");
@@ -135,7 +153,38 @@ export function CandleEssenceEditor({
             <label className="relative block min-w-0 flex-1 text-sm text-muted-foreground">
               Pesquisar aroma no estoque
               <Search size={16} aria-hidden="true" className="pointer-events-none absolute bottom-3 left-3 text-muted-foreground" />
-              <input type="search" value={search} onChange={event => setSearch(event.target.value)}
+              <input type="search" role="combobox" autoComplete="off" value={search}
+                aria-autocomplete="list" aria-expanded={suggestionsOpen}
+                aria-controls={suggestionsOpen ? suggestionsId : undefined}
+                aria-activedescendant={suggestionsOpen && available[highlightedIndex]
+                  ? `${suggestionsId}-${highlightedIndex}` : undefined}
+                disabled={saving}
+                onFocus={() => { setSuggestionsOpen(true); setHighlightedIndex(-1); }}
+                onBlur={() => { setSuggestionsOpen(false); setHighlightedIndex(-1); }}
+                onChange={event => {
+                  setSearch(event.target.value);
+                  setSelectedId("");
+                  setSuggestionsOpen(true);
+                  setHighlightedIndex(-1);
+                }}
+                onKeyDown={event => {
+                  if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+                    event.preventDefault();
+                    setSuggestionsOpen(true);
+                    if (available.length) setHighlightedIndex(index => {
+                      if (!suggestionsOpen || index < 0) return event.key === "ArrowDown" ? 0 : available.length - 1;
+                      return (index + (event.key === "ArrowDown" ? 1 : -1) + available.length) % available.length;
+                    });
+                  } else if (event.key === "Enter") {
+                    event.preventDefault();
+                    const item = available[highlightedIndex];
+                    if (suggestionsOpen && item) selectEssence(item);
+                  } else if (event.key === "Escape") {
+                    event.preventDefault();
+                    setSuggestionsOpen(false);
+                    setHighlightedIndex(-1);
+                  }
+                }}
                 placeholder="Ex.: Baunilha, Floresta de Inverno..."
                 className={inputCls + " pl-9"} />
             </label>
@@ -150,36 +199,27 @@ export function CandleEssenceEditor({
             {stockError} Use “Atualizar estoque” para tentar novamente.
           </p>}
           {refreshing && <p role="status" className="text-xs text-muted-foreground">Consultando estoque...</p>}
-          <div className="max-h-48 space-y-1 overflow-y-auto rounded border border-primary/20 p-2">
-            {available.length > 0 ? available.map(item => (
-              <button key={item.id} type="button" aria-pressed={selectedId === item.id}
-                aria-label={"Selecionar " + item.name}
+          {suggestionsOpen && <div id={suggestionsId} role="listbox" aria-label="Essências do estoque"
+            className="max-h-48 space-y-1 overflow-y-auto rounded border border-primary/20 bg-background p-2">
+            {available.length > 0 ? available.map((item, index) => (
+              <button key={item.id} id={`${suggestionsId}-${index}`} type="button" role="option"
+                aria-selected={highlightedIndex === index || (highlightedIndex < 0 && selectedId === item.id)} tabIndex={-1}
+                aria-label={item.name}
                 disabled={saving}
-                onClick={() => setSelectedId(item.id)}
+                onMouseDown={event => event.preventDefault()}
+                onClick={() => selectEssence(item)}
                 className={"flex w-full items-center justify-between gap-3 rounded px-3 py-2 text-left text-sm " +
-                  (selectedId === item.id ? "bg-primary/15 text-primary" : "text-foreground hover:bg-primary/10")}>
+                  (selectedId === item.id || highlightedIndex === index ? "bg-primary/15 text-primary" : "text-foreground hover:bg-primary/10")}>
                 <span>{item.name}</span>
                 <span className="shrink-0 text-xs text-muted-foreground">
                   {Number(item.stock_ml).toLocaleString("pt-BR")} ml em estoque
                 </span>
               </button>
-            )) : <p className="p-2 text-sm text-muted-foreground">
+            )) : <p role="status" className="p-2 text-sm text-muted-foreground">
               {stockError ? "Estoque indisponível." : "Nenhuma essência encontrada. Cadastre uma nova na outra aba."}
             </p>}
-          </div>
-          <div className="grid gap-3 sm:grid-cols-[1fr_9rem_auto]">
-            <label className="block text-sm text-muted-foreground">
-              Aroma
-              <select aria-label="Aroma" value={selectedId}
-                onChange={event => setSelectedId(event.target.value)}
-                className={inputCls}>
-                <option value="">Escolha uma essência</option>
-                {essences.filter(item => item.active).sort((a, b) => a.name.localeCompare(b.name, "pt-BR"))
-                  .map(item => <option key={item.id} value={item.id}>
-                    {item.name} — {Number(item.stock_ml).toLocaleString("pt-BR")} ml
-                  </option>)}
-              </select>
-            </label>
+          </div>}
+          <div className="grid gap-3 sm:grid-cols-[9rem_auto]">
             <label className="block text-sm text-muted-foreground">
               Quantidade (ml)
               <input type="number" min="0.001" step="0.001" placeholder="Ex.: 8"
