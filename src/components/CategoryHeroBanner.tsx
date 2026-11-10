@@ -15,9 +15,10 @@ export function CategoryHeroBanner({
     "category-banner-" + category.id, { bannerImage: "" },
   );
   const [name, setName] = useState(category.name);
-  const image = settings.bannerImage || category.image_url || "";
+  const image = settings.bannerImage || "";
   return (
     <section className="hiraeth-category-hero hiraeth-reveal relative mb-10 mt-7 min-w-0 overflow-hidden rounded-xl border border-primary/40">
+      <div className="relative">
       {image ? <img src={image} alt={"Banner da coleção " + category.name}
         className="h-64 w-full object-cover sm:h-80 md:h-[26rem]" /> :
         <div className="h-48 w-full bg-[radial-gradient(ellipse_at_center,_var(--color-secondary),_var(--color-background)_70%)] sm:h-64 md:h-80" aria-hidden="true" />}
@@ -30,15 +31,14 @@ export function CategoryHeroBanner({
           </span>}
         </div>
       </div>
-      <div className="absolute bottom-2 right-2 z-10 flex flex-wrap justify-end gap-1">
+      </div>
+      <div className="relative flex flex-wrap items-center justify-end gap-2 border-t border-primary/30 bg-background/95 p-2">
         <InlineEditor label={"banner da coleção " + category.name}
           fields={[
             { name: "bannerImage", label: "Foto do banner (não altera a bolinha)", type: "image", cropAspect: "landscape", help: "Escolha uma foto diferente da imagem redonda da coleção. Ajuste corte e zoom antes de salvar." },
           ]}
           values={{ bannerImage: settings.bannerImage }}
           onSave={async values => saveSettings({ ...settings, bannerImage: String(values["bannerImage"] ?? "") })} />
-      </div>
-      <div className="relative border-t border-primary/30 bg-background/95 p-2">
         <InlineEditor label={"nome da coleção " + category.name}
           fields={[{ name: "name", label: "Nome da coleção", type: "text" }]}
           values={{ name: name }}

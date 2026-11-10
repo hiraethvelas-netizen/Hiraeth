@@ -6,7 +6,8 @@ import { SiteFooter, SiteHeader } from "@/components/SiteLayout";
 import { brl } from "@/lib/format";
 import type { Tables } from "@/integrations/supabase/types";
 import { InlineEditor } from "@/components/InlineEditor";
-import { useSiteContent } from "@/lib/admin-edit";
+import { useAdminEdit, useSiteContent } from "@/lib/admin-edit";
+import { useCollectionVisibility } from "@/hooks/use-collection-visibility";
 import { StoreBanners } from "@/components/StoreBanners";
 import { AcervoNavigation } from "@/components/AcervoNavigation";
 import { CustomerReviews } from "@/components/CustomerReviews";
@@ -63,6 +64,8 @@ function Loja() {
   const search = Route.useSearch();
   const showFavorites = search.favoritos === "1";
   const navigate = useNavigate();
+  const { editing } = useAdminEdit();
+  const collectionVisibility = useCollectionVisibility();
   const [pageSettings, savePageSettings] = useSiteContent("store-page-settings", { eyebrow: "O Acervo Hiraeth", title: "O Acervo Hiraeth", intro: "Encontre o universo que mora em você.", bannerImage: "", showBanner: false });
   const [products, setProducts] = useState<Product[]>([]);
   const { promotions: automaticPromotions, categories: promotionCategories } = useStorePromotions();
@@ -148,7 +151,13 @@ useEffect(() => {
     toast.success(alreadySaved ? "Removido dos favoritos." : "Adicionado aos favoritos.");
   }
   const featuredCollectionSlugs = ["harry-potter", "universo-sarah-j-maas", "friends", "the-vampire-diaries", "crepusculo", "taylor-swift", "gilmore-girls"];
-  const featuredCollections = featuredCollectionSlugs.map((slug) => categories.find((category) => category.slug === slug)).filter((category): category is Category => Boolean(category));
+  const featuredCollections = [
+    ...featuredCollectionSlugs.map((slug) => categories.find((category) => category.slug === slug)).filter((category): category is Category => Boolean(category)),
+    ...categories.filter(category => category.parent_id && !featuredCollectionSlugs.includes(category.slug)),
+  ];
+  const visibleCollections = collectionVisibility.settings?.showSection && !collectionVisibility.loading && !collectionVisibility.error
+    ? featuredCollections.filter(category => collectionVisibility.settings!.visibleCategoryIds === null || collectionVisibility.settings!.visibleCategoryIds.includes(category.id))
+    : [];
   const apparelProducts = !categoryId && !showFavorites ? filteredProductsForApparel(products, categories) : [];
 
   const filtered = useMemo(() => {
@@ -211,7 +220,7 @@ useEffect(() => {
         {!selectedCategory && !showFavorites && pageSettings.showBanner && pageSettings.bannerImage && <img src={pageSettings.bannerImage} alt="Banner da loja Hiraeth" className="mb-8 max-h-[28rem] w-full object-cover" />}
 
         {selectedCategory && <CategoryHeroBanner
-          key={selectedCategory.id}
+          key={"category-banner-" + selectedCategory.id}
           category={selectedCategory}
           onNameChange={async name => {
             const { error } = await supabase.from("categories").update({ name }).eq("id", selectedCategory.id);
@@ -220,11 +229,39 @@ useEffect(() => {
           }}
         />}
 
-        {!categoryId && !showFavorites && featuredCollections.length > 0 && <section className="mt-8">
-          <div className="mb-4 flex items-end justify-between gap-3"><div className="min-w-0"><p className="eyebrow">{pageSettings.eyebrow}</p><h2 className="hiraeth-editorial-title hiraeth-acervo-heading !mx-0 mt-2 !text-left !text-4xl md:!text-6xl">{pageSettings.title}</h2>{pageSettings.intro && <p className="mt-3 max-w-2xl text-sm text-muted-foreground md:text-base">{pageSettings.intro}</p>}</div><span className="shrink-0 text-xs text-muted-foreground">7 universos</span></div>
+        {!categoryId && !showFavorites && editing && <div className="mt-6 space-y-2">
+          {loading || collectionVisibility.loading ? <p role="status" className="text-sm text-muted-foreground">Carregando opções das bolinhas...</p>
+            : collectionVisibility.error ? <div>
+              <p role="alert" className="text-sm text-destructive">Não foi possível carregar as opções das bolinhas.</p>
+              <button type="button" onClick={collectionVisibility.retry} className="mt-2 rounded border border-primary/40 px-3 py-2 text-sm text-primary">Tentar carregar as opções novamente</button>
+            </div> : collectionVisibility.settings && <>
+              <InlineEditor label="bolinhas de subcategorias"
+                fields={[
+                  { name: "showSection", label: "Exibir a área das bolinhas para os clientes", type: "checkbox" },
+                  ...featuredCollections.map(category => ({ name: "collection-" + category.id, label: "Exibir bolinha de " + category.name, type: "checkbox" as const })),
+                ]}
+                values={{ showSection: collectionVisibility.settings.showSection, ...Object.fromEntries(featuredCollections.map(category => ["collection-" + category.id, collectionVisibility.settings!.visibleCategoryIds === null || collectionVisibility.settings!.visibleCategoryIds.includes(category.id)])) }}
+                onSave={async values => {
+                  const settings = collectionVisibility.settings!;
+                  const selected = new Set(settings.visibleCategoryIds ?? featuredCollections.map(category => category.id));
+                  let changed = false;
+                  for (const category of featuredCollections) {
+                    const show = values["collection-" + category.id];
+                    if (typeof show !== "boolean") continue;
+                    if (show !== selected.has(category.id)) changed = true;
+                    if (show) selected.add(category.id); else selected.delete(category.id);
+                  }
+                  await collectionVisibility.save({ ...settings, showSection: values["showSection"] === true, visibleCategoryIds: settings.visibleCategoryIds === null && !changed ? null : [...selected] });
+                }} />
+              <p className="text-xs text-muted-foreground">Escolha quais bolinhas os clientes verão. Ocultar uma bolinha não altera a categoria, os produtos ou o menu do acervo.</p>
+            </>}
+        </div>}
+
+        {!categoryId && !showFavorites && visibleCollections.length > 0 && <section className="mt-8" aria-label="Coleções em destaque">
+          <div className="mb-4 flex items-end justify-between gap-3"><div className="min-w-0"><p className="eyebrow">{pageSettings.eyebrow}</p><h2 className="hiraeth-editorial-title hiraeth-acervo-heading !mx-0 mt-2 !text-left !text-4xl md:!text-6xl">{pageSettings.title}</h2>{pageSettings.intro && <p className="mt-3 max-w-2xl text-sm text-muted-foreground md:text-base">{pageSettings.intro}</p>}</div><span className="shrink-0 text-xs text-muted-foreground">{visibleCollections.length} {visibleCollections.length === 1 ? "universo" : "universos"}</span></div>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
-            {featuredCollections.map((collection) => <div key={collection.id} className="flex min-w-0 flex-col items-center gap-2">
-              <button type="button" onClick={() => { const enter = () => { setCategoryId(collection.id); void navigate({ to: "/loja", search: { ...(search.q ? { q: search.q } : {}), categoria: collection.slug }, replace: true }); window.scrollTo({ top: 0, behavior: "smooth" }); }; if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) enter(); else { setEnteringCategory(collection); window.setTimeout(() => { enter(); setEnteringCategory(null); }, 620); } }} className="hiraeth-collection-card group relative aspect-square w-full overflow-hidden rounded-full text-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">
+            {visibleCollections.map((collection) => <div key={collection.id} className="flex min-w-0 flex-col items-center gap-2">
+              <button type="button" aria-label={collection.name} onClick={() => { const enter = () => { setCategoryId(collection.id); void navigate({ to: "/loja", search: { ...(search.q ? { q: search.q } : {}), categoria: collection.slug }, replace: true }); window.scrollTo({ top: 0, behavior: "smooth" }); }; if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) enter(); else { setEnteringCategory(collection); window.setTimeout(() => { enter(); setEnteringCategory(null); }, 620); } }} className="hiraeth-collection-card group relative aspect-square w-full overflow-hidden rounded-full text-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">
                 <div className="absolute inset-0 bg-muted">{collection.image_url ? <img src={collection.image_url} alt="" className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110" loading="lazy" /> : <div className="flex h-full items-center justify-center bg-gradient-to-br from-card to-muted p-3 text-center font-display text-xl text-primary">{collection.name}</div>}</div>
                 <div className="absolute inset-0 flex items-end justify-center rounded-full bg-gradient-to-t from-black/80 via-black/5 to-transparent p-4 pb-6"><span className="hiraeth-collection-label font-display text-lg text-[#f7efda] sm:text-xl">{collection.name}</span>{collection.is_temporary && <span className="ml-auto border border-amber-100/80 px-1.5 py-0.5 text-[9px] uppercase tracking-wide text-amber-50">Temporária</span>}</div>
                 <span className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100 group-hover:shadow-[inset_0_0_35px_rgba(198,166,91,0.55)]" />
