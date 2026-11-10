@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { BookOpen, ChevronDown, Flame, Gift, Sparkles, X } from "lucide-react";
+import { BookOpen, ChevronDown, Flame, Sparkles, X } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Fragment = Tables<"portal_fragments">;
@@ -62,7 +62,7 @@ function RevealStoryCard({ fragment, kind = "story", featured = false }: {
       className="portal-discovery-card__image" loading="lazy" />}
     <div className="portal-discovery-card__top">
       <span className="portal-discovery-card__emblem" aria-hidden="true">
-        {house ? (house === "leao" ? "♌" : house === "texugo" ? "✧" : house === "serpente" ? "♜" : "✦") : <BookOpen size={19} strokeWidth={1.4}/>}
+        {house ? ({ leao: "L", texugo: "T", serpente: "S", aguia: "A" } as Record<House, string>)[house] : <BookOpen size={19} strokeWidth={1.4}/>}
       </span>
       <span className="portal-discovery-card__eyebrow">
         {house ? "Uma casa, uma essência" : position === 2 ? "O segredo da seleção" : position >= 7 ? "Memórias de Natal" : "Por trás das chamas"}
