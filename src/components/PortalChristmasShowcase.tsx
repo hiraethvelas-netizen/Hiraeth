@@ -1,9 +1,13 @@
 import { useState } from "react";
 import { ChevronDown, Flame, Gift, Sparkles } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
+import entreFiosPhoto from "@/assets/natal-entre-fios.webp";
+import grandeSalaoPhoto from "@/assets/natal-grande-salao.webp";
 
 type Fragment = Tables<"portal_fragments">;
 type Props = { fragments: Fragment[] };
+
+const defaultPhotos: Record<number, string> = { 8: entreFiosPhoto, 9: grandeSalaoPhoto };
 
 const previewLines: Record<number, string> = {
   8: "Um presente feito à mão. Um carinho que aquece até os dias mais frios.",
@@ -28,12 +32,13 @@ export function PortalChristmasShowcase({ fragments }: Props) {
     <div className="portal-natal-discovery__grid">
       {candles.map(fragment => {
         const active = fragment.position === opened;
+        const photoUrl = fragment.image_url || defaultPhotos[fragment.position ?? -1];
         return <button key={fragment.id} type="button"
           className={`portal-natal-discovery__candle ${active ? "is-selected" : ""}`}
           aria-expanded={active} aria-controls="portal-natal-discovery-panel"
           onClick={() => setOpened(active ? null : fragment.position)}>
           <span className="portal-natal-discovery__picture">
-            {fragment.image_url ? <img className="portal-natal-discovery__photo" src={fragment.image_url}
+            {photoUrl ? <img className="portal-natal-discovery__photo" src={photoUrl}
               alt={`Vela ${fragment.title}`} loading="lazy" /> : <span className="portal-natal-discovery__placeholder" aria-hidden="true">
               <span className="portal-natal-discovery__illustration">
                 <span className="portal-natal-discovery__wick"/>
