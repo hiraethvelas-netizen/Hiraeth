@@ -1,6 +1,7 @@
 import { createFileRoute, notFound } from "@tanstack/react-router";
 import { ArrowUpRight, BookOpenText, Headphones, LibraryBig, Smartphone } from "lucide-react";
 import { PortalInspirationCard } from "@/components/PortalInspirationChapters";
+import { PortalFestiveAccents } from "@/components/PortalFestiveAccents";
 import { PortalIntro } from "@/components/PortalIntro";
 import { PortalChristmasDecor } from "@/components/PortalChristmasDecor";
 import { carouselFromTheme, isMagicWorld, magicWorldTitle, portalCatalogDestination, spotifyPlaylistUrl } from "@/lib/portal-experience";
@@ -196,7 +197,7 @@ function PortalPage() {
           {magicWorld && <PortalChristmasDecor scene="actions" />}
           <div className="relative z-10 mb-10 text-center">
             <p className="text-xs uppercase tracking-[.28em] text-[var(--portal-accent)]">Escolha seu caminho</p>
-            <h2 className="mt-3 font-display text-3xl md:text-4xl">Portas para este universo</h2>
+            <h2 className="portal-script-title mt-3">Portas para este universo</h2>
           </div>
           <div className="portal-action-grid portal-action-grid--ornate relative z-10 grid gap-4 sm:grid-cols-2">
             {spotifyUrl && portal.spotify_visible ? <a className="portal-action-card" href={spotifyUrl}
@@ -228,16 +229,17 @@ function PortalPage() {
       {portal.spotify_visible && embed && <section data-portal-reveal
         className="portal-reveal mx-auto max-w-2xl px-5 pb-16">
         <p className="text-center text-xs uppercase tracking-[.28em] text-[var(--portal-accent)]">Trilha sonora</p>
-        <h2 className="mt-3 text-center font-display text-3xl">{portal.spotify_title||"Músicas para atravessar o portal"}</h2>
+        <h2 className="portal-script-title mt-3 text-center">{portal.spotify_title||"Músicas para atravessar o portal"}</h2>
         {portal.spotify_description && <p className="mx-auto mt-3 max-w-lg text-center text-sm opacity-80">{portal.spotify_description}</p>}
         <iframe src={embed} title="Playlist da coleção no Spotify" className="mt-6 w-full rounded-xl border border-[var(--portal-accent)]/30"
           height="352" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" />
       </section>}
 
-      {magicWorld ? <section id="portal-natal" aria-labelledby="portal-natal-title" className="mx-auto max-w-5xl px-5 pb-16 pt-6 sm:px-8">
+      {magicWorld ? <section id="portal-natal" aria-labelledby="portal-natal-title" className="portal-festive-section relative isolate mx-auto max-w-5xl overflow-hidden px-5 pb-16 pt-24 sm:px-8 sm:pt-28">
+        <PortalFestiveAccents variant="natal" />
         <div className="mb-9 text-center">
           <p className="text-xs uppercase tracking-[.28em] text-[var(--portal-accent)]">Duas velas, duas lembranças</p>
-          <h2 id="portal-natal-title" className="mt-3 font-display text-3xl sm:text-5xl">O Natal no Mundo da Magia</h2>
+          <h2 id="portal-natal-title" className="portal-script-title mt-3">O Natal no Mundo da Magia</h2>
           <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 opacity-85 sm:text-base">
             O brilho das árvores, o conforto da amizade e os presentes que carregam carinho.
             Conheça os aromas que nasceram dessas lembranças.
