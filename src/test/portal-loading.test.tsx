@@ -1,0 +1,150 @@
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+const mocks = vi.hoisted(() => ({
+  slug: "colecao-teste",
+  portalQuery: vi.fn(),
+  fragmentsQuery: vi.fn(),
+}));
+
+vi.mock("@tanstack/react-router", () => ({
+  createFileRoute: () => (options: object) => ({
+    options,
+    useParams: () => ({ slug: mocks.slug }),
+  }),
+  notFound: () => new Error("Portal não encontrado"),
+}));
+vi.mock("@/components/SiteLayout", () => ({ SiteFooter: () => null }));
+vi.mock("@/components/PortalChristmasDecor", () => ({ PortalChristmasDecor: () => null }));
+vi.mock("@/components/PortalIntro", () => ({
+  PortalIntro: ({ onEnter }: { onEnter: () => void }) => (
+    <button type="button" onClick={onEnter}>
+      Entrar na coleção
+    </button>
+  ),
+}));
+vi.mock("@/integrations/supabase/client", () => ({
+  supabase: {
+    from: (table: string) => {
+      const query = {
+        select: () => query,
+        eq: () => query,
+        maybeSingle: mocks.portalQuery,
+        order: mocks.fragmentsQuery,
+      };
+      expect(["portals", "portal_fragments"]).toContain(table);
+      return query;
+    },
+  },
+}));
+
+import { Route } from "@/routes/portal.$slug";
+const PortalPage = Route.options.component!;
+const portal = {
+  id: "portal-teste",
+  slug: "colecao-teste",
+  name: "Coleção de histórias",
+  intro_enabled: false,
+  theme: {},
+};
+const fragment = {
+  id: "inspiracao-teste",
+  title: "Uma história preservada",
+  body: "Os detalhes deste aroma.",
+};
+
+beforeEach(() => {
+  mocks.slug = "colecao-teste";
+  mocks.portalQuery.mockResolvedValue({ data: portal, error: null });
+  mocks.fragmentsQuery.mockResolvedValue({ data: [], error: null });
+});
+afterEach(() => {
+  cleanup();
+  vi.resetAllMocks();
+});
+
+describe("Portal NFC: recuperação de falhas de carregamento", () => {
+  it("permite tentar novamente uma consulta de portal que falhou", async () => {
+    mocks.portalQuery.mockResolvedValueOnce({ data: null, error: { message: "offline" } });
+    render(<PortalPage />);
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Não foi possível carregar o portal",
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Tentar carregar o portal novamente" }));
+    expect(await screen.findByRole("heading", { name: portal.name })).toBeInTheDocument();
+    expect(mocks.portalQuery).toHaveBeenCalledTimes(2);
+  });
+
+  it("sai do carregamento quando a requisição do portal rejeita", async () => {
+    mocks.portalQuery.mockRejectedValueOnce(new Error("Falha de rede"));
+    render(<PortalPage />);
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Não foi possível carregar o portal",
+    );
+    expect(screen.queryByText("Abrindo o portal...")).not.toBeInTheDocument();
+  });
+
+  it("recupera as inspirações sem repetir a abertura ou consultar novamente o portal", async () => {
+    mocks.slug = "o-mundo-de-magia";
+    mocks.fragmentsQuery.mockResolvedValueOnce({ data: null, error: { message: "offline" } });
+    render(<PortalPage />);
+    fireEvent.click(await screen.findByRole("button", { name: "Entrar na coleção" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Não foi possível carregar as inspirações",
+    );
+    expect(
+      screen.queryByText("As histórias por trás das velas serão reveladas aqui."),
+    ).not.toBeInTheDocument();
+
+    mocks.fragmentsQuery.mockResolvedValueOnce({ data: [fragment], error: null });
+    fireEvent.click(
+      screen.getByRole("button", { name: "Tentar carregar as inspirações novamente" }),
+    );
+    expect(await screen.findByRole("heading", { name: fragment.title })).toBeInTheDocument();
+    expect(mocks.portalQuery).toHaveBeenCalledTimes(1);
+    expect(mocks.fragmentsQuery).toHaveBeenCalledTimes(2);
+    expect(screen.queryByRole("button", { name: "Entrar na coleção" })).not.toBeInTheDocument();
+  });
+
+  it("distingue falha de rede de ausência de inspirações", async () => {
+    mocks.fragmentsQuery.mockRejectedValueOnce(new Error("Falha de rede"));
+    render(<PortalPage />);
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Não foi possível carregar as inspirações",
+    );
+    expect(
+      screen.queryByText("As histórias por trás das velas serão reveladas aqui."),
+    ).not.toBeInTheDocument();
+    fireEvent.click(
+      screen.getByRole("button", { name: "Tentar carregar as inspirações novamente" }),
+    );
+    expect(
+      await screen.findByText("As histórias por trás das velas serão reveladas aqui."),
+    ).toBeInTheDocument();
+  });
+
+  it("ignora a resposta antiga das inspirações depois de trocar o portal", async () => {
+    let completeOldRequest!: (value: { data: (typeof fragment)[]; error: null }) => void;
+    mocks.fragmentsQuery.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          completeOldRequest = resolve;
+        }),
+    );
+    const { rerender } = render(<PortalPage />);
+    await waitFor(() => expect(mocks.fragmentsQuery).toHaveBeenCalledTimes(1));
+    mocks.slug = "outra-colecao";
+    mocks.portalQuery.mockResolvedValueOnce({
+      data: { ...portal, id: "outro-portal", name: "Outra coleção" },
+      error: null,
+    });
+    rerender(<PortalPage />);
+    expect(await screen.findByRole("heading", { name: "Outra coleção" })).toBeInTheDocument();
+    await waitFor(() => expect(mocks.fragmentsQuery).toHaveBeenCalledTimes(2));
+    completeOldRequest({ data: [fragment], error: null });
+    expect(
+      await screen.findByText("As histórias por trás das velas serão reveladas aqui."),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: fragment.title })).not.toBeInTheDocument();
+  });
+});

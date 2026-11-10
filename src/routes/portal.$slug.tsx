@@ -29,6 +29,10 @@ function PortalPage() {
   const [loading, setLoading] = useState(true);
   const [intro, setIntro] = useState(true);
   const [loadError, setLoadError] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
+  const [fragmentsLoading, setFragmentsLoading] = useState(true);
+  const [fragmentsError, setFragmentsError] = useState(false);
+  const [fragmentsReloadKey, setFragmentsReloadKey] = useState(0);
   const galleryRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -37,35 +41,57 @@ function PortalPage() {
       setLoading(true);
       setLoadError(false);
       setIntro(true);
-      const { data, error } = await supabase
-        .from("portals")
-        .select("*")
-        .eq("slug", slug)
-        .eq("status", "published")
-        .maybeSingle();
-      if (!active) return;
-      if (error) {
-        setLoadError(true);
-        setLoading(false);
-        return;
-      }
-      setPortal(data);
-      setIntro(isMagicWorld(slug) || Boolean(data?.intro_enabled));
-      if (data) {
-        const { data: frags } = await supabase
-          .from("portal_fragments")
+      setPortal(null);
+      setFragments([]);
+      setFragmentsLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from("portals")
           .select("*")
-          .eq("portal_id", data.id)
-          .eq("visible", true)
-          .order("position");
+          .eq("slug", slug)
+          .eq("status", "published")
+          .maybeSingle();
         if (!active) return;
-        setFragments(frags ?? []);
-      } else setFragments([]);
-      setLoading(false);
+        if (error) throw error;
+        setPortal(data);
+        setIntro(isMagicWorld(slug) || Boolean(data?.intro_enabled));
+      } catch {
+        if (active) setLoadError(true);
+      } finally {
+        if (active) setLoading(false);
+      }
     }
     void load();
     return () => {active = false;};
-  }, [slug]);
+  }, [slug, reloadKey]);
+
+  useEffect(() => {
+    if (!portal) return;
+    const portalId = portal.id;
+    let active = true;
+    async function loadFragments() {
+      setFragmentsLoading(true);
+      setFragmentsError(false);
+      setFragments([]);
+      try {
+        const { data, error } = await supabase
+          .from("portal_fragments")
+          .select("*")
+          .eq("portal_id", portalId)
+          .eq("visible", true)
+          .order("position");
+        if (!active) return;
+        if (error) throw error;
+        setFragments(data ?? []);
+      } catch {
+        if (active) setFragmentsError(true);
+      } finally {
+        if (active) setFragmentsLoading(false);
+      }
+    }
+    void loadFragments();
+    return () => {active = false;};
+  }, [portal, fragmentsReloadKey]);
 
   useEffect(() => {
     if (!portal || intro) return;
@@ -94,8 +120,12 @@ function PortalPage() {
     );
   }
 
-  if (loadError) return <div className="flex min-h-screen items-center justify-center bg-[#10231b] px-6 text-center text-[#f7efda]">
-    Não foi possível carregar o portal. Verifique sua conexão e tente novamente.
+  if (loadError) return <div className="flex min-h-screen flex-col items-center justify-center bg-[#10231b] px-6 text-center text-[#f7efda]">
+    <p role="alert">Não foi possível carregar o portal. Verifique sua conexão e tente novamente.</p>
+    <button type="button" onClick={() => setReloadKey(value => value + 1)}
+      className="mt-5 rounded-full border border-[#d3b575] px-5 py-3 text-[#f7efda] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4">
+      Tentar carregar o portal novamente
+    </button>
   </div>;
   if (!portal) throw notFound();
 
@@ -121,8 +151,8 @@ function PortalPage() {
 
   return (
     <div className={`portal-world min-h-screen${magicWorld ? " portal-world--christmas" : ""}`} style={{
-      ["--portal-bg" as string]: magicWorld ? "#101e19" : palette["background"] || "#17251d",
-      ["--portal-surface" as string]: magicWorld ? "#26362b" : palette["surface"] || "#26382d",
+      ["--portal-bg" as string]: magicWorld ? "#111923" : palette["background"] || "#17251d",
+      ["--portal-surface" as string]: magicWorld ? "#202d3d" : palette["surface"] || "#26382d",
       ["--portal-text" as string]: magicWorld ? "#f7efda" : palette["text"] || "#f5edda",
       ["--portal-accent" as string]: magicWorld ? "#d3b575" : palette["accent"] || "#c6a65b",
       ["--portal-button-text" as string]: palette["buttonText"] || "#17251d",
@@ -145,7 +175,7 @@ function PortalPage() {
         {magicWorld && <PortalChristmasDecor scene="hero" />}
         <div className="relative mx-auto max-w-4xl text-center">
           <p className="text-xs uppercase tracking-[.37em] text-[var(--portal-accent)]">
-            {magicWorld?"Uma temporada de Natal e encantamentos":portal.universe||"Universo da coleção"}
+            {magicWorld?"Entre castelos, feitiços e histórias":portal.universe||"Universo da coleção"}
           </p>
           {magicWorld ? <h1 className="portal-magic-welcome mt-6 font-display text-[var(--portal-text)]">
             <span className="portal-magic-welcome-lead">Seja bem-vindo ao</span>
@@ -154,7 +184,7 @@ function PortalPage() {
             {displayTitle}
           </h1>}
           <p className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-[var(--portal-text)]/85">
-            {portal.intro_subtitle || (magicWorld ? "Entre pinheiros, luzes douradas e histórias encantadas, o Natal encontra um novo lar." : "Cada chama guarda uma história. Escolha o caminho que deseja explorar.")}
+            {portal.intro_subtitle || (magicWorld ? "Sob velas flutuantes e um céu de encantamentos, cada chama abre as portas de um universo mágico." : "Cada chama guarda uma história. Escolha o caminho que deseja explorar.")}
           </p>
           <div className="mx-auto mt-8 h-px w-28 bg-[var(--portal-accent)]/70" />
         </div>
@@ -212,7 +242,14 @@ function PortalPage() {
             Pequenos detalhes, cenas e histórias que deram vida aos aromas deste universo.
           </p>
         </div>
-        {fragments.length>0 ? <div className="grid gap-5 sm:grid-cols-2">
+        {fragmentsLoading ? <p role="status" className="py-8 text-center">Carregando as inspirações...</p>
+          : fragmentsError ? <div className="portal-inspiration-card px-7 py-11 text-center">
+            <p role="alert">Não foi possível carregar as inspirações. Verifique sua conexão e tente novamente.</p>
+            <button type="button" onClick={() => setFragmentsReloadKey(value => value + 1)}
+              className="mt-5 rounded-full border border-[var(--portal-accent)] px-5 py-3 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4">
+              Tentar carregar as inspirações novamente
+            </button>
+          </div> : fragments.length>0 ? <div className="grid gap-5 sm:grid-cols-2">
           {fragments.map(fragment=><article key={fragment.id} className="portal-inspiration-card p-6">
             {fragment.image_url && <img src={fragment.image_url} alt={fragment.caption||fragment.title}
               className="mb-5 aspect-[4/3] w-full rounded-lg object-cover" loading="lazy" />}
@@ -234,18 +271,18 @@ function PortalPage() {
         {magicWorld && <PortalChristmasDecor scene="gallery" />}
         <div className={magicWorld ? "portal-collection-frame mx-auto max-w-6xl px-5 py-10 sm:px-8 sm:py-14" : "mx-auto max-w-6xl px-6"}>
           <div className="portal-collection-heading text-center">
-            <p className="text-xs uppercase tracking-[.28em] text-[var(--portal-accent)]">Edição especial de Natal</p>
+            <p className="text-xs uppercase tracking-[.28em] text-[var(--portal-accent)]">{magicWorld ? "Relíquias deste universo" : "Explore a coleção"}</p>
             <h2 className="mt-3 font-display text-3xl md:text-5xl">
               {magicWorld ? "Conheça a Coleção" : "Um vislumbre da coleção"}
             </h2>
             <p className="mx-auto mt-4 max-w-lg text-sm leading-relaxed opacity-80">
-              Um Natal entre histórias, memórias e aromas que merecem ser descobertos.
+              Histórias, memórias e aromas que merecem ser descobertos.
             </p>
             {magicWorld && <span className="portal-collection-divider" aria-hidden="true">✦</span>}
           </div>
           {carouselItems.length>0 ? <div className="portal-gallery-shell mt-9">
             <div ref={galleryRef} className="portal-gallery-viewport flex gap-4 overflow-x-auto pb-5"
-              role="region" aria-label="Fotos da coleção de Natal">
+              role="region" aria-label="Fotos da coleção">
               {carouselItems.map((item,index)=><article key={item.id+"-"+index}
                 className="portal-gallery-photo relative w-56 shrink-0 sm:w-64">
                 {item.url ? <a href={item.url} className="block focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--portal-accent)]">
@@ -273,7 +310,7 @@ function PortalPage() {
       </section>
       </main>
 
-      <p className="pb-8 text-center text-sm italic text-muted-foreground">
+      <p className="pb-8 text-center text-sm italic text-[var(--portal-text)]/80">
         Hiraeth — Onde a Chama Acesa te Espera
       </p>
       <SiteFooter />
