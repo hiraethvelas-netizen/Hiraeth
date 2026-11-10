@@ -318,8 +318,8 @@ function PortalPage() {
                   <p className="whitespace-pre-line font-serif text-base leading-8 sm:text-lg">{fragment.body}</p>
                 </article>}
               </section>)}
-            {fragments.some(fragment => fragment.position > 10 || fragment.position < 1) && <div className="grid gap-5 sm:grid-cols-2">
-              {fragments.filter(fragment => fragment.position > 10 || fragment.position < 1).map(fragment =>
+            {fragments.some(fragment => typeof fragment.position !== "number" || fragment.position > 10 || fragment.position < 1) && <div className="grid gap-5 sm:grid-cols-2">
+              {fragments.filter(fragment => typeof fragment.position !== "number" || fragment.position > 10 || fragment.position < 1).map(fragment =>
                 <InspirationCard key={fragment.id} fragment={fragment} />)}
             </div>}
           </div> : <div className="grid gap-5 sm:grid-cols-2">
