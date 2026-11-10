@@ -236,9 +236,10 @@ function PortalPage() {
           height="352" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" />
       </section>}
 
-      {magicWorld ? <section id="portal-natal" aria-labelledby="portal-natal-title" className="portal-festive-section relative isolate mx-auto max-w-5xl overflow-hidden px-5 pb-16 pt-24 sm:px-8 sm:pt-28">
-        <PortalFestiveAccents variant="natal" />
-        <div className="mb-9 text-center">
+      {magicWorld ? <section id="portal-natal" aria-labelledby="portal-natal-title" className="portal-festive-section relative isolate mx-auto max-w-5xl px-5 pb-16 pt-8 sm:px-8 sm:pt-12">
+        <div className="portal-natal-highlight">
+          <PortalFestiveAccents variant="natal" />
+          <div className="mb-9 text-center">
           <p className="text-xs uppercase tracking-[.28em] text-[var(--portal-accent)]">Duas velas, duas lembranças</p>
           <h2 id="portal-natal-title" className="portal-script-title mt-3">O Natal no Mundo da Magia</h2>
           <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 opacity-85 sm:text-base">
@@ -258,6 +259,7 @@ function PortalPage() {
           <a href={catalogUrl} className="portal-collection-shop-link mx-auto inline-flex items-center justify-center gap-2">
             Explorar a coleção de Natal <ArrowUpRight size={17} aria-hidden="true"/>
           </a>
+        </div>
         </div>
       </section> : <section id="portal-inspiracoes" className="mx-auto max-w-4xl scroll-mt-10 px-5 py-12 md:px-8">
         <div className="mb-10 text-center">
