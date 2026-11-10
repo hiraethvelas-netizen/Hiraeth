@@ -9,7 +9,7 @@ export function PortalInspirationCard({ fragment, featured = false, houseDecor =
   return <article className={`portal-inspiration-card ${house ? `portal-house-card portal-house-card--${house}` : ""} ${featured ? "px-6 py-8 sm:px-10 sm:py-10" : "p-6 sm:p-8"}`}>
     {fragment.image_url && <img src={fragment.image_url} alt={fragment.caption || fragment.title}
       className="mb-6 aspect-[4/3] w-full rounded-lg object-cover" loading="lazy" />}
-    <h4 className={`portal-story-title ${featured ? "text-2xl sm:text-3xl" : "text-2xl"}`}>{fragment.title}</h4>
+    <h4 className={`font-display portal-story-title ${featured ? "text-2xl sm:text-3xl" : "text-2xl"}`}>{fragment.title}</h4>
     {fragment.reference && <p className="mt-3 text-sm italic text-[var(--portal-accent)]">{fragment.reference}</p>}
     <p className="mt-5 whitespace-pre-line text-sm leading-7 opacity-90 sm:text-base">{fragment.body}</p>
     {fragment.context && <p className="mt-5 border-t border-[var(--portal-accent)]/20 pt-4 text-sm italic text-[var(--portal-accent)]">{fragment.context}</p>}
