@@ -51,7 +51,7 @@ const fragment = {
   id: "inspiracao-teste",
   title: "Uma história preservada",
   body: "Os detalhes deste aroma.",
-  position: 7,
+  position: 8,
 };
 
 beforeEach(() => {
@@ -96,7 +96,7 @@ describe("Portal NFC: recuperação de falhas de carregamento", () => {
 
     mocks.fragmentsQuery.mockResolvedValueOnce({ data: [fragment], error: null });
     fireEvent.click(screen.getByRole("button", { name: "Tentar carregar novamente" }));
-    expect(await screen.findByRole("heading", { name: fragment.title })).toBeInTheDocument();
+    expect(await screen.findByText(fragment.title)).toBeInTheDocument();
     expect(mocks.portalQuery).toHaveBeenCalledTimes(1);
     expect(mocks.fragmentsQuery).toHaveBeenCalledTimes(2);
     expect(screen.queryByRole("button", { name: "Entrar na coleção" })).not.toBeInTheDocument();
@@ -108,7 +108,12 @@ describe("Portal NFC: recuperação de falhas de carregamento", () => {
     render(<PortalPage />);
     fireEvent.click(await screen.findByRole("button", { name: "Entrar na coleção" }));
     expect(await screen.findByRole("heading", { name: "O Natal no Mundo da Magia" })).toBeInTheDocument();
-    expect(await screen.findByRole("heading", { name: fragment.title })).toBeInTheDocument();
+    expect(await screen.findByText(fragment.title)).toBeInTheDocument();
+    expect(screen.queryByText(fragment.body)).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /Uma história preservada/ }));
+    expect(screen.getByText(fragment.body)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /Uma história preservada/ }));
+    expect(screen.queryByText(fragment.body)).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Conheça as inspirações/ }))
       .toHaveAttribute("href", "/portal/o-mundo-de-magia/inspiracoes");
     expect(screen.queryByText("Quatro casas, quatro essências")).not.toBeInTheDocument();
