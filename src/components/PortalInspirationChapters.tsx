@@ -4,8 +4,8 @@ import type { Tables } from "@/integrations/supabase/types";
 
 type Fragment = Tables<"portal_fragments">;
 
-export function PortalInspirationCard({ fragment, featured = false }: { fragment: Fragment; featured?: boolean }) {
-  const house = ({ 3: "leao", 4: "texugo", 5: "serpente", 6: "aguia" } as Record<number, string>)[fragment.position ?? -1];
+export function PortalInspirationCard({ fragment, featured = false, houseDecor = false }: { fragment: Fragment; featured?: boolean; houseDecor?: boolean }) {
+  const house = houseDecor ? ({ 3: "leao", 4: "texugo", 5: "serpente", 6: "aguia" } as Record<number, string>)[fragment.position ?? -1] : undefined;
   return <article className={`portal-inspiration-card ${house ? `portal-house-card portal-house-card--${house}` : ""} ${featured ? "px-6 py-8 sm:px-10 sm:py-10" : "p-6 sm:p-8"}`}>
     {fragment.image_url && <img src={fragment.image_url} alt={fragment.caption || fragment.title}
       className="mb-6 aspect-[4/3] w-full rounded-lg object-cover" loading="lazy" />}
@@ -49,7 +49,7 @@ export function PortalInspirationChapters({ fragments, magicWorld }: { fragments
           <span key={house} className={`portal-house-ribbon portal-house-ribbon--${house}`}/>)}
       </div>
       <div className="grid gap-5 sm:grid-cols-2">
-        {houses.map(fragment => <PortalInspirationCard key={fragment.id} fragment={fragment} />)}
+        {houses.map(fragment => <PortalInspirationCard key={fragment.id} fragment={fragment} houseDecor />)}
       </div>
     </section>}
 
