@@ -27,10 +27,12 @@ describe("Vitrine natalina do Portal NFC", () => {
     fireEvent.click(entreButton);
     expect(screen.getByText("Inspiração: primeiro presente de Natal.")).toBeInTheDocument();
     expect(screen.queryByText("Inspiração: amigos no grande salão.")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /Fechar informações da vela/ }));
     fireEvent.click(salaoButton);
+    expect(screen.getByRole("dialog", { name: "O Grande Salão de Natal" })).toBeInTheDocument();
     expect(screen.getByText("Inspiração: amigos no grande salão.")).toBeInTheDocument();
     expect(screen.queryByText("Inspiração: primeiro presente de Natal.")).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: /Recolher história/ }));
+    fireEvent.click(screen.getByRole("button", { name: /Fechar informações da vela/ }));
     expect(screen.queryByText("Inspiração: amigos no grande salão.")).not.toBeInTheDocument();
   });
 });
