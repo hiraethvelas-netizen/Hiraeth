@@ -71,7 +71,7 @@ function PortalInspirationPage() {
     <header className="portal-inspired-header relative isolate mx-auto max-w-5xl overflow-hidden px-5 pb-10 pt-10 sm:px-8 sm:pt-14">
       {magicWorld && <PortalFestiveAccents variant="inspiracoes" />}
       <a href={mainUrl} className="inline-flex items-center gap-2 rounded-full border border-[var(--portal-accent)]/40 px-4 py-2 text-sm text-[var(--portal-text)] transition-colors hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--portal-accent)]">
-        <ArrowLeft size={17} aria-hidden="true" /> Voltar ao Portal NFC
+        <ArrowLeft size={17} aria-hidden="true" /> Voltar ao portal
       </a>
       <div className="mx-auto max-w-3xl pb-6 pt-12 text-center sm:pt-16">
         <BookOpenText className="mx-auto text-[var(--portal-accent)]" size={30} aria-hidden="true" />
@@ -98,7 +98,7 @@ function PortalInspirationPage() {
       </div>}
       <div className="mt-16 text-center">
         <a href={mainUrl} className="inline-flex items-center gap-2 rounded-full border border-[var(--portal-accent)] px-6 py-3 text-sm text-[var(--portal-text)] hover:bg-white/10">
-          <ArrowLeft size={16} aria-hidden="true" /> Voltar ao mundo da magia
+          <ArrowLeft size={16} aria-hidden="true" /> Voltar ao portal
         </a>
       </div>
     </main>
