@@ -132,7 +132,7 @@ function PortalPage() {
         title={magicWorld ? "O Mundo da Magia" : portal.intro_title || displayTitle}
         subtitle={magicWorld ? null : portal.intro_subtitle}
         videoUrl={portal.intro_video_url}
-        posterUrl={portal.cover_url}
+        posterUrl={magicWorld ? null : portal.cover_url}
         ctaText="Atravesse o Portal"
         christmas={magicWorld}
         onEnter={()=>setIntro(false)}
