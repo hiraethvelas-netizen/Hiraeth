@@ -24,9 +24,9 @@ describe("Candle essence stock editor", () => {
       onIngredientsChange={updateRecipe} onCreate={create} onRefresh={refresh} />);
     const field = screen.getByPlaceholderText("Ex.: Baunilha, Floresta de Inverno...");
     fireEvent.change(field, { target: { value: "floresta" } });
-    expect(screen.getByRole("button", { name: "Selecionar Floresta de Inverno" })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Selecionar Baunilha" })).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Selecionar Floresta de Inverno" }));
+    expect(screen.getByRole("option", { name: "Floresta de Inverno" })).toBeInTheDocument();
+    expect(screen.queryByRole("option", { name: "Baunilha" })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("option", { name: "Floresta de Inverno" }));
     fireEvent.change(screen.getByLabelText("Quantidade (ml)"), { target: { value: "8" } });
     fireEvent.click(screen.getByRole("button", { name: "Adicionar aroma" }));
     expect(updateRecipe).toHaveBeenCalledWith([{
