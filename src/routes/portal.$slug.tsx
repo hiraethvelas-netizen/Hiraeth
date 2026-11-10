@@ -256,8 +256,8 @@ function PortalPage() {
             </button>
           </div> : <PortalChristmasShowcase fragments={fragments} />}
         <div className="mt-10 text-center">
-          <a href={catalogUrl} className="portal-collection-shop-link mx-auto inline-flex items-center justify-center gap-2">
-            Explorar a coleção de Natal <ArrowUpRight size={17} aria-hidden="true"/>
+          <a href={catalogUrl} className="portal-natal-acervo-link mx-auto inline-flex items-center justify-center gap-2" aria-label="Conheça o acervo Hiraeth">
+            Conheça o acervo <ArrowUpRight size={17} aria-hidden="true"/>
           </a>
         </div>
         </div>
