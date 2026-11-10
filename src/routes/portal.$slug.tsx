@@ -197,7 +197,7 @@ function PortalPage() {
           {magicWorld && <PortalChristmasDecor scene="actions" />}
           <div className="relative z-10 mb-10 text-center">
             <p className="text-xs uppercase tracking-[.28em] text-[var(--portal-accent)]">Escolha seu caminho</p>
-            <h2 className="portal-script-title mt-3">Portas para este universo</h2>
+            <h2 className={magicWorld ? "portal-script-title mt-3" : "mt-3 font-display text-3xl md:text-4xl"}>Portas para este universo</h2>
           </div>
           <div className="portal-action-grid portal-action-grid--ornate relative z-10 grid gap-4 sm:grid-cols-2">
             {spotifyUrl && portal.spotify_visible ? <a className="portal-action-card" href={spotifyUrl}
@@ -229,7 +229,7 @@ function PortalPage() {
       {portal.spotify_visible && embed && <section data-portal-reveal
         className="portal-reveal mx-auto max-w-2xl px-5 pb-16">
         <p className="text-center text-xs uppercase tracking-[.28em] text-[var(--portal-accent)]">Trilha sonora</p>
-        <h2 className="portal-script-title mt-3 text-center">{portal.spotify_title||"Músicas para atravessar o portal"}</h2>
+        <h2 className={magicWorld ? "portal-script-title mt-3 text-center" : "mt-3 text-center font-display text-3xl"}>{portal.spotify_title||"Músicas para atravessar o portal"}</h2>
         {portal.spotify_description && <p className="mx-auto mt-3 max-w-lg text-center text-sm opacity-80">{portal.spotify_description}</p>}
         <iframe src={embed} title="Playlist da coleção no Spotify" className="mt-6 w-full rounded-xl border border-[var(--portal-accent)]/30"
           height="352" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" />
