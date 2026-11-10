@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { PortalIntro } from "@/components/PortalIntro";
 import { PortalChristmasDecor } from "@/components/PortalChristmasDecor";
+import { PortalFestiveAccents } from "@/components/PortalFestiveAccents";
 import {
   carouselFromTheme,galleryDraftFromTheme,isSafePortalUrl,
   magicWorldTitle,portalCatalogDestination,spotifyPlaylistUrl,updatePortalGallery,
@@ -130,14 +131,21 @@ describe("Portal mágico: decoração isolada e interativa",()=>{
     expect(container.querySelector(".portal-xmas-decor--bright")).toBeNull();
     expect(document.querySelector(".portal-xmas-phoenix-flight")).toBeNull();
   });
-  it("decora com estrelas e astrolábio sem árvores ou presentes de Natal",()=>{
+  it("decora com estrelas, astrolábio e bolinhas discretas, sem árvores ou presentes",()=>{
     const {container}=render(<PortalChristmasDecor scene="actions"/>);
     expect(container.querySelector(".portal-magic-astrolabe")).not.toBeNull();
     expect(container.querySelectorAll(".portal-magic-star")).toHaveLength(6);
     expect(container.querySelector(".portal-xmas-tree")).toBeNull();
     expect(container.querySelector(".portal-xmas-present")).toBeNull();
-    expect(container.querySelector(".portal-xmas-bauble")).toBeNull();
+    expect(container.querySelectorAll(".portal-xmas-bauble")).toHaveLength(3);
     expect(container.querySelector(".portal-xmas-photographic-scene")).toBeNull();
+  });
+  it("exibe quatro faixas das casas e luzinhas coloridas sem impedir toques",()=>{
+    const {container}=render(<PortalFestiveAccents variant="natal"/>);
+    expect(container.querySelectorAll(".portal-house-ribbon")).toHaveLength(4);
+    expect(container.querySelectorAll(".portal-festive-accents__bulb")).toHaveLength(20);
+    expect(container.querySelectorAll(".portal-festive-accents__bauble")).toHaveLength(4);
+    expect(container.querySelector(".portal-festive-accents")?.getAttribute("aria-hidden")).toBe("true");
   });
   it("posiciona coruja e vassoura como elementos fotográficos de seções diferentes",()=>{
     const {container:inspiration}=render(<PortalChristmasDecor scene="inspirations"/>);
