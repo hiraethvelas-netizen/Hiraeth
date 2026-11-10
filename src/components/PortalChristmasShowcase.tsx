@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, X } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
-import entreFiosPhoto from "@/assets/natal-entre-fios.webp";
-import grandeSalaoPhoto from "@/assets/natal-grande-salao.webp";
+import entreFiosPhoto from "@/assets/natal-entre-fios-recorte.webp";
+import grandeSalaoPhoto from "@/assets/natal-grande-salao-recorte.webp";
 
 type Fragment = Tables<"portal_fragments">;
 type Props = { fragments: Fragment[] };
