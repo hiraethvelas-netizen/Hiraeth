@@ -61,7 +61,7 @@ function PortalInspirationPage() {
     return () => { active = false; };
   }, [slug, reloadKey]);
 
-  return <div className="portal-world portal-inspiration-page min-h-screen" style={{
+  return <div className={magicWorld ? "portal-world portal-inspiration-page min-h-screen" : "portal-world min-h-screen"} style={{
     ["--portal-bg" as string]: "#111d19",
     ["--portal-surface" as string]: "#203128",
     ["--portal-text" as string]: "#f7efda",
@@ -69,14 +69,14 @@ function PortalInspirationPage() {
     ["--portal-button-text" as string]: "#17251d",
   }}>
     <header className="portal-inspired-header relative isolate mx-auto max-w-5xl overflow-hidden px-5 pb-10 pt-10 sm:px-8 sm:pt-14">
-      <PortalFestiveAccents variant="inspiracoes" />
+      {magicWorld && <PortalFestiveAccents variant="inspiracoes" />}
       <a href={mainUrl} className="inline-flex items-center gap-2 rounded-full border border-[var(--portal-accent)]/40 px-4 py-2 text-sm text-[var(--portal-text)] transition-colors hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--portal-accent)]">
         <ArrowLeft size={17} aria-hidden="true" /> Voltar ao Portal NFC
       </a>
       <div className="mx-auto max-w-3xl pb-6 pt-12 text-center sm:pt-16">
         <BookOpenText className="mx-auto text-[var(--portal-accent)]" size={30} aria-hidden="true" />
         <p className="mt-5 text-xs uppercase tracking-[.28em] text-[var(--portal-accent)]">Hiraeth · Por trás das chamas</p>
-        <h1 className="portal-script-title mt-4 text-[var(--portal-text)]">Conheça as inspirações</h1>
+        <h1 className={magicWorld ? "portal-script-title mt-4 text-[var(--portal-text)]" : "mt-4 font-display text-4xl leading-tight text-[var(--portal-text)] sm:text-6xl"}>Conheça as inspirações</h1>
         <p className="mx-auto mt-5 max-w-xl text-base leading-7 text-[var(--portal-text)]/85">
           Os detalhes dos livros, dos filmes e das lembranças que transformei em aromas para nos sentirmos mais perto das histórias.
         </p>
