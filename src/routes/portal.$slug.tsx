@@ -1,5 +1,5 @@
 import { createFileRoute, notFound } from "@tanstack/react-router";
-import { ArrowUpRight, BookOpenText, Headphones, LibraryBig, Smartphone } from "lucide-react";
+import { ArrowUpRight, BookOpenText, Flame, Headphones, LibraryBig, Smartphone, X } from "lucide-react";
 import { PortalIntro } from "@/components/PortalIntro";
 import { PortalChristmasDecor } from "@/components/PortalChristmasDecor";
 import { carouselFromTheme, isMagicWorld, magicWorldTitle, portalCatalogDestination, spotifyPlaylistUrl } from "@/lib/portal-experience";
@@ -22,12 +22,24 @@ export const Route = createFileRoute("/portal/$slug")({
   component: PortalPage,
 });
 
+function InspirationCard({ fragment, featured = false }: { fragment: Fragment; featured?: boolean }) {
+  return <article className={`portal-inspiration-card ${featured ? "px-6 py-8 sm:px-10 sm:py-10" : "p-6 sm:p-8"}`}>
+    {fragment.image_url && <img src={fragment.image_url} alt={fragment.caption || fragment.title}
+      className="mb-6 aspect-[4/3] w-full rounded-lg object-cover" loading="lazy" />}
+    <h4 className={`font-display ${featured ? "text-2xl sm:text-3xl" : "text-2xl"}`}>{fragment.title}</h4>
+    {fragment.reference && <p className="mt-3 text-sm italic text-[var(--portal-accent)]">{fragment.reference}</p>}
+    <p className="mt-5 whitespace-pre-line text-sm leading-7 opacity-90 sm:text-base">{fragment.body}</p>
+    {fragment.context && <p className="mt-5 border-t border-[var(--portal-accent)]/20 pt-4 text-sm italic text-[var(--portal-accent)]">{fragment.context}</p>}
+  </article>;
+}
+
 function PortalPage() {
   const { slug } = Route.useParams();
   const [portal, setPortal] = useState<Portal | null>(null);
   const [fragments, setFragments] = useState<Fragment[]>([]);
   const [loading, setLoading] = useState(true);
   const [intro, setIntro] = useState(true);
+  const [letterOpen, setLetterOpen] = useState(false);
   const [loadError, setLoadError] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
   const [fragmentsLoading, setFragmentsLoading] = useState(true);
@@ -41,6 +53,7 @@ function PortalPage() {
       setLoading(true);
       setLoadError(false);
       setIntro(true);
+      setLetterOpen(false);
       setPortal(null);
       setFragments([]);
       setFragmentsLoading(true);
@@ -249,21 +262,72 @@ function PortalPage() {
               className="mt-5 rounded-full border border-[var(--portal-accent)] px-5 py-3 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4">
               Tentar carregar as inspirações novamente
             </button>
-          </div> : fragments.length>0 ? <div className="grid gap-5 sm:grid-cols-2">
-          {fragments.map(fragment=><article key={fragment.id} className="portal-inspiration-card p-6">
-            {fragment.image_url && <img src={fragment.image_url} alt={fragment.caption||fragment.title}
-              className="mb-5 aspect-[4/3] w-full rounded-lg object-cover" loading="lazy" />}
-            <h3 className="font-display text-2xl">{fragment.title}</h3>
-            {fragment.reference && <p className="mt-2 text-xs italic text-[var(--portal-accent)]">{fragment.reference}</p>}
-            <p className="mt-4 whitespace-pre-line text-sm leading-relaxed opacity-90">{fragment.body}</p>
-            {fragment.context && <p className="mt-3 text-sm italic opacity-70">{fragment.context}</p>}
-          </article>)}
-        </div> : <div className="portal-inspiration-card px-7 py-11 text-center">
+          </div> : fragments.length > 0 ? (magicWorld ? <div className="space-y-16">
+            {fragments.filter(fragment => fragment.position === 1).map(fragment =>
+              <section key={fragment.id} aria-label="História da coleção" className="mx-auto max-w-3xl">
+                <p className="mb-4 text-center text-xs uppercase tracking-[.28em] text-[var(--portal-accent)]">Capítulo I · O início</p>
+                <InspirationCard fragment={fragment} featured />
+              </section>)}
+            {fragments.filter(fragment => fragment.position === 2).map(fragment =>
+              <section key={fragment.id} aria-label="História da Vela Seletora" className="mx-auto max-w-3xl">
+                <p className="mb-4 text-center text-xs uppercase tracking-[.28em] text-[var(--portal-accent)]">Capítulo II · A descoberta</p>
+                <InspirationCard fragment={fragment} featured />
+              </section>)}
+            {fragments.some(fragment => fragment.position >= 3 && fragment.position <= 6) && <section aria-labelledby="portal-houses-title">
+              <p className="text-center text-xs uppercase tracking-[.28em] text-[var(--portal-accent)]">Capítulo III · Pertencimento</p>
+              <h3 id="portal-houses-title" className="mt-3 mb-8 text-center font-display text-3xl sm:text-4xl">Quatro casas, quatro essências</h3>
+              <div className="grid gap-5 sm:grid-cols-2">
+                {fragments.filter(fragment => fragment.position >= 3 && fragment.position <= 6).map(fragment =>
+                  <InspirationCard key={fragment.id} fragment={fragment} />)}
+              </div>
+            </section>}
+            {fragments.some(fragment => fragment.position >= 7 && fragment.position <= 9) && <section aria-labelledby="portal-christmas-story-title">
+              <p className="text-center text-xs uppercase tracking-[.28em] text-[var(--portal-accent)]">Capítulo IV · A magia do Natal</p>
+              <h3 id="portal-christmas-story-title" className="mt-3 mb-8 text-center font-display text-3xl sm:text-4xl">O Natal no Mundo da Magia</h3>
+              <div className="mx-auto mb-5 max-w-3xl space-y-5">
+                {fragments.filter(fragment => fragment.position === 7).map(fragment =>
+                  <InspirationCard key={fragment.id} fragment={fragment} featured />)}
+              </div>
+              <div className="grid gap-5 sm:grid-cols-2">
+                {fragments.filter(fragment => fragment.position === 8 || fragment.position === 9).map(fragment =>
+                  <InspirationCard key={fragment.id} fragment={fragment} />)}
+              </div>
+            </section>}
+            {fragments.filter(fragment => fragment.position === 10).map(fragment =>
+              <section key={fragment.id} aria-labelledby="portal-letter-title" className="mx-auto max-w-3xl text-center">
+                <p className="text-xs uppercase tracking-[.28em] text-[var(--portal-accent)]">Capítulo V · Uma mensagem para você</p>
+                <h3 id="portal-letter-title" className="mt-3 font-display text-3xl sm:text-4xl">Uma carta da Guardiã da Chama</h3>
+                <p className="mx-auto mt-3 max-w-lg text-sm leading-7 opacity-80">Algumas palavras são guardadas até o momento certo de serem encontradas.</p>
+                {!letterOpen ? <button type="button" onClick={() => setLetterOpen(true)}
+                    aria-expanded={false} aria-controls="portal-letter-content"
+                    className="group mx-auto mt-8 block w-full max-w-sm rounded-xl p-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--portal-accent)]">
+                  <span className="relative block h-52 overflow-hidden rounded-lg border border-[#b7a080] bg-[#d7c6a5] shadow-[0_15px_40px_rgba(0,0,0,.28)] transition-transform duration-300 group-hover:-translate-y-1 motion-reduce:transition-none">
+                    <span className="absolute inset-0 bg-[#e9ddc4] [clip-path:polygon(0_0,50%_62%,100%_0)]" aria-hidden="true" />
+                    <span className="absolute inset-x-0 bottom-0 h-[64%] bg-[#e3d2ae] [clip-path:polygon(0_100%,50%_0,100%_100%)]" aria-hidden="true" />
+                    <span className="absolute left-1/2 top-[55%] flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-4 border-[#6e7538] bg-[#878e47] text-[#f7efda] shadow-md" aria-hidden="true"><Flame size={27} /></span>
+                  </span>
+                  <span className="mt-4 block text-sm font-medium text-[var(--portal-accent)]">Toque no selo verde para abrir a carta</span>
+                </button> : <article id="portal-letter-content" className="mt-8 rounded-lg border border-[#c4ad7b] bg-[#f7efda] px-6 py-8 text-left text-[#513c2b] shadow-[0_16px_40px_rgba(0,0,0,.24)] sm:px-12 sm:py-12">
+                  <div className="mb-7 flex justify-end">
+                    <button type="button" onClick={() => setLetterOpen(false)} aria-label="Fechar carta"
+                      className="inline-flex items-center gap-2 rounded-full border border-[#8d785a]/50 px-4 py-2 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2">
+                      <X size={16} aria-hidden="true"/> Fechar carta
+                    </button>
+                  </div>
+                  <p className="mb-5 text-center font-display text-2xl sm:text-3xl">{fragment.title}</p>
+                  <p className="whitespace-pre-line font-serif text-base leading-8 sm:text-lg">{fragment.body}</p>
+                </article>}
+              </section>)}
+            {fragments.some(fragment => fragment.position > 10 || fragment.position < 1) && <div className="grid gap-5 sm:grid-cols-2">
+              {fragments.filter(fragment => fragment.position > 10 || fragment.position < 1).map(fragment =>
+                <InspirationCard key={fragment.id} fragment={fragment} />)}
+            </div>}
+          </div> : <div className="grid gap-5 sm:grid-cols-2">
+            {fragments.map(fragment => <InspirationCard key={fragment.id} fragment={fragment} />)}
+          </div>) : <div className="portal-inspiration-card px-7 py-11 text-center">
           <BookOpenText size={30} aria-hidden="true" className="mx-auto text-[var(--portal-accent)]"/>
           <p className="mt-4 font-display text-xl">As histórias por trás das velas serão reveladas aqui.</p>
-          <p className="mx-auto mt-2 max-w-md text-sm opacity-75">
-            Novos relatos e inspirações serão adicionados a esta coleção.
-          </p>
+          <p className="mx-auto mt-2 max-w-md text-sm opacity-75">Novos relatos e inspirações serão adicionados a esta coleção.</p>
         </div>}
       </section>
 
