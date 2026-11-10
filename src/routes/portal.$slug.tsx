@@ -1,6 +1,7 @@
 import { createFileRoute, notFound } from "@tanstack/react-router";
 import { ArrowUpRight, BookOpenText, Headphones, LibraryBig, Smartphone } from "lucide-react";
 import { PortalInspirationCard } from "@/components/PortalInspirationChapters";
+import { PortalChristmasShowcase } from "@/components/PortalChristmasShowcase";
 import { PortalFestiveAccents } from "@/components/PortalFestiveAccents";
 import { PortalIntro } from "@/components/PortalIntro";
 import { PortalChristmasDecor } from "@/components/PortalChristmasDecor";
@@ -241,8 +242,8 @@ function PortalPage() {
           <p className="text-xs uppercase tracking-[.28em] text-[var(--portal-accent)]">Duas velas, duas lembranças</p>
           <h2 id="portal-natal-title" className="portal-script-title mt-3">O Natal no Mundo da Magia</h2>
           <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 opacity-85 sm:text-base">
-            O brilho das árvores, o conforto da amizade e os presentes que carregam carinho.
-            Conheça os aromas que nasceram dessas lembranças.
+            O Natal naquele castelo sempre me lembra amizade, presentes feitos com carinho e um salão iluminado de magia.
+            Foi desse aconchego que nasceram duas velas especiais. Toque em cada uma para conhecer sua história.
           </p>
         </div>
         {fragmentsLoading ? <p role="status" className="py-6 text-center">Carregando a coleção de Natal...</p>
@@ -252,18 +253,7 @@ function PortalPage() {
               className="mt-4 rounded-full border border-[var(--portal-accent)] px-5 py-3 focus-visible:outline focus-visible:outline-2">
               Tentar carregar novamente
             </button>
-          </div> : fragments.some(fragment => fragment.position === 7 || fragment.position === 8 || fragment.position === 9) ? <>
-            <div className="mx-auto mb-5 max-w-3xl">
-              {fragments.filter(fragment => fragment.position === 7).map(fragment =>
-                <PortalInspirationCard key={fragment.id} fragment={fragment} featured />)}
-            </div>
-            <div className="grid gap-5 sm:grid-cols-2">
-              {fragments.filter(fragment => fragment.position === 8 || fragment.position === 9).map(fragment =>
-                <PortalInspirationCard key={fragment.id} fragment={fragment} />)}
-            </div>
-          </> : <p className="mx-auto max-w-2xl py-6 text-center text-sm opacity-80">
-            Os detalhes das velas natalinas serão revelados aqui.
-          </p>}
+          </div> : <PortalChristmasShowcase fragments={fragments} />}
         <div className="mt-10 text-center">
           <a href={catalogUrl} className="portal-collection-shop-link mx-auto inline-flex items-center justify-center gap-2">
             Explorar a coleção de Natal <ArrowUpRight size={17} aria-hidden="true"/>
