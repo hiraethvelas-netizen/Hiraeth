@@ -1,3 +1,4 @@
+import { allocateScopedDiscounts } from "../../supabase/functions/_shared/promotion-allocation";
 import {
   combineBenefits, eligibleForPromotion, promotionBenefit,
   type Promotion, type PromotionCategory, type PromotionItem,
@@ -79,37 +80,18 @@ export function allocateCartAutomaticDiscounts(
   items: PromotionItem[],
   promotions: Promotion[],
   categories: PromotionCategory[],
-  applied: { id: string; discount: number }[],
+  applied: { id: string; discount: number; itemDiscounts?: number[] }[],
 ): CartPriceAllocation[] {
   const lineCents = items.map(item => Math.max(0, cents(item.price * item.quantity)));
-  const reductions = items.map(() => 0);
-  for (const benefit of applied) {
+  // Reuse the exact allocation when combineBenefits also considered a coupon.
+  // Otherwise solve all scopes together instead of greedily consuming a row.
+  const allocation = allocateScopedDiscounts(lineCents.map(value => value / 100), applied.map(benefit => {
     const promotion = promotions.find(item => item.id === benefit.id);
-    if (!promotion || benefit.discount <= 0) continue;
-    const allowed = items.map((item, index) =>
-      eligibleForPromotion(promotion, item, categories) ? index : -1).filter(index => index !== -1);
-    const availableTotal = allowed.reduce((sum, index) =>
-      sum + lineCents[index]! - reductions[index]!, 0);
-    const totalBenefit = Math.min(cents(benefit.discount), availableTotal);
-    if (totalBenefit <= 0 || availableTotal <= 0) continue;
-    // Use integer cents and distribute rounding leftovers by largest
-    // fractional remainder. All line amounts reconcile to the total discount.
-    const shares = allowed.map(index => {
-      const capacity = lineCents[index]! - reductions[index]!;
-      const exact = totalBenefit * capacity / availableTotal;
-      const amount = Math.min(capacity, Math.floor(exact));
-      return { index, capacity, amount, fraction: exact - amount };
-    });
-    let remainder = totalBenefit - shares.reduce((sum, share) => sum + share.amount, 0);
-    for (const share of [...shares].sort((a, b) => b.fraction - a.fraction)) {
-      if (remainder === 0) break;
-      if (share.amount < share.capacity) {
-        share.amount++;
-        remainder--;
-      }
-    }
-    for (const share of shares) reductions[share.index]! += share.amount;
-  }
+    return { discount: benefit.discount, eligibleItems: items.flatMap((item, index) =>
+      promotion && eligibleForPromotion(promotion, item, categories) ? [index] : []) };
+  }));
+  const reductions = items.map((_, index) => Math.min(lineCents[index]!, applied.reduce((sum, benefit, offerIndex) =>
+    sum + cents(benefit.itemDiscounts?.[index] ?? allocation.allocations[offerIndex]![index]!), 0)));
   return items.map((item, index) => {
     const originalLineTotal = lineCents[index]! / 100;
     const automaticDiscount = reductions[index]! / 100;
