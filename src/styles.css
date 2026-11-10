@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=DM+Sans:wght@400;500;600;700&family=Italiana&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=DM+Sans:wght@400;500;600;700&family=Great+Vibes&family=Italiana&display=swap");
 @import "tailwindcss" source(none);
 @source "../src";
 @import "tw-animate-css";
@@ -2215,5 +2215,228 @@ body > div {
   .portal-world--christmas .portal-gallery-controls button,
   .portal-world--christmas .portal-collection-shop-link {
     transition: none;
+  }
+}
+
+/* Portal NFC — detalhes de quatro casas e Natal, somente nestas duas páginas. */
+.portal-world .portal-script-title {
+  font-family: "Great Vibes", "Cormorant Garamond", Georgia, cursive;
+  font-size: clamp(2.85rem, 7.5vw, 4.8rem);
+  font-style: normal;
+  font-weight: 400;
+  letter-spacing: .008em;
+  line-height: 1.32;
+  text-wrap: balance;
+  color: #f7e9d0;
+  text-shadow: 0 2px 15px rgba(4, 14, 14, .55);
+}
+.portal-world .portal-story-title {
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-style: italic;
+  font-weight: 600;
+  line-height: 1.13;
+  letter-spacing: .01em;
+  color: #f7e4c1;
+  text-wrap: balance;
+}
+.portal-world--christmas .portal-magic-welcome-title {
+  font: normal 400 clamp(3.3rem, 10vw, 6.4rem)/1.3 "Great Vibes", "Cormorant Garamond", Georgia, cursive;
+  letter-spacing: .006em;
+  color: #fff1d6;
+}
+.portal-cinematic-intro--christmas .portal-intro-title {
+  font: normal 400 clamp(3.2rem, 9vw, 6rem)/1.22 "Great Vibes", "Cormorant Garamond", Georgia, cursive;
+  color: #f7e6c4;
+}
+.portal-world .portal-inspiration-card h4.portal-story-title { color: #f7e4c1; }
+
+/* A faixa é um pequeno tecido listrado de cada casa, não uma fotografia. */
+.portal-house-ribbon {
+  --house-a: #7a2630;
+  --house-b: #d6ae60;
+  display: block;
+  width: clamp(48px, 10vw, 92px);
+  height: 11px;
+  flex: 0 0 auto;
+  border: 1px solid rgba(246, 223, 177, .25);
+  border-radius: 2px;
+  background: repeating-linear-gradient(108deg, var(--house-a) 0 12px, var(--house-b) 12px 23px);
+  box-shadow: 0 3px 10px rgba(0,0,0,.27);
+}
+.portal-house-ribbon--leao { --house-a: #852b31; --house-b: #d3ac5e; }
+.portal-house-ribbon--texugo { --house-a: #e4bc5c; --house-b: #24221e; }
+.portal-house-ribbon--aguia { --house-a: #22517c; --house-b: #c5cbd0; }
+.portal-house-ribbon--serpente { --house-a: #28624b; --house-b: #c4c9c6; }
+
+.portal-world .portal-house-card {
+  position: relative;
+  overflow: hidden;
+  border-color: rgba(220, 187, 113, .42);
+}
+.portal-world .portal-house-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 8px;
+  background: repeating-linear-gradient(108deg, var(--house-a) 0 15px, var(--house-b) 15px 28px);
+}
+.portal-world .portal-house-card--leao { --house-a: #852b31; --house-b: #d3ac5e; }
+.portal-world .portal-house-card--texugo { --house-a: #e4bc5c; --house-b: #24221e; }
+.portal-world .portal-house-card--aguia { --house-a: #22517c; --house-b: #c5cbd0; }
+.portal-world .portal-house-card--serpente { --house-a: #28624b; --house-b: #c4c9c6; }
+.portal-house-palette {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(6px, 2vw, 16px);
+  margin: -6px 0 26px;
+}
+
+/* Elementos suspensos que não participam do fluxo ou bloqueiam toques. */
+.portal-festive-section,
+.portal-inspired-header { position: relative; isolation: isolate; }
+.portal-festive-section > :not(.portal-festive-accents),
+.portal-inspired-header > :not(.portal-festive-accents) {
+  position: relative;
+  z-index: 2;
+}
+.portal-festive-accents {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  user-select: none;
+}
+.portal-festive-accents__lights {
+  position: absolute;
+  top: 17px;
+  left: 3%;
+  right: 3%;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+.portal-festive-accents__bulb {
+  position: relative;
+  display: block;
+  width: 6px;
+  height: 7px;
+  flex: 0 0 auto;
+  border-radius: 55% 55% 65% 65%;
+  background: currentColor;
+  box-shadow: 0 0 7px 2px currentColor, 0 0 15px currentColor;
+  animation: portal-four-colour-twinkle 3.5s ease-in-out infinite;
+}
+.portal-festive-accents__bulb:nth-child(4n + 1) { color: #f3ca68; animation-delay: -.3s; }
+.portal-festive-accents__bulb:nth-child(4n + 2) { color: #e56659; animation-delay: -1.8s; }
+.portal-festive-accents__bulb:nth-child(4n + 3) { color: #66a7ed; animation-delay: -.9s; }
+.portal-festive-accents__bulb:nth-child(4n) { color: #6bc88b; animation-delay: -2.7s; }
+.portal-festive-accents__bulb:nth-child(3n) { margin-top: 12px; }
+.portal-festive-accents__bulb:nth-child(5n) { margin-top: 20px; }
+
+.portal-festive-accents__bauble {
+  position: absolute;
+  display: block;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1px solid rgba(247,227,189,.4);
+  box-shadow: inset -5px -5px 8px rgba(7,12,15,.55),
+    inset 3px 3px 6px rgba(255,252,228,.3), 0 5px 16px rgba(0,0,0,.3);
+  opacity: .72;
+  animation: portal-xmas-bauble-sway 7s ease-in-out infinite alternate;
+  transform-origin: 50% -34px;
+}
+.portal-festive-accents__bauble::before {
+  content: "";
+  position: absolute;
+  bottom: calc(100% + 2px);
+  left: 50%;
+  height: 34px;
+  width: 1px;
+  background: linear-gradient(#a48754, #e6c994);
+}
+.portal-festive-accents__bauble--0 {
+  left: 3%; top: 132px;
+  background: radial-gradient(circle at 30% 25%, #f5c1a1, #963435 45%, #4c1b2d 90%);
+}
+.portal-festive-accents__bauble--1 {
+  right: 6%; top: 148px;
+  background: radial-gradient(circle at 30% 25%, #fff0be, #be963e 48%, #59441b 90%);
+  animation-delay: -1.2s;
+}
+.portal-festive-accents__bauble--2 {
+  left: 10%; top: 234px;
+  background: radial-gradient(circle at 30% 25%, #d0dff2, #3b72a1 48%, #163450 90%);
+  animation-delay: -2.1s;
+}
+.portal-festive-accents__bauble--3 {
+  right: 11%; top: 244px;
+  background: radial-gradient(circle at 30% 25%, #bde0c1, #417b58 48%, #1a392b 90%);
+  animation-delay: -.7s;
+}
+.portal-festive-accents__ribbons {
+  position: absolute;
+  bottom: 18px;
+  inset-inline: 0;
+  display: flex;
+  justify-content: center;
+  gap: clamp(8px, 2.2vw, 24px);
+  opacity: .75;
+}
+.portal-festive-accents--inspiracoes .portal-festive-accents__ribbons {
+  bottom: 8px;
+}
+
+/* Reusar o conjunto natalino atual, com luzes sempre nas quatro cores pedidas. */
+.portal-world--christmas .portal-xmas-bulb {
+  animation: portal-four-colour-twinkle 3.7s ease-in-out infinite;
+}
+.portal-world--christmas .portal-xmas-bulb:nth-child(4n + 1),
+.portal-world--christmas .portal-xmas-decor--bright .portal-xmas-bulb:nth-child(4n + 1) { color: #f3ca68; animation-delay: -.4s; }
+.portal-world--christmas .portal-xmas-bulb:nth-child(4n + 2),
+.portal-world--christmas .portal-xmas-decor--bright .portal-xmas-bulb:nth-child(4n + 2) { color: #e56659; animation-delay: -1.5s; }
+.portal-world--christmas .portal-xmas-bulb:nth-child(4n + 3),
+.portal-world--christmas .portal-xmas-decor--bright .portal-xmas-bulb:nth-child(4n + 3) { color: #66a7ed; animation-delay: -2.3s; }
+.portal-world--christmas .portal-xmas-bulb:nth-child(4n),
+.portal-world--christmas .portal-xmas-decor--bright .portal-xmas-bulb:nth-child(4n) { color: #6bc88b; animation-delay: -3.1s; }
+.portal-world--christmas .portal-xmas-decor--bright .portal-xmas-bulb {
+  animation: portal-four-colour-twinkle 1.9s ease-in-out infinite;
+}
+.portal-world--christmas .portal-xmas-bauble--3 {
+  background: radial-gradient(circle at 30% 24%, #d0e1f6, #467bad 45%, #1a3654 90%);
+}
+@keyframes portal-four-colour-twinkle {
+  0%, 100% { opacity: .42; filter: brightness(.85); }
+  45% { opacity: .98; filter: brightness(1.2); }
+  70% { opacity: .58; filter: brightness(.93); }
+}
+
+@media (max-width: 640px) {
+  .portal-world .portal-script-title {
+    font-size: clamp(2.8rem, 10.4vw, 3.9rem);
+    line-height: 1.38;
+  }
+  .portal-world--christmas .portal-magic-welcome-title {
+    font-size: clamp(3.1rem, 11.4vw, 4.65rem);
+  }
+  .portal-festive-accents__bauble { width: 15px; height: 15px; opacity: .62; }
+  .portal-festive-accents__bauble--2,
+  .portal-festive-accents__bauble--3 { display: none; }
+  .portal-festive-accents__lights { left: 4%; right: 4%; }
+  .portal-festive-accents__bulb { width: 5px; height: 6px; }
+  .portal-festive-accents__ribbons { gap: 7px; }
+  .portal-festive-accents__ribbons .portal-house-ribbon { width: clamp(40px, 17vw, 66px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .portal-world--christmas .portal-xmas-bulb,
+  .portal-world--christmas .portal-xmas-decor--bright .portal-xmas-bulb,
+  .portal-festive-accents__bulb,
+  .portal-festive-accents__bauble,
+  .portal-world--christmas .portal-xmas-bauble {
+    animation: none;
+    opacity: .8;
+    filter: none;
   }
 }
