@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=DM+Sans:wght@400;500;600;700&family=Great+Vibes&family=Italiana&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=DM+Sans:wght@400;500;600;700&family=Italiana&display=swap");
 @import "tailwindcss" source(none);
 @source "../src";
 @import "tw-animate-css";
@@ -2221,15 +2221,15 @@ body > div {
 /* Portal NFC — detalhes de quatro casas e Natal, somente nestas duas páginas. */
 .portal-world--christmas .portal-script-title,
 .portal-inspiration-page .portal-script-title {
-  font-family: "Great Vibes", "Cormorant Garamond", Georgia, cursive;
-  font-size: clamp(2.85rem, 7.5vw, 4.8rem);
-  font-style: normal;
-  font-weight: 400;
-  letter-spacing: .008em;
-  line-height: 1.32;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: clamp(2.65rem, 6.6vw, 4.45rem);
+  font-style: italic;
+  font-weight: 600;
+  letter-spacing: -.022em;
+  line-height: 1.13;
   text-wrap: balance;
   color: #f7e9d0;
-  text-shadow: 0 2px 15px rgba(4, 14, 14, .55);
+  text-shadow: 0 2px 15px rgba(4, 14, 14, .38);
 }
 .portal-world--christmas .portal-story-title,
 .portal-inspiration-page .portal-story-title {
@@ -2242,12 +2242,12 @@ body > div {
   text-wrap: balance;
 }
 .portal-world--christmas .portal-magic-welcome-title {
-  font: normal 400 clamp(3.3rem, 10vw, 6.4rem)/1.3 "Great Vibes", "Cormorant Garamond", Georgia, cursive;
+  font: italic 600 clamp(3.1rem, 9vw, 6rem)/1.14 "Cormorant Garamond", Georgia, serif;
   letter-spacing: .006em;
   color: #fff1d6;
 }
 .portal-cinematic-intro--christmas .portal-intro-title {
-  font: normal 400 clamp(3.2rem, 9vw, 6rem)/1.22 "Great Vibes", "Cormorant Garamond", Georgia, cursive;
+  font: italic 600 clamp(3rem, 8.4vw, 5.8rem)/1.13 "Cormorant Garamond", Georgia, serif;
   color: #f7e6c4;
 }
 .portal-world--christmas .portal-inspiration-card h4.portal-story-title,
@@ -2419,8 +2419,8 @@ body > div {
 @media (max-width: 640px) {
   .portal-world--christmas .portal-script-title,
   .portal-inspiration-page .portal-script-title {
-    font-size: clamp(2.8rem, 10.4vw, 3.9rem);
-    line-height: 1.38;
+    font-size: clamp(2.45rem, 9vw, 3.4rem);
+    line-height: 1.14;
   }
   .portal-world--christmas .portal-magic-welcome-title {
     font-size: clamp(3.1rem, 11.4vw, 4.65rem);
@@ -2443,4 +2443,187 @@ body > div {
     opacity: .8;
     filter: none;
   }
+}
+
+
+/* Experiência editorial das inspirações: descobrir sem mostrar todos os textos de uma vez. */
+.portal-inspiration-page .portal-discovery {
+  color: #f7efda;
+}
+.portal-inspiration-page .portal-discovery-nav {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: .5rem;
+  width: 100%;
+  overflow-x: auto;
+  padding: .3rem 0 .8rem;
+  margin: 0 auto 2rem;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(213,185,126,.45) transparent;
+}
+.portal-inspiration-page .portal-discovery-nav a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  min-height: 42px;
+  padding: .65rem 1rem;
+  border: 1px solid rgba(217,183,121,.47);
+  border-radius: 999px;
+  background: #1c3028;
+  color: #f5e6cf;
+  font: 500 .8rem/1.3 "DM Sans", sans-serif;
+  text-decoration: none;
+  transition: background-color .2s, border-color .2s;
+}
+.portal-inspiration-page .portal-discovery-nav a:hover,
+.portal-inspiration-page .portal-discovery-nav a:focus-visible {
+  background: #2e4638;
+  border-color: #e2c891;
+}
+.portal-inspiration-page .portal-discovery-nav a:focus-visible,
+.portal-inspiration-page .portal-discovery-card__button:focus-visible {
+  outline: 2px solid #f4d696;
+  outline-offset: 3px;
+}
+.portal-inspiration-page .portal-discovery__chapter {
+  margin-bottom: .8rem;
+  color: #d4b984;
+  text-align: center;
+  font: 600 .72rem/1.4 "DM Sans", sans-serif;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+}
+.portal-inspiration-page .portal-discovery-card {
+  --discovery-accent: #d1b67d;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: .8rem;
+  min-width: 0;
+  overflow: hidden;
+  padding: 1.55rem 1.35rem;
+  border: 1px solid rgba(217,187,128,.4);
+  border-radius: 13px;
+  background: linear-gradient(146deg, #24372d, #1a2b24 74%);
+  box-shadow: 0 14px 35px rgba(2,8,7,.16);
+}
+.portal-inspiration-page .portal-discovery-card--featured {
+  padding: 1.7rem clamp(1.3rem, 4vw, 2.4rem);
+}
+.portal-inspiration-page .portal-discovery-card.portal-house-card { padding-top: 1.9rem; }
+.portal-inspiration-page .portal-discovery-card.portal-house-card--leao { --discovery-accent: #e0ad8c; }
+.portal-inspiration-page .portal-discovery-card.portal-house-card--texugo { --discovery-accent: #e8c77f; }
+.portal-inspiration-page .portal-discovery-card.portal-house-card--serpente { --discovery-accent: #a7cfaa; }
+.portal-inspiration-page .portal-discovery-card.portal-house-card--aguia { --discovery-accent: #a9c9e7; }
+.portal-inspiration-page .portal-discovery-card__top {
+  display: flex;
+  align-items: center;
+  gap: .7rem;
+  min-height: 26px;
+}
+.portal-inspiration-page .portal-discovery-card__emblem {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 29px;
+  height: 29px;
+  flex: 0 0 29px;
+  border: 1px solid rgba(235,210,167,.3);
+  border-radius: 50%;
+  color: var(--discovery-accent);
+  background: rgba(0,0,0,.15);
+  font: 19px/1 Georgia,serif;
+}
+.portal-inspiration-page .portal-discovery-card__eyebrow {
+  color: var(--discovery-accent);
+  font: 600 .66rem/1.45 "DM Sans",sans-serif;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+.portal-inspiration-page .portal-discovery-card__title {
+  margin: .1rem 0 0;
+  color: #f8e9ce;
+  font: italic 600 clamp(1.95rem, 4vw, 2.65rem)/1.06 "Cormorant Garamond", Georgia,serif;
+  text-wrap: balance;
+}
+.portal-inspiration-page .portal-discovery-card__teaser {
+  margin: 0;
+  max-width: 55ch;
+  color: rgba(247,239,218,.86);
+  font: 400 .91rem/1.65 "DM Sans", sans-serif;
+}
+.portal-inspiration-page .portal-discovery-card__image {
+  width: 100%;
+  max-height: 260px;
+  aspect-ratio: 16/9;
+  object-fit: cover;
+  border-radius: 7px;
+}
+.portal-inspiration-page .portal-discovery-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .65rem;
+  margin-top: .3rem;
+}
+.portal-inspiration-page .portal-discovery-card__button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .45rem;
+  min-height: 44px;
+  padding: .65rem .9rem;
+  border: 1px solid rgba(212,187,138,.5);
+  border-radius: 8px;
+  background: #263c32;
+  color: #fff4e0;
+  font: 500 .79rem/1.2 "DM Sans", sans-serif;
+  cursor: pointer;
+  transition: background-color .2s, border-color .2s;
+}
+.portal-inspiration-page .portal-discovery-card__button:hover {
+  background: #365143;
+  border-color: #e1c68e;
+}
+.portal-inspiration-page .portal-discovery-card__button--primary {
+  background: #927a46;
+  border-color: #bca171;
+  color: #fff9e9;
+}
+.portal-inspiration-page .portal-discovery-card__button--primary:hover { background: #a68a4e; }
+.portal-inspiration-page .portal-discovery-card__aroma {
+  display: flex;
+  flex-direction: column;
+  gap: .35rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid rgba(213,185,126,.42);
+  border-radius: 8px;
+  background: rgba(223,192,133,.11);
+}
+.portal-inspiration-page .portal-discovery-card__aroma-label {
+  color: #e1c996;
+  font: 600 .66rem/1.2 "DM Sans",sans-serif;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+.portal-inspiration-page .portal-discovery-card__aroma strong {
+  color: #fff0d1;
+  font: italic 600 1.65rem/1.25 "Cormorant Garamond", Georgia,serif;
+}
+.portal-inspiration-page .portal-discovery-card__story {
+  margin-top: .1rem;
+  padding-top: 1.15rem;
+  border-top: 1px solid rgba(221,194,147,.25);
+  color: #f5e9d4;
+}
+@media (max-width: 640px) {
+  .portal-inspiration-page .portal-discovery-card__actions { flex-direction: column; }
+  .portal-inspiration-page .portal-discovery-card__button { width: 100%; }
+  .portal-inspiration-page .portal-discovery-card { padding: 1.4rem 1.1rem; }
+  .portal-inspiration-page .portal-discovery-card__title { font-size: 2.03rem; }
+  .portal-inspiration-page .portal-discovery-nav { margin-bottom: 1.25rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .portal-inspiration-page .portal-discovery-card__button,
+  .portal-inspiration-page .portal-discovery-nav a { transition: none; }
 }
