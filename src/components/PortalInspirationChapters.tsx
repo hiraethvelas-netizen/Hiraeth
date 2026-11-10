@@ -5,10 +5,11 @@ import type { Tables } from "@/integrations/supabase/types";
 type Fragment = Tables<"portal_fragments">;
 
 export function PortalInspirationCard({ fragment, featured = false }: { fragment: Fragment; featured?: boolean }) {
-  return <article className={`portal-inspiration-card ${featured ? "px-6 py-8 sm:px-10 sm:py-10" : "p-6 sm:p-8"}`}>
+  const house = ({ 3: "leao", 4: "texugo", 5: "serpente", 6: "aguia" } as Record<number, string>)[fragment.position ?? -1];
+  return <article className={`portal-inspiration-card ${house ? `portal-house-card portal-house-card--${house}` : ""} ${featured ? "px-6 py-8 sm:px-10 sm:py-10" : "p-6 sm:p-8"}`}>
     {fragment.image_url && <img src={fragment.image_url} alt={fragment.caption || fragment.title}
       className="mb-6 aspect-[4/3] w-full rounded-lg object-cover" loading="lazy" />}
-    <h4 className={`font-display ${featured ? "text-2xl sm:text-3xl" : "text-2xl"}`}>{fragment.title}</h4>
+    <h4 className={`portal-story-title ${featured ? "text-2xl sm:text-3xl" : "text-2xl"}`}>{fragment.title}</h4>
     {fragment.reference && <p className="mt-3 text-sm italic text-[var(--portal-accent)]">{fragment.reference}</p>}
     <p className="mt-5 whitespace-pre-line text-sm leading-7 opacity-90 sm:text-base">{fragment.body}</p>
     {fragment.context && <p className="mt-5 border-t border-[var(--portal-accent)]/20 pt-4 text-sm italic text-[var(--portal-accent)]">{fragment.context}</p>}
@@ -42,7 +43,11 @@ export function PortalInspirationChapters({ fragments, magicWorld }: { fragments
 
     {houses.length > 0 && <section aria-labelledby="portal-houses-title">
       <p className="text-center text-xs uppercase tracking-[.24em] text-[var(--portal-accent)]">Capítulo III · Pertencimento</p>
-      <h3 id="portal-houses-title" className="mb-8 mt-3 text-center font-display text-3xl sm:text-4xl">Quatro casas, quatro essências</h3>
+      <h3 id="portal-houses-title" className="portal-script-title mb-8 mt-3 text-center">Quatro casas, quatro essências</h3>
+      <div className="portal-house-palette" aria-hidden="true">
+        {["leao", "texugo", "aguia", "serpente"].map(house =>
+          <span key={house} className={`portal-house-ribbon portal-house-ribbon--${house}`}/>)}
+      </div>
       <div className="grid gap-5 sm:grid-cols-2">
         {houses.map(fragment => <PortalInspirationCard key={fragment.id} fragment={fragment} />)}
       </div>
@@ -66,7 +71,7 @@ export function PortalInspirationChapters({ fragments, magicWorld }: { fragments
 
     {letters.map(fragment => <section key={fragment.id} aria-labelledby="portal-letter-title" className="mx-auto max-w-3xl text-center">
       <p className="text-xs uppercase tracking-[.24em] text-[var(--portal-accent)]">Capítulo V · Uma mensagem para você</p>
-      <h3 id="portal-letter-title" className="mt-3 font-display text-3xl sm:text-4xl">Uma carta da Guardiã da Chama</h3>
+      <h3 id="portal-letter-title" className="portal-script-title mt-3">Uma carta da Guardiã da Chama</h3>
       <p className="mx-auto mt-3 max-w-lg text-sm leading-7 opacity-80">
         Algumas palavras são guardadas até o momento certo de serem encontradas.
       </p>
@@ -83,7 +88,7 @@ export function PortalInspirationChapters({ fragments, magicWorld }: { fragments
         </> : <span className="inline-flex items-center gap-2 rounded-full border border-[var(--portal-accent)] px-6 py-3 text-sm"><X size={16}/> Fechar carta</span>}
       </button>
       {letterOpen && <article id="portal-letter-content" className="mt-6 rounded-lg border border-[#c4ad7b] bg-[#f7efda] px-6 py-8 text-left text-[#513c2b] shadow-[0_16px_40px_rgba(0,0,0,.24)] sm:px-12 sm:py-12">
-        <h4 className="mb-6 text-center font-display text-2xl sm:text-3xl">{fragment.title}</h4>
+        <h4 className="portal-story-title mb-6 text-center text-2xl sm:text-3xl">{fragment.title}</h4>
         <p className="whitespace-pre-line font-serif text-base leading-8 sm:text-lg">{fragment.body}</p>
       </article>}
     </section>)}
