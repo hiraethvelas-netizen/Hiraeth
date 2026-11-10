@@ -2219,7 +2219,8 @@ body > div {
 }
 
 /* Portal NFC — detalhes de quatro casas e Natal, somente nestas duas páginas. */
-.portal-world .portal-script-title {
+.portal-world--christmas .portal-script-title,
+.portal-inspiration-page .portal-script-title {
   font-family: "Great Vibes", "Cormorant Garamond", Georgia, cursive;
   font-size: clamp(2.85rem, 7.5vw, 4.8rem);
   font-style: normal;
@@ -2230,7 +2231,8 @@ body > div {
   color: #f7e9d0;
   text-shadow: 0 2px 15px rgba(4, 14, 14, .55);
 }
-.portal-world .portal-story-title {
+.portal-world--christmas .portal-story-title,
+.portal-inspiration-page .portal-story-title {
   font-family: "Cormorant Garamond", Georgia, serif;
   font-style: italic;
   font-weight: 600;
@@ -2248,7 +2250,8 @@ body > div {
   font: normal 400 clamp(3.2rem, 9vw, 6rem)/1.22 "Great Vibes", "Cormorant Garamond", Georgia, cursive;
   color: #f7e6c4;
 }
-.portal-world .portal-inspiration-card h4.portal-story-title { color: #f7e4c1; }
+.portal-world--christmas .portal-inspiration-card h4.portal-story-title,
+.portal-inspiration-page .portal-inspiration-card h4.portal-story-title { color: #f7e4c1; }
 
 /* A faixa é um pequeno tecido listrado de cada casa, não uma fotografia. */
 .portal-house-ribbon {
@@ -2414,7 +2417,8 @@ body > div {
 }
 
 @media (max-width: 640px) {
-  .portal-world .portal-script-title {
+  .portal-world--christmas .portal-script-title,
+  .portal-inspiration-page .portal-script-title {
     font-size: clamp(2.8rem, 10.4vw, 3.9rem);
     line-height: 1.38;
   }
