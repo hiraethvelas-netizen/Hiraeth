@@ -1,7 +1,7 @@
 import { EssenceNotesFields } from "@/components/admin/EssenceNotesFields";
 import { emptyNotes, essenceNotesPayload, notesDraft, type EssenceNotes } from "@/lib/fragrance";
 import { createFileRoute } from "@tanstack/react-router";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { essenceUnit, type StockUnit } from "@/lib/candle-recipes";
@@ -27,6 +27,7 @@ function AdminEssencias() {
   const [aromaNotes, setAromaNotes] = useState(emptyNotes);
   const [saving, setSaving] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const editNameRef = useRef<HTMLInputElement>(null);
   const [editingBalance, setEditingBalance] = useState<number | null>(null);
   const [selectedEssence, setSelectedEssence] = useState("");
   const [recipeProduct, setRecipeProduct] = useState("");
@@ -66,6 +67,18 @@ function AdminEssencias() {
     setForm({ name: e.name, stock_ml: String(e.stock_ml), minimum_stock_ml: String(e.minimum_stock_ml), target_stock_ml: String(e.target_stock_ml), supplier: e.supplier ?? "", notes: e.notes ?? "", stock_unit: essenceUnit(e) });
   }
   function resetForm() { setEditingId(null); setEditingBalance(null); setForm(blank); setAromaNotes(emptyNotes); }
+
+  useEffect(() => {
+    if (!editingId) return;
+    const previousOverflow = document.body.style.overflow;
+    const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    document.body.style.overflow = "hidden";
+    editNameRef.current?.focus();
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      previousFocus?.focus();
+    };
+  }, [editingId]);
 
   async function saveEssence(event: React.FormEvent) {
     event.preventDefault();
@@ -134,15 +147,24 @@ function AdminEssencias() {
     <div className="mt-6 grid gap-4 sm:grid-cols-3"><div className="border bg-card p-5"><p className="text-xs uppercase tracking-widest text-muted-foreground">Essências cadastradas</p><p className="mt-2 text-3xl text-primary">{essences.length}</p></div><div className="border bg-card p-5"><p className="text-xs uppercase tracking-widest text-muted-foreground">Precisam de reposição</p><p className="mt-2 text-3xl text-destructive">{low.length}</p></div><div className="border bg-card p-5"><p className="text-xs uppercase tracking-widest text-muted-foreground">Fórmulas vinculadas</p><p className="mt-2 text-3xl text-primary">{recipes.length}</p></div></div>
     {low.length > 0 && <section className="mt-6 border border-destructive/40 bg-card p-5"><h2 className="text-lg text-destructive">Atenção: estoque baixo</h2><p className="mt-1 text-sm text-muted-foreground">Essências no limite mínimo ou abaixo dele.</p><div className="mt-3 flex flex-wrap gap-2">{low.map(e => <span key={e.id} className="border border-destructive/30 px-3 py-2 text-sm">{e.name}: {Number(e.stock_ml).toLocaleString("pt-BR")} {essenceUnit(e)}</span>)}</div></section>}
     <div className="mt-8 grid gap-6 xl:grid-cols-2">
-      <section className="border bg-card p-5"><h2 className="text-xl text-foreground">{editingId ? "Editar essência" : "Cadastrar essência"}</h2><form onSubmit={saveEssence} className="mt-4 space-y-3">
-        <label className="block text-sm text-muted-foreground">Nome da essência<input required value={form.name} onChange={e => setForm({...form,name:e.target.value})} placeholder="Ex.: Baunilha" className={input}/></label>
+      <section role={editingId ? "dialog" : undefined} aria-modal={editingId ? true : undefined}
+        aria-label={editingId ? "Editar essência" : undefined}
+        className={editingId
+          ? "fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto bg-black/80 p-3 sm:p-6"
+          : "border bg-card p-5"}>
+        <div className={editingId
+          ? "max-h-[92dvh] w-full max-w-2xl overflow-y-auto rounded-lg border border-primary/40 bg-background p-5 shadow-2xl sm:p-7"
+          : ""}>
+        <h2 className="text-xl text-foreground">{editingId ? "Editar essência" : "Cadastrar essência"}</h2>
+        <form onSubmit={saveEssence} className="mt-4 space-y-3">
+        <label className="block text-sm text-muted-foreground">Nome da essência<input ref={editNameRef} required value={form.name} onChange={e => setForm({...form,name:e.target.value})} placeholder="Ex.: Baunilha" className={input}/></label>
         <p className="text-sm text-muted-foreground">Unidade do estoque: <strong>{form.stock_unit}</strong></p>
         <p className="text-xs text-muted-foreground">{editingId && form.stock_unit === "ml" ? "Cadastro antigo em ml: os valores não devem ser interpretados como gramas. A conversão precisa dos pesos reais e da revisão das receitas vinculadas." : "Todos os novos cadastros são em gramas (g)."}</p>
         <div className="grid gap-3 sm:grid-cols-3"><label className="text-sm text-muted-foreground">Saldo atual ({form.stock_unit})<input type="number" min="0" step="0.001" required value={form.stock_ml} onChange={e => setForm({...form,stock_ml:e.target.value})} className={input}/></label><label className="text-sm text-muted-foreground">Alerta abaixo de ({form.stock_unit})<input type="number" min="0" step="0.001" required value={form.minimum_stock_ml} onChange={e => setForm({...form,minimum_stock_ml:e.target.value})} className={input}/></label><label className="text-sm text-muted-foreground">Estoque ideal ({form.stock_unit})<input type="number" min="0" step="0.001" required value={form.target_stock_ml} onChange={e => setForm({...form,target_stock_ml:e.target.value})} className={input}/></label></div>
         <label className="block text-sm text-muted-foreground">Fornecedor (opcional)<input value={form.supplier} onChange={e => setForm({...form,supplier:e.target.value})} className={input}/></label><label className="block text-sm text-muted-foreground">Observações<textarea rows={2} value={form.notes} onChange={e => setForm({...form,notes:e.target.value})} className={input}/></label>
         <EssenceNotesFields value={aromaNotes} onChange={setAromaNotes} inputClass={input} />
         <div className="flex flex-wrap gap-2"><button className="btn-gold" disabled={saving} type="submit">{saving ? "Salvando..." : "Salvar essência"}</button>{editingId && <button type="button" onClick={resetForm} className="border px-4 py-2">Cancelar edição</button>}</div>
-      </form></section>
+      </form></div></section>
       <section className="border bg-card p-5"><h2 className="text-xl text-foreground">Consultar essência</h2><p className="mt-1 text-sm text-muted-foreground">Escolha uma essência para ver todas as velas que levam esse aroma.</p><select value={selectedEssence} onChange={e=>setSelectedEssence(e.target.value)} className={input}><option value="">Selecione uma essência</option>{essences.map(e=><option key={e.id} value={e.id}>{e.name} — {Number(e.stock_ml).toLocaleString("pt-BR")} {essenceUnit(e)}</option>)}</select>
         {selected && <><div className="mt-4 flex flex-wrap gap-2"><button onClick={()=>void movement("purchase")} className="border px-3 py-2 text-sm hover:border-primary">+ Registrar compra</button><button onClick={()=>void movement("adjustment")} className="border px-3 py-2 text-sm hover:border-primary">Ajustar saldo</button><button onClick={()=>void movement("loss")} className="border px-3 py-2 text-sm hover:border-primary">Registrar perda</button><button onClick={()=>edit(selected)} className="border px-3 py-2 text-sm hover:border-primary">Editar cadastro</button></div><h3 className="mt-5 font-medium text-foreground">Velas que usam {selected.name}</h3><div className="mt-2 space-y-2">{usage.length ? usage.map(r=><div key={r.id} className="flex items-center justify-between gap-3 border-b py-2 text-sm"><div><p className="text-foreground">{r.products?.name ?? products.find(p=>p.id===r.product_id)?.name ?? "Produto"}</p><p className="text-xs text-muted-foreground">{Number(r.quantity_ml).toLocaleString("pt-BR")} {essenceUnit(selected)} por vela{r.recipe_id ? ` · ${variantLabel(r)}` : " · Receita padrão"}</p></div>{r.recipe_id ? <a href="/admin/produtos" className="text-xs text-primary underline">Editar no produto</a> : <button onClick={()=>void removeRecipe(r)} className="text-xs text-destructive">Remover</button>}</div>) : <p className="text-sm text-muted-foreground">Ainda não há velas vinculadas a esta essência.</p>}</div></>}
       </section>
