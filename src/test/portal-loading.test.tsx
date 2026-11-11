@@ -51,7 +51,6 @@ const fragment = {
   id: "inspiracao-teste",
   title: "Uma história preservada",
   body: "Os detalhes deste aroma.",
-  position: 8,
 };
 
 beforeEach(() => {
@@ -85,39 +84,26 @@ describe("Portal NFC: recuperação de falhas de carregamento", () => {
     expect(screen.queryByText("Abrindo o portal...")).not.toBeInTheDocument();
   });
 
-  it("recupera os textos de Natal sem repetir a abertura ou consultar novamente o portal", async () => {
+  it("recupera as inspirações sem repetir a abertura ou consultar novamente o portal", async () => {
     mocks.slug = "o-mundo-de-magia";
     mocks.fragmentsQuery.mockResolvedValueOnce({ data: null, error: { message: "offline" } });
     render(<PortalPage />);
     fireEvent.click(await screen.findByRole("button", { name: "Entrar na coleção" }));
     expect(await screen.findByRole("alert")).toHaveTextContent(
-      "Não foi possível carregar a coleção de Natal",
+      "Não foi possível carregar as inspirações",
     );
+    expect(
+      screen.queryByText("As histórias por trás das velas serão reveladas aqui."),
+    ).not.toBeInTheDocument();
 
     mocks.fragmentsQuery.mockResolvedValueOnce({ data: [fragment], error: null });
-    fireEvent.click(screen.getByRole("button", { name: "Tentar carregar novamente" }));
-    expect(await screen.findByText(fragment.title)).toBeInTheDocument();
+    fireEvent.click(
+      screen.getByRole("button", { name: "Tentar carregar as inspirações novamente" }),
+    );
+    expect(await screen.findByRole("heading", { name: fragment.title })).toBeInTheDocument();
     expect(mocks.portalQuery).toHaveBeenCalledTimes(1);
     expect(mocks.fragmentsQuery).toHaveBeenCalledTimes(2);
     expect(screen.queryByRole("button", { name: "Entrar na coleção" })).not.toBeInTheDocument();
-  });
-
-  it("mantém apenas o Natal no portal principal e abre inspirações em página separada", async () => {
-    mocks.slug = "o-mundo-de-magia";
-    mocks.fragmentsQuery.mockResolvedValueOnce({ data: [fragment], error: null });
-    render(<PortalPage />);
-    fireEvent.click(await screen.findByRole("button", { name: "Entrar na coleção" }));
-    expect(await screen.findByRole("heading", { name: "O Natal no Mundo da Magia" })).toBeInTheDocument();
-    expect(await screen.findByText(fragment.title)).toBeInTheDocument();
-    expect(screen.queryByText(fragment.body)).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: /Uma história preservada/ }));
-    expect(screen.getByText(fragment.body)).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Fechar informações da vela" }));
-    expect(screen.queryByText(fragment.body)).not.toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /Conheça as inspirações/ }))
-      .toHaveAttribute("href", "/portal/o-mundo-de-magia/inspiracoes");
-    expect(screen.queryByText("Quatro casas, quatro essências")).not.toBeInTheDocument();
-    expect(screen.queryByText("As histórias ganham forma em breve.")).not.toBeInTheDocument();
   });
 
   it("distingue falha de rede de ausência de inspirações", async () => {

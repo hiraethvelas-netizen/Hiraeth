@@ -1,0 +1,160 @@
+.magic-inspirations {
+  --letter-paper: var(--card);
+  --letter-ink: var(--card-foreground);
+  --letter-seal: var(--primary);
+  --letter-seal-text: var(--primary-foreground);
+  --letter-edge: var(--portal-accent);
+  color: var(--portal-text);
+  letter-spacing: 0;
+}
+.magic-inspirations .magic-chapter {
+  padding-block: 2.5rem;
+  border-top: 1px solid color-mix(in srgb, var(--portal-accent) 32%, transparent);
+}
+.magic-inspirations h3 {
+  font-size: 1.75rem;
+  line-height: 1.3;
+  letter-spacing: 0;
+  text-wrap: balance;
+}
+.magic-inspirations h4 {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  line-height: 1.4;
+  letter-spacing: 0;
+}
+.magic-inspirations .magic-chapter-number {
+  color: var(--portal-accent);
+  font-family: var(--font-display);
+  font-size: 1rem;
+  margin-bottom: 0.65rem;
+}
+.magic-inspirations .magic-fragment {
+  margin-top: 1.5rem;
+  overflow-wrap: anywhere;
+}
+.magic-inspirations .magic-fragment p {
+  white-space: pre-line;
+  font-size: 1rem;
+  line-height: 1.9;
+  margin-top: 0.75rem;
+}
+.magic-inspirations .magic-fragment small {
+  display: block;
+  color: var(--portal-accent);
+  margin-top: 0.5rem;
+}
+.magic-inspirations .magic-empty {
+  margin-top: 1rem;
+  font-style: italic;
+  font-size: 0.875rem;
+  opacity: 0.75;
+}
+.magic-inspirations .magic-house {
+  border-left: 2px solid var(--portal-accent);
+  padding: 1rem 1.25rem;
+  min-width: 0;
+  background: color-mix(in srgb, var(--portal-surface) 70%, transparent);
+}
+.magic-inspirations .magic-envelope {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: 2rem auto 0;
+  width: 100%;
+  max-width: 32rem;
+  min-height: 15rem;
+  border: 1px solid var(--letter-edge);
+  border-radius: 4px;
+  background: var(--portal-surface);
+  overflow: hidden;
+  padding: 4rem 1rem 1.5rem;
+}
+.magic-inspirations .magic-envelope::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0 0 35%;
+  background: color-mix(in srgb, var(--portal-accent) 12%, var(--portal-surface));
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+}
+.magic-inspirations .magic-seal {
+  display: grid;
+  place-items: center;
+  width: 4rem;
+  height: 4rem;
+  border: 3px double var(--letter-seal-text);
+  outline: 4px solid var(--letter-seal);
+  border-radius: 50%;
+  background: var(--letter-seal);
+  color: var(--letter-seal-text);
+  font: 2rem var(--font-display);
+}
+.magic-inspirations .magic-letter-button {
+  margin-top: 1.5rem;
+  border: 1px solid var(--portal-accent);
+  color: var(--portal-text);
+  background: var(--portal-surface);
+  min-height: 44px;
+  height: auto;
+  white-space: normal;
+}
+.magic-inspirations .magic-letter-button:hover {
+  background: var(--portal-bg);
+}
+.magic-inspirations .magic-letter-paper {
+  color: var(--letter-ink);
+  background: var(--letter-paper);
+  border: 1px solid var(--letter-edge);
+  border-radius: 3px;
+  margin-top: 2rem;
+  padding: 2rem 1.25rem;
+  animation: magic-letter-unfold 0.45s ease-out both;
+  overflow-wrap: anywhere;
+}
+.magic-inspirations .magic-letter-paper h4 {
+  color: inherit;
+}
+.magic-inspirations .magic-letter-paper small {
+  color: inherit;
+}
+.magic-inspirations .magic-letter-paper .magic-letter-button {
+  color: var(--letter-ink);
+  background: transparent;
+  border-color: var(--letter-ink);
+}
+.magic-inspirations .magic-letter-signature {
+  margin-top: 2.5rem;
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+}
+.magic-inspirations .magic-letter-slogan {
+  margin-top: 0.5rem;
+  font-style: italic;
+  font-size: 0.875rem;
+}
+@keyframes magic-letter-unfold {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (min-width: 640px) {
+  .magic-inspirations .magic-letter-paper {
+    padding: 3rem;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .magic-inspirations *,
+  .magic-inspirations *::before {
+    animation: none;
+    transition: none;
+  }
+}
