@@ -703,7 +703,7 @@ export type Database = {
           order_id: string | null
           order_item_id: string | null
           quantity_ml: number
-          stock_unit: "ml" | "g"
+          stock_unit: string
         }
         Insert: {
           balance_after_ml: number
@@ -715,7 +715,7 @@ export type Database = {
           order_id?: string | null
           order_item_id?: string | null
           quantity_ml: number
-          stock_unit?: "ml" | "g"
+          stock_unit?: string
         }
         Update: {
           balance_after_ml?: number
@@ -727,7 +727,7 @@ export type Database = {
           order_id?: string | null
           order_item_id?: string | null
           quantity_ml?: number
-          stock_unit?: "ml" | "g"
+          stock_unit?: string
         }
         Relationships: [
           {
@@ -765,7 +765,7 @@ export type Database = {
           name: string
           notes: string | null
           stock_ml: number
-          stock_unit: "ml" | "g"
+          stock_unit: string
           supplier: string | null
           target_stock_ml: number
           top_notes: string[]
@@ -782,7 +782,7 @@ export type Database = {
           name: string
           notes?: string | null
           stock_ml?: number
-          stock_unit?: "ml" | "g"
+          stock_unit?: string
           supplier?: string | null
           target_stock_ml?: number
           top_notes?: string[]
@@ -799,7 +799,7 @@ export type Database = {
           name?: string
           notes?: string | null
           stock_ml?: number
-          stock_unit?: "ml" | "g"
+          stock_unit?: string
           supplier?: string | null
           target_stock_ml?: number
           top_notes?: string[]
@@ -1093,45 +1093,6 @@ export type Database = {
         }
         Relationships: []
       }
-      product_variant_essences: {
-        Row: {
-          product_id: string
-          recipe_id: string
-          essence_id: string
-          quantity: number
-          created_at: string
-        }
-        Insert: {
-          product_id: string
-          recipe_id: string
-          essence_id: string
-          quantity: number
-          created_at?: string
-        }
-        Update: {
-          product_id?: string
-          recipe_id?: string
-          essence_id?: string
-          quantity?: number
-          created_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "product_variant_essences_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "products"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "product_variant_essences_essence_id_fkey"
-            columns: ["essence_id"]
-            isOneToOne: false
-            referencedRelation: "essences"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       product_essences: {
         Row: {
           created_at: string
@@ -1164,6 +1125,45 @@ export type Database = {
           },
           {
             foreignKeyName: "product_essences_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_variant_essences: {
+        Row: {
+          created_at: string
+          essence_id: string
+          product_id: string
+          quantity: number
+          recipe_id: string
+        }
+        Insert: {
+          created_at?: string
+          essence_id: string
+          product_id: string
+          quantity: number
+          recipe_id: string
+        }
+        Update: {
+          created_at?: string
+          essence_id?: string
+          product_id?: string
+          quantity?: number
+          recipe_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_variant_essences_essence_id_fkey"
+            columns: ["essence_id"]
+            isOneToOne: false
+            referencedRelation: "essences"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_variant_essences_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
@@ -1689,6 +1689,10 @@ export type Database = {
         }
         Returns: string
       }
+      consume_paid_order_essences: {
+        Args: { p_order_id: string }
+        Returns: undefined
+      }
       discard_incomplete_order: {
         Args: { p_order_id: string }
         Returns: boolean
@@ -1712,24 +1716,38 @@ export type Database = {
         }
         Returns: boolean
       }
+      record_essence_stock_movement: {
+        Args: {
+          p_essence_id: string
+          p_expected_balance?: number
+          p_movement_type: string
+          p_quantity: number
+        }
+        Returns: Json
+      }
       request_commerce_order_review: {
         Args: { p_kind: string; p_order_id: string; p_reason: string }
         Returns: string
       }
-      record_essence_stock_movement: {
-        Args: { p_essence_id: string; p_movement_type: string; p_quantity: number; p_expected_balance?: number | null }
-        Returns: Json
-      }
       save_product_with_recipes: {
-        Args: { p_product_id: string | null; p_product: Json; p_default_ingredients: Json; p_variant_recipes: Json }
+        Args: {
+          p_default_ingredients: Json
+          p_product: Json
+          p_product_id: string
+          p_variant_recipes: Json
+        }
         Returns: string
-      }
-      set_product_recipes: {
-        Args: { p_product_id: string; p_default_ingredients: Json; p_variant_recipes: Json }
-        Returns: undefined
       }
       set_product_essences: {
         Args: { p_ingredients: Json; p_product_id: string }
+        Returns: undefined
+      }
+      set_product_recipes: {
+        Args: {
+          p_default_ingredients: Json
+          p_product_id: string
+          p_variant_recipes: Json
+        }
         Returns: undefined
       }
     }
