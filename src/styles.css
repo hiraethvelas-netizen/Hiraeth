@@ -3033,3 +3033,96 @@ body > div {
     transform: none;
   }
 }
+
+
+/* Inspirações: apenas o Natal usa duas caixas vermelhas com fotografias.
+   Mantém o visual verde / dark academia original para as casas e a carta. */
+.portal-inspiration-page .portal-christmas-inspiration__intro {
+  padding: .95rem 1.15rem;
+  border: 1px solid rgba(216,186,128,.38);
+  border-radius: 12px;
+  color: #f7efda;
+  text-align: center;
+  font: 400 .94rem/1.6 "DM Sans", sans-serif;
+  background: linear-gradient(125deg, #263b30, #1c3027);
+}
+.portal-inspiration-page .portal-christmas-inspiration {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid rgba(221,185,116,.62);
+  border-radius: 14px;
+  background: linear-gradient(155deg, #5b1d04, #3b160f);
+  color: #f7efda;
+  box-shadow: 0 14px 28px rgba(10,5,3,.2);
+}
+.portal-inspiration-page .portal-christmas-inspiration__trigger {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  padding: clamp(.75rem, 2vw, 1.3rem);
+  text-align: center;
+  color: inherit;
+  cursor: pointer;
+}
+.portal-inspiration-page .portal-christmas-inspiration__trigger:focus-visible {
+  outline: 2px solid #f3d693;
+  outline-offset: -4px;
+}
+.portal-inspiration-page .portal-christmas-inspiration__image-wrap {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: clamp(175px, 32vw, 275px);
+  padding: .2rem;
+}
+.portal-inspiration-page .portal-christmas-inspiration__image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 13px 16px rgba(0,0,0,.36));
+}
+.portal-inspiration-page .portal-christmas-inspiration__name {
+  margin-top: .3rem;
+  font: italic 600 clamp(1.45rem, 3.2vw, 2rem)/1.1 "Cormorant Garamond", Georgia, serif;
+  text-wrap: balance;
+  color: #f9ebcc;
+}
+.portal-inspiration-page .portal-christmas-inspiration__hint {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: .45rem;
+  margin-top: .8rem;
+  font: 500 .78rem/1.4 "DM Sans", sans-serif;
+  color: #f8d7a0;
+}
+.portal-inspiration-page .portal-christmas-inspiration__details {
+  border-top: 1px solid rgba(241,203,151,.3);
+  padding: 1.1rem clamp(1rem, 3vw, 1.6rem) 1.5rem;
+  color: #f8eada;
+  animation: portal-natal-open .24s ease-out both;
+}
+.portal-inspiration-page .portal-christmas-inspiration__reference {
+  margin-bottom: .65rem;
+  font-style: italic;
+  color: #f5d2a3;
+}
+.portal-inspiration-page .portal-christmas-inspiration__aroma {
+  margin-top: .9rem;
+  padding-top: .8rem;
+  border-top: 1px solid rgba(245,210,163,.3);
+  color: #ffe6b8;
+  font-weight: 600;
+}
+.portal-inspiration-page .portal-house-card .portal-discovery-card__image {
+  object-fit: contain;
+  aspect-ratio: 4 / 3;
+  max-height: 290px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .portal-inspiration-page .portal-christmas-inspiration__details {
+    animation: none;
+  }
+}

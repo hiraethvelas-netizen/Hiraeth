@@ -21,7 +21,7 @@ afterEach(() => cleanup());
 describe("Inspirações: experiência de descoberta", () => {
   it("mostra cartões compactos e mantém os textos completos ocultos até o clique", () => {
     render(<PortalInspirationChapters fragments={data} magicWorld />);
-    expect(screen.getByText(/um suéter feito à mão/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Entre Fios e Magia/ })).toBeInTheDocument();
     expect(screen.queryByText("A sala comunal é inspiradora.")).not.toBeInTheDocument();
     expect(screen.queryByText("Uma carta sobre encontrar conforto e sentir-se em casa.")).not.toBeInTheDocument();
     expect(screen.getByRole("navigation", { name: "Explorar inspirações" })).toBeInTheDocument();
@@ -58,6 +58,40 @@ describe("Inspirações: experiência de descoberta", () => {
     expect(screen.getByText("Uma carta sobre encontrar conforto e sentir-se em casa.")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: /fechar carta/i }));
     expect(screen.queryByText("Uma carta sobre encontrar conforto e sentir-se em casa.")).not.toBeInTheDocument();
+  });
+
+  it("coloca a carta entre a Seletora e as quatro casas sem mudar os cartões das casas", () => {
+    const { container } = render(<PortalInspirationChapters fragments={data} magicWorld />);
+    const sections = Array.from(container.querySelectorAll("section[id^='inspiracao-']")).map(el => el.id);
+    expect(sections).toEqual([
+      "inspiracao-origem", "inspiracao-seletora", "inspiracao-carta", "inspiracao-casas", "inspiracao-natal",
+    ]);
+    const nav = screen.getByRole("navigation", { name: "Explorar inspirações" });
+    expect(within(nav).getAllByRole("link").map(link => link.textContent)).toEqual([
+      "A origem", "A Seletora", "A carta", "Quatro casas", "Natal",
+    ]);
+    expect(container.querySelector(".portal-house-card--leao")).toBeInTheDocument();
+  });
+
+  it("mostra só o título e introdução do Natal e revela cada vela na caixa vermelha com foto", () => {
+    const intro = make("natal-intro", 7, "O Natal no Mundo da Magia",
+      "Um texto mais longo que deve ficar guardado.",
+      "Duas velas, duas memórias.");
+    const { container } = render(<PortalInspirationChapters fragments={[...data, intro]} magicWorld />);
+    const natal = container.querySelector("#inspiracao-natal") as HTMLElement;
+    expect(within(natal).getAllByText("O Natal no Mundo da Magia")).toHaveLength(1);
+    expect(within(natal).getByText("Referência dos livros")).toBeInTheDocument();
+    expect(within(natal).queryByText("Um texto mais longo que deve ficar guardado.")).not.toBeInTheDocument();
+    const photo = within(natal).getByRole("img", { name: "Vela Entre Fios e Magia" });
+    expect(photo).toHaveAttribute("src", expect.stringMatching(/.+/));
+    const action = within(natal).getByRole("button", { name: /Entre Fios e Magia/ });
+    expect(action).toHaveAttribute("aria-expanded", "false");
+    fireEvent.click(action);
+    expect(action).toHaveAttribute("aria-expanded", "true");
+    expect(within(natal).getByText("O primeiro presente de Natal.")).toBeInTheDocument();
+    expect(within(natal).getByText("Aroma: Baunilha & Canela")).toBeInTheDocument();
+    fireEvent.click(action);
+    expect(within(natal).queryByText("O primeiro presente de Natal.")).not.toBeInTheDocument();
   });
 
   it("preserva a apresentação original dos demais portais", () => {

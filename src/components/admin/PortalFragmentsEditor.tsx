@@ -36,6 +36,7 @@ export function PortalFragmentsEditor({ portalId }: { portalId: string }) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -77,8 +78,41 @@ export function PortalFragmentsEditor({ portalId }: { portalId: string }) {
     setShowForm(true);
   }
 
+  async function uploadPhoto(file: File) {
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      toast.error("Envie uma foto JPG, PNG ou WebP.");
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("A foto deve ter até 10 MB.");
+      return;
+    }
+    setUploadingPhoto(true);
+    try {
+      const safeName = file.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9._-]/g, "-");
+      const path = `inspiracoes/${portalId}/${crypto.randomUUID()}-${safeName}`;
+      // Use the existing admin-enabled image bucket, without changing storage policies.
+      const bucket = supabase.storage.from("product-images");
+      const { error } = await bucket.upload(path, file, { upsert: false });
+      if (error) throw error;
+      const { data } = bucket.getPublicUrl(path);
+      if (!data.publicUrl) throw new Error("Não foi possível obter o link da foto.");
+      setForm(current => ({
+        ...current,
+        image_url: data.publicUrl,
+        caption: current.caption || current.title,
+      }));
+      toast.success("Foto enviada. Salve o conteúdo para exibi-la no portal.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Não foi possível enviar a foto.");
+    } finally {
+      setUploadingPhoto(false);
+    }
+  }
+
   async function save(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (uploadingPhoto) { toast.error("Conclua o envio da foto antes de salvar."); return; }
     setSaving(true);
     const payload = {
       portal_id: portalId,
@@ -123,7 +157,7 @@ export function PortalFragmentsEditor({ portalId }: { portalId: string }) {
         <div>
           <p className="text-xs uppercase tracking-[0.2em] text-primary">Conteúdo interno</p>
           <h2 className="mt-1 text-2xl text-foreground">Imagens e fragmentos</h2>
-          <p className="mt-1 text-sm text-muted-foreground">Adicione inspirações, imagens, referências e textos que aparecem dentro do portal.</p>
+          <p className="mt-1 text-sm text-muted-foreground">Edite os textos e envie fotos das velas atuais ou antigas diretamente nesta área, sem mexer no layout.</p>
         </div>
         <button type="button" onClick={startNew} className="btn-gold">+ Adicionar conteúdo</button>
       </div>
@@ -144,7 +178,29 @@ export function PortalFragmentsEditor({ portalId }: { portalId: string }) {
             <label className="text-sm text-muted-foreground md:col-span-2">Contexto / história da inspiração
               <textarea rows={3} value={form.context} onChange={(e) => setForm({ ...form, context: e.target.value })} className={`mt-1 ${inputClass}`} />
             </label>
-            <label className="text-sm text-muted-foreground md:col-span-2">URL da imagem
+            <div className="text-sm text-muted-foreground md:col-span-2">
+              <label className="block">Enviar foto da vela ou da inspiração
+                <input type="file" accept="image/jpeg,image/png,image/webp" disabled={saving || uploadingPhoto}
+                  aria-label="Enviar foto da inspiração"
+                  onChange={(event) => {
+                    const file = event.currentTarget.files?.[0];
+                    event.currentTarget.value = "";
+                    if (file) void uploadPhoto(file);
+                  }}
+                  className={`mt-1 ${inputClass}`} />
+              </label>
+              <p className="mt-1 text-xs">Escolha uma foto real de cada casa, da Seletora ou das velas antigas (até 10 MB).</p>
+              {uploadingPhoto && <p role="status" className="mt-2 text-primary">Enviando foto...</p>}
+              {form.image_url && <div className="mt-3 flex flex-wrap items-end gap-3">
+                <img src={form.image_url} alt="Prévia da foto cadastrada" className="h-40 w-40 rounded border object-contain" />
+                <button type="button" disabled={uploadingPhoto || saving}
+                  onClick={() => setForm(current => ({ ...current, image_url: "", caption: "" }))}
+                  className="rounded border border-destructive/50 px-3 py-2 text-xs text-destructive">
+                  Remover foto deste conteúdo
+                </button>
+              </div>}
+            </div>
+            <label className="text-sm text-muted-foreground md:col-span-2">Ou cole a URL de uma foto existente
               <input type="url" value={form.image_url} onChange={(e) => setForm({ ...form, image_url: e.target.value })} placeholder="https://..." className={`mt-1 ${inputClass}`} />
             </label>
             <label className="text-sm text-muted-foreground">Legenda da imagem
@@ -159,8 +215,8 @@ export function PortalFragmentsEditor({ portalId }: { portalId: string }) {
             Mostrar este conteúdo no portal publicado
           </label>
           <div className="flex flex-wrap gap-3">
-            <button type="submit" disabled={saving} className="btn-gold">{saving ? "Salvando..." : "Salvar conteúdo"}</button>
-            <button type="button" onClick={() => setShowForm(false)} className="border px-4 py-2 text-sm text-muted-foreground">Cancelar</button>
+            <button type="submit" disabled={saving || uploadingPhoto} className="btn-gold">{saving ? "Salvando..." : "Salvar conteúdo"}</button>
+            <button type="button" disabled={uploadingPhoto} onClick={() => setShowForm(false)} className="border px-4 py-2 text-sm text-muted-foreground">Cancelar</button>
           </div>
         </form>
       )}

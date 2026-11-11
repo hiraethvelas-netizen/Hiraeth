@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { BookOpen, ChevronDown, Flame, Sparkles, X } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
+import entreFiosPhoto from "@/assets/natal-entre-fios-recorte.webp";
+import grandeSalaoPhoto from "@/assets/natal-grande-salao-recorte.webp";
 
 type Fragment = Tables<"portal_fragments">;
 type House = "leao" | "texugo" | "serpente" | "aguia";
@@ -13,23 +15,23 @@ const houseByPosition: Record<number, House> = {
 };
 
 const teasers: Record<number, string> = {
-  1: "Antes da primeira essência, existia uma vontade: sentir o cheiro de um mundo que só conhecia pelas histórias.",
-  2: "Uma vela branca, uma pergunta e o segredo de uma casa esperando para aparecer.",
-  3: "Madeiras antigas, o calor da lareira e uma coragem que também sabe ser elegante.",
-  4: "O conforto de uma cozinha acolhedora e de um lugar onde todos são bem-vindos.",
-  5: "Um perfume criado para traduzir o requinte e a personalidade marcante desta casa.",
-  6: "Imagine uma cabana, livros, uma floresta nevada e o inverno do lado de fora.",
-  7: "Amizade, árvores iluminadas e duas lembranças que mereciam virar aromas.",
-  8: "Um suéter feito à mão e um presente que significava muito mais do que parecia.",
-  9: "Um grande salão decorado, amigos reunidos e a magia de um Natal no castelo.",
+  1: "Um universo que me acolheu e, aos poucos, ganhou perfume e chama.",
+  2: "Uma vela branca, quatro possibilidades e a surpresa que só a chama revela.",
+  3: "Madeira, lareira e a elegância de uma casa corajosa.",
+  4: "Baunilha, acolhimento e o cheiro de se sentir em casa.",
+  5: "Uma fragrância marcante para uma casa de personalidade forte.",
+  6: "Livros, uma cabana aquecida e o frescor de uma floresta de inverno.",
+  7: "Duas velas, duas lembranças de Natal.",
+  8: "Um presente feito com carinho e o conforto de ser lembrado.",
+  9: "Luzes no salão, pinheiros e amigos reunidos.",
 };
 
 const chapterStops = [
   { id: "origem", label: "A origem" },
   { id: "seletora", label: "A Seletora" },
+  { id: "carta", label: "A carta" },
   { id: "casas", label: "Quatro casas" },
   { id: "natal", label: "Natal" },
-  { id: "carta", label: "A carta" },
 ];
 
 export function PortalInspirationCard({ fragment, featured = false, houseDecor = false }: {
@@ -96,6 +98,36 @@ function RevealStoryCard({ fragment, kind = "story", featured = false }: {
   </article>;
 }
 
+
+function ChristmasInspirationCard({ fragment }: { fragment: Fragment }) {
+  const [expanded, setExpanded] = useState(false);
+  const contentId = `christmas-inspiration-${fragment.id}`;
+  const photo = fragment.image_url || (fragment.position === 8 ? entreFiosPhoto : grandeSalaoPhoto);
+
+  return <article className="portal-christmas-inspiration">
+    <button type="button" className="portal-christmas-inspiration__trigger"
+      aria-expanded={expanded} aria-controls={contentId}
+      onClick={() => setExpanded(value => !value)}>
+      <span className="portal-christmas-inspiration__image-wrap">
+        <img src={photo} className="portal-christmas-inspiration__image"
+          alt={fragment.caption || `Vela ${fragment.title}`} loading="lazy" />
+      </span>
+      <span className="portal-christmas-inspiration__name">{fragment.title}</span>
+      <span className="portal-christmas-inspiration__hint">
+        <Sparkles size={16} aria-hidden="true" />
+        {expanded ? "Recolher a história" : "Revelar a história e o aroma"}
+        <ChevronDown size={16} aria-hidden="true" className={expanded ? "rotate-180" : ""}/>
+      </span>
+    </button>
+    {expanded && <div id={contentId} className="portal-christmas-inspiration__details"
+      role="region" aria-label={`Inspiração de ${fragment.title}`}>
+      {fragment.reference && <p className="portal-christmas-inspiration__reference">{fragment.reference}</p>}
+      <p className="whitespace-pre-line text-sm leading-7 sm:text-base">{fragment.body}</p>
+      {fragment.context && <p className="portal-christmas-inspiration__aroma">{fragment.context}</p>}
+    </div>}
+  </article>;
+}
+
 export function PortalInspirationChapters({ fragments, magicWorld }: { fragments: Fragment[]; magicWorld: boolean }) {
   const [letterOpen, setLetterOpen] = useState(false);
   if (!magicWorld) {
@@ -134,40 +166,9 @@ export function PortalInspirationChapters({ fragments, magicWorld }: { fragments
       </div>
     </section>}
 
-    {houses.length > 0 && <section id="inspiracao-casas" aria-labelledby="portal-houses-title" className="scroll-mt-8">
-      <p className="portal-discovery__chapter">III · Os quatro caminhos</p>
-      <h3 id="portal-houses-title" className="portal-script-title mb-5 mt-2 text-center">Quatro casas, quatro essências</h3>
-      <p className="mx-auto mb-7 max-w-lg text-center text-sm leading-6 opacity-80">
-        Cada casa guarda um aroma. Escolha qual segredo deseja revelar.
-      </p>
-      <div className="portal-house-palette" aria-hidden="true">
-        {["leao", "texugo", "aguia", "serpente"].map(house =>
-          <span key={house} className={`portal-house-ribbon portal-house-ribbon--${house}`}/>)}
-      </div>
-      <div className="grid items-start gap-4 sm:grid-cols-2">
-        {houses.map(fragment => <RevealStoryCard key={fragment.id} fragment={fragment} kind="house" />)}
-      </div>
-    </section>}
-
-    {christmas.length > 0 && <section id="inspiracao-natal" aria-labelledby="portal-natal-inspiration-title" className="scroll-mt-8">
-      <p className="portal-discovery__chapter">IV · Memórias de inverno</p>
-      <h3 id="portal-natal-inspiration-title" className="portal-script-title mb-6 mt-2 text-center">O Natal no Mundo da Magia</h3>
-      <div className="mx-auto mb-4 max-w-3xl">
-        {at(7).map(fragment => <RevealStoryCard key={fragment.id} fragment={fragment} featured />)}
-      </div>
-      <div className="grid items-start gap-4 sm:grid-cols-2">
-        {christmas.filter(fragment => fragment.position !== 7).map(fragment =>
-          <RevealStoryCard key={fragment.id} fragment={fragment} />)}
-      </div>
-    </section>}
-
-    {other.length > 0 && <section aria-label="Outras inspirações" className="grid items-start gap-4 sm:grid-cols-2">
-      {other.map(fragment => <RevealStoryCard key={fragment.id} fragment={fragment} />)}
-    </section>}
-
     {letters.map(fragment => <section id="inspiracao-carta" key={fragment.id}
       aria-labelledby="portal-letter-title" className="mx-auto max-w-3xl scroll-mt-8 text-center">
-      <p className="portal-discovery__chapter">V · Uma mensagem guardada</p>
+      <p className="portal-discovery__chapter">III · Uma mensagem guardada</p>
       <h3 id="portal-letter-title" className="portal-script-title mt-2">Uma carta da Guardiã da Chama</h3>
       <p className="mx-auto mt-3 max-w-lg text-sm leading-7 opacity-80">Esta é a parte mais pessoal da história. Uma carta esperando por você.</p>
       <button type="button" aria-expanded={letterOpen} aria-controls="portal-letter-content"
@@ -187,5 +188,38 @@ export function PortalInspirationChapters({ fragments, magicWorld }: { fragments
         <p className="whitespace-pre-line font-serif text-base leading-8 sm:text-lg">{fragment.body}</p>
       </article>}
     </section>)}
+
+    {houses.length > 0 && <section id="inspiracao-casas" aria-labelledby="portal-houses-title" className="scroll-mt-8">
+      <p className="portal-discovery__chapter">IV · Os quatro caminhos</p>
+      <h3 id="portal-houses-title" className="portal-script-title mb-5 mt-2 text-center">Quatro casas, quatro essências</h3>
+      <p className="mx-auto mb-7 max-w-lg text-center text-sm leading-6 opacity-80">
+        Cada casa guarda um aroma. Escolha qual segredo deseja revelar.
+      </p>
+      <div className="portal-house-palette" aria-hidden="true">
+        {["leao", "texugo", "aguia", "serpente"].map(house =>
+          <span key={house} className={`portal-house-ribbon portal-house-ribbon--${house}`}/>)}
+      </div>
+      <div className="grid items-start gap-4 sm:grid-cols-2">
+        {houses.map(fragment => <RevealStoryCard key={fragment.id} fragment={fragment} kind="house" />)}
+      </div>
+    </section>}
+
+    {christmas.length > 0 && <section id="inspiracao-natal" aria-labelledby="portal-natal-inspiration-title" className="scroll-mt-8">
+      <p className="portal-discovery__chapter">V · Memórias de inverno</p>
+      <h3 id="portal-natal-inspiration-title" className="portal-script-title mb-5 mt-2 text-center">O Natal no Mundo da Magia</h3>
+      {at(7).map(fragment => <div key={fragment.id} className="portal-christmas-inspiration__intro mx-auto mb-6 max-w-2xl">
+        <p>{fragment.reference || "Duas velas, duas lembranças para guardar o Natal em cada chama."}</p>
+      </div>)}
+      <div className="grid items-start gap-4 sm:grid-cols-2">
+        {christmas.filter(fragment => fragment.position !== 7).map(fragment =>
+          <ChristmasInspirationCard key={fragment.id} fragment={fragment} />)}
+      </div>
+    </section>}
+
+    {other.length > 0 && <section aria-label="Outras inspirações" className="grid items-start gap-4 sm:grid-cols-2">
+      {other.map(fragment => <RevealStoryCard key={fragment.id} fragment={fragment} />)}
+    </section>}
+
+
   </div>;
 }
