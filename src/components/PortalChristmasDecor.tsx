@@ -24,6 +24,17 @@ export function PortalChristmasDecor({ scene }: Props) {
             <span key={index} className="portal-xmas-bulb" />
           ))}
         </div>
+        {(scene === "hero" || scene === "actions") && (
+          <div className="portal-xmas-hanging-ornaments">
+            {Array.from({ length: scene === "hero" ? 4 : 3 }, (_, index) => (
+              <span
+                key={index}
+                className={`portal-xmas-bauble portal-xmas-bauble--${index}`}
+                style={{ left: ["5%", "21%", "77%", "92%"][index], top: ["48px", "67px", "42px", "62px"][index] }}
+              />
+            ))}
+          </div>
+        )}
         <div className="portal-magic-stars">
           {Array.from({ length: stars }, (_, index) => (
             <span key={index} className="portal-magic-star">
