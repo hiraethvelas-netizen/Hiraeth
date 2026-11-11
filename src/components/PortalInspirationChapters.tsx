@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { BookOpen, ChevronDown, Feather, Flame, Sparkles, Wheat, Wine, X } from "lucide-react";
+import { BookOpen, ChevronDown, Flame, Sparkles, X } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 import entreFiosPhoto from "@/assets/natal-entre-fios-recorte.webp";
 import grandeSalaoPhoto from "@/assets/natal-grande-salao-recorte.webp";
@@ -14,11 +14,10 @@ const houseByPosition: Record<number, House> = {
   6: "aguia",
 };
 
-const houseIllustrations = {
-  leao: Flame,
-  texugo: Wheat,
-  serpente: Wine,
-  aguia: Feather,
+const housePhotoByPosition: Partial<Record<number, string>> = {
+  3: "/portal-casa-leao.webp",
+  4: "/portal-casa-texugo.webp",
+  6: "/portal-casa-aguia.webp",
 };
 
 const teasers: Record<number, string> = {
@@ -61,11 +60,11 @@ function RevealStoryCard({ fragment, kind = "story", featured = false }: {
   const [aromaOpen, setAromaOpen] = useState(false);
   const [storyOpen, setStoryOpen] = useState(false);
   const house = kind === "house" ? houseByPosition[fragment.position ?? -1] : undefined;
-  const HouseIllustration = house ? houseIllustrations[house] : null;
   const hasAroma = Boolean(fragment.context?.trim().toLowerCase().startsWith("aroma:"));
   const contentId = `portal-story-${fragment.id}`;
   const aromaId = `portal-aroma-${fragment.id}`;
   const position = fragment.position ?? -1;
+  const housePhoto = fragment.image_url || housePhotoByPosition[position];
   const [storyText, pyramidText] = (fragment.body ?? "").split(/\n\nPirâmide olfativa\s*\n\n/i);
   const pyramidRows = house && pyramidText ? pyramidText.split(/\n\n/).map(block => {
     const [heading, ...notes] = block.split("\n");
@@ -74,19 +73,18 @@ function RevealStoryCard({ fragment, kind = "story", featured = false }: {
 
   return <article className={`portal-discovery-card ${house ? `portal-house-card portal-house-card--${house}` : ""} ${featured ? "portal-discovery-card--featured" : ""}`}>
     {house ? <figure className="portal-house-polaroid">
-      <div className="portal-house-polaroid__art">
-        {fragment.image_url
-          ? <img src={fragment.image_url} alt={fragment.caption || `Velas Hiraeth da ${fragment.title}`}
-              className="portal-house-polaroid__image" loading="lazy" />
-          : <div className="portal-house-polaroid__illustration" aria-hidden="true">
-              <span className="portal-house-polaroid__spark portal-house-polaroid__spark--left">✦</span>
-              <span className="portal-house-polaroid__spark portal-house-polaroid__spark--right">✧</span>
-              <span className="portal-house-polaroid__crest">
-                {HouseIllustration && <HouseIllustration size={44} strokeWidth={1.2} />}
-              </span>
+      <div className="portal-house-polaroid__photoWrap">
+        {housePhoto
+          ? <img src={housePhoto} alt={fragment.caption || `Velas Hiraeth da ${fragment.title}`}
+              className="portal-house-polaroid__photo" loading="lazy" />
+          : <div className="portal-house-polaroid__placeholder" role="img"
+              aria-label={`Foto da ${fragment.title} ainda não enviada`}>
+              <span>Fotografia em breve</span>
             </div>}
-        <h4 className="portal-house-polaroid__name">{fragment.title}</h4>
       </div>
+      <figcaption className="portal-house-polaroid__label">
+        <h4>{fragment.title}</h4>
+      </figcaption>
     </figure> : <>
       {fragment.image_url && <img src={fragment.image_url} alt={fragment.caption || fragment.title}
         className="portal-discovery-card__image" loading="lazy" />}
