@@ -24,6 +24,9 @@ export function MagicInspirations({ fragments }: { fragments: InspirationFragmen
   const letterId = useId();
   const openButton = useRef<HTMLButtonElement>(null);
   const letter = useRef<HTMLDivElement>(null);
+  const letterText = chapters.letter.map(fragment => `${fragment.body}\n${fragment.context ?? ""}`).join("\n");
+  const signed = /A Guardiã da Chama/i.test(letterText);
+  const hasSlogan = /Onde a Chama Acesa te Espera/i.test(letterText);
   return <div className="magic-inspirations">
     <section className="magic-chapter" aria-labelledby={`${letterId}-origin`}>
       <p className="magic-chapter-number" aria-hidden="true">I</p>
@@ -67,8 +70,8 @@ export function MagicInspirations({ fragments }: { fragments: InspirationFragmen
         className={open ? "magic-letter-paper" : undefined}>
         {chapters.letter.length ? chapters.letter.map(fragment => <FragmentText key={fragment.id} fragment={fragment} hideTitle />)
           : <p className="magic-empty">A carta será revelada em breve.</p>}
-        <p className="magic-letter-signature">A Guardiã da Chama</p>
-        <p className="magic-letter-slogan">Onde a Chama Acesa te Espera</p>
+        {!signed && <p className="magic-letter-signature">A Guardiã da Chama</p>}
+        {!hasSlogan && <p className="magic-letter-slogan">Onde a Chama Acesa te Espera</p>}
         <Button type="button" className="magic-letter-button" aria-expanded={true} aria-controls={letterId}
           onClick={() => { setOpen(false); requestAnimationFrame(() => openButton.current?.focus()); }}>
           <X aria-hidden="true" />Fechar carta
