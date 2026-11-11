@@ -15,7 +15,7 @@ export const Route = createFileRoute("/admin/essencias")({
   component: AdminEssencias,
 });
 
-const blank = { name: "", stock_ml: "0", minimum_stock_ml: "10", target_stock_ml: "50", supplier: "", notes: "", stock_unit: "ml" as StockUnit };
+const blank = { name: "", stock_ml: "0", minimum_stock_ml: "10", target_stock_ml: "50", supplier: "", notes: "", stock_unit: "g" as StockUnit };
 
 function AdminEssencias() {
   const db = supabase as any;
@@ -136,8 +136,8 @@ function AdminEssencias() {
     <div className="mt-8 grid gap-6 xl:grid-cols-2">
       <section className="border bg-card p-5"><h2 className="text-xl text-foreground">{editingId ? "Editar essência" : "Cadastrar essência"}</h2><form onSubmit={saveEssence} className="mt-4 space-y-3">
         <label className="block text-sm text-muted-foreground">Nome da essência<input required value={form.name} onChange={e => setForm({...form,name:e.target.value})} placeholder="Ex.: Baunilha" className={input}/></label>
-        <label className="block text-sm text-muted-foreground">Unidade do estoque<select value={form.stock_unit} disabled={!!editingId} onChange={e => setForm({...form,stock_unit:e.target.value as StockUnit})} className={input}><option value="ml">Mililitros (ml)</option><option value="g">Gramas (g)</option></select></label>
-        <p className="text-xs text-muted-foreground">A unidade é definida no cadastro. Saldos existentes são preservados; gramas e mililitros não são convertidos automaticamente.</p>
+        <p className="text-sm text-muted-foreground">Unidade do estoque: <strong>{form.stock_unit}</strong></p>
+        <p className="text-xs text-muted-foreground">{editingId && form.stock_unit === "ml" ? "Cadastro antigo em ml: os valores não devem ser interpretados como gramas. A conversão precisa dos pesos reais e da revisão das receitas vinculadas." : "Todos os novos cadastros são em gramas (g)."}</p>
         <div className="grid gap-3 sm:grid-cols-3"><label className="text-sm text-muted-foreground">Saldo atual ({form.stock_unit})<input type="number" min="0" step="0.001" required value={form.stock_ml} onChange={e => setForm({...form,stock_ml:e.target.value})} className={input}/></label><label className="text-sm text-muted-foreground">Alerta abaixo de ({form.stock_unit})<input type="number" min="0" step="0.001" required value={form.minimum_stock_ml} onChange={e => setForm({...form,minimum_stock_ml:e.target.value})} className={input}/></label><label className="text-sm text-muted-foreground">Estoque ideal ({form.stock_unit})<input type="number" min="0" step="0.001" required value={form.target_stock_ml} onChange={e => setForm({...form,target_stock_ml:e.target.value})} className={input}/></label></div>
         <label className="block text-sm text-muted-foreground">Fornecedor (opcional)<input value={form.supplier} onChange={e => setForm({...form,supplier:e.target.value})} className={input}/></label><label className="block text-sm text-muted-foreground">Observações<textarea rows={2} value={form.notes} onChange={e => setForm({...form,notes:e.target.value})} className={input}/></label>
         <EssenceNotesFields value={aromaNotes} onChange={setAromaNotes} inputClass={input} />
