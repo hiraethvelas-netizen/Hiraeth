@@ -209,7 +209,7 @@ describe("Product and essence forms", () => {
     await newProduct();
     fireEvent.click(screen.getByText("+ Cadastrar um aroma novo"));
     fireEvent.change(screen.getByLabelText("Nome do aroma"), { target: { value: "Lavanda" } });
-    fireEvent.change(screen.getByLabelText("Saldo inicial (ml)"), { target: { value: "25" } });
+    fireEvent.change(screen.getByLabelText("Saldo inicial (g)"), { target: { value: "25" } });
     fireEvent.click(screen.getByRole("button", { name: "Salvar essência no estoque" }));
     await waitFor(() =>
       expect(mocks.mutation).toHaveBeenCalledWith(
