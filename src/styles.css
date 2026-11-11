@@ -2606,7 +2606,7 @@ body > div {
   letter-spacing: .16em;
   text-transform: uppercase;
 }
-.portal-inspiration-page .portal-discovery-card__aroma strong {
+.portal-inspiration-page .portal-discovery-card__aroma > strong {
   color: #fff0d1;
   font: italic 600 1.65rem/1.25 "Cormorant Garamond", Georgia,serif;
 }
