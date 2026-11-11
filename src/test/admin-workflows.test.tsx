@@ -37,7 +37,7 @@ vi.mock("@/integrations/supabase/client", () => ({
     },
     rpc: async (name: string, payload: object) => {
       mocks.rpc(name, payload);
-      return { error: mocks.recipeError ? { message: "Recipe refused" } : null };
+      return { data: name === "save_product_with_recipes" ? "saved" : null, error: mocks.recipeError ? { message: "Recipe refused" } : null };
     },
     from: (table: string) => {
       let action = "read";
@@ -173,24 +173,23 @@ describe("Product and essence forms", () => {
     await addIngredient("Canela", "2");
     fireEvent.click(screen.getByRole("button", { name: "Salvar produto" }));
     await waitFor(() =>
-      expect(mocks.rpc).toHaveBeenCalledWith("set_product_essences", {
-        p_product_id: "saved",
-        p_ingredients: [
-          { essence_id: "e1", quantity_ml: 8 },
-          { essence_id: "e2", quantity_ml: 2 },
+      expect(mocks.rpc).toHaveBeenCalledWith("save_product_with_recipes", expect.objectContaining({
+        p_product_id: null,
+        p_default_ingredients: [
+          { essence_id: "e1", quantity: 8 },
+          { essence_id: "e2", quantity: 2 },
         ],
-      }),
+      })),
     );
-    expect(mocks.mutation).toHaveBeenCalledWith(
-      "products",
-      "insert",
-      expect.objectContaining({
+    expect(mocks.rpc).toHaveBeenCalledWith("save_product_with_recipes", expect.objectContaining({
+      p_product: expect.objectContaining({
         product_type: "candle",
         variants: expect.arrayContaining([
-          expect.objectContaining({ options: { Peso: "250 g" }, price: 50, stock: 0 }),
+          expect.objectContaining({ options: { Peso: "250 g" }, price: 50, stock: 0, recipe_id: expect.any(String) }),
         ]),
       }),
-    );
+    }));
+    expect(mocks.mutation).not.toHaveBeenCalledWith("products", "insert", expect.anything());
   });
   it("reports recipe failure without reporting complete product success", async () => {
     await newProduct();
@@ -199,7 +198,7 @@ describe("Product and essence forms", () => {
     fireEvent.click(screen.getByRole("button", { name: "Salvar produto" }));
     await waitFor(() =>
       expect(mocks.error).toHaveBeenCalledWith(
-        expect.stringContaining("receita não foi atualizada"),
+        expect.stringContaining("Produto e receitas não foram salvos"),
       ),
     );
     expect(mocks.success).not.toHaveBeenCalledWith("Produto criado.");

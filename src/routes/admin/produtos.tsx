@@ -1,7 +1,9 @@
-import { CandleEssenceEditor, type StockEssence, type CandleIngredient } from "@/components/admin/CandleEssenceEditor";
+import { type StockEssence, type CandleIngredient } from "@/components/admin/CandleEssenceEditor";
 import { essenceNotesPayload, type NotesDraft } from "@/lib/fragrance";
 import { createFileRoute } from "@tanstack/react-router";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, type SetStateAction } from "react";
+import { CandleRecipesEditor } from "@/components/admin/CandleRecipesEditor";
+import { recipePayload, withRecipeIds, type StockUnit, type VariantRecipes } from "@/lib/candle-recipes";
 import { supabase } from "@/integrations/supabase/client";
 import { brl, slugify } from "@/lib/format";
 import { toast } from "sonner";
@@ -33,7 +35,11 @@ function AdminProdutos() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [editing, setEditing] = useState<Product | null>(null);
   const [form, setForm] = useState(emptyForm);
-  const [variants, setVariants] = useState<VariantSetup>(() => variantSetupFrom([]));
+  const [variants, setVariantsState] = useState<VariantSetup>(() => variantSetupFrom([]));
+  const setVariants = useCallback((next: SetStateAction<VariantSetup>) => {
+    setVariantsState(previous => withRecipeIds(typeof next === "function" ? next(previous) : next));
+  }, []);
+  const [variantRecipes, setVariantRecipes] = useState<VariantRecipes>({});
   const [showForm, setShowForm] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [photoCrop, setPhotoCrop] = useState<{
@@ -101,14 +107,23 @@ function AdminProdutos() {
       images: p.images ?? [], status: p.status,
       product_type: (p as Product & { product_type?: string }).product_type ?? (/camiseta|t-shirt|roupa|vestuário/i.test(p.name) ? "artifact" : "candle"), product_badge: (p as any).product_badge ?? "",
     });
+    setShowForm(false);
+    const [standard, specific] = await Promise.all([
+      db.from("product_essences").select("essence_id,quantity_ml,essences(name,stock_unit)").eq("product_id", p.id),
+      db.from("product_variant_essences").select("recipe_id,essence_id,quantity,essences(name,stock_unit)").eq("product_id", p.id),
+    ]);
+    if (standard.error || specific.error) { toast.error("Não foi possível carregar as receitas. Confira a atualização do banco e tente novamente antes de editar."); return; }
     setVariants(variantSetupFrom(p.variants));
-    const { data, error } = await db.from("product_essences").select("essence_id,quantity_ml,essences(name)").eq("product_id", p.id);
-    if (error) { toast.error("Não foi possível carregar a receita. Tente novamente antes de editar."); return; }
-    setProductAromas((data ?? []).map((r:any) => ({essence_id:r.essence_id,quantity_ml:Number(r.quantity_ml),name:r.essences?.name ?? "Aroma"})));
+    setProductAromas((standard.data ?? []).map((r:any) => ({essence_id:r.essence_id,quantity_ml:Number(r.quantity_ml),name:r.essences?.name ?? "Aroma",stock_unit:r.essences?.stock_unit ?? "ml"})));
+    const recipes: VariantRecipes = {};
+    for (const row of specific.data ?? []) {
+      (recipes[row.recipe_id] ??= []).push({ essence_id: row.essence_id, quantity_ml: Number(row.quantity), name: row.essences?.name ?? "Aroma", stock_unit: row.essences?.stock_unit ?? "ml" });
+    }
+    setVariantRecipes(recipes);
     setShowForm(true);
   }
 
-  function startNew() { setEditing(null); setForm({ ...emptyForm }); setVariants(variantSetupFrom([])); setProductAromas([]); setPhotoCrop(null); setShowForm(true); }
+  function startNew() { setEditing(null); setForm({ ...emptyForm }); setVariants(variantSetupFrom([])); setProductAromas([]); setVariantRecipes({}); setPhotoCrop(null); setShowForm(true); }
 
   function chooseProductPhotos(files: FileList | null) {
     if (!files?.length) return;
@@ -228,17 +243,17 @@ function AdminProdutos() {
     if (saving) return;
     setSaving(true);
     try {
-      const result = editing
-        ? await db.from("products").update(payload).eq("id", editing.id).select("id").single()
-        : await db.from("products").insert(payload).select("id").single();
-      if (result.error || !result.data) throw result.error ?? new Error("Não foi possível confirmar o produto salvo.");
-      if (form.product_type === "candle") {
-        const recipe = await db.rpc("set_product_essences", { p_product_id: result.data.id, p_ingredients: productAromas.map(aroma => ({ essence_id: aroma.essence_id, quantity_ml: aroma.quantity_ml })) });
-        if (recipe.error) {
-          setEditing({ ...payload, id: result.data.id, slug: payload.slug } as unknown as Product);
-          toast.error("Os dados do produto foram salvos, mas a receita não foi atualizada. Confira a atualização do banco e tente salvar novamente.");
-          return;
-        }
+      const result = form.product_type === "candle"
+        ? await db.rpc("save_product_with_recipes", {
+          p_product_id: editing?.id ?? null,
+          p_product: payload,
+          ...recipePayload(productAromas, variantRecipes, variants),
+        })
+        : editing
+          ? await db.from("products").update(payload).eq("id", editing.id).select("id").single()
+          : await db.from("products").insert(payload).select("id").single();
+      if (result.error || !result.data) {
+        throw new Error("Produto e receitas não foram salvos. Confira a atualização do banco e tente novamente.");
       }
       toast.success(editing ? "Produto atualizado." : "Produto criado.");
       setShowForm(false);
@@ -249,10 +264,11 @@ function AdminProdutos() {
   }
 
 
-  async function createAroma(input: { name: string; stock_ml: number; notes: NotesDraft }): Promise<StockEssence> {
+  async function createAroma(input: { name: string; stock_ml: number; stock_unit?: StockUnit; notes: NotesDraft }): Promise<StockEssence> {
     const payload = {
       name: input.name.trim(),
       stock_ml: input.stock_ml,
+      stock_unit: input.stock_unit ?? "ml",
       minimum_stock_ml: 10,
       target_stock_ml: 50,
       ...essenceNotesPayload(input.name, input.notes),
@@ -316,8 +332,11 @@ function AdminProdutos() {
         <label className="text-sm text-muted-foreground">Selo do produto<select value={form.product_badge} onChange={(e) => setForm({ ...form, product_badge: e.target.value })} className={`mt-1 ${inputCls}`}><option value="">Sem selo</option><option value="new">Novidade</option><option value="limited">Edição limitada</option><option value="bestseller">Mais vendido</option></select></label>
         <label className="text-sm text-muted-foreground">Status<select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })} className={`mt-1 ${inputCls}`}><option value="draft">Rascunho</option><option value="published">Publicado</option><option value="archived">Arquivado</option></select></label>
       </div>
-      {form.product_type === "candle" && <CandleEssenceEditor
+      {form.product_type === "candle" && <CandleRecipesEditor
         key={editing?.id ?? "new-product"}
+        variants={variants}
+        variantRecipes={variantRecipes}
+        onVariantRecipesChange={setVariantRecipes}
         essences={essences}
         ingredients={productAromas}
         onIngredientsChange={setProductAromas}
