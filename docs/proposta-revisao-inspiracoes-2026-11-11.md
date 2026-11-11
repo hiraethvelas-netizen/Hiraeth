@@ -4,18 +4,28 @@
 
 **Ordem pública desejada:** I A origem → II A Seletora → III Carta da Guardiã da Chama → IV Quatro casas → V Natal no Mundo da Magia. Os IDs e as posições dos fragmentos atuais não mudam; a página é quem define a ordem.
 
-## 1. Como nasceu esta coleção
+## 1. Como nasceu esta coleção — APROVADO EM 11/11/2026
 **Título:** Como nasceu esta coleção
 
-**Referência curta:** Onde as histórias ganharam aroma
+**Texto completo aprovado:**
 
-**Texto completo (exibir somente ao clicar):**
+Tudo começou em 2021, em um momento em que o mundo parecia ter parado.
 
-Em 2021, encontrei nas histórias um lugar de conforto. Entre filmes, livros e cenários que pareciam tão reais, comecei a imaginar algo que não podia encontrar nas páginas: seus cheiros.
+Durante a pandemia, encontrei conforto em um universo que já conhecia desde criança. Comecei reassistindo aos filmes e, quando terminei, mergulhei nos livros. A cada página, parecia que eu estava um pouquinho mais perto daquele mundo.
 
-Como seria caminhar por aqueles corredores? Sentir a madeira dos salões ou o ar frio de uma floresta?
+Mas tinha uma coisa que não saía da minha cabeça: **como seria o cheiro daquele lugar?**
 
-Foi desse desejo de estar um pouquinho mais perto que nasceu esta coleção. Cada aroma guarda um detalhe das histórias que me acompanharam — e uma lembrança que eu quis transformar em chama.
+Eu queria saber como seria caminhar pelos corredores daquele castelo, sentir o cheiro dos livros antigos da biblioteca, da madeira das salas comunais, das lareiras acesas e até da floresta que cercava tudo aquilo.
+
+Eu não queria apenas assistir à história. Queria sentir que estava dentro dela.
+
+Foi então que comecei a estudar cada detalhe. As personalidades das casas, os ambientes, as cores e as sensações que cada lugar me despertava.
+
+Passei a imaginar quais fragrâncias poderiam transformar tudo aquilo em algo real.
+
+E assim nasceu esta coleção.
+
+Muito antes de imaginar onde a Hiraeth chegaria, tudo começou com uma vontade simples: **transformar o amor por uma história em algo que pudesse ser sentido, mesmo de olhos fechados.**
 
 ## 2. A Vela Seletora
 **Título:** A Vela Seletora
@@ -30,25 +40,44 @@ A ideia era simples, mas encontrar a forma de realizá-la levou muitas tentativa
 
 Assim nasceu a Vela Seletora: uma pequena experiência de expectativa, cor e descoberta.
 
-## 10. Carta da Guardiã da Chama — exibir em terceiro
-**Título:** Uma carta da Guardiã da Chama
+## 10. Carta da Guardiã da Chama — APROVADA EM 11/11/2026 (exibir como terceiro capítulo)
+**Título na carta:** Para quem faz parte desta história...
 
-**Texto completo:**
+**Texto completo aprovado:**
 
-Para quem atravessou este portal...
+Se você chegou até esta carta, quero te contar uma coisa que talvez ainda não saiba.
 
-Há histórias que a gente guarda nas estantes. Outras encontram um jeito de morar dentro de nós.
+Esta coleção tem um lugar muito especial no meu coração.
 
-Esta coleção nasceu do desejo de sentir mais perto lugares que eu só podia visitar com a imaginação. Em cada aroma, procurei guardar uma cena, uma sensação e aquele conforto de pertencer a algum lugar.
+Quando criei as primeiras velas, em 2021, eu não fazia ideia do que estava por vir. Eu tinha apenas algumas fragrâncias, muitas ideias e uma vontade enorme de transformar as histórias que amava em algo que outras pessoas também pudessem sentir.
 
-Se uma dessas chamas fizer você sorrir, lembrar de uma passagem querida ou simplesmente se sentir em casa, ela já cumpriu a sua magia.
+Mas foi esta coleção que mudou tudo.
 
-Obrigada por estar aqui e por fazer parte desta história.
+Foi através dela que a Hiraeth começou a alcançar pessoas que eu nunca imaginei. Pessoas de lugares diferentes, que compartilhavam comigo o mesmo amor por aquelas histórias.
 
-Com carinho,
-A Guardiã da Chama
+E, de repente, aquilo que havia começado como um sonho tão meu passou a fazer parte da vida de tantas outras pessoas.
 
-Onde a Chama Acesa te Espera.
+Cada pedido, cada mensagem, cada fotografia de uma vela acesa e cada pessoa que escolheu confiar no meu trabalho significaram muito mais do que uma venda.
+
+**Vocês fizeram a Hiraeth acontecer.**
+
+Talvez você tenha conhecido a marca agora. Talvez esteja aqui desde as primeiras velas, lá em 2021. Ou talvez uma dessas chamas já tenha feito parte de algum momento especial da sua vida.
+
+Independentemente de quando chegou, quero que saiba que sou profundamente grata por ter você aqui.
+
+Porque, quando olho para esta coleção, não vejo apenas os aromas que criei.
+
+Vejo o começo de tudo. Vejo as pessoas que acreditaram em mim quando a Hiraeth ainda era tão pequena. Vejo lembranças, sonhos e tantos motivos para continuar.
+
+E pensar que tudo começou com uma menina que só queria descobrir qual seria o cheiro de um castelo...
+
+**Obrigada por transformar esse sonho em uma história que continua sendo escrita.**
+
+Com todo o meu carinho,
+
+*A Guardiã da Chama* 🔥
+
+**Onde a Chama Acesa te Espera.**
 
 ## 3. Casa do Leão
 **Título:** Casa do Leão — Coragem e elegância
