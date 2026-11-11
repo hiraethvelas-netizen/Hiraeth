@@ -102,6 +102,45 @@ function AdminEssencias() {
     toast.success(editingId ? "Essência atualizada." : "Essência cadastrada."); resetForm(); await load();
   }
 
+
+  async function removeOrRestoreEssence(essence: Essence) {
+    if (!essence.active) {
+      if (!window.confirm(`Reativar a essência "${essence.name}"?`)) return;
+      const { data, error } = await db.from("essences").update({ active: true }).eq("id", essence.id).select("id").maybeSingle();
+      if (error || !data) { toast.error("Não foi possível reativar a essência."); return; }
+      toast.success("Essência reativada."); await load();
+      return;
+    }
+    if (!window.confirm(`Excluir "${essence.name}"? Se houver histórico de estoque, ela será arquivada para preservar os registros.`)) return;
+    const [standard, variant, movements] = await Promise.all([
+      db.from("product_essences").select("id").eq("essence_id", essence.id).limit(1),
+      db.from("product_variant_essences").select("essence_id").eq("essence_id", essence.id).limit(1),
+      db.from("essence_stock_movements").select("id").eq("essence_id", essence.id).limit(1),
+    ]);
+    if (standard.error || variant.error || movements.error) {
+      toast.error("Não foi possível conferir os vínculos. Nenhuma essência foi excluída.");
+      return;
+    }
+    if (standard.data?.length || variant.data?.length) {
+      toast.error("Essa essência faz parte de fórmulas de velas. Retire-a das receitas dos produtos antes de excluir, para não interromper pedidos.");
+      return;
+    }
+    if (movements.data?.length) {
+      const { data, error } = await db.from("essences").update({ active: false }).eq("id", essence.id).select("id").maybeSingle();
+      if (error || !data) { toast.error("Não foi possível arquivar a essência."); return; }
+      toast.success("Essência arquivada: não aparece em novas receitas, mas mantém o histórico.");
+    } else {
+      const { data, error } = await db.from("essences").delete().eq("id", essence.id).select("id").maybeSingle();
+      if (error || !data) {
+        toast.error("Não foi possível excluir: há vínculos ou a permissão não permite. Nenhum histórico foi apagado.");
+        return;
+      }
+      toast.success("Essência excluída.");
+      if (selectedEssence === essence.id) setSelectedEssence("");
+    }
+    await load();
+  }
+
   async function addRecipe(event: React.FormEvent) {
     event.preventDefault();
     const quantity = Number(recipeQuantity);
@@ -166,7 +205,7 @@ function AdminEssencias() {
         <div className="flex flex-wrap gap-2"><button className="btn-gold" disabled={saving} type="submit">{saving ? "Salvando..." : "Salvar essência"}</button>{editingId && <button type="button" onClick={resetForm} className="border px-4 py-2">Cancelar edição</button>}</div>
       </form></div></section>
       <section className="border bg-card p-5"><h2 className="text-xl text-foreground">Consultar essência</h2><p className="mt-1 text-sm text-muted-foreground">Escolha uma essência para ver todas as velas que levam esse aroma.</p><select value={selectedEssence} onChange={e=>setSelectedEssence(e.target.value)} className={input}><option value="">Selecione uma essência</option>{essences.map(e=><option key={e.id} value={e.id}>{e.name} — {Number(e.stock_ml).toLocaleString("pt-BR")} {essenceUnit(e)}</option>)}</select>
-        {selected && <><div className="mt-4 flex flex-wrap gap-2"><button onClick={()=>void movement("purchase")} className="border px-3 py-2 text-sm hover:border-primary">+ Registrar compra</button><button onClick={()=>void movement("adjustment")} className="border px-3 py-2 text-sm hover:border-primary">Ajustar saldo</button><button onClick={()=>void movement("loss")} className="border px-3 py-2 text-sm hover:border-primary">Registrar perda</button><button onClick={()=>edit(selected)} className="border px-3 py-2 text-sm hover:border-primary">Editar cadastro</button></div><h3 className="mt-5 font-medium text-foreground">Velas que usam {selected.name}</h3><div className="mt-2 space-y-2">{usage.length ? usage.map(r=><div key={r.id} className="flex items-center justify-between gap-3 border-b py-2 text-sm"><div><p className="text-foreground">{r.products?.name ?? products.find(p=>p.id===r.product_id)?.name ?? "Produto"}</p><p className="text-xs text-muted-foreground">{Number(r.quantity_ml).toLocaleString("pt-BR")} {essenceUnit(selected)} por vela{r.recipe_id ? ` · ${variantLabel(r)}` : " · Receita padrão"}</p></div>{r.recipe_id ? <a href="/admin/produtos" className="text-xs text-primary underline">Editar no produto</a> : <button onClick={()=>void removeRecipe(r)} className="text-xs text-destructive">Remover</button>}</div>) : <p className="text-sm text-muted-foreground">Ainda não há velas vinculadas a esta essência.</p>}</div></>}
+        {selected && <><div className="mt-4 flex flex-wrap gap-2"><button onClick={()=>void movement("purchase")} className="border px-3 py-2 text-sm hover:border-primary">+ Registrar compra</button><button onClick={()=>void movement("adjustment")} className="border px-3 py-2 text-sm hover:border-primary">Ajustar saldo</button><button onClick={()=>void movement("loss")} className="border px-3 py-2 text-sm hover:border-primary">Registrar perda</button><button onClick={()=>edit(selected)} className="border px-3 py-2 text-sm hover:border-primary">Editar cadastro</button><button type="button" onClick={()=>void removeOrRestoreEssence(selected)} className="border border-destructive/50 px-3 py-2 text-sm text-destructive">{selected.active ? "Excluir essência" : "Reativar essência"}</button></div><h3 className="mt-5 font-medium text-foreground">Velas que usam {selected.name}</h3><div className="mt-2 space-y-2">{usage.length ? usage.map(r=><div key={r.id} className="flex items-center justify-between gap-3 border-b py-2 text-sm"><div><p className="text-foreground">{r.products?.name ?? products.find(p=>p.id===r.product_id)?.name ?? "Produto"}</p><p className="text-xs text-muted-foreground">{Number(r.quantity_ml).toLocaleString("pt-BR")} {essenceUnit(selected)} por vela{r.recipe_id ? ` · ${variantLabel(r)}` : " · Receita padrão"}</p></div>{r.recipe_id ? <a href="/admin/produtos" className="text-xs text-primary underline">Editar no produto</a> : <button onClick={()=>void removeRecipe(r)} className="text-xs text-destructive">Remover</button>}</div>) : <p className="text-sm text-muted-foreground">Ainda não há velas vinculadas a esta essência.</p>}</div></>}
       </section>
     </div>
     <section className="mt-8 border bg-card p-5"><h2 className="text-xl text-foreground">Lista de compras</h2><p className="mt-1 text-sm text-muted-foreground">Filtre por um limite específico para montar sua lista de reposição.</p><div className="mt-4 flex flex-wrap gap-3"><label className="text-sm text-muted-foreground">Mostrar essências com menos de<input type="number" min="0" step="0.001" value={threshold} onChange={e=>setThreshold(e.target.value)} className={input}/></label><span className="self-end text-sm text-muted-foreground">na unidade de cada essência (g ou ml)</span><button onClick={()=>setReportMode(!reportMode)} className="self-end border px-4 py-2 text-sm">{reportMode ? "Mostrar todas" : "Gerar lista"}</button><button onClick={()=>{const lines=filtered.map(e=>`${e.name}: ${Number(e.stock_ml).toLocaleString("pt-BR")} ${essenceUnit(e)} restantes — comprar ${Math.max(0,Number(e.target_stock_ml)-Number(e.stock_ml)).toLocaleString("pt-BR")} ${essenceUnit(e)}`); if(!lines.length){toast.info("Nenhuma essência encontrada para esse filtro.");return;} const text="LISTA DE COMPRAS — HIRAETH\n\n"+lines.join("\n"); void navigator.clipboard.writeText(text).then(()=>toast.success("Lista de compras copiada!")).catch(()=>toast.error("Não foi possível copiar a lista."));}} className="self-end border px-4 py-2 text-sm">Copiar lista</button></div>
