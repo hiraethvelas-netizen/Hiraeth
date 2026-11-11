@@ -44,7 +44,7 @@ export function CandleEssenceEditor({
   const [quantity, setQuantity] = useState("");
   const [newName, setNewName] = useState("");
   const [newStock, setNewStock] = useState("0");
-  const [newUnit, setNewUnit] = useState<StockUnit>("ml");
+  const newUnit: StockUnit = "g";
   const [notes, setNotes] = useState<NotesDraft>({ ...emptyNotes });
   const [creating, setCreating] = useState(false);
 
@@ -115,7 +115,6 @@ export function CandleEssenceEditor({
       setQuantity("");
       setNewName("");
       setNewStock("0");
-      setNewUnit("ml");
       setNotes({ ...emptyNotes });
       toast.success("Essência cadastrada no estoque. Informe a quantidade para adicioná-la à vela.");
     } catch (error) {
@@ -251,11 +250,7 @@ export function CandleEssenceEditor({
                 className={inputCls} />
             </label>
           </div>
-          <label className="block text-sm text-muted-foreground">Unidade do estoque
-            <select value={newUnit} onChange={event => setNewUnit(event.target.value as StockUnit)} className={inputCls}>
-              <option value="ml">Mililitros (ml)</option><option value="g">Gramas (g)</option>
-            </select>
-          </label>
+          <p className="text-xs text-muted-foreground">Novas essências são sempre cadastradas em gramas (g).</p>
           <EssenceNotesFields value={notes} onChange={setNotes} inputClass={inputCls} />
           <button type="button" disabled={creating || saving} onClick={() => void createEssence()}
             className="btn-gold disabled:opacity-40">
