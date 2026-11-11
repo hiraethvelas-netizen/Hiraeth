@@ -21,7 +21,7 @@ afterEach(() => cleanup());
 describe("Inspirações: experiência de descoberta", () => {
   it("mostra cartões compactos e mantém os textos completos ocultos até o clique", () => {
     render(<PortalInspirationChapters fragments={data} magicWorld />);
-    expect(screen.getByText(/um presente feito com carinho/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Entre Fios e Magia/ })).toBeInTheDocument();
     expect(screen.queryByText("A sala comunal é inspiradora.")).not.toBeInTheDocument();
     expect(screen.queryByText("Uma carta sobre encontrar conforto e sentir-se em casa.")).not.toBeInTheDocument();
     expect(screen.getByRole("navigation", { name: "Explorar inspirações" })).toBeInTheDocument();
