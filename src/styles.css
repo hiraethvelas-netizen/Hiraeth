@@ -3126,3 +3126,84 @@ body > div {
     animation: none;
   }
 }
+
+
+/* Portal NFC — pequenas fotografias das casas em estilo polaroid.
+   Alteração isolada na página de inspirações, sem afetar a loja nem a marca. */
+.portal-inspiration-page .portal-house-card .portal-house-polaroid {
+  align-self: center;
+  width: min(100%, 192px);
+  margin: .05rem auto .7rem;
+  padding: 9px 9px 12px;
+  border: 1px solid rgba(158,128,86,.56);
+  border-radius: 2px;
+  background: #f7efda;
+  color: #4e3927;
+  box-shadow: 0 8px 19px rgba(0,0,0,.3), inset 0 0 0 1px rgba(255,255,255,.4);
+  transform: rotate(-2deg);
+}
+.portal-inspiration-page .portal-house-card--texugo .portal-house-polaroid,
+.portal-inspiration-page .portal-house-card--serpente .portal-house-polaroid {
+  transform: rotate(2deg);
+}
+.portal-inspiration-page .portal-house-polaroid__image,
+.portal-inspiration-page .portal-house-polaroid__empty {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border: 1px solid rgba(113,78,48,.16);
+  border-radius: 1px;
+}
+.portal-inspiration-page .portal-house-polaroid__image {
+  object-fit: cover;
+  object-position: center;
+}
+.portal-inspiration-page .portal-house-polaroid__empty {
+  display: grid;
+  place-items: center;
+  padding: .8rem;
+  background: linear-gradient(145deg, #e3dcc6, #d6c6a7);
+  color: #77664d;
+  text-align: center;
+  font: italic 500 .8rem/1.45 "Cormorant Garamond", Georgia, serif;
+}
+.portal-inspiration-page .portal-house-polaroid__caption {
+  padding-top: .5rem;
+  text-align: center;
+  font: italic 600 1.15rem/1.15 "Cormorant Garamond", Georgia, serif;
+}
+.portal-inspiration-page .portal-house-pyramid {
+  margin-top: 1.5rem;
+  padding: 1.05rem 1rem;
+  border: 1px solid rgba(217,187,128,.35);
+  border-radius: 9px;
+  background: rgba(11,24,20,.32);
+}
+.portal-inspiration-page .portal-house-pyramid h5 {
+  margin: 0 0 .8rem;
+  color: #f4d9aa;
+  font: italic 600 1.6rem/1.15 "Cormorant Garamond", Georgia, serif;
+}
+.portal-inspiration-page .portal-house-pyramid__row {
+  display: flex;
+  flex-direction: column;
+  gap: .22rem;
+  padding: .7rem 0;
+  border-top: 1px solid rgba(220,192,145,.18);
+  font: 400 .85rem/1.6 "DM Sans", sans-serif;
+}
+.portal-inspiration-page .portal-house-pyramid__row strong {
+  color: var(--discovery-accent);
+  font-weight: 600;
+}
+.portal-inspiration-page .portal-house-pyramid__row span {
+  color: #f4e8d4;
+}
+@media (max-width: 640px) {
+  .portal-inspiration-page .portal-house-card .portal-house-polaroid {
+    width: min(100%, 174px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .portal-inspiration-page .portal-house-card .portal-house-polaroid { transition: none; }
+}
