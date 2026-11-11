@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { BookOpen, ChevronDown, Flame, Sparkles, X } from "lucide-react";
+import { BookOpen, ChevronDown, Feather, Flame, Sparkles, Wheat, Wine, X } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 import entreFiosPhoto from "@/assets/natal-entre-fios-recorte.webp";
 import grandeSalaoPhoto from "@/assets/natal-grande-salao-recorte.webp";
@@ -12,6 +12,13 @@ const houseByPosition: Record<number, House> = {
   4: "texugo",
   5: "serpente",
   6: "aguia",
+};
+
+const houseIllustrations = {
+  leao: Flame,
+  texugo: Wheat,
+  serpente: Wine,
+  aguia: Feather,
 };
 
 const teasers: Record<number, string> = {
@@ -54,6 +61,7 @@ function RevealStoryCard({ fragment, kind = "story", featured = false }: {
   const [aromaOpen, setAromaOpen] = useState(false);
   const [storyOpen, setStoryOpen] = useState(false);
   const house = kind === "house" ? houseByPosition[fragment.position ?? -1] : undefined;
+  const HouseIllustration = house ? houseIllustrations[house] : null;
   const hasAroma = Boolean(fragment.context?.trim().toLowerCase().startsWith("aroma:"));
   const contentId = `portal-story-${fragment.id}`;
   const aromaId = `portal-aroma-${fragment.id}`;
@@ -65,24 +73,33 @@ function RevealStoryCard({ fragment, kind = "story", featured = false }: {
   }).filter(row => row.heading && row.notes) : [];
 
   return <article className={`portal-discovery-card ${house ? `portal-house-card portal-house-card--${house}` : ""} ${featured ? "portal-discovery-card--featured" : ""}`}>
-    {house && (fragment.image_url || house === "serpente") ? <figure className="portal-house-polaroid">
-      {fragment.image_url ? <img src={fragment.image_url} alt={fragment.caption || `Velas Hiraeth da ${fragment.title}`}
-        className="portal-house-polaroid__image" loading="lazy" />
-        : <div className="portal-house-polaroid__empty" role="img" aria-label={`Espaço reservado para a fotografia da ${fragment.title}`}>
-          <span>Fotografia em breve</span>
-        </div>}
-      <figcaption className="portal-house-polaroid__caption">{fragment.title}</figcaption>
-    </figure> : fragment.image_url && <img src={fragment.image_url} alt={fragment.caption || fragment.title}
-      className="portal-discovery-card__image" loading="lazy" />}
-    <div className="portal-discovery-card__top">
-      <span className="portal-discovery-card__emblem" aria-hidden="true">
-        {house ? ({ leao: "L", texugo: "T", serpente: "S", aguia: "A" } as Record<House, string>)[house] : <BookOpen size={19} strokeWidth={1.4}/>}
-      </span>
-      <span className="portal-discovery-card__eyebrow">
-        {house ? "Uma casa, uma essência" : position === 2 ? "O segredo da seleção" : position >= 7 ? "Memórias de Natal" : "Por trás das chamas"}
-      </span>
-    </div>
-    <h4 className="portal-story-title portal-discovery-card__title">{fragment.title}</h4>
+    {house ? <figure className="portal-house-polaroid">
+      <div className="portal-house-polaroid__art">
+        {fragment.image_url
+          ? <img src={fragment.image_url} alt={fragment.caption || `Velas Hiraeth da ${fragment.title}`}
+              className="portal-house-polaroid__image" loading="lazy" />
+          : <div className="portal-house-polaroid__illustration" aria-hidden="true">
+              <span className="portal-house-polaroid__spark portal-house-polaroid__spark--left">✦</span>
+              <span className="portal-house-polaroid__spark portal-house-polaroid__spark--right">✧</span>
+              <span className="portal-house-polaroid__crest">
+                {HouseIllustration && <HouseIllustration size={44} strokeWidth={1.2} />}
+              </span>
+            </div>}
+        <h4 className="portal-house-polaroid__name">{fragment.title}</h4>
+      </div>
+    </figure> : <>
+      {fragment.image_url && <img src={fragment.image_url} alt={fragment.caption || fragment.title}
+        className="portal-discovery-card__image" loading="lazy" />}
+      <div className="portal-discovery-card__top">
+        <span className="portal-discovery-card__emblem" aria-hidden="true">
+          <BookOpen size={19} strokeWidth={1.4}/>
+        </span>
+        <span className="portal-discovery-card__eyebrow">
+          {position === 2 ? "O segredo da seleção" : position >= 7 ? "Memórias de Natal" : "Por trás das chamas"}
+        </span>
+      </div>
+      <h4 className="portal-story-title portal-discovery-card__title">{fragment.title}</h4>
+    </>}
     <p className="portal-discovery-card__teaser">{house ? (fragment.reference || teasers[position]) : (teasers[position] || fragment.reference || "Uma história guardada entre páginas e chamas.")}</p>
     <div className="portal-discovery-card__actions">
       {hasAroma && <button type="button" aria-expanded={aromaOpen} aria-controls={aromaId}
