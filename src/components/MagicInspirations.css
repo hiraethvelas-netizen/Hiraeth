@@ -1,6 +1,6 @@
 .magic-inspirations {
-  --letter-paper: var(--primary-foreground);
-  --letter-ink: var(--secondary-foreground);
+  --letter-paper: var(--card);
+  --letter-ink: var(--card-foreground);
   --letter-seal: var(--primary);
   --letter-seal-text: var(--primary-foreground);
   --letter-edge: var(--portal-accent);
@@ -21,7 +21,7 @@
 .magic-inspirations .magic-seal { display: grid; place-items: center; width: 4rem; height: 4rem; border: 3px double var(--letter-seal-text); outline: 4px solid var(--letter-seal); border-radius: 50%; background: var(--letter-seal); color: var(--letter-seal-text); font: 2rem var(--font-display); }
 .magic-inspirations .magic-letter-button { margin-top: 1.5rem; border: 1px solid var(--portal-accent); color: var(--portal-text); background: var(--portal-surface); min-height: 44px; height: auto; white-space: normal; }
 .magic-inspirations .magic-letter-button:hover { background: var(--portal-bg); }
-.magic-inspirations .magic-letter-paper { --secondary-foreground: var(--foreground); color: var(--letter-ink); background: var(--letter-paper); border: 1px solid var(--letter-edge); border-radius: 3px; margin-top: 2rem; padding: 2rem 1.25rem; animation: magic-letter-unfold .45s ease-out both; overflow-wrap: anywhere; }
+.magic-inspirations .magic-letter-paper { color: var(--letter-ink); background: var(--letter-paper); border: 1px solid var(--letter-edge); border-radius: 3px; margin-top: 2rem; padding: 2rem 1.25rem; animation: magic-letter-unfold .45s ease-out both; overflow-wrap: anywhere; }
 .magic-inspirations .magic-letter-paper h4 { color: inherit; }
 .magic-inspirations .magic-letter-paper small { color: inherit; }
 .magic-inspirations .magic-letter-paper .magic-letter-button { color: var(--letter-ink); background: transparent; border-color: var(--letter-ink); }
