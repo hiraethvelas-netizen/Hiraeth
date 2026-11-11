@@ -52,7 +52,7 @@ export function StoreBanners() {
     <div ref={carouselRef} className="flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth pb-4" aria-roledescription="carrossel de banners">
       {visibleBanners.map((banner) => <article data-store-banner key={banner.id} className="w-[88%] min-w-[88%] snap-start sm:w-[60%] sm:min-w-[60%] md:w-[calc(33.333%-11px)] md:min-w-[calc(33.333%-11px)]">
         <Link to={banner.href as never} className="group relative block aspect-[4/3] overflow-hidden rounded-lg border border-primary/20 bg-card">
-          {banner.image_url ? <img src={banner.image_url} alt={banner.title ?? "Novidade Hiraeth"} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110" loading="lazy" /> : <div className="flex h-full items-end bg-[radial-gradient(ellipse_at_top,_var(--color-secondary),_var(--color-background)_75%)] p-5 font-display text-2xl text-primary sm:text-3xl">{banner.title}</div>}
+          {banner.image_url ? <img src={banner.image_url} alt={banner.title ?? "Novidade Hiraeth"} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110" loading="lazy" /> : <div aria-hidden="true" className="h-full bg-[radial-gradient(ellipse_at_top,_var(--color-secondary),_var(--color-background)_75%)]" />}
           <span className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-transparent" />
           {banner.title && <span className="absolute inset-x-4 bottom-4 font-display text-2xl text-[#f7efda]">{banner.title}</span>}
         </Link>
