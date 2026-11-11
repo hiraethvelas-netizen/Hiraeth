@@ -101,10 +101,6 @@ function RevealStoryCard({ fragment, kind = "story", featured = false }: {
     {hasAroma && aromaOpen && <div id={aromaId} className="portal-discovery-card__aroma" role="region" aria-label={`Aroma de ${fragment.title}`}>
       <span className="portal-discovery-card__aroma-label">Essência revelada</span>
       <strong>{fragment.context?.replace(/^aroma:\s*/i, "")}</strong>
-    </div>}
-    {storyOpen && <div id={contentId} className="portal-discovery-card__story" role="region" aria-label={`História de ${fragment.title}`}>
-      {!house && fragment.reference && <p className="mb-3 text-sm italic text-[var(--portal-accent)]">{fragment.reference}</p>}
-      <p className="whitespace-pre-line text-sm leading-7 sm:text-base">{storyText}</p>
       {pyramidRows.length > 0 && <section className="portal-house-pyramid" aria-label={`Pirâmide olfativa da ${fragment.title}`}>
         <h5>Pirâmide olfativa</h5>
         {pyramidRows.map(row => <div className="portal-house-pyramid__row" key={row.heading}>
@@ -112,6 +108,10 @@ function RevealStoryCard({ fragment, kind = "story", featured = false }: {
           <span>{row.notes}</span>
         </div>)}
       </section>}
+    </div>}
+    {storyOpen && <div id={contentId} className="portal-discovery-card__story" role="region" aria-label={`História de ${fragment.title}`}>
+      {!house && fragment.reference && <p className="mb-3 text-sm italic text-[var(--portal-accent)]">{fragment.reference}</p>}
+      <p className="whitespace-pre-line text-sm leading-7 sm:text-base">{storyText}</p>
       {fragment.context && !hasAroma && <p className="mt-4 border-t border-white/15 pt-3 text-sm italic">{fragment.context}</p>}
     </div>}
   </article>;
