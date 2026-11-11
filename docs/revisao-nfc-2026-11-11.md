@@ -10,6 +10,7 @@
 - A abertura da categoria da loja podia mostrar os banners gerais enquanto a categoria ainda carregava. A exibição agora aguarda essa resolução.
 - Banners sem fotografia repetiam o título em duas camadas. A legenda agora aparece uma vez.
 - O modal das velas de Natal permitia sair com o teclado e rolar a página ao fundo. Agora mantém o foco dentro da janela, fecha por Escape e restaura foco e rolagem ao fechar.
+- No reteste com a foto original, em 320 px, um link da página cobria o botão **Voltar às velas**. O modal agora é renderizado fora das camadas da vitrine, preservando seu visual e permitindo clicar nos controles.
 
 ### Visual do portal
 
@@ -18,6 +19,7 @@
 - As faixas das quatro casas aparecem novamente no final da página.
 - O espaço das fotografias foi corrigido para impedir que as velas avancem sobre seus nomes em telas pequenas.
 - Os recortes antigos tinham cerca de 90 pixels de largura. Foram preparadas duas versões ilustrativas de alta resolução a partir das referências disponíveis, identificadas na interface como **Imagem ilustrativa**. Elas não são fotografias novas dos produtos reais e podem ter diferenças de detalhes em relação à embalagem. Os arquivos anteriores e eventuais fotos próprias cadastradas foram preservados; uma foto própria continua tendo preferência. As fotos do catálogo de produtos não foram substituídas.
+- **Atualização com a foto enviada pela proprietária:** Entre Fios e Magia passa a usar o JPG original de 720 × 1280, sem recorte, geração ou alteração dos bytes. O aviso de imagem ilustrativa foi retirado somente dessa vela. A ilustração anterior permanece no projeto; O Grande Salão de Natal continua com sua indicação de imagem ilustrativa. Uma foto própria cadastrada na administração segue tendo preferência.
 
 ### Conheça o acervo
 
@@ -39,7 +41,7 @@
 
 | Verificação | Resultado |
 | --- | --- |
-| Suíte completa | 335 testes aprovados em 58 arquivos, no fuso de São Paulo |
+| Suíte completa | 336 testes aprovados em 58 arquivos, no fuso de São Paulo |
 | TypeScript | Aprovado |
 | Build | Aprovado, sem publicação |
 | Lint | Arquivos novos e componentes formatados aprovados. Componentes antigos mantêm pendências de formatação e apontamentos preexistentes; comparação funcional sem novos apontamentos. Nenhuma regra foi desativada |
@@ -83,6 +85,7 @@ Os testes de navegador usaram respostas fictícias, sem contornar a autenticaç�
 - `src/styles.css`
 - `src/assets/natal-entre-fios-ilustracao.webp`
 - `src/assets/natal-grande-salao-ilustracao.webp`
+- `src/assets/natal-entre-fios-original.jpg`
 - `src/test/nfc-world-of-magic.test.tsx`
 - `src/test/portal-festive-controls.test.tsx`
 - `src/test/portal-loading.test.tsx`

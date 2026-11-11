@@ -1,13 +1,17 @@
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { ArrowLeft, X } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
-import entreFiosPhoto from "@/assets/natal-entre-fios-ilustracao.webp";
+import entreFiosPhoto from "@/assets/natal-entre-fios-original.jpg";
 import grandeSalaoPhoto from "@/assets/natal-grande-salao-ilustracao.webp";
 
 type Fragment = Tables<"portal_fragments">;
 type Props = { fragments: Fragment[] };
 
-const defaultPhotos: Record<number, string> = { 8: entreFiosPhoto, 9: grandeSalaoPhoto };
+const defaultPhotos: Record<number, { url: string; illustrative: boolean }> = {
+  8: { url: entreFiosPhoto, illustrative: false },
+  9: { url: grandeSalaoPhoto, illustrative: true },
+};
 const previewLines: Record<number, string> = {
   8: "Um presente feito à mão. Um carinho que aquece até os dias mais frios.",
   9: "Um salão iluminado, amigos reunidos e a magia de viver o Natal no castelo.",
@@ -68,7 +72,8 @@ export function PortalChristmasShowcase({ fragments }: Props) {
     <div className="portal-natal-discovery__grid">
       {candles.map(fragment => {
         const position = fragment.position ?? -1;
-        const photoUrl = fragment.image_url || defaultPhotos[position];
+        const defaultPhoto = defaultPhotos[position];
+        const photoUrl = fragment.image_url || defaultPhoto?.url;
         return <button key={fragment.id} type="button"
           ref={node => { if (node) triggerRefs.current.set(position, node); else triggerRefs.current.delete(position); }}
           className="portal-natal-discovery__candle"
@@ -83,12 +88,15 @@ export function PortalChristmasShowcase({ fragments }: Props) {
             </span>}
           </span>
           <span className="portal-natal-discovery__name">{fragment.title}</span>
-          {!fragment.image_url && <span className="text-xs text-[var(--portal-text)]/70">Imagem ilustrativa</span>}
+          {!fragment.image_url && defaultPhoto?.illustrative && <span className="text-xs text-[var(--portal-text)]/70">Imagem ilustrativa</span>}
         </button>;
       })}
     </div>
 
-    {selected && <div className="portal-natal-modal-backdrop" onMouseDown={event => {
+    {selected && typeof document !== "undefined" && createPortal(<div className="portal-world--christmas" style={{
+      ["--portal-accent" as string]: "#d3b575",
+      ["--portal-text" as string]: "#f7efda",
+    }}><div className="portal-natal-modal-backdrop" onMouseDown={event => {
         if (event.target === event.currentTarget) setOpened(null);
       }}>
       <section ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="portal-natal-modal-title"
@@ -108,6 +116,6 @@ export function PortalChristmasShowcase({ fragments }: Props) {
           <ArrowLeft size={16} aria-hidden="true"/> Voltar às velas
         </button>
       </section>
-    </div>}
+    </div></div>, document.body)}
   </div>;
 }
