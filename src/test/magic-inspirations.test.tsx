@@ -33,12 +33,12 @@ describe("Inspirações administráveis do Mundo de Magia", () => {
   });
   it("abre e fecha a carta sem autenticação nem substituir o texto administrável", () => {
     render(<MagicInspirations fragments={[fragment("carta", "Carta da Guardiã", 0)]} />);
-    expect(screen.queryByRole("region", { name: "Carta da Guardiã da Chama" })).toBeNull();
+    expect(screen.queryByRole("region", { name: "Carta aberta da Guardiã da Chama" })).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "Abrir carta" }));
-    expect(screen.getByRole("region", { name: "Carta da Guardiã da Chama" })).toHaveTextContent("Texto administrável carta");
+    expect(screen.getByRole("region", { name: "Carta aberta da Guardiã da Chama" })).toHaveTextContent("Texto administrável carta");
     fireEvent.click(screen.getByRole("button", { name: "Fechar carta" }));
-    expect(screen.queryByRole("region", { name: "Carta da Guardiã da Chama" })).toBeNull();
+    expect(screen.queryByRole("region", { name: "Carta aberta da Guardiã da Chama" })).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "Abrir carta" }));
-    expect(screen.getByRole("region", { name: "Carta da Guardiã da Chama" })).toHaveTextContent("Texto administrável carta");
+    expect(screen.getByRole("region", { name: "Carta aberta da Guardiã da Chama" })).toHaveTextContent("Texto administrável carta");
   });
 });

@@ -63,7 +63,7 @@ export function MagicInspirations({ fragments }: { fragments: InspirationFragmen
           <MailOpen aria-hidden="true" />Abrir carta
         </Button>
       </div>}
-      <div id={letterId} hidden={!open} ref={letter} tabIndex={-1} role="region" aria-labelledby={`${letterId}-heading`}
+      <div id={letterId} hidden={!open} ref={letter} tabIndex={-1} role="region" aria-label="Carta aberta da Guardiã da Chama"
         className={open ? "magic-letter-paper" : undefined}>
         {chapters.letter.length ? chapters.letter.map(fragment => <FragmentText key={fragment.id} fragment={fragment} hideTitle />)
           : <p className="magic-empty">A carta será revelada em breve.</p>}

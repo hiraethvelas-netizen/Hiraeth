@@ -13,7 +13,7 @@ export function groupMagicInspirations(fragments: InspirationFragment[]) {
   const houses: InspirationFragment[][] = magicHouseNames.map(() => []);
   let current: Chapter = "origin";
   let currentHouse: number | undefined;
-  for (const fragment of [...fragments].filter(item => item.visible).sort((a, b) => a.position - b.position)) {
+  for (const fragment of [...fragments].filter(item => item.visible !== false).sort((a, b) => a.position - b.position)) {
     const title = normalize(fragment.title);
     const house = [/\bleao\b|grifinoria/, /\btexugo\b|lufa.lufa/, /\bserpente\b|sonserina/, /\baguia\b|corvinal/].findIndex(pattern => pattern.test(title));
     let chapter: Chapter | undefined;
