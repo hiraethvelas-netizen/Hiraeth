@@ -243,7 +243,15 @@ export function ProductVariantsEditor({ value, onChange, basePrice, onUpload, ga
               <h4 className="font-display text-xl text-foreground">Preços, estoque e fotos por combinação</h4>
               <p className="text-sm text-muted-foreground">As combinações aparecem automaticamente. Personalize cada uma e salve o produto.</p>
             </div>
-            {value.rows.map(row => <div key={row.key} className="grid gap-3 rounded border border-primary/25 p-4">
+            {value.rows.map(row => <div
+              // Visible option labels (and row.key) change at each keystroke. Use the
+              // option IDs so React keeps the combination inputs mounted/focused.
+              key={value.groups.map(group => {
+                const label = row.options[group.name.trim()];
+                const option = group.values.find(item => item.label.trim() === label);
+                return group.id + ":" + (option?.id ?? label ?? "");
+              }).join("|")}
+              className="grid gap-3 rounded border border-primary/25 p-4">
               <h5 className="font-medium text-foreground">{row.label}</h5>
               <div className="grid gap-3 sm:grid-cols-3">
                 <label className="text-xs text-muted-foreground">Preço (R$) — {row.label}

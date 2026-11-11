@@ -108,7 +108,7 @@ describe("Essence inventory units", () => {
   it("registers grams explicitly without converting the entered balance", async () => {
     render(<Essences />);
     await screen.findByText("Baunilha", { selector: "p" });
-    fireEvent.change(screen.getByLabelText("Unidade do estoque"), { target: { value: "g" } });
+    expect(screen.getByText("Unidade do estoque:", { exact: false })).toBeInTheDocument();
     fireEvent.change(screen.getByLabelText("Nome da essência"), { target: { value: "Lavanda" } });
     fireEvent.change(screen.getByLabelText("Saldo atual (g)"), { target: { value: "125.5" } });
     fireEvent.click(screen.getByRole("button", { name: "Salvar essência" }));
@@ -145,8 +145,8 @@ describe("Essence inventory units", () => {
     render(<Essences />);
     await screen.findByText("Baunilha", { selector: "p" });
     fireEvent.click(screen.getByRole("button", { name: "Editar cadastro" }));
-    expect(screen.getByLabelText("Unidade do estoque")).toBeDisabled();
-    expect(screen.getByLabelText("Unidade do estoque")).toHaveValue("g");
+    expect(screen.getByRole("dialog", { name: "Editar essência" })).toBeInTheDocument();
+    expect(screen.getByText("Unidade do estoque:", { exact: false })).toHaveTextContent("g");
     expect(screen.getByLabelText("Saldo atual (g)")).toHaveValue(100);
     fireEvent.click(screen.getByRole("button", { name: "Copiar lista" }));
     await waitFor(() =>

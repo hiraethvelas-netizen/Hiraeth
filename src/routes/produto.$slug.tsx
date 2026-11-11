@@ -223,14 +223,14 @@ function ProdutoPage() {
                 onScroll={onGalleryScroll}
                 role="region"
                 aria-label="Galeria de fotos do produto. Deslize para os lados para ver mais imagens."
-                className="flex aspect-square w-full snap-x snap-mandatory overflow-x-auto overscroll-x-contain border bg-muted [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                className="flex aspect-[4/5] w-full snap-x snap-mandatory overflow-x-auto overscroll-x-contain border bg-muted [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
                 style={{ WebkitOverflowScrolling: "touch" }}
               >
                 {currentImages.length ? currentImages.map((img, index) => (
-                  <div key={img} className="aspect-square w-full shrink-0 snap-center snap-always">
+                  <div key={img} className="flex h-full w-full shrink-0 snap-center snap-always items-center justify-center">
                     <img src={img} alt={`${product.name}, foto ${index + 1} de ${currentImages.length}`}
                       loading={index === 0 ? "eager" : "lazy"}
-                      draggable={false} className="h-full w-full select-none object-cover" />
+                      draggable={false} className="h-full w-full select-none object-contain" />
                   </div>
                 )) : (
                   <div className="flex h-full w-full shrink-0 items-center justify-center font-display text-lg italic text-muted-foreground">
@@ -255,8 +255,8 @@ function ProdutoPage() {
                     <button key={img} type="button" onClick={() => showGalleryImage(i)}
                       aria-label={`Ver foto ${i + 1} de ${currentImages.length}`}
                       aria-current={i === activeImage ? "true" : undefined}
-                      className={`h-16 w-16 shrink-0 overflow-hidden border ${i === activeImage ? "border-primary" : "opacity-60 hover:opacity-100"}`}>
-                      <img src={img} alt="" className="h-full w-full object-cover" />
+                      className={`h-20 w-20 shrink-0 overflow-hidden border ${i === activeImage ? "border-primary" : "opacity-60 hover:opacity-100"}`}>
+                      <img src={img} alt="" className="h-full w-full object-contain" />
                     </button>
                   ))}
                 </div>

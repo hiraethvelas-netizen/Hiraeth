@@ -1,7 +1,7 @@
 import { EssenceNotesFields } from "@/components/admin/EssenceNotesFields";
 import { emptyNotes, essenceNotesPayload, notesDraft, type EssenceNotes } from "@/lib/fragrance";
 import { createFileRoute } from "@tanstack/react-router";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { essenceUnit, type StockUnit } from "@/lib/candle-recipes";
@@ -15,7 +15,7 @@ export const Route = createFileRoute("/admin/essencias")({
   component: AdminEssencias,
 });
 
-const blank = { name: "", stock_ml: "0", minimum_stock_ml: "10", target_stock_ml: "50", supplier: "", notes: "", stock_unit: "ml" as StockUnit };
+const blank = { name: "", stock_ml: "0", minimum_stock_ml: "10", target_stock_ml: "50", supplier: "", notes: "", stock_unit: "g" as StockUnit };
 
 function AdminEssencias() {
   const db = supabase as any;
@@ -27,6 +27,7 @@ function AdminEssencias() {
   const [aromaNotes, setAromaNotes] = useState(emptyNotes);
   const [saving, setSaving] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const editNameRef = useRef<HTMLInputElement>(null);
   const [editingBalance, setEditingBalance] = useState<number | null>(null);
   const [selectedEssence, setSelectedEssence] = useState("");
   const [recipeProduct, setRecipeProduct] = useState("");
@@ -67,6 +68,18 @@ function AdminEssencias() {
   }
   function resetForm() { setEditingId(null); setEditingBalance(null); setForm(blank); setAromaNotes(emptyNotes); }
 
+  useEffect(() => {
+    if (!editingId) return;
+    const previousOverflow = document.body.style.overflow;
+    const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    document.body.style.overflow = "hidden";
+    editNameRef.current?.focus();
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      previousFocus?.focus();
+    };
+  }, [editingId]);
+
   async function saveEssence(event: React.FormEvent) {
     event.preventDefault();
     const payload = { ...essenceNotesPayload(form.name, aromaNotes), name: form.name.trim(), stock_ml: Number(form.stock_ml), stock_unit: form.stock_unit, minimum_stock_ml: Number(form.minimum_stock_ml), target_stock_ml: Number(form.target_stock_ml), supplier: form.supplier || null, notes: form.notes || null, updated_at: new Date().toISOString() };
@@ -87,6 +100,45 @@ function AdminEssencias() {
     if (result.error) { toast.error(result.error.message.includes("unique") ? "Já existe uma essência com esse nome." : "Erro ao salvar essência: " + result.error.message); return; }
     if (editingId && !result.data) { toast.error("O saldo mudou desde que você abriu a edição. Atualize o estoque e confira o saldo antes de salvar novamente."); return; }
     toast.success(editingId ? "Essência atualizada." : "Essência cadastrada."); resetForm(); await load();
+  }
+
+
+  async function removeOrRestoreEssence(essence: Essence) {
+    if (!essence.active) {
+      if (!window.confirm(`Reativar a essência "${essence.name}"?`)) return;
+      const { data, error } = await db.from("essences").update({ active: true }).eq("id", essence.id).select("id").maybeSingle();
+      if (error || !data) { toast.error("Não foi possível reativar a essência."); return; }
+      toast.success("Essência reativada."); await load();
+      return;
+    }
+    if (!window.confirm(`Excluir "${essence.name}"? Se houver histórico de estoque, ela será arquivada para preservar os registros.`)) return;
+    const [standard, variant, movements] = await Promise.all([
+      db.from("product_essences").select("id").eq("essence_id", essence.id).limit(1),
+      db.from("product_variant_essences").select("essence_id").eq("essence_id", essence.id).limit(1),
+      db.from("essence_stock_movements").select("id").eq("essence_id", essence.id).limit(1),
+    ]);
+    if (standard.error || variant.error || movements.error) {
+      toast.error("Não foi possível conferir os vínculos. Nenhuma essência foi excluída.");
+      return;
+    }
+    if (standard.data?.length || variant.data?.length) {
+      toast.error("Essa essência faz parte de fórmulas de velas. Retire-a das receitas dos produtos antes de excluir, para não interromper pedidos.");
+      return;
+    }
+    if (movements.data?.length) {
+      const { data, error } = await db.from("essences").update({ active: false }).eq("id", essence.id).select("id").maybeSingle();
+      if (error || !data) { toast.error("Não foi possível arquivar a essência."); return; }
+      toast.success("Essência arquivada: não aparece em novas receitas, mas mantém o histórico.");
+    } else {
+      const { data, error } = await db.from("essences").delete().eq("id", essence.id).select("id").maybeSingle();
+      if (error || !data) {
+        toast.error("Não foi possível excluir: há vínculos ou a permissão não permite. Nenhum histórico foi apagado.");
+        return;
+      }
+      toast.success("Essência excluída.");
+      if (selectedEssence === essence.id) setSelectedEssence("");
+    }
+    await load();
   }
 
   async function addRecipe(event: React.FormEvent) {
@@ -134,17 +186,26 @@ function AdminEssencias() {
     <div className="mt-6 grid gap-4 sm:grid-cols-3"><div className="border bg-card p-5"><p className="text-xs uppercase tracking-widest text-muted-foreground">Essências cadastradas</p><p className="mt-2 text-3xl text-primary">{essences.length}</p></div><div className="border bg-card p-5"><p className="text-xs uppercase tracking-widest text-muted-foreground">Precisam de reposição</p><p className="mt-2 text-3xl text-destructive">{low.length}</p></div><div className="border bg-card p-5"><p className="text-xs uppercase tracking-widest text-muted-foreground">Fórmulas vinculadas</p><p className="mt-2 text-3xl text-primary">{recipes.length}</p></div></div>
     {low.length > 0 && <section className="mt-6 border border-destructive/40 bg-card p-5"><h2 className="text-lg text-destructive">Atenção: estoque baixo</h2><p className="mt-1 text-sm text-muted-foreground">Essências no limite mínimo ou abaixo dele.</p><div className="mt-3 flex flex-wrap gap-2">{low.map(e => <span key={e.id} className="border border-destructive/30 px-3 py-2 text-sm">{e.name}: {Number(e.stock_ml).toLocaleString("pt-BR")} {essenceUnit(e)}</span>)}</div></section>}
     <div className="mt-8 grid gap-6 xl:grid-cols-2">
-      <section className="border bg-card p-5"><h2 className="text-xl text-foreground">{editingId ? "Editar essência" : "Cadastrar essência"}</h2><form onSubmit={saveEssence} className="mt-4 space-y-3">
-        <label className="block text-sm text-muted-foreground">Nome da essência<input required value={form.name} onChange={e => setForm({...form,name:e.target.value})} placeholder="Ex.: Baunilha" className={input}/></label>
-        <label className="block text-sm text-muted-foreground">Unidade do estoque<select value={form.stock_unit} disabled={!!editingId} onChange={e => setForm({...form,stock_unit:e.target.value as StockUnit})} className={input}><option value="ml">Mililitros (ml)</option><option value="g">Gramas (g)</option></select></label>
-        <p className="text-xs text-muted-foreground">A unidade é definida no cadastro. Saldos existentes são preservados; gramas e mililitros não são convertidos automaticamente.</p>
+      <section role={editingId ? "dialog" : undefined} aria-modal={editingId ? true : undefined}
+        aria-label={editingId ? "Editar essência" : undefined}
+        className={editingId
+          ? "fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto bg-black/80 p-3 sm:p-6"
+          : "border bg-card p-5"}>
+        <div className={editingId
+          ? "max-h-[92dvh] w-full max-w-2xl overflow-y-auto rounded-lg border border-primary/40 bg-background p-5 shadow-2xl sm:p-7"
+          : ""}>
+        <h2 className="text-xl text-foreground">{editingId ? "Editar essência" : "Cadastrar essência"}</h2>
+        <form onSubmit={saveEssence} className="mt-4 space-y-3">
+        <label className="block text-sm text-muted-foreground">Nome da essência<input ref={editNameRef} required value={form.name} onChange={e => setForm({...form,name:e.target.value})} placeholder="Ex.: Baunilha" className={input}/></label>
+        <p className="text-sm text-muted-foreground">Unidade do estoque: <strong>{form.stock_unit}</strong></p>
+        <p className="text-xs text-muted-foreground">{editingId && form.stock_unit === "ml" ? "Cadastro antigo em ml: os valores não devem ser interpretados como gramas. A conversão precisa dos pesos reais e da revisão das receitas vinculadas." : "Todos os novos cadastros são em gramas (g)."}</p>
         <div className="grid gap-3 sm:grid-cols-3"><label className="text-sm text-muted-foreground">Saldo atual ({form.stock_unit})<input type="number" min="0" step="0.001" required value={form.stock_ml} onChange={e => setForm({...form,stock_ml:e.target.value})} className={input}/></label><label className="text-sm text-muted-foreground">Alerta abaixo de ({form.stock_unit})<input type="number" min="0" step="0.001" required value={form.minimum_stock_ml} onChange={e => setForm({...form,minimum_stock_ml:e.target.value})} className={input}/></label><label className="text-sm text-muted-foreground">Estoque ideal ({form.stock_unit})<input type="number" min="0" step="0.001" required value={form.target_stock_ml} onChange={e => setForm({...form,target_stock_ml:e.target.value})} className={input}/></label></div>
         <label className="block text-sm text-muted-foreground">Fornecedor (opcional)<input value={form.supplier} onChange={e => setForm({...form,supplier:e.target.value})} className={input}/></label><label className="block text-sm text-muted-foreground">Observações<textarea rows={2} value={form.notes} onChange={e => setForm({...form,notes:e.target.value})} className={input}/></label>
         <EssenceNotesFields value={aromaNotes} onChange={setAromaNotes} inputClass={input} />
         <div className="flex flex-wrap gap-2"><button className="btn-gold" disabled={saving} type="submit">{saving ? "Salvando..." : "Salvar essência"}</button>{editingId && <button type="button" onClick={resetForm} className="border px-4 py-2">Cancelar edição</button>}</div>
-      </form></section>
+      </form></div></section>
       <section className="border bg-card p-5"><h2 className="text-xl text-foreground">Consultar essência</h2><p className="mt-1 text-sm text-muted-foreground">Escolha uma essência para ver todas as velas que levam esse aroma.</p><select value={selectedEssence} onChange={e=>setSelectedEssence(e.target.value)} className={input}><option value="">Selecione uma essência</option>{essences.map(e=><option key={e.id} value={e.id}>{e.name} — {Number(e.stock_ml).toLocaleString("pt-BR")} {essenceUnit(e)}</option>)}</select>
-        {selected && <><div className="mt-4 flex flex-wrap gap-2"><button onClick={()=>void movement("purchase")} className="border px-3 py-2 text-sm hover:border-primary">+ Registrar compra</button><button onClick={()=>void movement("adjustment")} className="border px-3 py-2 text-sm hover:border-primary">Ajustar saldo</button><button onClick={()=>void movement("loss")} className="border px-3 py-2 text-sm hover:border-primary">Registrar perda</button><button onClick={()=>edit(selected)} className="border px-3 py-2 text-sm hover:border-primary">Editar cadastro</button></div><h3 className="mt-5 font-medium text-foreground">Velas que usam {selected.name}</h3><div className="mt-2 space-y-2">{usage.length ? usage.map(r=><div key={r.id} className="flex items-center justify-between gap-3 border-b py-2 text-sm"><div><p className="text-foreground">{r.products?.name ?? products.find(p=>p.id===r.product_id)?.name ?? "Produto"}</p><p className="text-xs text-muted-foreground">{Number(r.quantity_ml).toLocaleString("pt-BR")} {essenceUnit(selected)} por vela{r.recipe_id ? ` · ${variantLabel(r)}` : " · Receita padrão"}</p></div>{r.recipe_id ? <a href="/admin/produtos" className="text-xs text-primary underline">Editar no produto</a> : <button onClick={()=>void removeRecipe(r)} className="text-xs text-destructive">Remover</button>}</div>) : <p className="text-sm text-muted-foreground">Ainda não há velas vinculadas a esta essência.</p>}</div></>}
+        {selected && <><div className="mt-4 flex flex-wrap gap-2"><button onClick={()=>void movement("purchase")} className="border px-3 py-2 text-sm hover:border-primary">+ Registrar compra</button><button onClick={()=>void movement("adjustment")} className="border px-3 py-2 text-sm hover:border-primary">Ajustar saldo</button><button onClick={()=>void movement("loss")} className="border px-3 py-2 text-sm hover:border-primary">Registrar perda</button><button onClick={()=>edit(selected)} className="border px-3 py-2 text-sm hover:border-primary">Editar cadastro</button><button type="button" onClick={()=>void removeOrRestoreEssence(selected)} className="border border-destructive/50 px-3 py-2 text-sm text-destructive">{selected.active ? "Excluir essência" : "Reativar essência"}</button></div><h3 className="mt-5 font-medium text-foreground">Velas que usam {selected.name}</h3><div className="mt-2 space-y-2">{usage.length ? usage.map(r=><div key={r.id} className="flex items-center justify-between gap-3 border-b py-2 text-sm"><div><p className="text-foreground">{r.products?.name ?? products.find(p=>p.id===r.product_id)?.name ?? "Produto"}</p><p className="text-xs text-muted-foreground">{Number(r.quantity_ml).toLocaleString("pt-BR")} {essenceUnit(selected)} por vela{r.recipe_id ? ` · ${variantLabel(r)}` : " · Receita padrão"}</p></div>{r.recipe_id ? <a href="/admin/produtos" className="text-xs text-primary underline">Editar no produto</a> : <button onClick={()=>void removeRecipe(r)} className="text-xs text-destructive">Remover</button>}</div>) : <p className="text-sm text-muted-foreground">Ainda não há velas vinculadas a esta essência.</p>}</div></>}
       </section>
     </div>
     <section className="mt-8 border bg-card p-5"><h2 className="text-xl text-foreground">Lista de compras</h2><p className="mt-1 text-sm text-muted-foreground">Filtre por um limite específico para montar sua lista de reposição.</p><div className="mt-4 flex flex-wrap gap-3"><label className="text-sm text-muted-foreground">Mostrar essências com menos de<input type="number" min="0" step="0.001" value={threshold} onChange={e=>setThreshold(e.target.value)} className={input}/></label><span className="self-end text-sm text-muted-foreground">na unidade de cada essência (g ou ml)</span><button onClick={()=>setReportMode(!reportMode)} className="self-end border px-4 py-2 text-sm">{reportMode ? "Mostrar todas" : "Gerar lista"}</button><button onClick={()=>{const lines=filtered.map(e=>`${e.name}: ${Number(e.stock_ml).toLocaleString("pt-BR")} ${essenceUnit(e)} restantes — comprar ${Math.max(0,Number(e.target_stock_ml)-Number(e.stock_ml)).toLocaleString("pt-BR")} ${essenceUnit(e)}`); if(!lines.length){toast.info("Nenhuma essência encontrada para esse filtro.");return;} const text="LISTA DE COMPRAS — HIRAETH\n\n"+lines.join("\n"); void navigator.clipboard.writeText(text).then(()=>toast.success("Lista de compras copiada!")).catch(()=>toast.error("Não foi possível copiar a lista."));}} className="self-end border px-4 py-2 text-sm">Copiar lista</button></div>
