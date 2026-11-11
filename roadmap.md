@@ -1,5 +1,9 @@
 # Roadmap Hiraeth — Prompt Mestre
 
+## Inspirações do portal O Mundo de Magia
+- [ ] Organizar fragmentos em capítulos e criar carta interativa somente no portal solicitado.
+- [ ] Validar agrupamento, abertura/fechamento da carta e preservação do portal, sem modificar banco nem publicar.
+
 ## Abertura exclusiva — pedido atual
 - [x] Entrada sem menu ou rolagem, fênix recortada e ação direta para a loja
 - [x] Sequência leve de floresta, portal e textos usando imagens animadas
