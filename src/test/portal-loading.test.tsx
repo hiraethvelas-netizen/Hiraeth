@@ -1,5 +1,6 @@
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { ReactNode } from "react";
 
 const mocks = vi.hoisted(() => ({
   slug: "colecao-teste",
@@ -16,6 +17,9 @@ vi.mock("@tanstack/react-router", () => ({
 }));
 vi.mock("@/components/SiteLayout", () => ({ SiteFooter: () => null }));
 vi.mock("@/components/PortalChristmasDecor", () => ({ PortalChristmasDecor: () => null }));
+vi.mock("@/components/PortalProductCarousel", () => ({
+  PortalProductCarousel: ({ fallback }: { fallback?: ReactNode }) => fallback ?? null,
+}));
 vi.mock("@/components/PortalIntro", () => ({
   PortalIntro: ({ onEnter }: { onEnter: () => void }) => (
     <button type="button" onClick={onEnter}>
@@ -55,6 +59,7 @@ const fragment = {
 };
 
 beforeEach(() => {
+  window.history.replaceState(null, "", "/");
   mocks.slug = "colecao-teste";
   mocks.portalQuery.mockResolvedValue({ data: portal, error: null });
   mocks.fragmentsQuery.mockResolvedValue({ data: [], error: null });
@@ -65,6 +70,19 @@ afterEach(() => {
 });
 
 describe("Portal NFC: recuperação de falhas de carregamento", () => {
+  it("volta das inspirações ao início do portal sem repetir o vídeo", async () => {
+    window.history.replaceState(null, "", "/portal/o-mundo-de-magia#portal-inicio");
+    mocks.slug = "o-mundo-de-magia";
+    render(<PortalPage />);
+    expect(
+      await screen.findByRole("heading", { level: 1, name: /Mundo da Magia/ }),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Entrar na coleção" })).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { level: 1, name: /Mundo da Magia/ }).closest("header"),
+    ).toHaveAttribute("id", "portal-inicio");
+  });
+
   it("permite tentar novamente uma consulta de portal que falhou", async () => {
     mocks.portalQuery.mockResolvedValueOnce({ data: null, error: { message: "offline" } });
     render(<PortalPage />);
@@ -102,20 +120,24 @@ describe("Portal NFC: recuperação de falhas de carregamento", () => {
     expect(screen.queryByRole("button", { name: "Entrar na coleção" })).not.toBeInTheDocument();
   });
 
-  it("mantém apenas o Natal no portal principal e abre inspirações em página separada", async () => {
+  it("preserva o Natal e abre as inspirações em página separada", async () => {
     mocks.slug = "o-mundo-de-magia";
     mocks.fragmentsQuery.mockResolvedValueOnce({ data: [fragment], error: null });
     render(<PortalPage />);
     fireEvent.click(await screen.findByRole("button", { name: "Entrar na coleção" }));
-    expect(await screen.findByRole("heading", { name: "O Natal no Mundo da Magia" })).toBeInTheDocument();
+    expect(
+      await screen.findByRole("heading", { name: "O Natal no Mundo da Magia" }),
+    ).toBeInTheDocument();
     expect(await screen.findByText(fragment.title)).toBeInTheDocument();
     expect(screen.queryByText(fragment.body)).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: /Uma história preservada/ }));
     expect(screen.getByText(fragment.body)).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Fechar informações da vela" }));
     expect(screen.queryByText(fragment.body)).not.toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /Conheça as inspirações/ }))
-      .toHaveAttribute("href", "/portal/o-mundo-de-magia/inspiracoes");
+    expect(screen.getByRole("link", { name: /Conheça as inspirações/ })).toHaveAttribute(
+      "href",
+      "/portal/o-mundo-de-magia/inspiracoes",
+    );
     expect(screen.queryByText("Quatro casas, quatro essências")).not.toBeInTheDocument();
     expect(screen.queryByText("As histórias ganham forma em breve.")).not.toBeInTheDocument();
   });
@@ -135,6 +157,34 @@ describe("Portal NFC: recuperação de falhas de carregamento", () => {
     expect(
       await screen.findByText("As histórias por trás das velas serão reveladas aqui."),
     ).toBeInTheDocument();
+  });
+
+  it("mostra um trecho da Seletora e mantém o texto completo nas inspirações", async () => {
+    mocks.slug = "o-mundo-de-magia";
+    mocks.fragmentsQuery.mockResolvedValueOnce({
+      data: [
+        {
+          ...fragment,
+          id: "seletora",
+          position: 2,
+          title: "A Vela Seletora",
+          body: "A origem da vela, nas palavras da criadora.\n\nO restante da história fica nas inspirações.",
+        },
+      ],
+      error: null,
+    });
+    render(<PortalPage />);
+    fireEvent.click(await screen.findByRole("button", { name: "Entrar na coleção" }));
+    expect(
+      await screen.findByText("A origem da vela, nas palavras da criadora."),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText("O restante da história fica nas inspirações."),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "Conhecer a história da Vela Seletora" }),
+    ).toHaveAttribute("href", "/portal/o-mundo-de-magia/inspiracoes#inspiracao-seletora");
+    expect(screen.getByRole("img", { name: /Faixas das casas/ })).toBeInTheDocument();
   });
 
   it("ignora a resposta antiga das inspirações depois de trocar o portal", async () => {

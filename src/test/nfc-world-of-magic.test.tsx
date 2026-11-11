@@ -117,7 +117,7 @@ describe("Portal mágico: decoração isolada e interativa",()=>{
     expect(container.querySelectorAll(".portal-xmas-candle")).toHaveLength(7);
     expect(container.querySelector(".portal-xmas-atmosphere")?.getAttribute("aria-hidden")).toBe("true");
   });
-  it("alterna somente as luzes coloridas ao clicar em Mais magia",()=>{
+  it("alterna as luzes e bolinhas sem chamar a Fênix ao clicar em Mais magia",()=>{
     const {container}=render(<PortalChristmasDecor scene="hero"/>);
     const toggle=screen.getByRole("button",{name:/mais magia: acender luzes/i});
     expect(toggle.getAttribute("aria-pressed")).toBe("false");
