@@ -159,7 +159,7 @@ describe("Pesquisa única de essências no cadastro do produto", () => {
     fireEvent.change(screen.getByRole("textbox", { name: "Nome do aroma" }), {
       target: { value: "Lavanda" },
     });
-    fireEvent.change(screen.getByRole("spinbutton", { name: "Saldo inicial (ml)" }), {
+    fireEvent.change(screen.getByRole("spinbutton", { name: "Saldo inicial (g)" }), {
       target: { value: "40" },
     });
     fireEvent.click(screen.getByRole("button", { name: "Salvar essência no estoque" }));
@@ -188,13 +188,13 @@ describe("Pesquisa única de essências no cadastro do produto", () => {
     fireEvent.click(screen.getByRole("tab", { name: "+ Cadastrar um aroma novo" }));
     const name = screen.getByRole("textbox", { name: "Nome do aroma" });
     fireEvent.change(name, { target: { value: "Canela" } });
-    fireEvent.change(screen.getByRole("spinbutton", { name: "Saldo inicial (ml)" }), {
+    fireEvent.change(screen.getByRole("spinbutton", { name: "Saldo inicial (g)" }), {
       target: { value: "20" },
     });
     fireEvent.click(screen.getByRole("button", { name: "Salvar essência no estoque" }));
     await waitFor(() => expect(toast.error).toHaveBeenCalledWith("Não foi possível salvar"));
     expect(name).toHaveValue("Canela");
-    expect(screen.getByRole("spinbutton", { name: "Saldo inicial (ml)" })).toHaveValue(20);
+    expect(screen.getByRole("spinbutton", { name: "Saldo inicial (g)" })).toHaveValue(20);
     expect(screen.getByRole("button", { name: "Salvar essência no estoque" })).toBeEnabled();
     expect(toast.success).not.toHaveBeenCalled();
     expect(editorProps.onIngredientsChange).not.toHaveBeenCalled();
