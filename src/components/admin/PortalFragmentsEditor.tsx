@@ -89,7 +89,7 @@ export function PortalFragmentsEditor({ portalId }: { portalId: string }) {
     }
     setUploadingPhoto(true);
     try {
-      const safeName = file.name.normalize("NFD").replace(/[\\u0300-\\u036f]/g, "").replace(/[^a-zA-Z0-9._-]/g, "-");
+      const safeName = file.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9._-]/g, "-");
       const path = `inspiracoes/${portalId}/${crypto.randomUUID()}-${safeName}`;
       // Use the existing admin-enabled image bucket, without changing storage policies.
       const bucket = supabase.storage.from("product-images");
