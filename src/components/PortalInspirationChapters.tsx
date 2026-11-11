@@ -15,9 +15,9 @@ const houseByPosition: Record<number, House> = {
 };
 
 const housePhotoByPosition: Partial<Record<number, string>> = {
-  3: "/portal-casa-leao.webp",
-  4: "/portal-casa-texugo.webp",
-  6: "/portal-casa-aguia.webp",
+  3: "/portal-casa-leao.avif",
+  4: "/portal-casa-texugo.avif",
+  6: "/portal-casa-aguia.avif",
 };
 
 const teasers: Record<number, string> = {
