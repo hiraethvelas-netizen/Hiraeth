@@ -2,13 +2,14 @@ import { createFileRoute, notFound } from "@tanstack/react-router";
 import { ArrowUpRight, BookOpenText, Headphones, LibraryBig, Smartphone } from "lucide-react";
 import { PortalInspirationCard } from "@/components/PortalInspirationChapters";
 import { PortalChristmasShowcase } from "@/components/PortalChristmasShowcase";
-import { PortalFestiveAccents } from "@/components/PortalFestiveAccents";
+import { PortalFestiveAccents, PortalHouseRibbons } from "@/components/PortalFestiveAccents";
 import { PortalIntro } from "@/components/PortalIntro";
 import { PortalChristmasDecor } from "@/components/PortalChristmasDecor";
 import { carouselFromTheme, isMagicWorld, magicWorldTitle, portalCatalogDestination, spotifyPlaylistUrl } from "@/lib/portal-experience";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { SiteFooter } from "@/components/SiteLayout";
+import { PortalProductCarousel } from "@/components/PortalProductCarousel";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Portal = Tables<"portals">;
@@ -31,6 +32,7 @@ function PortalPage() {
   const [fragments, setFragments] = useState<Fragment[]>([]);
   const [loading, setLoading] = useState(true);
   const [intro, setIntro] = useState(true);
+  const [moreMagic, setMoreMagic] = useState(false);
   const [loadError, setLoadError] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
   const [fragmentsLoading, setFragmentsLoading] = useState(true);
@@ -40,10 +42,12 @@ function PortalPage() {
 
   useEffect(() => {
     let active = true;
+    const returningHome = window.location.hash === "#portal-inicio";
     async function load() {
       setLoading(true);
       setLoadError(false);
-      setIntro(true);
+      setIntro(!returningHome);
+      setMoreMagic(false);
       setPortal(null);
       setFragments([]);
       setFragmentsLoading(true);
@@ -57,7 +61,7 @@ function PortalPage() {
         if (!active) return;
         if (error) throw error;
         setPortal(data);
-        setIntro(isMagicWorld(slug) || Boolean(data?.intro_enabled));
+        setIntro(!returningHome && (isMagicWorld(slug) || Boolean(data?.intro_enabled)));
       } catch {
         if (active) setLoadError(true);
       } finally {
@@ -143,6 +147,9 @@ function PortalPage() {
   const displayTitle = magicWorldTitle(slug,portal.name);
   const catalogUrl = portalCatalogDestination(slug,portal.store_category_url);
   const magicWorld = isMagicWorld(slug);
+  const selectorStory = fragments.find(fragment => fragment.position === 2);
+  const selectorPreview = selectorStory?.body?.split(/\n\s*\n/)[0]?.trim();
+  const inspirationsUrl = `/portal/${encodeURIComponent(slug)}/inspiracoes`;
 
   function scrollGallery(direction: -1 | 1) {
     const element = galleryRef.current;
@@ -154,8 +161,8 @@ function PortalPage() {
 
   return (
     <div className={`portal-world min-h-screen${magicWorld ? " portal-world--christmas" : ""}`} style={{
-      ["--portal-bg" as string]: magicWorld ? "#111923" : palette["background"] || "#17251d",
-      ["--portal-surface" as string]: magicWorld ? "#202d3d" : palette["surface"] || "#26382d",
+      ["--portal-bg" as string]: magicWorld ? "#14251c" : palette["background"] || "#17251d",
+      ["--portal-surface" as string]: magicWorld ? "#26382b" : palette["surface"] || "#26382d",
       ["--portal-text" as string]: magicWorld ? "#f7efda" : palette["text"] || "#f5edda",
       ["--portal-accent" as string]: magicWorld ? "#d3b575" : palette["accent"] || "#c6a65b",
       ["--portal-button-text" as string]: palette["buttonText"] || "#17251d",
@@ -172,10 +179,10 @@ function PortalPage() {
       />}
 
       <div inert={intro} aria-hidden={intro}>
-      <header data-portal-reveal className="portal-reveal portal-magic-hero relative flex min-h-[52vh] items-center justify-center overflow-hidden px-5 py-24">
+      <header id="portal-inicio" data-portal-reveal className="portal-reveal portal-magic-hero relative flex min-h-[52vh] items-center justify-center overflow-hidden px-5 py-24">
         {!magicWorld && portal.cover_url && <img src={portal.cover_url} alt="" className="absolute inset-0 h-full w-full object-cover" />}
         {!magicWorld && <div className="absolute inset-0 bg-gradient-to-b from-[#10251d]/65 via-[#10251d]/80 to-[var(--portal-bg)]" />}
-        {magicWorld && <PortalChristmasDecor scene="hero" />}
+        {magicWorld && <PortalChristmasDecor scene="hero" brighter={moreMagic} onToggle={() => setMoreMagic(value => !value)} />}
         <div className="relative mx-auto max-w-4xl text-center">
           <p className="text-xs uppercase tracking-[.37em] text-[var(--portal-accent)]">
             {magicWorld?"Entre castelos, feitiços e histórias":portal.universe||"Universo da coleção"}
@@ -195,7 +202,7 @@ function PortalPage() {
 
       <main>
         <section data-portal-reveal className="portal-reveal portal-christmas-hall relative mx-auto max-w-5xl overflow-hidden px-5 pb-20 pt-10 md:px-8">
-          {magicWorld && <PortalChristmasDecor scene="actions" />}
+          {magicWorld && <PortalChristmasDecor scene="actions" brighter={moreMagic} />}
           <div className="relative z-10 mb-10 text-center">
             <p className="text-xs uppercase tracking-[.28em] text-[var(--portal-accent)]">Escolha seu caminho</p>
             <h2 className={magicWorld ? "portal-script-title mt-3" : "mt-3 font-display text-3xl md:text-4xl"}>Portas para este universo</h2>
@@ -213,9 +220,9 @@ function PortalPage() {
               <LibraryBig aria-hidden="true" size={26}/><span><strong>Conheça o acervo</strong>
               <small>Explore as velas desta coleção</small></span><ArrowUpRight aria-hidden="true" size={19}/>
             </a>
-            <a className="portal-action-card" href={magicWorld ? `/portal/${encodeURIComponent(slug)}/inspiracoes` : "#portal-inspiracoes"}>
+            <a className="portal-action-card" href={magicWorld ? inspirationsUrl : "#portal-inspiracoes"}>
               <BookOpenText aria-hidden="true" size={26}/><span><strong>Conheça as inspirações</strong>
-              <small>Histórias e referências por trás de cada criação</small></span><ArrowUpRight aria-hidden="true" size={19}/>
+              <small>{magicWorld ? "A Vela Seletora e as histórias por trás de cada criação" : "Histórias e referências por trás de cada criação"}</small></span><ArrowUpRight aria-hidden="true" size={19}/>
             </a>
             <a className="portal-action-card" href={appUrl} target="_blank" rel="noopener noreferrer">
               <Smartphone aria-hidden="true" size={26}/><span><strong>Baixe o aplicativo</strong>
@@ -236,9 +243,23 @@ function PortalPage() {
           height="352" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" />
       </section>}
 
+      {magicWorld && <section aria-labelledby="portal-selector-title" className="mx-auto max-w-4xl px-5 py-10 sm:px-8">
+        <div className="portal-inspiration-card p-6 text-center sm:p-9">
+          <p className="text-xs uppercase tracking-[.28em] text-[var(--portal-accent)]">Conheça as inspirações</p>
+          <h2 id="portal-selector-title" className="portal-script-title mt-3">A Vela Seletora</h2>
+          <p className="mx-auto mt-5 max-w-2xl whitespace-pre-line text-sm leading-7 opacity-90 sm:text-base">
+            {selectorPreview || "Descubra a história da Vela Seletora e os detalhes que inspiraram sua criação."}
+          </p>
+          <a href={selectorStory ? inspirationsUrl + "#inspiracao-seletora" : inspirationsUrl}
+            className="mt-6 inline-flex items-center justify-center gap-2 rounded-full border border-[var(--portal-accent)] px-6 py-3 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4">
+            Conhecer a história da Vela Seletora <ArrowUpRight size={17} aria-hidden="true" />
+          </a>
+        </div>
+      </section>}
+
       {magicWorld ? <section id="portal-natal" aria-labelledby="portal-natal-title" className="portal-festive-section relative isolate mx-auto max-w-5xl px-5 pb-16 pt-8 sm:px-8 sm:pt-12">
         <div className="portal-natal-highlight">
-          <PortalFestiveAccents variant="natal" />
+          <PortalFestiveAccents variant="natal" brighter={moreMagic} />
           <div className="mb-9 text-center">
           <p className="text-xs uppercase tracking-[.28em] text-[var(--portal-accent)]">Duas velas, duas lembranças</p>
           <h2 id="portal-natal-title" className="portal-script-title mt-3">O Natal no Mundo da Magia</h2>
@@ -283,13 +304,13 @@ function PortalPage() {
           </div>}
       </section>}
 
-      {(!magicWorld || carouselItems.length > 0) && <section className="portal-carousel-section mt-6 py-12 sm:py-16">
-        {magicWorld && <PortalChristmasDecor scene="gallery" />}
-        <div className={magicWorld ? "portal-collection-frame mx-auto max-w-6xl px-5 py-10 sm:px-8 sm:py-14" : "mx-auto max-w-6xl px-6"}>
+      <section className="portal-carousel-section mt-6 py-12 sm:py-16">
+        {magicWorld && <PortalChristmasDecor scene="gallery" brighter={moreMagic} />}
+        <PortalProductCarousel portalId={portal.id} catalogUrl={catalogUrl} fallback={<div className={magicWorld ? "portal-collection-frame mx-auto max-w-6xl px-5 py-10 sm:px-8 sm:py-14" : "mx-auto max-w-6xl px-6"}>
           <div className="portal-collection-heading text-center">
             <p className="text-xs uppercase tracking-[.28em] text-[var(--portal-accent)]">{magicWorld ? "Relíquias deste universo" : "Explore a coleção"}</p>
             <h2 className="mt-3 font-display text-3xl md:text-5xl">
-              {magicWorld ? "Fotografias da coleção de Natal" : "Um vislumbre da coleção"}
+              {magicWorld ? (carouselItems.length ? "Fotografias da coleção de Natal" : "Conheça o acervo") : "Um vislumbre da coleção"}
             </h2>
             <p className="mx-auto mt-4 max-w-lg text-sm leading-relaxed opacity-80">
               Histórias, memórias e aromas que merecem ser descobertos.
@@ -314,16 +335,17 @@ function PortalPage() {
             </div>}
           </div> : <div className="portal-gallery-empty mx-auto mt-10 flex max-w-xl flex-col items-center justify-center px-8 py-12 text-center">
             <span className="portal-gallery-empty-icon" aria-hidden="true">✦</span>
-            <p className="mt-3 font-display text-2xl">As histórias ganham forma em breve.</p>
+            <p className="mt-3 font-display text-2xl">{magicWorld ? "As velas desta coleção serão apresentadas aqui em breve." : "As histórias ganham forma em breve."}</p>
             <p className="mt-3 text-sm leading-relaxed opacity-80">
-              As fotografias oficiais da coleção aparecerão aqui assim que forem adicionadas em “Meus Portais NFC”.
+              Explore o acervo e descubra as velas desta coleção.
             </p>
           </div>}
           {magicWorld && <a href={catalogUrl} className="portal-collection-shop-link mx-auto mt-9 inline-flex items-center justify-center gap-3">
             Explorar o acervo <ArrowUpRight size={17} aria-hidden="true"/>
           </a>}
-        </div>
-      </section>}
+        </div>} />
+      </section>
+      {magicWorld && <PortalHouseRibbons />}
       </main>
 
       <p className="pb-8 text-center text-sm italic text-[var(--portal-text)]/80">

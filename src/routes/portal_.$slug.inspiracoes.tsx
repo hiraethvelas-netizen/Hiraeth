@@ -29,7 +29,7 @@ function PortalInspirationPage() {
   const [error, setError] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
   const magicWorld = isMagicWorld(slug);
-  const mainUrl = `/portal/${encodeURIComponent(slug)}`;
+  const mainUrl = `/portal/${encodeURIComponent(slug)}#portal-inicio`;
 
   useEffect(() => {
     let active = true;

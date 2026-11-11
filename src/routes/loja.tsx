@@ -139,6 +139,8 @@ useEffect(() => {
 }, [categories, search.categoria]);
 
   const selectedCategory = categories.find((category) => category.id === categoryId) ?? null;
+  const resolvingCategory = Boolean(search.categoria) && (loading || categories.some(category => category.slug === search.categoria));
+  const showStoreOverview = !selectedCategory && !showFavorites && !resolvingCategory;
   async function toggleWishlist(productId: string, event: React.MouseEvent) {
     event.preventDefault(); event.stopPropagation();
     if (!wishlistUserId) { toast.info("Entre na sua conta para salvar seus favoritos."); return; }
@@ -205,7 +207,7 @@ useEffect(() => {
     <div className="min-h-screen">
       <SiteHeader />
       {!showFavorites && <AcervoNavigation />}
-      {!selectedCategory && !showFavorites && <StoreBanners />}
+      {showStoreOverview && <StoreBanners />}
 
       <main className="mx-auto max-w-6xl px-5 pb-20 pt-8 md:px-8 md:pt-12">
         {showFavorites && <section className="mb-8 text-center">
@@ -214,10 +216,10 @@ useEffect(() => {
           <Link to="/loja" className="mt-4 inline-block text-sm text-primary underline underline-offset-4">Voltar ao Acervo Hiraeth</Link>
         </section>}
         {/* Catálogo da loja */}
-        {!selectedCategory && !showFavorites && <div className="mb-5 space-y-3">
+        {showStoreOverview && <div className="mb-5 space-y-3">
           <InlineEditor label="apresentação da loja" fields={[{ name: "eyebrow", label: "Texto pequeno acima do título", type: "text" }, { name: "title", label: "Título da página", type: "text" }, { name: "intro", label: "Texto de apresentação", type: "textarea" }, { name: "bannerImage", label: "Banner opcional", type: "image" }, { name: "showBanner", label: "Exibir banner", type: "checkbox" }]} values={pageSettings} onSave={async (next) => savePageSettings({ ...pageSettings, ...next } as typeof pageSettings)} />
         </div>}
-        {!selectedCategory && !showFavorites && pageSettings.showBanner && pageSettings.bannerImage && <img src={pageSettings.bannerImage} alt="Banner da loja Hiraeth" className="mb-8 max-h-[28rem] w-full object-cover" />}
+        {showStoreOverview && pageSettings.showBanner && pageSettings.bannerImage && <img src={pageSettings.bannerImage} alt="Banner da loja Hiraeth" className="mb-8 max-h-[28rem] w-full object-cover" />}
 
         {selectedCategory && <CategoryHeroBanner
           key={"category-banner-" + selectedCategory.id}
