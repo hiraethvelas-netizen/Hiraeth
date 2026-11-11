@@ -109,4 +109,18 @@ describe("editing existing product variations", () => {
     expect(screen.getByRole("button", { name: "Usar foto 2 do produto nesta variação" }))
       .toHaveAttribute("aria-pressed", "true");
   });
+  it("keeps the price field mounted while renaming a size in a two-dimensional product", () => {
+    render(<Harness />);
+    const price = screen.getByLabelText("Preço (R$) — Vermelha / P");
+    price.focus();
+    expect(document.activeElement).toBe(price);
+    fireEvent.change(screen.getByLabelText("Opção 1 de Tamanho"), { target: { value: "100 g" } });
+    const updatedPrice = screen.getByLabelText("Preço (R$) — Vermelha / 100 g");
+    expect(updatedPrice).toBe(price);
+    expect(document.activeElement).toBe(price);
+    fireEvent.change(updatedPrice, { target: { value: "90" } });
+    const rows = JSON.parse(screen.getByTestId("variation-state").textContent ?? "[]");
+    expect(rows[0]).toMatchObject({ price: 90, stock: 7, image: "https://cdn.test/vermelha-p.webp" });
+  });
+
 });
