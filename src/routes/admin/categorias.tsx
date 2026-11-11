@@ -70,7 +70,8 @@ function AdminCategorias() {
     const payload = {
       name: cleanName,
       image_url: imageUrl.trim() || null,
-      slug: editing ? (editing.name === cleanName ? editing.slug : slugify(cleanName)) : slugify(cleanName),
+      // Keep existing category links, saved selections and NFC entry points stable when renaming.
+      slug: editing ? editing.slug : slugify(cleanName),
       parent_id: parentId || null,
       position: editing?.position ?? siblings.length + 1,
       is_temporary: schedule.is_temporary,
