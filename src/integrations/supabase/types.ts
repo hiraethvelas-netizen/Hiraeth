@@ -703,6 +703,7 @@ export type Database = {
           order_id: string | null
           order_item_id: string | null
           quantity_ml: number
+          stock_unit: "ml" | "g"
         }
         Insert: {
           balance_after_ml: number
@@ -714,6 +715,7 @@ export type Database = {
           order_id?: string | null
           order_item_id?: string | null
           quantity_ml: number
+          stock_unit?: "ml" | "g"
         }
         Update: {
           balance_after_ml?: number
@@ -725,6 +727,7 @@ export type Database = {
           order_id?: string | null
           order_item_id?: string | null
           quantity_ml?: number
+          stock_unit?: "ml" | "g"
         }
         Relationships: [
           {
@@ -762,6 +765,7 @@ export type Database = {
           name: string
           notes: string | null
           stock_ml: number
+          stock_unit: "ml" | "g"
           supplier: string | null
           target_stock_ml: number
           top_notes: string[]
@@ -778,6 +782,7 @@ export type Database = {
           name: string
           notes?: string | null
           stock_ml?: number
+          stock_unit?: "ml" | "g"
           supplier?: string | null
           target_stock_ml?: number
           top_notes?: string[]
@@ -794,6 +799,7 @@ export type Database = {
           name?: string
           notes?: string | null
           stock_ml?: number
+          stock_unit?: "ml" | "g"
           supplier?: string | null
           target_stock_ml?: number
           top_notes?: string[]
@@ -912,6 +918,7 @@ export type Database = {
           customer_email: string | null
           customer_name: string | null
           discount: number
+          essence_stock_consumed_at: string | null
           id: string
           payment_id: string | null
           payment_method: string | null
@@ -931,6 +938,7 @@ export type Database = {
           customer_email?: string | null
           customer_name?: string | null
           discount?: number
+          essence_stock_consumed_at?: string | null
           id?: string
           payment_id?: string | null
           payment_method?: string | null
@@ -950,6 +958,7 @@ export type Database = {
           customer_email?: string | null
           customer_name?: string | null
           discount?: number
+          essence_stock_consumed_at?: string | null
           id?: string
           payment_id?: string | null
           payment_method?: string | null
@@ -1083,6 +1092,45 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      product_variant_essences: {
+        Row: {
+          product_id: string
+          recipe_id: string
+          essence_id: string
+          quantity: number
+          created_at: string
+        }
+        Insert: {
+          product_id: string
+          recipe_id: string
+          essence_id: string
+          quantity: number
+          created_at?: string
+        }
+        Update: {
+          product_id?: string
+          recipe_id?: string
+          essence_id?: string
+          quantity?: number
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_variant_essences_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_variant_essences_essence_id_fkey"
+            columns: ["essence_id"]
+            isOneToOne: false
+            referencedRelation: "essences"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       product_essences: {
         Row: {
@@ -1667,6 +1715,18 @@ export type Database = {
       request_commerce_order_review: {
         Args: { p_kind: string; p_order_id: string; p_reason: string }
         Returns: string
+      }
+      record_essence_stock_movement: {
+        Args: { p_essence_id: string; p_movement_type: string; p_quantity: number; p_expected_balance?: number | null }
+        Returns: Json
+      }
+      save_product_with_recipes: {
+        Args: { p_product_id: string | null; p_product: Json; p_default_ingredients: Json; p_variant_recipes: Json }
+        Returns: string
+      }
+      set_product_recipes: {
+        Args: { p_product_id: string; p_default_ingredients: Json; p_variant_recipes: Json }
+        Returns: undefined
       }
       set_product_essences: {
         Args: { p_ingredients: Json; p_product_id: string }

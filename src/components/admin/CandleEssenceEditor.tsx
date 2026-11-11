@@ -3,28 +3,27 @@ import { Search, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { EssenceNotesFields } from "@/components/admin/EssenceNotesFields";
 import { emptyNotes, type NotesDraft } from "@/lib/fragrance";
+import { essenceUnit, type CandleIngredient, type StockUnit } from "@/lib/candle-recipes";
+export type { CandleIngredient } from "@/lib/candle-recipes";
 
 export type StockEssence = {
   id: string;
   name: string;
   stock_ml: number;
   active: boolean;
-};
-export type CandleIngredient = {
-  essence_id: string;
-  name: string;
-  quantity_ml: number;
+  stock_unit?: StockUnit;
 };
 
 type Props = {
   essences: StockEssence[];
   ingredients: CandleIngredient[];
   onIngredientsChange: (items: CandleIngredient[]) => void;
-  onCreate: (data: { name: string; stock_ml: number; notes: NotesDraft }) => Promise<StockEssence>;
+  onCreate: (data: { name: string; stock_ml: number; stock_unit?: StockUnit; notes: NotesDraft }) => Promise<StockEssence>;
   onRefresh: () => Promise<void>;
   stockError?: string | null;
   refreshing?: boolean;
   saving?: boolean;
+  recipeLabel?: string;
 };
 
 const fold = (text: string) =>
@@ -34,7 +33,7 @@ const inputCls = "mt-1 w-full rounded border border-primary/30 bg-[#fbf7eb] px-3
 
 export function CandleEssenceEditor({
   essences, ingredients, onIngredientsChange, onCreate, onRefresh,
-  stockError, refreshing = false, saving = false,
+  stockError, refreshing = false, saving = false, recipeLabel,
 }: Props) {
   const [tab, setTab] = useState<"stock" | "new">("stock");
   const [search, setSearch] = useState("");
@@ -45,6 +44,7 @@ export function CandleEssenceEditor({
   const [quantity, setQuantity] = useState("");
   const [newName, setNewName] = useState("");
   const [newStock, setNewStock] = useState("0");
+  const [newUnit, setNewUnit] = useState<StockUnit>("ml");
   const [notes, setNotes] = useState<NotesDraft>({ ...emptyNotes });
   const [creating, setCreating] = useState(false);
 
@@ -73,12 +73,12 @@ export function CandleEssenceEditor({
     const qty = Number(quantity);
     if (!essence) { toast.error("Selecione uma essência do estoque."); return; }
     if (!Number.isFinite(qty) || qty <= 0) {
-      toast.error("Informe a quantidade de essência em ml por vela.");
+      toast.error(`Informe a quantidade de essência em ${essenceUnit(essence)} por vela.`);
       return;
     }
     onIngredientsChange([
       ...ingredients.filter(item => item.essence_id !== essence.id),
-      { essence_id: essence.id, name: essence.name, quantity_ml: qty },
+      { essence_id: essence.id, name: essence.name, quantity_ml: qty, ...(essence.stock_unit ? { stock_unit: essence.stock_unit } : {}) },
     ]);
     setQuantity("");
     toast.success(ingredients.some(item => item.essence_id === essence.id)
@@ -90,7 +90,7 @@ export function CandleEssenceEditor({
     const name = newName.trim();
     const stock = Number(newStock);
     if (!name || !newStock.trim() || !Number.isFinite(stock) || stock < 0) {
-      toast.error("Informe o nome e um saldo inicial válido em ml.");
+      toast.error("Informe o nome e um saldo inicial válido.");
       return;
     }
     if (essences.some(item => fold(item.name) === fold(name))) {
@@ -109,14 +109,15 @@ export function CandleEssenceEditor({
     if (creating) return;
     setCreating(true);
     try {
-      const item = await onCreate({ name, stock_ml: stock, notes });
+      const item = await onCreate({ name, stock_ml: stock, stock_unit: newUnit, notes });
       selectEssence(item);
       setTab("stock");
       setQuantity("");
       setNewName("");
       setNewStock("0");
+      setNewUnit("ml");
       setNotes({ ...emptyNotes });
-      toast.success("Essência cadastrada no estoque. Informe os ml para adicioná-la à vela.");
+      toast.success("Essência cadastrada no estoque. Informe a quantidade para adicioná-la à vela.");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Não foi possível cadastrar a essência.");
     } finally {
@@ -127,10 +128,10 @@ export function CandleEssenceEditor({
   return (
     <section className="space-y-4 border border-primary/20 p-4" aria-label="Aromas da vela">
       <div>
-        <h3 className="text-lg text-foreground">Aromas da vela</h3>
+        <h3 className="text-lg text-foreground">Aromas da vela{recipeLabel ? ` — ${recipeLabel}` : ""}</h3>
         <p className="mt-1 text-xs text-muted-foreground">
           Escolha uma essência já cadastrada ou cadastre uma nova sem sair do produto.
-          A quantidade informada é em ml por vela e só aparece na administração.
+          A quantidade é por uma vela, na mesma unidade do estoque (g ou ml), e só aparece na administração. Gramas e mililitros não são convertidos automaticamente.
         </p>
       </div>
 
@@ -212,7 +213,7 @@ export function CandleEssenceEditor({
                   (selectedId === item.id || highlightedIndex === index ? "bg-primary/15 text-primary" : "text-foreground hover:bg-primary/10")}>
                 <span>{item.name}</span>
                 <span className="shrink-0 text-xs text-muted-foreground">
-                  {Number(item.stock_ml).toLocaleString("pt-BR")} ml em estoque
+                  {Number(item.stock_ml).toLocaleString("pt-BR")} {essenceUnit(item)} em estoque
                 </span>
               </button>
             )) : <p role="status" className="p-2 text-sm text-muted-foreground">
@@ -221,7 +222,7 @@ export function CandleEssenceEditor({
           </div>}
           <div className="grid gap-3 sm:grid-cols-[9rem_auto]">
             <label className="block text-sm text-muted-foreground">
-              Quantidade (ml)
+              Quantidade ({essenceUnit(activeSelected)})
               <input type="number" min="0.001" step="0.001" placeholder="Ex.: 8"
                 value={quantity} onChange={event => setQuantity(event.target.value)}
                 className={inputCls} />
@@ -232,7 +233,7 @@ export function CandleEssenceEditor({
             </button>
           </div>
           {activeSelected && <p className="text-xs text-muted-foreground">
-            Selecionada: {activeSelected.name}. Saldo cadastrado: {Number(activeSelected.stock_ml).toLocaleString("pt-BR")} ml.
+            Selecionada: {activeSelected.name}. Saldo cadastrado: {Number(activeSelected.stock_ml).toLocaleString("pt-BR")} {essenceUnit(activeSelected)}.
           </p>}
         </div>
       ) : (
@@ -244,12 +245,17 @@ export function CandleEssenceEditor({
                 placeholder="Ex.: Floresta de Inverno" className={inputCls} />
             </label>
             <label className="block text-sm text-muted-foreground">
-              Saldo inicial (ml)
+              Saldo inicial ({newUnit})
               <input type="number" min="0" step="0.001"
                 value={newStock} onChange={event => setNewStock(event.target.value)}
                 className={inputCls} />
             </label>
           </div>
+          <label className="block text-sm text-muted-foreground">Unidade do estoque
+            <select value={newUnit} onChange={event => setNewUnit(event.target.value as StockUnit)} className={inputCls}>
+              <option value="ml">Mililitros (ml)</option><option value="g">Gramas (g)</option>
+            </select>
+          </label>
           <EssenceNotesFields value={notes} onChange={setNotes} inputClass={inputCls} />
           <button type="button" disabled={creating || saving} onClick={() => void createEssence()}
             className="btn-gold disabled:opacity-40">
@@ -268,7 +274,7 @@ export function CandleEssenceEditor({
         ) : ingredients.map(item => (
           <div key={item.essence_id} className="flex items-center justify-between gap-3 border-b border-primary/20 py-2 text-sm">
             <span className="text-foreground">{item.name} <span className="text-xs text-muted-foreground">
-              · {item.quantity_ml.toLocaleString("pt-BR")} ml por vela
+              · {item.quantity_ml.toLocaleString("pt-BR")} {item.stock_unit ?? essenceUnit(essences.find(essence => essence.id === item.essence_id))} por vela
             </span></span>
             <button type="button" disabled={saving}
               onClick={() => onIngredientsChange(ingredients.filter(row => row.essence_id !== item.essence_id))}

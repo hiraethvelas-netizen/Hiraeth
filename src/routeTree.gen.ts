@@ -48,6 +48,7 @@ import { Route as AdminPromocoesRouteImport } from './routes/admin/promocoes'
 import { Route as AdminSobreRouteImport } from './routes/admin/sobre'
 import { Route as PortalSlugRouteImport } from './routes/portal.$slug'
 import { Route as ProdutoSlugRouteImport } from './routes/produto.$slug'
+import { Route as PortalSlugInspiracoesRouteImport } from './routes/portal_.$slug.inspiracoes'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -245,6 +246,11 @@ const ProdutoSlugRoute = ProdutoSlugRouteImport.update({
   path: '/produto/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PortalSlugInspiracoesRoute = PortalSlugInspiracoesRouteImport.update({
+  id: '/portal_/$slug/inspiracoes',
+  path: '/portal/$slug/inspiracoes',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -285,6 +291,7 @@ export interface FileRoutesByFullPath {
   '/portal/$slug': typeof PortalSlugRoute
   '/produto/$slug': typeof ProdutoSlugRoute
   '/admin/': typeof AdminIndexRoute
+  '/portal/$slug/inspiracoes': typeof PortalSlugInspiracoesRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -324,6 +331,7 @@ export interface FileRoutesByTo {
   '/portal/$slug': typeof PortalSlugRoute
   '/produto/$slug': typeof ProdutoSlugRoute
   '/admin': typeof AdminIndexRoute
+  '/portal/$slug/inspiracoes': typeof PortalSlugInspiracoesRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -366,6 +374,7 @@ export interface FileRoutesById {
   '/portal/$slug': typeof PortalSlugRoute
   '/produto/$slug': typeof ProdutoSlugRoute
   '/admin/': typeof AdminIndexRoute
+  '/portal_/$slug/inspiracoes': typeof PortalSlugInspiracoesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -408,6 +417,7 @@ export interface FileRouteTypes {
     | '/portal/$slug'
     | '/produto/$slug'
     | '/admin/'
+    | '/portal/$slug/inspiracoes'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -447,6 +457,7 @@ export interface FileRouteTypes {
     | '/portal/$slug'
     | '/produto/$slug'
     | '/admin'
+    | '/portal/$slug/inspiracoes'
   id:
     | '__root__'
     | '/'
@@ -488,6 +499,7 @@ export interface FileRouteTypes {
     | '/portal/$slug'
     | '/produto/$slug'
     | '/admin/'
+    | '/portal_/$slug/inspiracoes'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -511,6 +523,7 @@ export interface RootRouteChildren {
   TermosRoute: typeof TermosRoute
   PortalSlugRoute: typeof PortalSlugRoute
   ProdutoSlugRoute: typeof ProdutoSlugRoute
+  PortalSlugInspiracoesRoute: typeof PortalSlugInspiracoesRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -788,6 +801,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProdutoSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/portal_/$slug/inspiracoes': {
+      id: '/portal_/$slug/inspiracoes'
+      path: '/portal/$slug/inspiracoes'
+      fullPath: '/portal/$slug/inspiracoes'
+      preLoaderRoute: typeof PortalSlugInspiracoesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -867,6 +887,7 @@ const rootRouteChildren: RootRouteChildren = {
   TermosRoute: TermosRoute,
   PortalSlugRoute: PortalSlugRoute,
   ProdutoSlugRoute: ProdutoSlugRoute,
+  PortalSlugInspiracoesRoute: PortalSlugInspiracoesRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

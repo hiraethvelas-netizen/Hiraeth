@@ -10,11 +10,13 @@ export type CombinationVariant = {
   stock: number;
   image: string;
   weight_grams?: number | null;
+  recipe_id?: string;
 };
 export type LegacyVariant = Record<string, unknown> & {
   key?: unknown; type?: unknown; label?: unknown; price?: unknown;
   sale_price?: unknown; stock?: unknown; image?: unknown; options?: unknown;
   weight_grams?: unknown;
+  recipe_id?: unknown;
 };
 export type VariantSetup = {
   groups: VariantGroup[];
@@ -85,6 +87,11 @@ export function variantCombinations(groups: VariantGroup[], previous: Combinatio
     const key = optionKey(options);
     const previousRow = previous.find(row =>
       row.key === key || Object.values(row.options).join("|") === Object.values(options).join("|"));
+    // A new dimension creates new stock rows, but the existing size recipe can
+    // still be shared by its new colours/houses without copying inventory.
+    const inheritedRecipes = [...new Set(previous.filter(row =>
+      Object.entries(row.options).every(([name, value]) => options[name] === value),
+    ).map(row => row.recipe_id).filter((id): id is string => Boolean(id)))];
     return previousRow ? {
       ...previousRow,
       key, type: "combination", label: Object.values(options).join(" / "), options,
@@ -92,6 +99,7 @@ export function variantCombinations(groups: VariantGroup[], previous: Combinatio
       key, type: "combination", label: Object.values(options).join(" / "),
       options, price: Number.isFinite(fallbackPrice) ? fallbackPrice : 0,
       sale_price: null, stock: 0, image: "",
+      ...(inheritedRecipes.length === 1 ? { recipe_id: inheritedRecipes[0]! } : {}),
     };
   });
 }
@@ -183,6 +191,7 @@ export function legacyToManaged(legacy: LegacyVariant[], fallbackPrice: number):
       sale_price: salePrice != null && Number.isFinite(salePrice) ? salePrice : null,
       stock: Number.isFinite(Number(source?.stock)) ? Number(source?.stock) : 0,
       image: typeof house?.image === "string" ? house.image : typeof size?.image === "string" ? size.image : "",
+      ...(typeof source?.recipe_id === "string" ? { recipe_id: source.recipe_id } : {}),
     };
   });
   return { groups, rows, legacy: null };
