@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, X } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
-import entreFiosPhoto from "@/assets/natal-entre-fios-recorte.webp";
-import grandeSalaoPhoto from "@/assets/natal-grande-salao-recorte.webp";
+import entreFiosPhoto from "@/assets/natal-entre-fios-ilustracao.webp";
+import grandeSalaoPhoto from "@/assets/natal-grande-salao-ilustracao.webp";
 
 type Fragment = Tables<"portal_fragments">;
 type Props = { fragments: Fragment[] };
@@ -16,6 +16,7 @@ const previewLines: Record<number, string> = {
 export function PortalChristmasShowcase({ fragments }: Props) {
   const [opened, setOpened] = useState<number | null>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
+  const dialogRef = useRef<HTMLElement>(null);
   const triggerRefs = useRef(new Map<number, HTMLButtonElement>());
   const previousPosition = useRef<number | null>(null);
   const candles = [8, 9]
@@ -25,14 +26,34 @@ export function PortalChristmasShowcase({ fragments }: Props) {
 
   useEffect(() => {
     if (opened === null) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
     previousPosition.current = opened;
     closeRef.current?.focus();
     function onKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") setOpened(null);
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setOpened(null);
+      }
+      if (event.key !== "Tab") return;
+      const dialog = dialogRef.current;
+      const controls = dialog?.querySelectorAll<HTMLElement>("button:not([disabled]), a[href], input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex='0']");
+      const first = controls?.[0];
+      const last = controls?.[controls.length - 1];
+      if (!first || !last) return;
+      const outside = !dialog?.contains(document.activeElement);
+      if (event.shiftKey && (document.activeElement === first || outside)) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && (document.activeElement === last || outside)) {
+        event.preventDefault();
+        first.focus();
+      }
     }
     document.addEventListener("keydown", onKeyDown);
     return () => {
       document.removeEventListener("keydown", onKeyDown);
+      document.body.style.overflow = previousOverflow;
       triggerRefs.current.get(previousPosition.current ?? -1)?.focus();
     };
   }, [opened]);
@@ -62,6 +83,7 @@ export function PortalChristmasShowcase({ fragments }: Props) {
             </span>}
           </span>
           <span className="portal-natal-discovery__name">{fragment.title}</span>
+          {!fragment.image_url && <span className="text-xs text-[var(--portal-text)]/70">Imagem ilustrativa</span>}
         </button>;
       })}
     </div>
@@ -69,7 +91,7 @@ export function PortalChristmasShowcase({ fragments }: Props) {
     {selected && <div className="portal-natal-modal-backdrop" onMouseDown={event => {
         if (event.target === event.currentTarget) setOpened(null);
       }}>
-      <section role="dialog" aria-modal="true" aria-labelledby="portal-natal-modal-title"
+      <section ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="portal-natal-modal-title"
         aria-describedby="portal-natal-modal-story" className="portal-natal-modal">
         <button ref={closeRef} type="button" className="portal-natal-modal__close"
           aria-label="Fechar informações da vela" onClick={() => setOpened(null)}>
