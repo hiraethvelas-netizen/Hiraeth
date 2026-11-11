@@ -3128,49 +3128,139 @@ body > div {
 }
 
 
-/* Portal NFC — pequenas fotografias das casas em estilo polaroid.
-   Alteração isolada na página de inspirações, sem afetar a loja nem a marca. */
+/* Portal NFC — polaroids ilustradas nas cores de cada casa.
+   O nome é parte da imagem; não há título ou legenda repetidos abaixo. */
+.portal-inspiration-page .portal-house-card--leao {
+  --house-art-base: #7c2031;
+  --house-art-deep: #3f111f;
+  --house-art-metal: #e5b767;
+}
+.portal-inspiration-page .portal-house-card--texugo {
+  --house-art-base: #b28a3c;
+  --house-art-deep: #2d261b;
+  --house-art-metal: #f1d38e;
+}
+.portal-inspiration-page .portal-house-card--aguia {
+  --house-art-base: #245486;
+  --house-art-deep: #12263e;
+  --house-art-metal: #cda76f;
+}
+.portal-inspiration-page .portal-house-card--serpente {
+  --house-art-base: #276854;
+  --house-art-deep: #102e2c;
+  --house-art-metal: #d6dfce;
+}
 .portal-inspiration-page .portal-house-card .portal-house-polaroid {
   align-self: center;
-  width: min(100%, 192px);
-  margin: .05rem auto .7rem;
-  padding: 9px 9px 12px;
-  border: 1px solid rgba(158,128,86,.56);
+  width: min(100%, 200px);
+  margin: .05rem auto .65rem;
+  padding: 9px 9px 15px;
+  border: 1px solid rgba(151,122,85,.58);
   border-radius: 2px;
   background: #f7efda;
-  color: #4e3927;
-  box-shadow: 0 8px 19px rgba(0,0,0,.3), inset 0 0 0 1px rgba(255,255,255,.4);
+  box-shadow: 0 10px 22px rgba(0,0,0,.29), inset 0 0 0 1px rgba(255,255,255,.56);
   transform: rotate(-2deg);
 }
 .portal-inspiration-page .portal-house-card--texugo .portal-house-polaroid,
 .portal-inspiration-page .portal-house-card--serpente .portal-house-polaroid {
   transform: rotate(2deg);
 }
-.portal-inspiration-page .portal-house-polaroid__image,
-.portal-inspiration-page .portal-house-polaroid__empty {
-  display: block;
+.portal-inspiration-page .portal-house-polaroid__art {
+  position: relative;
+  isolation: isolate;
   width: 100%;
   aspect-ratio: 1 / 1;
-  border: 1px solid rgba(113,78,48,.16);
+  overflow: hidden;
+  border: 1px solid rgba(34,19,16,.2);
   border-radius: 1px;
+  background:
+    radial-gradient(ellipse at 50% 34%, color-mix(in srgb, var(--house-art-base) 78%, white), transparent 76%),
+    linear-gradient(160deg, var(--house-art-base), var(--house-art-deep));
+  color: #f7efda;
 }
+.portal-inspiration-page .portal-house-polaroid__art::before {
+  position: absolute;
+  z-index: 1;
+  inset: 7px;
+  border: 1px solid color-mix(in srgb, var(--house-art-metal) 65%, transparent);
+  content: "";
+  pointer-events: none;
+}
+.portal-inspiration-page .portal-house-polaroid__illustration {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-bottom: 30px;
+}
+.portal-inspiration-page .portal-house-polaroid__illustration::before {
+  position: absolute;
+  inset: 19px 35px 26px;
+  border: 1px solid color-mix(in srgb, var(--house-art-metal) 70%, transparent);
+  border-radius: 100px 100px 5px 5px;
+  box-shadow: inset 0 0 0 5px color-mix(in srgb, var(--house-art-deep) 35%, transparent);
+  content: "";
+}
+.portal-inspiration-page .portal-house-polaroid__illustration::after {
+  position: absolute;
+  top: 13px;
+  left: 50%;
+  width: 44px;
+  height: 1px;
+  background: var(--house-art-metal);
+  content: "";
+  opacity: .75;
+  transform: translateX(-50%);
+}
+.portal-inspiration-page .portal-house-polaroid__crest {
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 75px;
+  height: 75px;
+  border: 1px solid color-mix(in srgb, var(--house-art-metal) 70%, transparent);
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--house-art-metal) 16%, transparent), transparent 78%);
+  color: var(--house-art-metal);
+  box-shadow: 0 0 0 6px color-mix(in srgb, var(--house-art-deep) 24%, transparent);
+}
+.portal-inspiration-page .portal-house-polaroid__spark {
+  position: absolute;
+  z-index: 1;
+  top: 27%;
+  color: var(--house-art-metal);
+  font: 16px/1 Georgia, serif;
+  opacity: .84;
+}
+.portal-inspiration-page .portal-house-polaroid__spark--left { left: 13%; }
+.portal-inspiration-page .portal-house-polaroid__spark--right { right: 13%; top: 47%; }
 .portal-inspiration-page .portal-house-polaroid__image {
+  display: block;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
   object-position: center;
 }
-.portal-inspiration-page .portal-house-polaroid__empty {
-  display: grid;
-  place-items: center;
-  padding: .8rem;
-  background: linear-gradient(145deg, #e3dcc6, #d6c6a7);
-  color: #77664d;
+.portal-inspiration-page .portal-house-polaroid__name {
+  position: absolute;
+  z-index: 2;
+  right: 8px;
+  bottom: 8px;
+  left: 8px;
+  margin: 0;
+  padding: 23px 2px 9px;
+  background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--house-art-deep) 95%, black));
+  color: #fff3d8;
+  font: italic 600 clamp(1.35rem, 2.8vw, 1.65rem)/1.05 "Cormorant Garamond", Georgia, serif;
   text-align: center;
-  font: italic 500 .8rem/1.45 "Cormorant Garamond", Georgia, serif;
+  text-shadow: 0 2px 6px rgba(0,0,0,.6);
+  text-wrap: balance;
 }
-.portal-inspiration-page .portal-house-polaroid__caption {
-  padding-top: .5rem;
-  text-align: center;
-  font: italic 600 1.15rem/1.15 "Cormorant Garamond", Georgia, serif;
+@media (max-width: 640px) {
+  .portal-inspiration-page .portal-house-card .portal-house-polaroid {
+    width: min(100%, 182px);
+  }
 }
 .portal-inspiration-page .portal-house-pyramid {
   margin-top: 1.5rem;
