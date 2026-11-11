@@ -39,10 +39,10 @@ describe("Candle essence stock editor", () => {
       onIngredientsChange={updateRecipe} onCreate={create} onRefresh={refresh} />);
     fireEvent.click(screen.getByRole("tab", { name: "+ Cadastrar um aroma novo" }));
     fireEvent.change(screen.getByLabelText("Nome do aroma"), { target: { value: "Canela" } });
-    fireEvent.change(screen.getByLabelText("Saldo inicial (ml)"), { target: { value: "40" } });
+    fireEvent.change(screen.getByLabelText("Saldo inicial (g)"), { target: { value: "40" } });
     fireEvent.click(screen.getByRole("button", { name: "Salvar essência no estoque" }));
     await waitFor(() => expect(create).toHaveBeenCalledWith(expect.objectContaining({
-      name: "Canela", stock_ml: 40,
+      name: "Canela", stock_ml: 40, stock_unit: "g",
     })));
     await waitFor(() => expect(screen.getByRole("tab", { name: "Pesquisar estoque" })).toHaveAttribute("aria-selected", "true"));
   });
