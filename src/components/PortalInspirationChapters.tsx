@@ -65,7 +65,7 @@ function RevealStoryCard({ fragment, kind = "story", featured = false }: {
   }).filter(row => row.heading && row.notes) : [];
 
   return <article className={`portal-discovery-card ${house ? `portal-house-card portal-house-card--${house}` : ""} ${featured ? "portal-discovery-card--featured" : ""}`}>
-    {house ? <figure className="portal-house-polaroid">
+    {house && (fragment.image_url || house === "serpente") ? <figure className="portal-house-polaroid">
       {fragment.image_url ? <img src={fragment.image_url} alt={fragment.caption || `Velas Hiraeth da ${fragment.title}`}
         className="portal-house-polaroid__image" loading="lazy" />
         : <div className="portal-house-polaroid__empty" role="img" aria-label={`Espaço reservado para a fotografia da ${fragment.title}`}>
