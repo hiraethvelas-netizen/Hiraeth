@@ -58,9 +58,21 @@ function RevealStoryCard({ fragment, kind = "story", featured = false }: {
   const contentId = `portal-story-${fragment.id}`;
   const aromaId = `portal-aroma-${fragment.id}`;
   const position = fragment.position ?? -1;
+  const [storyText, pyramidText] = (fragment.body ?? "").split(/\n\nPirâmide olfativa\s*\n\n/i);
+  const pyramidRows = house && pyramidText ? pyramidText.split(/\n\n/).map(block => {
+    const [heading, ...notes] = block.split("\n");
+    return { heading, notes: notes.join(" ").trim() };
+  }).filter(row => row.heading && row.notes) : [];
 
   return <article className={`portal-discovery-card ${house ? `portal-house-card portal-house-card--${house}` : ""} ${featured ? "portal-discovery-card--featured" : ""}`}>
-    {fragment.image_url && <img src={fragment.image_url} alt={fragment.caption || fragment.title}
+    {house ? <figure className="portal-house-polaroid">
+      {fragment.image_url ? <img src={fragment.image_url} alt={fragment.caption || `Velas Hiraeth da ${fragment.title}`}
+        className="portal-house-polaroid__image" loading="lazy" />
+        : <div className="portal-house-polaroid__empty" role="img" aria-label={`Espaço reservado para a fotografia da ${fragment.title}`}>
+          <span>Fotografia em breve</span>
+        </div>}
+      <figcaption className="portal-house-polaroid__caption">{fragment.title}</figcaption>
+    </figure> : fragment.image_url && <img src={fragment.image_url} alt={fragment.caption || fragment.title}
       className="portal-discovery-card__image" loading="lazy" />}
     <div className="portal-discovery-card__top">
       <span className="portal-discovery-card__emblem" aria-hidden="true">
@@ -71,7 +83,7 @@ function RevealStoryCard({ fragment, kind = "story", featured = false }: {
       </span>
     </div>
     <h4 className="portal-story-title portal-discovery-card__title">{fragment.title}</h4>
-    <p className="portal-discovery-card__teaser">{teasers[position] || fragment.reference || "Uma história guardada entre páginas e chamas."}</p>
+    <p className="portal-discovery-card__teaser">{house ? (fragment.reference || teasers[position]) : (teasers[position] || fragment.reference || "Uma história guardada entre páginas e chamas.")}</p>
     <div className="portal-discovery-card__actions">
       {hasAroma && <button type="button" aria-expanded={aromaOpen} aria-controls={aromaId}
         className="portal-discovery-card__button portal-discovery-card__button--primary"
@@ -91,8 +103,15 @@ function RevealStoryCard({ fragment, kind = "story", featured = false }: {
       <strong>{fragment.context?.replace(/^aroma:\s*/i, "")}</strong>
     </div>}
     {storyOpen && <div id={contentId} className="portal-discovery-card__story" role="region" aria-label={`História de ${fragment.title}`}>
-      {fragment.reference && <p className="mb-3 text-sm italic text-[var(--portal-accent)]">{fragment.reference}</p>}
-      <p className="whitespace-pre-line text-sm leading-7 sm:text-base">{fragment.body}</p>
+      {!house && fragment.reference && <p className="mb-3 text-sm italic text-[var(--portal-accent)]">{fragment.reference}</p>}
+      <p className="whitespace-pre-line text-sm leading-7 sm:text-base">{storyText}</p>
+      {pyramidRows.length > 0 && <section className="portal-house-pyramid" aria-label={`Pirâmide olfativa da ${fragment.title}`}>
+        <h5>Pirâmide olfativa</h5>
+        {pyramidRows.map(row => <div className="portal-house-pyramid__row" key={row.heading}>
+          <strong>{row.heading}</strong>
+          <span>{row.notes}</span>
+        </div>)}
+      </section>}
       {fragment.context && !hasAroma && <p className="mt-4 border-t border-white/15 pt-3 text-sm italic">{fragment.context}</p>}
     </div>}
   </article>;
