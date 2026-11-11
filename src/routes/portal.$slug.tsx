@@ -2,6 +2,7 @@ import { createFileRoute, notFound } from "@tanstack/react-router";
 import { ArrowUpRight, BookOpenText, Headphones, LibraryBig, Smartphone } from "lucide-react";
 import { PortalIntro } from "@/components/PortalIntro";
 import { PortalChristmasDecor } from "@/components/PortalChristmasDecor";
+import { MagicInspirations } from "@/components/MagicInspirations";
 import { carouselFromTheme, isMagicWorld, magicWorldTitle, portalCatalogDestination, spotifyPlaylistUrl } from "@/lib/portal-experience";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,6 +16,9 @@ export const Route = createFileRoute("/portal/$slug")({
   head: () => ({
     meta: [
       { title: "Portal — Hiraeth" },
+      { name: "description", content: "Histórias, aromas e inspirações das coleções Hiraeth em seu portal NFC." },
+      { property: "og:title", content: "Portal — Hiraeth" },
+      { property: "og:description", content: "Descubra as inspirações e a trilha sonora de sua coleção Hiraeth." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -249,7 +253,7 @@ function PortalPage() {
               className="mt-5 rounded-full border border-[var(--portal-accent)] px-5 py-3 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4">
               Tentar carregar as inspirações novamente
             </button>
-          </div> : fragments.length>0 ? <div className="grid gap-5 sm:grid-cols-2">
+          </div> : slug === "o-mundo-de-magia" ? <MagicInspirations key={portal.id} fragments={fragments} /> : fragments.length>0 ? <div className="grid gap-5 sm:grid-cols-2">
           {fragments.map(fragment=><article key={fragment.id} className="portal-inspiration-card p-6">
             {fragment.image_url && <img src={fragment.image_url} alt={fragment.caption||fragment.title}
               className="mb-5 aspect-[4/3] w-full rounded-lg object-cover" loading="lazy" />}

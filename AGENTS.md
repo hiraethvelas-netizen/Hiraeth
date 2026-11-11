@@ -11,6 +11,7 @@
 
 - Keep the cinematic entrance isolated in its own component and scope its CSS to the entrance so store and NFC flows remain unaffected.
 - Keep the pre-existing homepage content available separately from the non-scrolling entrance to preserve its newsletter and institutional content.
+- Keep the magic-world inspiration chapters and letter in a slug-gated component with scoped CSS; read narrative text only from visible portal fragments so editing content never requires code or changes other portals.
 
 - NFC permanence is a customer-facing commitment: once a portal is published and its URL has been written to sold candles, keep its `/portal/:slug` address stable through all future design, video, image, copy, playlist, and layout updates. Never regenerate an existing portal slug from an edited display name.
 - Never silently unpublish, archive, delete, or rename published NFC portals during routine edits. If a route or domain migration becomes unavoidable, preserve old NFC URLs with durable redirects and verify access before deployment.
