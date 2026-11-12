@@ -1,11 +1,14 @@
 import { useState } from "react";
-import { Flame, X } from "lucide-react";
+import { ChevronDown, Flame, X } from "lucide-react";
+import { splitPortalStory } from "@/lib/portal-story-preview";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Fragment = Tables<"portal_fragments">;
 
 export function PortalGuardianLetter({ fragment }: { fragment: Fragment | null | undefined }) {
   const [opened, setOpened] = useState(false);
+  const [continued, setContinued] = useState(false);
+  const story = splitPortalStory(fragment?.body ?? "", 450);
   if (!fragment) return null;
 
   return <section id="portal-carta-da-guardia" aria-labelledby="portal-guardian-letter-title"
@@ -16,7 +19,7 @@ export function PortalGuardianLetter({ fragment }: { fragment: Fragment | null |
     </h3>
     <button type="button" aria-expanded={opened} aria-controls="portal-guardian-letter-content"
       aria-label={opened ? "Fechar carta" : "Toque no selo vermelho para abrir a carta"}
-      onClick={() => setOpened(value => !value)}
+      onClick={() => { setOpened(value => !value); setContinued(false); }}
       className="group mx-auto mt-3 block w-full max-w-[275px] rounded-xl p-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#e1c48e]">
       {!opened ? <>
         <span className="relative block h-32 overflow-hidden rounded-lg border border-[#b7a080] bg-[#d7c6a5] shadow-[0_12px_28px_rgba(0,0,0,.24)] transition-transform duration-300 group-hover:-translate-y-1 motion-reduce:transition-none">
@@ -34,7 +37,15 @@ export function PortalGuardianLetter({ fragment }: { fragment: Fragment | null |
     {opened && <article id="portal-guardian-letter-content"
       className="mx-auto mt-3 max-w-[600px] rounded-lg border border-[#c4ad7b] bg-[#f7efda] px-5 py-5 text-left text-[#513c2b] shadow-[0_12px_32px_rgba(0,0,0,.21)] sm:px-8 sm:py-6">
       <h4 className="mb-3 text-center font-display text-xl leading-snug sm:text-2xl">{fragment.title}</h4>
-      <p className="whitespace-pre-line font-serif text-[.94rem] leading-[1.55] sm:text-base sm:leading-[1.6]">{fragment.body}</p>
+      <p className="whitespace-pre-line font-serif text-[.94rem] leading-[1.55] sm:text-base sm:leading-[1.6]">{story.preview}</p>
+      {story.rest && <>
+        <button type="button" onClick={() => setContinued(value => !value)} aria-expanded={continued}
+          className="mt-3 inline-flex min-h-9 items-center gap-2 rounded-full border border-[#9e6e47]/70 px-4 py-2 text-xs text-[#5b1d04]">
+          {continued ? "Recolher carta" : "Continuar lendo a carta"}
+          <ChevronDown size={14} aria-hidden="true" className={continued ? "rotate-180" : ""} />
+        </button>
+        {continued && <p className="mt-3 whitespace-pre-line font-serif text-[.94rem] leading-[1.55] sm:text-base sm:leading-[1.6]">{story.rest}</p>}
+      </>}
     </article>}
   </section>;
 }

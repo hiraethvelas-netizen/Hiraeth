@@ -3,6 +3,7 @@ import { BookOpen, ChevronDown, Sparkles } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 import { PortalChristmasShowcase } from "@/components/PortalChristmasShowcase";
 import { PortalFestiveAccents } from "@/components/PortalFestiveAccents";
+import { portalShortTeaser, splitPortalStory } from "@/lib/portal-story-preview";
 
 type Fragment = Tables<"portal_fragments">;
 type House = "leao" | "texugo" | "serpente" | "aguia";
@@ -51,6 +52,7 @@ function RevealStoryCard({ fragment, kind = "story", featured = false }: {
 }) {
   const [aromaOpen, setAromaOpen] = useState(false);
   const [storyOpen, setStoryOpen] = useState(false);
+  const [continued, setContinued] = useState(false);
   const house = kind === "house" ? houseByPosition[fragment.position ?? -1] : undefined;
   const hasAroma = Boolean(fragment.context?.trim().toLowerCase().startsWith("aroma:"));
   const contentId = `portal-story-${fragment.id}`;
@@ -58,6 +60,7 @@ function RevealStoryCard({ fragment, kind = "story", featured = false }: {
   const position = fragment.position ?? -1;
   const housePhoto = fragment.image_url || housePhotoByPosition[position];
   const [storyText, pyramidText] = (fragment.body ?? "").split(/\n\nPirâmide olfativa\s*\n\n/i);
+  const storyParts = splitPortalStory(storyText ?? "", 340);
   const pyramidRows = house && pyramidText ? pyramidText.split(/\n\n/).map(block => {
     const [heading, ...notes] = block.split("\n");
     return { heading, notes: notes.join(" ").trim() };
@@ -82,7 +85,7 @@ function RevealStoryCard({ fragment, kind = "story", featured = false }: {
         className="portal-discovery-card__image" loading="lazy" />}
       <h4 className="portal-story-title portal-discovery-card__title">{fragment.title}</h4>
     </>}
-    <p className="portal-discovery-card__teaser">{house ? (fragment.reference || teasers[position]) : (teasers[position] || fragment.reference || "Uma história guardada entre páginas e chamas.")}</p>
+    <p className="portal-discovery-card__teaser">{portalShortTeaser(house ? (fragment.reference || teasers[position]) : (teasers[position] || fragment.reference || "Uma história guardada entre páginas e chamas."), 128)}</p>
     <div className="portal-discovery-card__actions">
       {hasAroma && <button type="button" aria-expanded={aromaOpen} aria-controls={aromaId}
         className="portal-discovery-card__button portal-discovery-card__button--primary"
@@ -91,7 +94,7 @@ function RevealStoryCard({ fragment, kind = "story", featured = false }: {
         {aromaOpen ? "Ocultar aroma" : "Revelar aroma"}
       </button>}
       <button type="button" aria-expanded={storyOpen} aria-controls={contentId}
-        className="portal-discovery-card__button" onClick={() => setStoryOpen(value => !value)}>
+        className="portal-discovery-card__button" onClick={() => { setStoryOpen(value => !value); setContinued(false); }}>
         <BookOpen size={16} aria-hidden="true" />
         {storyOpen ? "Fechar história" : "Conhecer a inspiração"}
         <ChevronDown size={15} aria-hidden="true" className={storyOpen ? "rotate-180" : ""} />
@@ -110,15 +113,38 @@ function RevealStoryCard({ fragment, kind = "story", featured = false }: {
     </div>}
     {storyOpen && <div id={contentId} className="portal-discovery-card__story" role="region" aria-label={`História de ${fragment.title}`}>
       {!house && fragment.reference && <p className="mb-3 text-sm italic text-[var(--portal-accent)]">{fragment.reference}</p>}
-      <p className="whitespace-pre-line text-sm leading-7 sm:text-base">{storyText}</p>
+      <p className="whitespace-pre-line text-sm leading-7 sm:text-base">{storyParts.preview}</p>
+      {storyParts.rest && <>
+        <button type="button" aria-expanded={continued}
+          onClick={() => setContinued(value => !value)} className="portal-story-continue">
+          {continued ? "Mostrar menos" : "Continuar a história"}
+          <ChevronDown size={14} aria-hidden="true" className={continued ? "rotate-180" : ""} />
+        </button>
+        {continued && <p className="mt-4 whitespace-pre-line text-sm leading-7 sm:text-base">{storyParts.rest}</p>}
+      </>}
       {fragment.context && !hasAroma && <p className="mt-4 border-t border-white/15 pt-3 text-sm italic">{fragment.context}</p>}
     </div>}
   </article>;
 }
 
 
+function ChristmasStoryIntro({ body }: { body: string }) {
+  const [expanded, setExpanded] = useState(false);
+  const { preview, rest } = splitPortalStory(body, 175);
+  return <div className="mx-auto mt-4 max-w-2xl text-center text-sm leading-7 opacity-90 sm:text-base">
+    <p className="whitespace-pre-line">{preview}</p>
+    {rest && <>
+      <button type="button" aria-expanded={expanded} onClick={() => setExpanded(value => !value)}
+        className="portal-story-continue">
+        {expanded ? "Mostrar menos" : "Continuar lendo"}
+        <ChevronDown size={14} aria-hidden="true" className={expanded ? "rotate-180" : ""} />
+      </button>
+      {expanded && <p className="mt-3 whitespace-pre-line">{rest}</p>}
+    </>}
+  </div>;
+}
+
 export function PortalInspirationChapters({ fragments, magicWorld }: { fragments: Fragment[]; magicWorld: boolean }) {
-  const [letterOpen, setLetterOpen] = useState(false);
   if (!magicWorld) {
     return <div className="grid gap-5 sm:grid-cols-2">
       {fragments.map(fragment => <PortalInspirationCard key={fragment.id} fragment={fragment} />)}
@@ -160,9 +186,8 @@ export function PortalInspirationChapters({ fragments, magicWorld }: { fragments
           <PortalFestiveAccents variant="natal" />
           <div className="mb-9 text-center">
             <h3 id="portal-natal-inspiration-title" className="portal-script-title mt-3">O Natal no Mundo da Magia</h3>
-            <p className="mx-auto mt-4 max-w-2xl whitespace-pre-line text-sm leading-7 opacity-85 sm:text-base">
-              {at(7)[0]?.body?.split("\n\n")[0] || "O Natal naquele castelo sempre me lembra amizade, presentes feitos com carinho e um salão iluminado de magia. Foi desse aconchego que nasceram duas velas especiais. Toque em cada uma para conhecer sua história."}
-            </p>
+            <ChristmasStoryIntro body={at(7)[0]?.body?.split("\n\n")[0] ||
+              "O Natal naquele castelo sempre me lembra amizade, presentes feitos com carinho e um salão iluminado de magia. Foi desse aconchego que nasceram duas velas especiais. Toque em cada uma para conhecer sua história."} />
           </div>
           <PortalChristmasShowcase fragments={christmas.filter(fragment => fragment.position === 8 || fragment.position === 9)} />
         </div>
