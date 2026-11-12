@@ -74,12 +74,14 @@ function PortalInspirationPage() {
         <ArrowLeft size={17} aria-hidden="true" /> Voltar ao portal
       </a>
       <div className="mx-auto max-w-3xl pb-6 pt-12 text-center sm:pt-16">
-        <BookOpenText className="mx-auto text-[var(--portal-accent)]" size={30} aria-hidden="true" />
-        <p className="mt-5 text-xs uppercase tracking-[.28em] text-[var(--portal-accent)]">Hiraeth · Por trás das chamas</p>
+        {!magicWorld && <>
+          <BookOpenText className="mx-auto text-[var(--portal-accent)]" size={30} aria-hidden="true" />
+          <p className="mt-5 text-xs uppercase tracking-[.28em] text-[var(--portal-accent)]">Hiraeth · Por trás das chamas</p>
+        </>}
         <h1 className={magicWorld ? "portal-script-title mt-4 text-[var(--portal-text)]" : "mt-4 font-display text-4xl leading-tight text-[var(--portal-text)] sm:text-6xl"}>Conheça as inspirações</h1>
-        <p className="mx-auto mt-5 max-w-xl text-base leading-7 text-[var(--portal-text)]/85">
+        {!magicWorld && <p className="mx-auto mt-5 max-w-xl text-base leading-7 text-[var(--portal-text)]/85">
           Os detalhes dos livros, dos filmes e das lembranças que transformei em aromas para nos sentirmos mais perto das histórias.
-        </p>
+        </p>}
       </div>
     </header>
 
