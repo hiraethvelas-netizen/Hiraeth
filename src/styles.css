@@ -2801,6 +2801,53 @@ body > div {
   font: 600 .82rem/1.55 "DM Sans", sans-serif;
   text-align: center;
 }
+/* Natal no Portal NFC — notas exibidas apenas em "Revelar aroma". */
+.portal-world--christmas .portal-natal-discovery__aroma-toggle {
+  display: block;
+  margin: .7rem auto 1.15rem;
+  padding: .65rem 1.2rem;
+  border: 1px solid rgba(236,204,151,.7);
+  border-radius: 999px;
+  background: rgba(244,220,176,.09);
+  color: #f6e1bd;
+  font: 600 .81rem/1.4 "DM Sans",sans-serif;
+  transition: background .15s ease;
+}
+.portal-world--christmas .portal-natal-discovery__aroma-toggle:hover {
+  background: rgba(244,220,176,.18);
+}
+.portal-world--christmas .portal-natal-discovery__aroma-toggle:focus-visible {
+  outline: 2px solid #fff0cc;
+  outline-offset: 3px;
+}
+.portal-world--christmas .portal-natal-discovery__aroma-details {
+  max-width: 500px;
+  margin: 0 auto 1.15rem;
+  padding: 1rem 1.15rem;
+  border: 1px solid rgba(225,184,127,.36);
+  border-radius: 10px;
+  background: rgba(11,8,9,.25);
+  text-align: left;
+}
+.portal-world--christmas .portal-natal-discovery__aroma-details h4 {
+  margin: 0 0 .75rem;
+  color: #f2d7a8;
+  font: italic 600 1.5rem/1.2 "Cormorant Garamond",Georgia,serif;
+}
+.portal-world--christmas .portal-natal-discovery__pyramid-row {
+  display: flex;
+  flex-direction: column;
+  gap: .2rem;
+  padding: .68rem 0;
+  border-top: 1px solid rgba(231,202,156,.21);
+  font: 400 .84rem/1.6 "DM Sans",sans-serif;
+}
+.portal-world--christmas .portal-natal-discovery__pyramid-row strong {
+  color: #ebc78e;
+}
+.portal-world--christmas .portal-natal-discovery__pyramid-row span {
+  color: #f7e9d5;
+}
 .portal-world--christmas .portal-natal-discovery__story {
   max-width: 60ch;
   margin: 0 auto;
