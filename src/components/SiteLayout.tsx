@@ -28,7 +28,7 @@ function ThemeToggle() {
   );
 }
 
-export function SiteHeader({ onBack }: { onBack?: () => void } = {}) {
+export function SiteHeader({ onBack }: { onBack?: (() => void) | undefined } = {}) {
   const router = useRouter();
   const cart = useCart();
   const { isAdmin, editMode, toggle } = useAdminEdit();
