@@ -16,6 +16,7 @@ export function MagicPolls() {
   const [error, setError] = useState(false);
 
   const load = useCallback(async () => {
+    try {
     const [pollResponse, authResponse] = await Promise.all([
       (supabase as any).from("community_magic_polls").select("id,question,options").eq("active", true).order("position"),
       supabase.auth.getUser(),
@@ -39,6 +40,10 @@ export function MagicPolls() {
         .select("poll_id,option_index").eq("user_id", user.id).in("poll_id", rows.map(p => p.id));
       setVotes(Object.fromEntries((own ?? []).map((entry: {poll_id:string;option_index:number}) => [entry.poll_id, entry.option_index])));
     } else setVotes({});
+    } catch (error) {
+      console.warn("Não foi possível carregar as enquetes.", error);
+      setError(true);
+    }
   }, []);
 
   useEffect(() => {
