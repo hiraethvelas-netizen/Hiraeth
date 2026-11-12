@@ -3,6 +3,7 @@ import { ImageCropEditor } from "@/components/ImageCropEditor";
 import { uploadSiteImage } from "@/lib/admin-edit";
 import { PORTAL_SHORTCUTS, portalShortcutImage, updatePortalShortcutImage, type PortalShortcutKey } from "@/lib/portal-shortcuts";
 import { toast } from "sonner";
+import { isSafePortalUrl } from "@/lib/portal-experience";
 
 type Props = { themeJson: string; onChange: (value: string) => void };
 
@@ -46,8 +47,17 @@ export function PortalShortcutImagesEditor({ themeJson, onChange }: Props) {
               className="mt-1 w-full text-xs text-foreground file:mr-2 file:rounded-full file:border-0 file:bg-[#e9e7d2] file:px-3 file:py-2 file:text-[#34402b]" />
           </label>
           <label className="mt-3 block text-xs font-medium text-foreground">Ou URL da imagem
-            <input type="url" value={image} onChange={event => update(key, event.target.value)}
-              placeholder="https://..."
+            <input key={key + image} type="url" defaultValue={image}
+              onBlur={event => {
+                const url = event.currentTarget.value.trim();
+                if (!url || isSafePortalUrl(url)) {
+                  if (url !== image) update(key, url);
+                } else {
+                  toast.error("Insira uma URL HTTPS válida para esta imagem.");
+                  event.currentTarget.value = image;
+                }
+              }}
+              placeholder="Cole uma URL HTTPS completa"
               className="mt-1 w-full min-w-0 rounded-md border border-[#878e47] bg-[#fbf7eb] px-2 py-2 text-sm text-[#34402b] placeholder:text-[#625f4b]" />
           </label>
           {image && <button type="button" onClick={() => update(key, "")}
