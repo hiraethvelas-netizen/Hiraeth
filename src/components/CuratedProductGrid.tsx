@@ -155,7 +155,7 @@ export function CuratedProductGrid({
     if (!drag || drag.scope !== scope || event.pointerId !== drag.pointerId) return;
     const target = document.elementFromPoint?.(event.clientX, event.clientY)
       ?.closest<HTMLElement>("[data-curation-product-id]");
-    const targetId = target?.dataset.curationProductId;
+    const targetId = target?.dataset["curationProductId"];
     if (!targetId || !drag.ids.includes(targetId)) return;
     const next = moveId(drag.ids, drag.id, targetId);
     if (next === drag.ids) return;
