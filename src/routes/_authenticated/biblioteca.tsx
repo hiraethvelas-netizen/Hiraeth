@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { InlineEditor } from "@/components/InlineEditor";
 import { useSiteContent } from "@/lib/admin-edit";
 import { CandleBookshelf, type CandleDraftInput, type CandleLibraryItem } from "@/components/CandleBookshelf";
+import { LibraryWelcomeNote } from "@/components/LibraryWelcomeNote";
 
 type LibraryItem = CandleLibraryItem & { product_id?: string | null };
 
@@ -146,6 +147,7 @@ function Biblioteca() {
         <h1 className="mt-1 font-display text-4xl text-foreground sm:text-5xl">{pageSettings.title}</h1>
         {pageSettings.description && <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">{pageSettings.description}</p>}
 
+        {!loading && <LibraryWelcomeNote total={library.length} finished={library.filter(item => item.finished).length} />}
         <div className="mt-6 flex flex-wrap items-center gap-3 border-b border-primary/20 pb-4">
           <span className="text-xs uppercase tracking-widest text-muted-foreground">{pageSettings.collectionLabel} ({library.length})</span>
         </div>
