@@ -218,7 +218,7 @@ export function PortalInspirationChapters({ fragments, magicWorld }: { fragments
             <p className="text-xs uppercase tracking-[.28em] text-[var(--portal-accent)]">Duas velas, duas lembranças</p>
             <h3 id="portal-natal-inspiration-title" className="portal-script-title mt-3">O Natal no Mundo da Magia</h3>
             <p className="mx-auto mt-4 max-w-2xl whitespace-pre-line text-sm leading-7 opacity-85 sm:text-base">
-              {at(7)[0]?.body || "O Natal naquele castelo sempre me lembra amizade, presentes feitos com carinho e um salão iluminado de magia. Foi desse aconchego que nasceram duas velas especiais. Toque em cada uma para conhecer sua história."}
+              {at(7)[0]?.body?.split("\n\n")[0] || "O Natal naquele castelo sempre me lembra amizade, presentes feitos com carinho e um salão iluminado de magia. Foi desse aconchego que nasceram duas velas especiais. Toque em cada uma para conhecer sua história."}
             </p>
           </div>
           <PortalChristmasShowcase fragments={christmas.filter(fragment => fragment.position === 8 || fragment.position === 9)} />
