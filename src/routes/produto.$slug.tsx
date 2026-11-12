@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { SiteFooter, SiteHeader } from "@/components/SiteLayout";
 import { RelatedProducts } from "@/components/RelatedProducts";
 import { brl } from "@/lib/format";
+import { productBadgeLabel, productBadgeStyle } from "@/lib/product-badges";
 import { visiblePrice } from "@/lib/store-pricing";
 import { useStorePromotions } from "@/lib/use-store-promotions";
 import { useCart } from "@/lib/cart";
@@ -217,12 +218,12 @@ function ProdutoPage() {
 
         <div className="mt-4 grid gap-7 sm:mt-6 md:grid-cols-2 md:gap-10">
           <div className="min-w-0">
-            {(product as Product & { product_badge?: string | null }).product_badge === "limited" &&
-              <div className="mb-3 flex justify-start">
-                <span className="hiraeth-product-badge--limited inline-flex rounded-full px-3 py-2 text-xs font-semibold uppercase tracking-widest">
-                  Edição limitada
-                </span>
-              </div>}
+            {productBadgeLabel(product.product_badge) && <div className="mb-3 flex justify-start">
+              <span className={"inline-flex rounded-full px-3 py-2 text-xs font-semibold uppercase tracking-widest " +
+                productBadgeStyle(product.product_badge)}>
+                {productBadgeLabel(product.product_badge)}
+              </span>
+            </div>}
             <div className="relative">
               <div
                 ref={galleryRef}
