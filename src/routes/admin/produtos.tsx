@@ -42,6 +42,7 @@ function AdminProdutos() {
   }, []);
   const [variantRecipes, setVariantRecipes] = useState<VariantRecipes>({});
   const [showForm, setShowForm] = useState(false);
+  const [search, setSearch] = useState("");
   const [uploading, setUploading] = useState(false);
   const [photoCrop, setPhotoCrop] = useState<{
     source: File | string; pending: File[]; replaceIndex?: number;
@@ -139,8 +140,16 @@ function AdminProdutos() {
       }
     }
     if (!accepted.length) return;
-    setPhotoAspect("portrait");
-    setPhotoCrop({ source: accepted[0]!, pending: accepted.slice(1) });
+    void (async () => {
+      setUploading(true);
+      try {
+        const uploaded = await Promise.allSettled(accepted.map(uploadProductPhoto));
+        const urls = uploaded.filter((result): result is PromiseFulfilledResult<string> => result.status === "fulfilled").map(result => result.value);
+        if (urls.length) setForm(previous => ({ ...previous, images: [...previous.images, ...urls] }));
+        const failures = uploaded.length - urls.length;
+        if (failures) toast.error(`${failures} imagem(ns) não foram enviadas.`);
+      } finally { setUploading(false); }
+    })();
   }
 
   async function uploadProductPhoto(file: File): Promise<string> {
@@ -308,13 +317,17 @@ function AdminProdutos() {
     return parent ? `${parent.name} / ${cat.name}` : cat.name;
   };
 
-  return <div>
-    <div className="flex items-center justify-between gap-4">
+  const filteredProducts = products.filter(p => `${p.name} ${p.sku ?? ""} ${categoryLabel(p.category_id)}`.toLocaleLowerCase("pt-BR").includes(search.trim().toLocaleLowerCase("pt-BR")));
+
+  return <div className="text-foreground">
+    {!showForm && <div className="flex items-center justify-between gap-4">
       <div><h1 className="text-4xl text-foreground">Produtos</h1><p className="mt-2 text-sm text-muted-foreground">Catálogo, imagens, estoque e informações de cada peça.</p></div>
       <button onClick={startNew} className="btn-gold">+ Novo produto</button>
-    </div>
+    </div>}
+    {showForm && <div className="mb-5 flex flex-wrap items-center justify-between gap-3"><button type="button" onClick={() => { setShowForm(false); setPhotoCrop(null); }} className="rounded border border-[#8b825f] bg-[#f7efda] px-4 py-2 font-medium text-[#34402b]">← Voltar aos produtos</button><h1 className="text-2xl font-semibold">{editing ? `Editar: ${editing.name}` : "Cadastrar produto"}</h1></div>}
+    {!showForm && <label className="mt-6 block rounded-lg border border-[#8b825f] bg-[#f7efda] p-3 text-sm font-semibold text-[#34402b]">Pesquisar velas e produtos<input type="search" value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar por nome, SKU ou categoria..." className="mt-2 w-full rounded border border-[#8b825f] bg-white px-4 py-3 text-base text-[#25311e] placeholder:text-[#686858] focus:outline-2 focus:outline-[#878e47]" /></label>}
     {loadError && <div className="mt-6 border bg-card p-4 text-foreground"><p>{loadError}</p><button onClick={load} className="btn-gold mt-3">Tentar novamente</button></div>}
-    {showForm && <form onSubmit={save} className="mt-6 space-y-5 border bg-card p-6">
+    {showForm && <form onSubmit={save} className="mt-6 space-y-5 rounded-lg border border-[#a49b78] bg-[#f7efda] p-4 text-[#34402b] shadow-sm sm:p-6 [&_label]:text-[#34402b] [&_legend]:text-[#34402b]">
       <p className="font-display text-xl text-primary">{editing ? `Editar: ${editing.name}` : "Novo produto"}</p>
       <fieldset className="flex flex-wrap gap-4"><legend className="mb-2 text-sm text-foreground">Este produto é</legend><label className="flex items-center gap-2 text-sm"><input type="radio" name="product-type" checked={form.product_type === "candle"} onChange={() => setForm({ ...form, product_type: "candle" })} />Uma vela</label><label className="flex items-center gap-2 text-sm"><input type="radio" name="product-type" checked={form.product_type === "artifact"} onChange={() => setForm({ ...form, product_type: "artifact" })} />Um artefato</label></fieldset>
       <div className="grid gap-4 md:grid-cols-2">
@@ -350,8 +363,8 @@ function AdminProdutos() {
       <ProductVariantsEditor value={variants} onChange={setVariants} basePrice={Number(form.price) || 0} galleryImages={form.images} onUpload={uploadVariantPhoto} disabled={saving || uploading} />
       <label className="block text-sm text-muted-foreground">Descrição<textarea placeholder="Conte a história, materiais e detalhes do produto..." rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className={`mt-1 ${inputCls}`} /></label>
       <div className="space-y-3">
-        <div><p className="text-sm text-foreground">Fotos do produto</p><p className="text-xs text-muted-foreground">Escolha fotos e ajuste corte, zoom, posição e rotação antes de enviar. Você pode ajustar novamente as imagens cadastradas. A primeira é a capa.</p></div>
-        <label className="inline-flex cursor-pointer items-center border px-4 py-2 text-sm text-foreground hover:border-primary"><span>{uploading ? "Enviando recorte..." : "+ Escolher imagens"}</span><input type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple disabled={uploading || !!photoCrop} onChange={(e) => { chooseProductPhotos(e.currentTarget.files); e.currentTarget.value = ""; }} className="sr-only" /></label>
+        <div><p className="text-sm text-foreground">Fotos do produto</p><p className="text-xs text-muted-foreground">As fotos são adicionadas sem recorte. Use “Ajustar foto” depois do envio, somente quando desejar editar. A primeira imagem é a capa.</p></div>
+        <label className="inline-flex cursor-pointer items-center border px-4 py-2 text-sm text-foreground hover:border-primary"><span>{uploading ? "Enviando imagens..." : "+ Escolher imagens"}</span><input type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple disabled={uploading || !!photoCrop} onChange={(e) => { chooseProductPhotos(e.currentTarget.files); e.currentTarget.value = ""; }} className="sr-only" /></label>
         {form.images.length > 0 && <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">{form.images.map((url, i) => <div key={i + ":" + url} className="relative border p-2"><img src={url} alt={`Foto ${i + 1} de ${form.name || "produto"}`} className="h-32 w-full object-cover" /><p className="mt-1 text-xs text-muted-foreground">{i === 0 ? "Imagem principal" : `Imagem ${i + 1}`}</p><div className="mt-2 flex flex-wrap gap-2"><button type="button" disabled={i === 0} onClick={() => setForm(prev => ({ ...prev, images: [url, ...prev.images.filter((_, idx) => idx !== i)] }))} className="text-xs text-primary disabled:opacity-30">Tornar capa</button><button type="button" onClick={() => { setPhotoAspect("portrait"); setPhotoCrop({ source: url, pending: [], replaceIndex: i }); }} className="text-xs text-primary">Ajustar foto</button><button type="button" onClick={() => setForm(prev => ({ ...prev, images: prev.images.filter((_, idx) => idx !== i) }))} className="text-xs text-destructive">Remover</button></div></div>)}</div>}
       </div>
       <div className="flex gap-3"><button type="submit" disabled={uploading || saving} className="btn-gold disabled:opacity-50">{saving ? "Salvando..." : "Salvar produto"}</button><button type="button" onClick={() => setShowForm(false)} className="border px-4 py-2 text-sm text-muted-foreground hover:text-primary">Cancelar</button></div>
@@ -380,6 +393,6 @@ function AdminProdutos() {
         </p>}
       </div>
     </div>}
-    {loading ? <p className="mt-8 text-muted-foreground">Carregando...</p> : products.length === 0 ? <p className="mt-8 text-muted-foreground">Nenhum produto cadastrado ainda.</p> : <div className="mt-8 overflow-x-auto"><table className="w-full text-left text-sm"><thead><tr className="border-b text-xs uppercase tracking-widest text-muted-foreground"><th className="py-2 pr-4">Produto</th><th className="py-2 pr-4">Categoria</th><th className="py-2 pr-4">Preço</th><th className="py-2 pr-4">Estoque</th><th className="py-2 pr-4">Status</th><th className="py-2"></th></tr></thead><tbody className="divide-y">{products.map((p) => <tr key={p.id}><td className="py-3 pr-4 text-foreground"><div className="flex items-center gap-3">{p.images?.[0] && <img src={p.images[0]} alt="" className="h-12 w-10 object-cover" />}<span>{p.name}</span></div></td><td className="py-3 pr-4 text-muted-foreground">{categoryLabel(p.category_id)}</td><td className="py-3 pr-4">{brl(Number(p.sale_price ?? p.price))}</td><td className={`py-3 pr-4 ${p.stock <= 5 ? "text-destructive font-semibold" : ""}`}>{p.stock}{p.stock <= 5 ? " · Baixo" : ""}</td><td className="py-3 pr-4 text-muted-foreground">{p.status === "published" ? "Publicado" : p.status === "draft" ? "Rascunho" : "Arquivado"}</td><td className="py-3 text-right whitespace-nowrap"><button onClick={() => startEdit(p)} className="mr-3 text-muted-foreground hover:text-primary">Editar</button><button onClick={() => remove(p.id, p.name)} className="text-muted-foreground hover:text-destructive">Remover</button></td></tr>)}</tbody></table></div>}
+    {!showForm && (loading ? <p className="mt-8 text-muted-foreground">Carregando...</p> : products.length === 0 ? <p className="mt-8 text-muted-foreground">Nenhum produto cadastrado ainda.</p> : filteredProducts.length === 0 ? <p className="mt-8 text-foreground">Nenhum produto encontrado para essa pesquisa.</p> : <div className="mt-8 overflow-x-auto rounded-lg border border-[#a49b78] bg-[#f7efda] p-3 text-[#34402b]"><table className="w-full text-left text-sm"><thead><tr className="border-b text-xs uppercase tracking-widest text-muted-foreground"><th className="py-2 pr-4">Produto</th><th className="py-2 pr-4">Categoria</th><th className="py-2 pr-4">Preço</th><th className="py-2 pr-4">Estoque</th><th className="py-2 pr-4">Status</th><th className="py-2"></th></tr></thead><tbody className="divide-y">{filteredProducts.map((p) => <tr key={p.id}><td className="py-3 pr-4 text-foreground"><div className="flex items-center gap-3">{p.images?.[0] && <img src={p.images[0]} alt="" className="h-12 w-10 object-cover" />}<span>{p.name}</span></div></td><td className="py-3 pr-4 text-muted-foreground">{categoryLabel(p.category_id)}</td><td className="py-3 pr-4">{brl(Number(p.sale_price ?? p.price))}</td><td className={`py-3 pr-4 ${p.stock <= 5 ? "text-destructive font-semibold" : ""}`}>{p.stock}{p.stock <= 5 ? " · Baixo" : ""}</td><td className="py-3 pr-4 text-muted-foreground">{p.status === "published" ? "Publicado" : p.status === "draft" ? "Rascunho" : "Arquivado"}</td><td className="py-3 text-right whitespace-nowrap"><button onClick={() => startEdit(p)} className="mr-3 rounded border border-[#878e47] bg-white px-3 py-2 font-semibold text-[#34402b] hover:bg-[#e9ead8]">Editar</button><button onClick={() => remove(p.id, p.name)} className="text-muted-foreground hover:text-destructive">Remover</button></td></tr>)}</tbody></table></div>)}
   </div>;
 }
