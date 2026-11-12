@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   slug: "colecao-teste",
+  returning: false,
   portalQuery: vi.fn(),
   fragmentsQuery: vi.fn(),
 }));
@@ -11,11 +12,16 @@ vi.mock("@tanstack/react-router", () => ({
   createFileRoute: () => (options: object) => ({
     options,
     useParams: () => ({ slug: mocks.slug }),
+    useSearch: () => (mocks.returning ? { inicio: "1" } : {}),
   }),
   notFound: () => new Error("Portal não encontrado"),
 }));
 vi.mock("@/components/SiteLayout", () => ({ SiteFooter: () => null }));
-vi.mock("@/components/PortalChristmasDecor", () => ({ PortalChristmasDecor: () => null }));
+vi.mock("@/components/PortalChristmasDecor", () => ({
+  PortalChristmasDecor: ({ scene, active, onToggle }: {
+    scene: string; active?: boolean; onToggle?: () => void;
+  }) => scene === "hero" ? <button type="button" onClick={onToggle} aria-pressed={active}>Lumos</button> : null,
+}));
 vi.mock("@/components/PortalIntro", () => ({
   PortalIntro: ({ onEnter }: { onEnter: () => void }) => (
     <button type="button" onClick={onEnter}>
@@ -56,6 +62,7 @@ const fragment = {
 
 beforeEach(() => {
   mocks.slug = "colecao-teste";
+  mocks.returning = false;
   mocks.portalQuery.mockResolvedValue({ data: portal, error: null });
   mocks.fragmentsQuery.mockResolvedValue({ data: [], error: null });
 });
@@ -118,6 +125,49 @@ describe("Portal NFC: recuperação de falhas de carregamento", () => {
       .toHaveAttribute("href", "/portal/o-mundo-de-magia/inspiracoes");
     expect(screen.queryByText("Quatro casas, quatro essências")).not.toBeInTheDocument();
     expect(screen.queryByText("As histórias ganham forma em breve.")).not.toBeInTheDocument();
+  });
+
+  it("abre a tela inicial ao voltar das inspirações, sem repetir o vídeo", async () => {
+    mocks.slug = "o-mundo-de-magia";
+    mocks.returning = true;
+    render(<PortalPage />);
+    expect(await screen.findByRole("heading", { name: "Portas para este universo" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Entrar na coleção" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Lumos" })).toHaveAttribute("aria-pressed", "false");
+  });
+
+  it("Lumos acende o cenário e o apaga ao clicar novamente", async () => {
+    mocks.slug = "o-mundo-de-magia";
+    mocks.returning = true;
+    const { container } = render(<PortalPage />);
+    const lumos = await screen.findByRole("button", { name: "Lumos" });
+    const page = container.querySelector(".portal-world");
+    expect(page).not.toHaveClass("portal-world--lumos");
+    fireEvent.click(lumos);
+    expect(page).toHaveClass("portal-world--lumos");
+    expect(lumos).toHaveAttribute("aria-pressed", "true");
+    fireEvent.click(lumos);
+    expect(page).not.toHaveClass("portal-world--lumos");
+    expect(lumos).toHaveAttribute("aria-pressed", "false");
+  });
+
+  it("exibe a carta após os atalhos e permite ler o texto compacto", async () => {
+    mocks.slug = "o-mundo-de-magia";
+    mocks.returning = true;
+    mocks.fragmentsQuery.mockResolvedValueOnce({
+      data: [{ id: "letter", title: "Carta da Guardiã", body: "Texto guardado.", position: 10 }],
+      error: null,
+    });
+    const { container } = render(<PortalPage />);
+    const heading = await screen.findByRole("heading", { name: "Uma carta da Guardiã da Chama" });
+    const actions = container.querySelector(".portal-action-grid")!;
+    const letter = container.querySelector("#portal-carta-da-guardia")!;
+    expect(actions.compareDocumentPosition(letter) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(heading).toBeInTheDocument();
+    expect(screen.queryByText("Texto guardado.")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /toque no selo vermelho/i }));
+    expect(screen.getByText("Texto guardado.")).toBeInTheDocument();
+    expect(screen.getByText("Texto guardado.")).toHaveClass("leading-[1.55]");
   });
 
   it("distingue falha de rede de ausência de inspirações", async () => {
