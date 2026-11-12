@@ -17,7 +17,7 @@ function ratio(foreground: string, background: string): number {
 }
 
 describe("Contraste da identidade Hiraeth (WCAG AA)", () => {
-  const css = readFileSync(new URL("../styles.css", import.meta.url), "utf8");
+  const css = readFileSync("src/styles.css", "utf8");
   it("mantém o verde da marca, mas usa texto contrastante sobre fundo vanilla", () => {
     expect(css).toContain("--primary: #878e47;");
     expect(css).toContain(":root:not(.dark) .text-primary");
