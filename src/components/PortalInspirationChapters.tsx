@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { BookOpen, ChevronDown, Flame, Sparkles, X } from "lucide-react";
+import { BookOpen, ChevronDown, Sparkles } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 import { PortalChristmasShowcase } from "@/components/PortalChristmasShowcase";
 import { PortalFestiveAccents } from "@/components/PortalFestiveAccents";
@@ -129,7 +129,6 @@ export function PortalInspirationChapters({ fragments, magicWorld }: { fragments
   const houses = fragments.filter(fragment => typeof fragment.position === "number" && fragment.position >= 3 && fragment.position <= 6);
   const christmas = fragments.filter(fragment => typeof fragment.position === "number" && fragment.position >= 7 && fragment.position <= 9);
   const other = fragments.filter(fragment => typeof fragment.position !== "number" || fragment.position < 1 || fragment.position > 10);
-  const letters = at(10);
 
   return <div className="portal-discovery space-y-12 sm:space-y-16">
     {at(1).length > 0 && <section id="inspiracao-origem" aria-label="Como a coleção nasceu" className="scroll-mt-8">
@@ -143,27 +142,6 @@ export function PortalInspirationChapters({ fragments, magicWorld }: { fragments
         {at(2).map(fragment => <RevealStoryCard key={fragment.id} fragment={fragment} featured />)}
       </div>
     </section>}
-
-    {letters.map(fragment => <section id="inspiracao-carta" key={fragment.id}
-      aria-labelledby="portal-letter-title" className="mx-auto max-w-3xl scroll-mt-8 text-center">
-      <h3 id="portal-letter-title" className="portal-script-title mt-2">Uma carta da Guardiã da Chama</h3>
-      <button type="button" aria-expanded={letterOpen} aria-controls="portal-letter-content"
-        onClick={() => setLetterOpen(value => !value)}
-        className="group mx-auto mt-7 block w-full max-w-sm rounded-xl p-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--portal-accent)]">
-        {!letterOpen ? <>
-          <span className="relative block h-44 overflow-hidden rounded-lg border border-[#b7a080] bg-[#d7c6a5] shadow-[0_15px_40px_rgba(0,0,0,.28)] transition-transform duration-300 group-hover:-translate-y-1 motion-reduce:transition-none">
-            <span className="absolute inset-0 bg-[#e9ddc4] [clip-path:polygon(0_0,50%_62%,100%_0)]" aria-hidden="true" />
-            <span className="absolute inset-x-0 bottom-0 h-[64%] bg-[#e3d2ae] [clip-path:polygon(0_100%,50%_0,100%_100%)]" aria-hidden="true" />
-            <span className="absolute left-1/2 top-[55%] flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-4 border-[#9e6e47] bg-[#5b1d04] text-[#f7efda] shadow-md" aria-hidden="true"><Flame size={27}/></span>
-          </span>
-          <span className="mt-4 block text-sm font-medium text-[var(--portal-accent)]">Toque no selo vermelho para abrir a carta</span>
-        </> : <span className="inline-flex items-center gap-2 rounded-full border border-[var(--portal-accent)] px-6 py-3 text-sm"><X size={16}/> Fechar carta</span>}
-      </button>
-      {letterOpen && <article id="portal-letter-content" className="mt-6 rounded-lg border border-[#c4ad7b] bg-[#f7efda] px-6 py-8 text-left text-[#513c2b] shadow-[0_16px_40px_rgba(0,0,0,.24)] sm:px-12 sm:py-12">
-        <h4 className="mb-6 text-center font-display text-2xl sm:text-3xl">{fragment.title}</h4>
-        <p className="whitespace-pre-line font-serif text-base leading-8 sm:text-lg">{fragment.body}</p>
-      </article>}
-    </section>)}
 
     {houses.length > 0 && <section id="inspiracao-casas" aria-labelledby="portal-houses-title" className="scroll-mt-8">
       <h3 id="portal-houses-title" className="portal-script-title mb-5 mt-2 text-center">Quatro casas, quatro essências</h3>

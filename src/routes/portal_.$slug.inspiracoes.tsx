@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { PortalInspirationChapters } from "@/components/PortalInspirationChapters";
 import { PortalFestiveAccents } from "@/components/PortalFestiveAccents";
+import { PortalInspirationFloatingCandles } from "@/components/PortalInspirationFloatingCandles";
+import { portalHomeReturnUrl } from "@/lib/portal-navigation";
 import { isMagicWorld } from "@/lib/portal-experience";
 import { SiteFooter } from "@/components/SiteLayout";
 import type { Tables } from "@/integrations/supabase/types";
@@ -29,7 +31,7 @@ function PortalInspirationPage() {
   const [error, setError] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
   const magicWorld = isMagicWorld(slug);
-  const mainUrl = `/portal/${encodeURIComponent(slug)}`;
+  const mainUrl = portalHomeReturnUrl(slug);
 
   useEffect(() => {
     let active = true;
@@ -85,7 +87,9 @@ function PortalInspirationPage() {
       </div>
     </header>
 
-    <main className="mx-auto min-h-[30vh] max-w-5xl px-5 pb-20 sm:px-8">
+    <main className="portal-inspired-main relative isolate mx-auto min-h-[30vh] max-w-5xl px-5 pb-20 sm:px-8">
+      {magicWorld && <PortalInspirationFloatingCandles />}
+      <div className="relative z-10">
       {loading ? <p role="status" className="py-10 text-center">Abrindo as páginas desta história...</p>
       : error || !portal ? <div className="portal-inspiration-card mx-auto max-w-xl p-8 text-center">
         <p role="alert">Não foi possível carregar as inspirações. Verifique sua conexão e tente novamente.</p>
@@ -102,6 +106,7 @@ function PortalInspirationPage() {
         <a href={mainUrl} className="inline-flex items-center gap-2 rounded-full border border-[var(--portal-accent)] px-6 py-3 text-sm text-[var(--portal-text)] hover:bg-white/10">
           <ArrowLeft size={16} aria-hidden="true" /> Voltar ao portal
         </a>
+      </div>
       </div>
     </main>
     <p className="pb-8 text-center text-sm italic text-[var(--portal-text)]/80">Hiraeth — Onde a Chama Acesa te Espera</p>

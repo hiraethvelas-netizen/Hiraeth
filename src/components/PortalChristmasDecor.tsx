@@ -2,14 +2,19 @@ import { useState } from "react";
 import { Sparkles } from "lucide-react";
 
 type Scene = "hero" | "actions" | "inspirations" | "gallery";
-type Props = { scene: Scene };
+type Props = { scene: Scene; active?: boolean | undefined; onToggle?: (() => void) | undefined };
 
 /**
  * Decoration stays inside the magic NFC page. The existing class names keep
- * the page integration stable; "Mais magia" controls only the colored lights.
+ * the page integration stable; "Lumos" controls colored lights and page illumination.
  */
-export function PortalChristmasDecor({ scene }: Props) {
-  const [brighter, setBrighter] = useState(false);
+export function PortalChristmasDecor({ scene, active, onToggle }: Props) {
+  const [internalActive, setInternalActive] = useState(false);
+  const brighter = active ?? internalActive;
+  const toggleLights = () => {
+    if (onToggle) onToggle();
+    else setInternalActive(value => !value);
+  };
   const candles = scene === "hero" ? 7 : scene === "actions" ? 5 : 3;
   const stars = scene === "hero" ? 10 : scene === "actions" ? 6 : 4;
   const bulbs = scene === "inspirations" ? 10 : 16;
@@ -68,11 +73,11 @@ export function PortalChristmasDecor({ scene }: Props) {
           type="button"
           className="portal-xmas-lights-toggle"
           aria-pressed={brighter}
-          aria-label={brighter ? "Mais magia: apagar luzes coloridas" : "Mais magia: acender luzes coloridas"}
-          onClick={() => setBrighter((value) => !value)}
+          aria-label={brighter ? "Lumos: apagar as luzes do portal" : "Lumos: acender as luzes do portal"}
+          onClick={toggleLights}
         >
           <Sparkles aria-hidden="true" size={17} strokeWidth={1.6} />
-          <span>Mais magia</span>
+          <span>Lumos</span>
           <Sparkles aria-hidden="true" size={14} strokeWidth={1.6} />
         </button>
       )}
