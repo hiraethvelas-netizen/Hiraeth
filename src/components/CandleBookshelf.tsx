@@ -192,7 +192,7 @@ export function CandleBookshelf({
           ))}
         </div>
         {editable && onAdd && (
-          <button type="button" onClick={openAdd} className="btn-gold justify-center">
+          <button type="button" onClick={openAdd} className="btn-gold justify-center rounded-full">
             + Adicionar vela antiga
           </button>
         )}
@@ -209,7 +209,7 @@ export function CandleBookshelf({
           </p>
         </div>
       ) : (
-        <div className="space-y-3 rounded-xl border border-[#795638]/50 bg-[#eadfc9] p-3 shadow-inner dark:bg-[#30251d]">
+        <div className="hiraeth-wood-shelf space-y-3 rounded-2xl border border-[#795638]/50 bg-[#eadfc9] p-3 shadow-inner dark:bg-[#30251d]">
           {Array.from({ length: Math.ceil(visibleItems.length / 3) }, (_, row) => (
             <div key={row} className="grid grid-cols-3 items-end gap-2 border-b-[9px] border-[#795638] px-1 pb-3 shadow-[0_5px_5px_-4px_rgba(0,0,0,0.7)] sm:gap-4 sm:px-2">
               {visibleItems.slice(row * 3, row * 3 + 3).map(item => (

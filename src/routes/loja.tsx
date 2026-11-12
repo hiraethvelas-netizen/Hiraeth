@@ -13,6 +13,7 @@ import { AcervoNavigation } from "@/components/AcervoNavigation";
 import { CustomerReviews } from "@/components/CustomerReviews";
 import { SecretFlamesPromotion } from "@/components/SecretFlamesPromotion";
 import { CuratedProductGrid } from "@/components/CuratedProductGrid";
+import { DiscoverMyPortal } from "@/components/DiscoverMyPortal";
 import { useStorePromotions } from "@/lib/use-store-promotions";
 import { visiblePrice } from "@/lib/store-pricing";
 import { CategoryHeroBanner } from "@/components/CategoryHeroBanner";
@@ -208,10 +209,15 @@ useEffect(() => {
       {!selectedCategory && !showFavorites && <StoreBanners />}
 
       <main className="mx-auto max-w-6xl px-5 pb-20 pt-8 md:px-8 md:pt-12">
-        {showFavorites && <section className="mb-8 text-center">
-          <h1 className="font-display text-4xl text-foreground md:text-5xl">Meus Favoritos</h1>
-          <p className="mt-3 text-sm text-muted-foreground">Os produtos que você guardou no coração.</p>
-          <Link to="/loja" className="mt-4 inline-block text-sm text-primary underline underline-offset-4">Voltar ao Acervo Hiraeth</Link>
+        {showFavorites && <section aria-label="Sua coleção de favoritos" className="hiraeth-favorites-hero mb-8 rounded-3xl border border-[#c6a65b]/55 bg-[#20382b] px-5 py-9 text-center text-[#f7efda] shadow-md sm:px-8">
+          <Heart aria-hidden="true" size={27} className="mx-auto text-[#e3c68a]" />
+          <p className="mt-3 text-[11px] font-semibold uppercase tracking-[.2em] text-[#e3c68a]">Sua coleção de desejos</p>
+          <h1 className="mt-2 font-display text-4xl md:text-5xl">Meus Favoritos</h1>
+          <p className="mt-3 text-sm leading-7 text-[#f2e8cf]">Aqui ficam as chamas que tocaram seu coração. Você guardou {wishlistIds.size} {wishlistIds.size === 1 ? "portal" : "portais"}.</p>
+          <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
+            <Link to="/loja" className="inline-flex min-h-11 items-center rounded-full border border-[#d4bd89] px-5 py-2 text-xs font-semibold text-[#f7efda] transition hover:bg-[#f7efda]/10">Voltar ao Acervo Hiraeth</Link>
+            <DiscoverMyPortal products={products} categories={categories} />
+          </div>
         </section>}
         {/* Catálogo da loja */}
         {!selectedCategory && !showFavorites && <div className="mb-5 space-y-3">
@@ -268,6 +274,10 @@ useEffect(() => {
         </div>}
 
         {!categoryId && !showFavorites && visibleCollections.length > 0 && <section className="mt-8" aria-label="Coleções em destaque">
+          <div className="mb-3 flex flex-wrap items-center justify-end gap-2">
+            <a href="/sobre#aprox-nfc" className="inline-flex min-h-11 items-center rounded-full border border-primary/45 px-4 py-2 text-xs font-semibold text-foreground transition hover:bg-primary/10">Conheça a tecnologia Aprox</a>
+            <DiscoverMyPortal products={products} categories={categories} />
+          </div>
           <div className="mb-4 flex items-end justify-between gap-3"><div className="min-w-0"><p className="eyebrow">{pageSettings.eyebrow}</p><h2 className="hiraeth-editorial-title hiraeth-acervo-heading !mx-0 mt-2 !text-left !text-4xl md:!text-6xl">{pageSettings.title}</h2>{pageSettings.intro && <p className="mt-3 max-w-2xl text-sm text-muted-foreground md:text-base">{pageSettings.intro}</p>}</div><span className="shrink-0 text-xs text-muted-foreground">{visibleCollections.length} {visibleCollections.length === 1 ? "universo" : "universos"}</span></div>
           <div className={collectionVisibility.settings?.["circleLayout"] === "two"
             ? "mx-auto grid w-full max-w-[540px] grid-cols-2 items-start gap-3 sm:gap-5"
@@ -342,8 +352,8 @@ useEffect(() => {
             Abrindo o acervo...
           </p>
         ) : filtered.length === 0 ? (
-          <div className="mt-16 text-center">
-            <p className="font-display text-2xl italic text-primary">
+          <div className="mt-16 rounded-3xl border border-primary/35 bg-secondary/60 px-5 py-12 text-center">
+            <p className="font-display text-2xl italic text-foreground">
               {showFavorites ? "Nenhum favorito ainda" : "Nenhum item encontrado"}
             </p>
             <p className="mt-2 text-muted-foreground">
@@ -353,6 +363,7 @@ useEffect(() => {
                   ? "O acervo ainda está sendo preparado. Volte em breve."
                   : "Tente outra busca ou categoria."}
             </p>
+            {showFavorites && <Link to="/loja" className="mt-5 inline-flex min-h-11 items-center justify-center rounded-full bg-[#5b1d04] px-5 py-3 text-xs font-semibold text-[#f7efda]">Explorar o Acervo</Link>}
           </div>
         ) : (
           <CuratedProductGrid

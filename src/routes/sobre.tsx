@@ -4,6 +4,8 @@ import { PageShell } from "@/components/SiteLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { InlineEditor } from "@/components/InlineEditor";
 import { useSiteContent, uploadSiteImage, useAdminEdit } from "@/lib/admin-edit";
+import { AproxExperience } from "@/components/AproxExperience";
+import { AboutStoryText } from "@/components/AboutStoryText";
 
 type Profile = { about_story: string; about_mari: string; about_image_url: string; story_image_url: string };
 type AboutLink = { label: string; url: string };
@@ -83,7 +85,7 @@ function Sobre() {
     if (error) { window.alert("Não foi possível salvar a remoção da foto."); return; }
     setBlocks(updated);
   }
-  return <PageShell eyebrow={pageSettings.eyebrow} title={pageSettings.title}>
+  return <PageShell wide eyebrow={pageSettings.eyebrow} title={pageSettings.title}>
     {editing && <InlineEditor label="cabeçalho de Conheça a Hiraeth" fields={[{ name: "eyebrow", label: "Texto pequeno acima do título", type: "text" }, { name: "title", label: "Título da página", type: "text" }, { name: "closing", label: "Frase de encerramento", type: "text" }]} values={pageSettings} onSave={async (next) => savePageSettings({ ...pageSettings, ...next } as typeof pageSettings)} />}
     <div className="space-y-10 sm:space-y-16">
       {bannerSettings.enabled && bannerSettings.image_url && <a href={bannerSettings.href || "/loja"} target={/^(https?:)?\/\//i.test(bannerSettings.href) ? "_blank" : undefined} rel={/^(https?:)?\/\//i.test(bannerSettings.href) ? "noreferrer" : undefined} className="block overflow-hidden"><img src={bannerSettings.image_url} alt={bannerSettings.title || "Banner Hiraeth"} className="max-h-[28rem] w-full object-cover" /></a>}
@@ -92,6 +94,7 @@ function Sobre() {
         <h2 className="max-w-3xl font-serif text-4xl font-medium leading-[1.08] tracking-tight text-foreground sm:text-6xl">Algumas histórias merecem ser <span className="font-bold italic">sentidas.</span></h2>
         <p className="mt-5 max-w-2xl font-serif text-base leading-relaxed text-foreground/85 sm:text-xl">Cada criação guarda uma lembrança, cada aroma abre uma passagem e cada detalhe faz parte de quem somos.</p>
       </section>
+      <AproxExperience />
       <section className="relative overflow-hidden rounded-sm border border-[#b6a77f]/40 bg-[#314333] px-6 py-9 text-[#f5efdf] dark:bg-[#f7efda] dark:text-[#5b1d04] sm:px-12 sm:py-12">
         <p className="mb-3 text-[10px] font-semibold uppercase tracking-[.24em] text-[#d5c28b] dark:text-[#927b45]">A palavra por trás da chama</p>
         <h2 className="font-serif text-4xl font-medium leading-tight sm:text-5xl">O que significa <span className="font-bold italic">Hiraeth?</span></h2>
@@ -99,17 +102,23 @@ function Sobre() {
         <p className="mt-4 max-w-3xl font-serif text-base leading-[1.9] sm:text-lg">É também a saudade que sentimos ao terminar um livro ou uma série e perceber que ainda gostaríamos de permanecer naquele universo.</p>
         <p className="mt-4 max-w-3xl font-serif text-base leading-[1.9] sm:text-lg">Escolhi esse nome porque quero que a Hiraeth seja uma forma de reencontrar esses mundos. Por meio de aromas e experiências, queremos trazer um pouco das histórias que você ama para perto — e prolongar a magia de cada uma delas.</p>
       </section>
+      <nav aria-label="Escolha um capítulo da nossa história" className="flex snap-x snap-mandatory gap-2 overflow-x-auto py-2">
+        {shownBlocks.map((block, index) => <a key={block.id} href={"#hiraeth-capitulo-" + block.id}
+          className="min-w-[130px] max-w-[180px] shrink-0 snap-start rounded-full border border-primary/45 bg-secondary px-4 py-3 text-center text-xs font-medium text-foreground transition-colors hover:bg-primary/15">
+          Capítulo {String(index + 1).padStart(2, "0")}
+        </a>)}
+      </nav>
       {shownBlocks.map((block, index) => {
         const isFeatureBlock = index % 2 === 0;
         const palette = isFeatureBlock
           ? { bg: "bg-[#314333] dark:bg-[#f7efda]", ink: "text-[#f5efdf] dark:text-[#5b1d04]", accent: "text-[#d5c28b] dark:text-[#927b45]" }
           : { bg: "bg-transparent", ink: "text-foreground", accent: "text-primary" };
-        return <section key={block.id || index} className={`overflow-hidden rounded-sm ${palette.bg} ${palette.ink} ${isFeatureBlock ? "shadow-sm" : ""}`}>
+        return <section id={"hiraeth-capitulo-" + block.id} key={block.id || index} className={`scroll-mt-8 overflow-hidden rounded-3xl border border-primary/15 ${palette.bg} ${palette.ink} ${isFeatureBlock ? "shadow-sm" : ""}`}>
           <div className="grid gap-6 px-5 py-7 sm:gap-9 sm:px-10 sm:py-11 md:grid-cols-[minmax(0,1fr)_minmax(220px,.82fr)] md:items-center">
             <div className="min-w-0">
               <p className={`mb-3 text-[10px] font-semibold uppercase tracking-[.22em] ${palette.accent}`}>Capítulo {String(index + 1).padStart(2, "0")} · Hiraeth</p>
               <h2 className="mb-5 font-serif text-3xl font-semibold leading-[1.12] tracking-tight sm:text-4xl">{block.title}</h2>
-              <p className="whitespace-pre-line font-serif text-base leading-[1.85] sm:text-lg">{block.text}</p>
+              <AboutStoryText text={block.text} alwaysOpen={editing} />
             </div>
             {block.images?.length > 0 && <div className="flex flex-wrap items-center justify-center gap-4 py-2 sm:gap-5">
               {block.images.map((url, photoIndex) => {
