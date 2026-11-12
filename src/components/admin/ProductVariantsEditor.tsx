@@ -15,7 +15,7 @@ type Props = {
   disabled?: boolean;
 };
 
-const fieldStyle = "min-w-0 w-full rounded border border-primary/30 bg-[#fbf7eb] px-3 py-2 text-sm text-[#34402b] [color-scheme:light]";
+const fieldStyle = "min-w-0 w-full rounded border border-primary/40 bg-[#fffdf6] px-3 py-2 text-sm text-[#273420] placeholder:text-[#585e50] [color-scheme:light] focus:border-primary focus:outline-none dark:border-[#bda872]/50";
 const buttonStyle = "rounded border border-primary/50 px-3 py-2 text-sm text-primary hover:bg-primary/10 disabled:opacity-40";
 
 export function ProductVariantsEditor({ value, onChange, basePrice, onUpload, galleryImages = [], disabled = false }: Props) {
@@ -63,6 +63,18 @@ export function ProductVariantsEditor({ value, onChange, basePrice, onUpload, ga
       ...previous,
       legacy: (previous.legacy ?? []).map((row, i) => i === index ? { ...row, ...patch } : row),
     }));
+  }
+
+  async function uploadSelectedVariantPhoto(file: File, id: string, onDone: (url: string) => void) {
+    setUploadingRow(id);
+    try {
+      const url = await onUpload(file);
+      onDone(url);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Não foi possível enviar a foto.");
+    } finally {
+      setUploadingRow(null);
+    }
   }
 
   async function applyVariantCrop(file: File) {
@@ -115,7 +127,7 @@ export function ProductVariantsEditor({ value, onChange, basePrice, onUpload, ga
                 if (!["image/jpeg", "image/png", "image/webp", "image/gif"].includes(file.type) || file.size > 10 * 1024 * 1024) {
                   toast.error("Selecione uma foto JPG, PNG, WebP ou GIF com até 10 MB.");
                 } else {
-                  setPhotoCrop({ source: file, id, onDone });
+                  void uploadSelectedVariantPhoto(file, id, onDone);
                 }
               }
               event.currentTarget.value = "";
@@ -126,7 +138,7 @@ export function ProductVariantsEditor({ value, onChange, basePrice, onUpload, ga
         {image && <>
           <button type="button" className="text-left text-xs text-primary" disabled={disabled}
             onClick={() => setPhotoCrop({ source: image, id, onDone })}>
-            Ajustar foto
+            Editar foto (recortar, girar e ampliar)
           </button>
           <button type="button" className="text-left text-xs text-destructive" disabled={disabled}
             onClick={() => { if (window.confirm("Remover a foto desta variação?")) onDone(""); }}>
@@ -162,18 +174,18 @@ export function ProductVariantsEditor({ value, onChange, basePrice, onUpload, ga
             <div key={String(row.key ?? index)} className="grid gap-3 rounded border border-primary/20 p-3">
               <div className="text-sm font-medium text-foreground">{String(row.label ?? "Variação " + (index + 1))}</div>
               <div className="grid gap-3 sm:grid-cols-3">
-                <label className="text-xs text-muted-foreground">Nome da opção
+                <label className="text-xs font-medium text-foreground">Nome da opção
                   <input className={fieldStyle} value={String(row.label ?? "")} onChange={e => editLegacy(index, { label: e.target.value })} disabled={disabled} />
                 </label>
-                <label className="text-xs text-muted-foreground">Preço (R$)
+                <label className="text-xs font-medium text-foreground">Preço (R$)
                   <input type="number" min="0" step="0.01" className={fieldStyle} value={String(row.price ?? basePrice)}
                     onChange={e => editLegacy(index, { price: Number(e.target.value) })} disabled={disabled} />
                 </label>
-                <label className="text-xs text-muted-foreground">Estoque
+                <label className="text-xs font-medium text-foreground">Estoque
                   <input type="number" min="0" step="1" className={fieldStyle} value={String(row.stock ?? 0)}
                     onChange={e => editLegacy(index, { stock: Number(e.target.value) })} disabled={disabled} />
                 </label>
-                <label className="text-xs text-muted-foreground">Peso de envio (g)
+                <label className="text-xs font-medium text-foreground">Peso de envio (g)
                   <input type="number" min="1" step="1" className={fieldStyle}
                     placeholder="Opcional" value={row.weight_grams == null ? "" : String(row.weight_grams)}
                     onChange={e => editLegacy(index, { weight_grams: e.target.value === "" ? null : Number(e.target.value) })} disabled={disabled} />
@@ -254,7 +266,7 @@ export function ProductVariantsEditor({ value, onChange, basePrice, onUpload, ga
               className="grid gap-3 rounded border border-primary/25 p-4">
               <h5 className="font-medium text-foreground">{row.label}</h5>
               <div className="grid gap-3 sm:grid-cols-3">
-                <label className="text-xs text-muted-foreground">Preço (R$) — {row.label}
+                <label className="text-xs font-medium text-foreground">Preço (R$) — {row.label}
                   <input required type="number" min="0" step="0.01" className={fieldStyle}
                     value={Number.isFinite(row.price) ? row.price : ""}
                     onChange={e => editRow(row.key, { price: e.target.value === "" ? Number.NaN : Number(e.target.value) })} disabled={disabled} />
@@ -264,12 +276,12 @@ export function ProductVariantsEditor({ value, onChange, basePrice, onUpload, ga
                     placeholder="Opcional" value={row.sale_price ?? ""}
                     onChange={e => editRow(row.key, { sale_price: e.target.value === "" ? null : Number(e.target.value) })} disabled={disabled} />
                 </label>
-                <label className="text-xs text-muted-foreground">Estoque — {row.label}
+                <label className="text-xs font-medium text-foreground">Estoque — {row.label}
                   <input required type="number" min="0" step="1" className={fieldStyle}
                     value={Number.isFinite(row.stock) ? row.stock : ""}
                     onChange={e => editRow(row.key, { stock: e.target.value === "" ? Number.NaN : Number(e.target.value) })} disabled={disabled} />
                 </label>
-                <label className="text-xs text-muted-foreground">Peso de envio (g) — {row.label}
+                <label className="text-xs font-medium text-foreground">Peso de envio (g) — {row.label}
                   <input type="number" min="1" step="1" className={fieldStyle}
                     placeholder="Opcional" value={row.weight_grams ?? ""}
                     onChange={e => editRow(row.key, { weight_grams: e.target.value === "" ? null : Number(e.target.value) })} disabled={disabled} />
