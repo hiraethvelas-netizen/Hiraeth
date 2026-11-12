@@ -117,18 +117,23 @@ describe("Portal mágico: decoração isolada e interativa",()=>{
     expect(container.querySelectorAll(".portal-xmas-candle")).toHaveLength(7);
     expect(container.querySelector(".portal-xmas-atmosphere")?.getAttribute("aria-hidden")).toBe("true");
   });
-  it("alterna somente as luzes coloridas ao clicar em Mais magia",()=>{
+  it("Lumos acende e apaga as luzes e pisca apenas enquanto ativo",()=>{
     const {container}=render(<PortalChristmasDecor scene="hero"/>);
-    const toggle=screen.getByRole("button",{name:/mais magia: acender luzes/i});
+    const toggle=screen.getByRole("button",{name:/lumos: acender as luzes/i});
+    expect(toggle).toHaveTextContent("Lumos");
+    expect(container.querySelector(".portal-xmas-extra-sparks")).toBeNull();
     expect(toggle.getAttribute("aria-pressed")).toBe("false");
     expect(document.querySelector(".portal-xmas-phoenix-flight")).toBeNull();
     fireEvent.click(toggle);
     expect(toggle.getAttribute("aria-pressed")).toBe("true");
     expect(container.querySelector(".portal-xmas-decor--bright")).not.toBeNull();
+    expect(container.querySelectorAll(".portal-xmas-extra-spark")).toHaveLength(12);
+    expect(toggle).toHaveAccessibleName("Lumos: apagar as luzes do portal");
     expect(document.querySelector(".portal-xmas-phoenix-flight")).toBeNull();
     fireEvent.click(toggle);
     expect(toggle.getAttribute("aria-pressed")).toBe("false");
     expect(container.querySelector(".portal-xmas-decor--bright")).toBeNull();
+    expect(container.querySelector(".portal-xmas-extra-sparks")).toBeNull();
     expect(document.querySelector(".portal-xmas-phoenix-flight")).toBeNull();
   });
   it("decora com estrelas, astrolábio e bolinhas discretas, sem árvores ou presentes",()=>{
