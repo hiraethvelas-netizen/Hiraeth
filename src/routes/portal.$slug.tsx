@@ -25,6 +25,8 @@ type Fragment = Tables<"portal_fragments">;
 export const Route = createFileRoute("/portal/$slug")({
   validateSearch: (search: Record<string, unknown>) => ({
     ...(isReturningToPortal(search) ? { inicio: "1" } : {}),
+    ...(typeof search["chave"] === "string" && /^[0-9a-f]{64}$/.test(search["chave"])
+      ? { chave: search["chave"] } : {}),
   }),
   head: () => ({
     meta: [
@@ -38,6 +40,17 @@ export const Route = createFileRoute("/portal/$slug")({
 
 function PortalPage() {
   const { slug } = Route.useParams();
+  const { chave } = Route.useSearch();
+  // NFC individual: o segredo só é transferido ao cadastro/ativação, não prova posse pelo link público.
+  useEffect(() => {
+    if (!isMagicWorld(slug)) return;
+    const url = new URL(window.location.href);
+    const token = chave || url.searchParams.get("chave");
+    if (!token || !/^[0-9a-f]{64}$/.test(token)) return;
+    window.sessionStorage.setItem("hiraeth:nfc:pending-token", token);
+    url.searchParams.delete("chave");
+    window.history.replaceState(window.history.state, "", url.pathname + url.search + url.hash);
+  }, [slug, chave]);
   const [returnFromInspirations] = useState(() => hasRecentPortalReturn(slug));
   const skipIntro = Route.useSearch().inicio === "1" || hasPortalReturnQuery() || returnFromInspirations;
   useEffect(() => {
@@ -247,10 +260,6 @@ function PortalPage() {
             fragment={fragments.find(fragment => fragment.position === 10)} />}
         </section>
 
-      {magicWorld && <section className="relative z-10 mx-auto max-w-6xl space-y-7 px-4 py-10 sm:px-8">
-        <HouseCup />
-        <MagicPolls />
-      </section>}
       {portal.spotify_visible && embed && <section data-portal-reveal
         className="portal-reveal mx-auto max-w-2xl px-5 pb-16">
         <p className="text-center text-xs uppercase tracking-[.28em] text-[var(--portal-accent)]">Trilha sonora</p>
@@ -342,6 +351,12 @@ function PortalPage() {
         </div>
       </section>}
       {magicWorld && <PortalFeaturedProducts theme={portalTheme} />}
+      {magicWorld && <div className="relative z-10 mx-auto w-full max-w-6xl px-4 pb-12 pt-10 sm:px-8 sm:pt-16">
+        <MagicPolls variant="portal" />
+      </div>}
+      {magicWorld && <div className="relative z-10 mx-auto w-full max-w-6xl px-4 pt-4 sm:px-8">
+        <HouseCup variant="portal" />
+      </div>}
       </main>
 
       <p className="pb-8 text-center text-sm italic text-[var(--portal-text)]/80">

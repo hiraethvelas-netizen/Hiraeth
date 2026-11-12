@@ -1,4 +1,6 @@
 import { MagicPollAdmin } from "@/components/admin/MagicPollAdmin";
+import { MagicPollResults } from "@/components/admin/MagicPollResults";
+import { NfcCodeIssuer } from "@/components/admin/NfcCodeIssuer";
 import type { Json } from "@/integrations/supabase/types";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
@@ -390,6 +392,8 @@ function AdminPortais() {
         {isMagicWorld(editing.slug)
           ? <>
               <PortalInspiracoesAdmin portalId={editing.id} />
+              <MagicPollResults />
+              <NfcCodeIssuer portalSlug={editing.slug} />
               <section className="rounded-xl border border-primary/25 p-4">
                 <button type="button" onClick={() => setPollEditorOpen(value => !value)}
                   className="text-sm font-semibold text-primary underline underline-offset-4">
