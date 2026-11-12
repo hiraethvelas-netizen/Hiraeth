@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { PortalFragmentsEditor } from "@/components/admin/PortalFragmentsEditor";
 import { PortalInspiracoesAdmin } from "@/routes/admin/portal-inspiracoes";
 import { PortalGalleryEditor } from "@/components/admin/PortalGalleryEditor";
+import { PortalFeaturedProductsEditor } from "@/components/admin/PortalFeaturedProductsEditor";
 import { galleryDraftFromTheme, isMagicWorld, isSafePortalUrl, spotifyPlaylistUrl } from "@/lib/portal-experience";
 import type { Tables } from "@/integrations/supabase/types";
 
@@ -354,6 +355,8 @@ function AdminPortais() {
             </label>
           </fieldset>
 
+          {editing && isMagicWorld(editing.slug) && <PortalFeaturedProductsEditor themeJson={form.theme_json}
+            onChange={theme_json => setForm(previous => ({ ...previous, theme_json }))} />}
           <PortalGalleryEditor themeJson={form.theme_json}
             onChange={theme_json=>setForm(previous=>({...previous,theme_json}))}/>
           <details ref={advancedSettingsRef} className="relative z-10 rounded-lg border border-primary/30 p-4">
