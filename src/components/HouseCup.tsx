@@ -12,11 +12,19 @@ export function HouseCup() {
   const [loading, setLoading] = useState(true);
 
   const refresh = useCallback(async () => {
-    const { data, error: queryError } = await (supabase as any).rpc("house_totals");
+    let data: unknown;
+    try {
+      if (typeof (supabase as any).rpc !== "function") throw new Error("RPC indisponível");
+      const response = await (supabase as any).rpc("house_totals");
+      if (response.error) throw response.error;
+      data = response.data;
+    } catch {
+      setLoading(false); setError(true); return;
+    }
     setLoading(false);
-    if (queryError) { setError(true); return; }
+    if (!Array.isArray(data)) { setError(true); return; }
     const next = { ...EMPTY };
-    for (const entry of (data ?? []) as { house: string; participant_count: number }[]) {
+    for (const entry of data as { house: string; participant_count: number }[]) {
       if (entry.house in next) next[entry.house] = Number(entry.participant_count) || 0;
     }
     setScores(next); setError(false);

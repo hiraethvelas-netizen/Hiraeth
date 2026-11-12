@@ -114,7 +114,7 @@ function Comunidade() {
     setMemberHouses(current => ({
       ...current,
       ...Object.fromEntries(ids.map(id => [id, null])),
-      ...Object.fromEntries((data ?? []).map((entry: { user_id: string; house: HouseId }) => [entry.user_id, entry.house])),
+      ...Object.fromEntries((Array.isArray(data) ? data : []).map((entry: { user_id: string; house: HouseId }) => [entry.user_id, entry.house])),
     }));
   }
 

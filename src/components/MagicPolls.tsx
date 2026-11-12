@@ -21,7 +21,7 @@ export function MagicPolls() {
       supabase.auth.getUser(),
     ]);
     if (pollResponse.error) { setError(true); return; }
-    const rows = (pollResponse.data ?? []) as MagicPoll[];
+    const rows = Array.isArray(pollResponse.data) ? pollResponse.data as MagicPoll[] : [];
     setPolls(rows); setError(false);
     const user = authResponse.data.user;
     setUserId(user?.id ?? null);
