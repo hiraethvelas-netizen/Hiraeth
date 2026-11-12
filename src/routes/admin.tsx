@@ -10,27 +10,29 @@ export const Route = createFileRoute("/admin")({
   component: AdminLayout,
 });
 
-const NAV = [
-  { to: "/admin", label: "Dashboard" },
-  { to: "/admin/produtos", label: "Produtos" },
-  { to: "/admin/promocoes", label: "Promoções" },
-  { to: "/admin/notificacoes", label: "Enviar notificações" },
-  { to: "/admin/essencias", label: "Estoque de essências" },
-  { to: "/admin/categorias", label: "Categorias" },
-  { to: "/admin/pedidos", label: "Pedidos" },
-  { to: "/admin/expedicao", label: "Correio da Fênix · Expedição" },
-  { to: "/admin/avaliacoes", label: "Relatos do Acervo" },
+const PRIMARY_NAV = [
+  { to: "/admin", label: "Início" },
   { to: "/admin/portais", label: "Portais NFC" },
-  { to: "/admin/portal-inspiracoes", label: "Fotos e histórias NFC" },
-  { to: "/admin/financeiro", label: "Financeiro" },
   { to: "/admin/aparencia", label: "Aparência" },
-  { to: "/admin/sobre", label: "Sobre e contatos" },
-  { to: "/admin/banners", label: "Banners da inicial" },
-  { to: "/sobre", label: "Editar Conheça a Hiraeth" },
-  { to: "/loja", label: "Editar página da loja" },
-  { to: "/biblioteca", label: "Editar Biblioteca e favoritos" },
-  { to: "/cuidados", label: "Editar cuidados com a vela" },
+] as const;
 
+// As rotas antigas continuam funcionando; apenas a navegação fica agrupada.
+const ADMIN_GROUPS = [
+  { label: "Catálogo", links: [
+    { to: "/admin/produtos", label: "Produtos" },
+    { to: "/admin/categorias", label: "Coleções e categorias" },
+    { to: "/admin/essencias", label: "Estoque de essências" },
+    { to: "/admin/promocoes", label: "Promoções" },
+  ] },
+  { label: "Vendas", links: [
+    { to: "/admin/pedidos", label: "Pedidos" },
+    { to: "/admin/expedicao", label: "Correio da Fênix · Expedição" },
+    { to: "/admin/financeiro", label: "Financeiro" },
+  ] },
+  { label: "Relacionamento", links: [
+    { to: "/admin/notificacoes", label: "Enviar notificações" },
+    { to: "/admin/avaliacoes", label: "Relatos do Acervo" },
+  ] },
 ] as const;
 
 function AdminLayout() {
@@ -80,30 +82,64 @@ function AdminLayout() {
 
   return (
     <div className="min-h-screen">
-      <header className="border-b px-6 py-4">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-4">
-          <Link to="/" className="font-display text-xl tracking-widest text-primary">HIRAETH</Link>
-          <span className="text-xs uppercase tracking-widest text-muted-foreground">Administração</span>
-          <Link to="/inicio" className="inline-flex items-center gap-2 border px-3 py-2 text-sm text-foreground transition-colors hover:border-primary">Visualizar loja</Link>
-          <button type="button" onClick={toggleTheme} aria-label={darkMode ? "Ativar modo claro" : "Ativar modo escuro"} title={darkMode ? "Ativar modo claro" : "Ativar modo escuro"} className="inline-flex items-center gap-2 border px-3 py-2 text-sm text-foreground transition-colors hover:border-primary">
-            {darkMode ? <Sun size={16} aria-hidden="true" /> : <Moon size={16} aria-hidden="true" />}
-            {darkMode ? "Modo claro" : "Modo escuro"}
-          </button>
-          <nav className="ml-auto flex flex-wrap gap-4 text-sm">
-            {NAV.map((n) => (
-              <Link
-                key={n.to}
-                to={n.to}
-                activeOptions={{ exact: n.to === "/admin" }}
-                className="text-muted-foreground hover:text-primary [&.active]:text-primary"
-              >
-                {n.label}
-              </Link>
-            ))}
+      <header className="border-b border-primary/20 bg-background/95 px-4 py-3 sm:px-6">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3">
+          <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+            <Link to="/admin" className="font-display text-xl tracking-widest text-primary">HIRAETH</Link>
+            <span className="hidden text-[10px] uppercase tracking-[.18em] text-muted-foreground sm:inline">Painel administrativo</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Link to="/inicio" className="rounded-full border border-primary/35 px-3 py-2 text-xs text-foreground transition-colors hover:border-primary sm:text-sm">Ver loja</Link>
+            <button type="button" onClick={toggleTheme}
+              aria-label={darkMode ? "Ativar modo claro" : "Ativar modo escuro"}
+              title={darkMode ? "Ativar modo claro" : "Ativar modo escuro"}
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-primary/35 text-foreground transition-colors hover:border-primary">
+              {darkMode ? <Sun size={17} aria-hidden="true" /> : <Moon size={17} aria-hidden="true" />}
+            </button>
+          </div>
+          <nav aria-label="Áreas do painel" className="hidden w-full items-center gap-2 border-t border-primary/15 pt-3 md:flex">
+            {PRIMARY_NAV.map(item => <Link key={item.to} to={item.to}
+              activeOptions={{ exact: item.to === "/admin" }}
+              className="rounded-full px-3 py-2 text-sm text-muted-foreground hover:bg-primary/10 hover:text-primary [&.active]:bg-primary/10 [&.active]:text-primary">
+              {item.label}
+            </Link>)}
+            {ADMIN_GROUPS.map(group => <details key={group.label} className="group relative">
+              <summary className="cursor-pointer list-none rounded-full px-3 py-2 text-sm text-muted-foreground hover:bg-primary/10 hover:text-primary [&::-webkit-details-marker]:hidden">
+                {group.label} <span aria-hidden="true">⌄</span>
+              </summary>
+              <div className="absolute left-0 top-full z-50 mt-2 w-64 rounded-xl border border-primary/25 bg-background p-2 shadow-xl">
+                {group.links.map(link => <Link key={link.to} to={link.to}
+                  className="block rounded-md px-3 py-2.5 text-sm text-foreground hover:bg-primary/10 hover:text-primary">
+                  {link.label}
+                </Link>)}
+              </div>
+            </details>)}
           </nav>
+          <details className="w-full border-t border-primary/15 pt-2 md:hidden">
+            <summary className="flex cursor-pointer list-none items-center justify-between rounded-lg px-2 py-2 text-sm font-medium text-primary [&::-webkit-details-marker]:hidden">
+              <span>Menu do painel</span><span aria-hidden="true">☰</span>
+            </summary>
+            <nav aria-label="Menu do painel" className="mt-2 space-y-1 rounded-lg border border-primary/20 bg-card p-2">
+              {PRIMARY_NAV.map(item => <Link key={item.to} to={item.to}
+                className="block rounded-lg px-3 py-2.5 text-sm font-medium text-foreground hover:bg-primary/10 hover:text-primary">
+                {item.label}
+              </Link>)}
+              {ADMIN_GROUPS.map(group => <details key={group.label} className="rounded-lg border-t border-primary/15">
+                <summary className="cursor-pointer list-none px-3 py-3 text-sm font-medium text-foreground [&::-webkit-details-marker]:hidden">
+                  {group.label} <span aria-hidden="true">⌄</span>
+                </summary>
+                <div className="space-y-1 pb-2 pl-3">
+                  {group.links.map(link => <Link key={link.to} to={link.to}
+                    className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-primary/10 hover:text-primary">
+                    {link.label}
+                  </Link>)}
+                </div>
+              </details>)}
+            </nav>
+          </details>
         </div>
       </header>
-      <main className="mx-auto max-w-6xl px-6 py-10">
+      <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-10">
         <Outlet />
       </main>
     </div>
