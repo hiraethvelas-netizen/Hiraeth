@@ -19,6 +19,7 @@ const previousReferences: Record<number, string> = {
 
 export function PortalChristmasShowcase({ fragments }: Props) {
   const [opened, setOpened] = useState<number | null>(null);
+  const [aromaOpen, setAromaOpen] = useState(false);
   const closeRef = useRef<HTMLButtonElement>(null);
   const triggerRefs = useRef(new Map<number, HTMLButtonElement>());
   const previousPosition = useRef<number | null>(null);
@@ -26,6 +27,11 @@ export function PortalChristmasShowcase({ fragments }: Props) {
     .map(position => fragments.find(fragment => fragment.position === position))
     .filter((fragment): fragment is Fragment => Boolean(fragment));
   const selected = candles.find(fragment => fragment.position === opened);
+  const [storyText, pyramidText] = (selected?.body ?? "").split(/\n\nPirâmide olfativa\s*\n\n/i);
+  const pyramidRows = pyramidText ? pyramidText.split(/\n\n/).map(section => {
+    const [heading, ...notes] = section.split("\n");
+    return { heading, notes: notes.join(" ").trim() };
+  }).filter(row => row.heading && row.notes) : [];
 
   useEffect(() => {
     if (opened === null) return;
@@ -57,7 +63,7 @@ export function PortalChristmasShowcase({ fragments }: Props) {
           className="portal-natal-discovery__candle"
           aria-label={`Conhecer ${fragment.title}`}
           aria-haspopup="dialog"
-          onClick={() => setOpened(position)}>
+          onClick={() => { setAromaOpen(false); setOpened(position); }}>
           <span className="portal-natal-discovery__picture">
             {photoUrl ? <img className="portal-natal-discovery__photo" src={photoUrl}
               alt={`Vela ${fragment.title}`} loading="lazy" /> : <span className="portal-natal-discovery__placeholder" aria-hidden="true">
@@ -86,9 +92,25 @@ export function PortalChristmasShowcase({ fragments }: Props) {
             {selected.reference && selected.reference !== previousReferences[selected.position ?? -1]
               ? selected.reference : previewLines[selected.position ?? -1]}
           </p>
-          {selected.context && <p className="portal-natal-discovery__aroma">{selected.context}</p>}
+          {selected.context && pyramidRows.length === 0 &&
+            <p className="portal-natal-discovery__aroma">{selected.context}</p>}
+          {pyramidRows.length > 0 && <>
+            <button type="button" className="portal-natal-discovery__aroma-toggle"
+              aria-expanded={aromaOpen} aria-controls="portal-natal-modal-aroma"
+              onClick={() => setAromaOpen(value => !value)}>
+              {aromaOpen ? "Ocultar aroma" : "Revelar aroma"}
+            </button>
+            {aromaOpen && <div id="portal-natal-modal-aroma" className="portal-natal-discovery__aroma-details">
+              {selected.context && <p className="portal-natal-discovery__aroma">{selected.context}</p>}
+              <h4>Pirâmide olfativa</h4>
+              {pyramidRows.map(row => <div key={row.heading} className="portal-natal-discovery__pyramid-row">
+                <strong>{row.heading}</strong>
+                <span>{row.notes}</span>
+              </div>)}
+            </div>}
+          </>}
         </div>
-        <p id="portal-natal-modal-story" className="portal-natal-discovery__story">{selected.body}</p>
+        <p id="portal-natal-modal-story" className="portal-natal-discovery__story">{storyText}</p>
         <button type="button" className="portal-natal-discovery__close" onClick={() => setOpened(null)}>
           <ArrowLeft size={16} aria-hidden="true"/> Voltar às velas
         </button>
