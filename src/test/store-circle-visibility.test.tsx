@@ -29,7 +29,11 @@ vi.mock("@/lib/admin-edit", () => ({
   useSiteContent: (_key: string, defaults: unknown) => [defaults, vi.fn()],
   uploadSiteImage: vi.fn(),
 }));
-vi.mock("@/components/SiteLayout", () => ({ SiteHeader: () => null, SiteFooter: () => null }));
+vi.mock("@/components/SiteLayout", () => ({
+  SiteHeader: ({ onBack }: { onBack?: () => void }) =>
+    onBack ? <button type="button" onClick={onBack}>Voltar do cabeçalho</button> : null,
+  SiteFooter: () => null,
+}));
 vi.mock("@/components/AcervoNavigation", () => ({
   AcervoNavigation: () => <nav>Menu do acervo preservado</nav>,
 }));
@@ -272,6 +276,14 @@ describe("Bolinhas das subcategorias na loja", () => {
     expect(screen.queryByRole("button", { name: "Harry Potter" })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Tentar carregar as opções novamente" }));
     expect(await screen.findByRole("button", { name: "Harry Potter" })).toBeInTheDocument();
+  });
+
+  it("faz o botão Voltar da subcategoria abrir o Acervo em vez do início", async () => {
+    mocks.search = { categoria: "friends" };
+    render(<Store />);
+    expect(await screen.findByRole("heading", { name: "Coleção Friends" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Voltar do cabeçalho" }));
+    expect(mocks.navigate).toHaveBeenCalledWith({ to: "/loja", search: {}, replace: true });
   });
 
   it("permite abrir uma categoria cuja bolinha está oculta", async () => {
