@@ -189,7 +189,7 @@ describe("Portal NFC: recuperação de falhas de carregamento", () => {
     });
     const { container } = render(<PortalPage />);
     const heading = await screen.findByRole("heading", { name: "Uma carta da Guardiã da Chama" });
-    const actions = container.querySelector(".portal-action-grid")!;
+    const actions = container.querySelector(".portal-shortcuts")!;
     const letter = container.querySelector("#portal-carta-da-guardia")!;
     expect(actions.compareDocumentPosition(letter) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(heading).toBeInTheDocument();
