@@ -131,6 +131,9 @@ export function ExistingHomepage() {
       <section key="portals" className="hiraeth-home-portals relative mx-auto max-w-6xl px-5 pb-12 pt-12 text-center md:pb-16 md:pt-20">
         <p className="eyebrow hiraeth-reveal relative z-10">{content.portalsEyebrow}</p>
         <h1 className="hiraeth-editorial-title hiraeth-reveal relative z-10 mt-4">{content.portalsTitle}</h1>
+        <a href="/sobre#aprox-nfc" className="relative z-10 mx-auto mt-5 inline-flex min-h-10 items-center justify-center rounded-full border border-primary/45 bg-secondary/70 px-5 py-2 text-xs font-semibold text-foreground transition hover:bg-primary/15">
+          Primeira vez aqui? Descubra a magia da tecnologia Aprox
+        </a>
         <div className="hiraeth-ornament relative z-10" aria-hidden="true"><span>·</span></div>
         <div className="relative z-10 mx-auto mt-8 grid max-w-3xl grid-cols-2 gap-x-5 gap-y-8">
           {(shortcuts.length ? shortcuts : [
