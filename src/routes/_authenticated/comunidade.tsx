@@ -1,7 +1,5 @@
 import { HouseBadge } from "@/components/HouseBadge";
 import { HouseChoiceCards } from "@/components/HouseChoiceCards";
-import { HouseCup } from "@/components/HouseCup";
-import { MagicPolls } from "@/components/MagicPolls";
 import { HOUSE_CHANGED_EVENT, type HouseId } from "@/lib/house-cup";
 import { useLibraryCategories } from "@/hooks/use-library-categories";
 // Chat do Círculo do Fogo: interface leve, com ações por mensagem e permissões do autor.
@@ -758,8 +756,6 @@ function Comunidade() {
               <p className="mt-5 text-base leading-8 text-muted-foreground md:text-lg">O Círculo do Fogo é o espaço de encontro da Hiraeth para quem encontra nas histórias um jeito de sentir, imaginar e se conectar. É um lugar para conversar sobre livros, filmes e séries, dividir descobertas, conhecer pessoas com gostos parecidos e criar novas lembranças em torno dos universos que amamos.</p>
             </div>
             <CommunityStorySpotlight onAnswer={() => { setTab("feed"); setComposerOpen(true); }} />
-            <HouseCup />
-            <MagicPolls />
             <div className="grid gap-5 md:grid-cols-3">
               <article className="community-overview-card rounded-3xl border p-6"><div className="mb-4 flex h-11 w-11 items-center justify-center rounded-full bg-primary/10 text-primary"><MessageCircle/></div><h3 className="font-display text-2xl">Converse no Chat</h3><p className="mt-3 text-sm leading-7 text-muted-foreground">Participe das conversas em tempo real, troque ideias, faça perguntas e fale sobre aquilo que está lendo ou assistindo. É o cantinho para uma conversa espontânea entre integrantes.</p></article>
               <article className="community-overview-card rounded-3xl border p-6"><div className="mb-4 flex h-11 w-11 items-center justify-center rounded-full bg-primary/10 text-primary"><ImagePlus/></div><h3 className="font-display text-2xl">Compartilhe no Feed</h3><p className="mt-3 text-sm leading-7 text-muted-foreground">Publique fotos, opiniões, trechos de experiências e descobertas. Reaja às publicações com corações e foguinhos, comente e participe do que outras pessoas estão compartilhando.</p></article>
