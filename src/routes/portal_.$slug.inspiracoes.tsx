@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { PortalInspirationChapters } from "@/components/PortalInspirationChapters";
 import { PortalFestiveAccents } from "@/components/PortalFestiveAccents";
 import { PortalInspirationFloatingCandles } from "@/components/PortalInspirationFloatingCandles";
+import { PortalReadingMusicNote } from "@/components/PortalReadingMusicNote";
 import { markPortalReturn, portalHomeReturnUrl } from "@/lib/portal-navigation";
 import { isMagicWorld } from "@/lib/portal-experience";
 import { SiteFooter } from "@/components/SiteLayout";
@@ -80,7 +81,10 @@ function PortalInspirationPage() {
           <BookOpenText className="mx-auto text-[var(--portal-accent)]" size={30} aria-hidden="true" />
           <p className="mt-5 text-xs uppercase tracking-[.28em] text-[var(--portal-accent)]">Hiraeth · Por trás das chamas</p>
         </>}
-        <h1 className={magicWorld ? "portal-script-title mt-4 text-[var(--portal-text)]" : "mt-4 font-display text-4xl leading-tight text-[var(--portal-text)] sm:text-6xl"}>Conheça as inspirações</h1>
+        <div className="mt-4 flex flex-wrap items-center justify-center gap-x-3 gap-y-3">
+          <h1 className={magicWorld ? "portal-script-title text-[var(--portal-text)]" : "font-display text-4xl leading-tight text-[var(--portal-text)] sm:text-6xl"}>Conheça as inspirações</h1>
+          {magicWorld && <PortalReadingMusicNote />}
+        </div>
         {!magicWorld && <p className="mx-auto mt-5 max-w-xl text-base leading-7 text-[var(--portal-text)]/85">
           Os detalhes dos livros, dos filmes e das lembranças que transformei em aromas para nos sentirmos mais perto das histórias.
         </p>}
