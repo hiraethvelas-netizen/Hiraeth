@@ -1,6 +1,6 @@
 import type { Json } from "@/integrations/supabase/types";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 import { Pencil } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { slugify } from "@/lib/format";
@@ -48,6 +48,8 @@ function AdminPortais() {
   const [editorTab, setEditorTab] = useState<"config" | "inspirations">("config");
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [loadError, setLoadError] = useState(false);
+  const advancedSettingsRef = useRef<HTMLDetailsElement>(null);
+  const themeJsonRef = useRef<HTMLTextAreaElement>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -140,7 +142,12 @@ function AdminPortais() {
     };
     let parsedTheme: Json;
     try { parsedTheme = JSON.parse(form.theme_json || "{}"); }
-    catch { toast.error("O JSON do tema está inválido. Revise a paleta e os itens do carrossel."); return; }
+    catch {
+      if (advancedSettingsRef.current) advancedSettingsRef.current.open = true;
+      themeJsonRef.current?.focus();
+      toast.error("O JSON do tema está inválido. Revise a paleta e os itens do carrossel.");
+      return;
+    }
     if (form.spotify_playlist_url.trim() && !spotifyPlaylistUrl(form.spotify_playlist_url)) {
       toast.error("Cole um link válido de playlist do Spotify, como https://open.spotify.com/playlist/...");
       return;
@@ -213,7 +220,7 @@ function AdminPortais() {
   }
 
   const inputCls =
-    "w-full border border-amber-700/50 bg-slate-950/70 px-3 py-2 text-amber-50 placeholder:text-amber-100/45 focus:border-amber-300 focus:outline-none focus:ring-1 focus:ring-amber-300/40";
+    "w-full min-w-0 rounded-sm border border-[#878e47] bg-[#fbf7eb] px-3 py-2 text-[#34402b] placeholder:text-[#625f4b] [color-scheme:light] focus:border-[#59612f] focus:outline-none focus:ring-2 focus:ring-[#59612f]/35 disabled:cursor-not-allowed disabled:bg-[#eee8d7] disabled:opacity-100";
 
   return (
     <div>
@@ -221,7 +228,7 @@ function AdminPortais() {
         <h1 className="font-display text-3xl text-foreground sm:text-4xl">{editing ? `Editar: ${editing.name}` : "Meus Portais NFC"}</h1>
         {editing || showForm
           ? <button type="button" onClick={() => { setEditing(null); setShowForm(false); setEditorTab("config"); }}
-              className="rounded-full border border-primary/35 px-4 py-2 text-sm text-primary hover:bg-primary/10">
+              className="rounded-full border border-primary/35 px-4 py-2 text-sm text-foreground hover:bg-primary/10">
               Voltar aos portais
             </button>
           : <button onClick={startNew} className="btn-gold">+ Novo portal</button>}
@@ -230,105 +237,143 @@ function AdminPortais() {
       {editing && <nav className="mt-5 flex flex-wrap gap-2" aria-label="Editar seções do portal">
         <button type="button" aria-pressed={editorTab === "config"}
           onClick={() => { setEditorTab("config"); setShowForm(true); }}
-          className={`rounded-full border px-4 py-2.5 text-sm font-medium ${editorTab === "config" ? "border-primary bg-primary/15 text-primary" : "border-primary/30 text-muted-foreground"}`}>
+          className={`rounded-full border px-4 py-2.5 text-sm font-medium ${editorTab === "config" ? "border-primary bg-primary/15 text-foreground" : "border-primary/30 text-muted-foreground"}`}>
           Configurações do portal
         </button>
         <button type="button" aria-pressed={editorTab === "inspirations"}
           onClick={() => { setEditorTab("inspirations"); setShowForm(false); }}
-          className={`rounded-full border px-4 py-2.5 text-sm font-medium ${editorTab === "inspirations" ? "border-primary bg-primary/15 text-primary" : "border-primary/30 text-muted-foreground"}`}>
+          className={`rounded-full border px-4 py-2.5 text-sm font-medium ${editorTab === "inspirations" ? "border-primary bg-primary/15 text-foreground" : "border-primary/30 text-muted-foreground"}`}>
           <Pencil size={15} className="mr-2 inline" aria-hidden="true" />
           {isMagicWorld(editing.slug) ? "Fotos e inspirações" : "Conteúdos do portal"}
         </button>
       </nav>}
 
       {showForm && editorTab === "config" && (
-        <form onSubmit={save} className="relative mt-6 space-y-5 overflow-hidden rounded-sm border border-amber-500/40 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-amber-900/35 via-slate-950 to-slate-950 p-5 shadow-[0_20px_70px_rgba(0,0,0,0.35)] md:p-8">
-          <div className="pointer-events-none absolute inset-0 opacity-25" aria-hidden="true"><div className="absolute -right-8 -top-10 h-48 w-48 rounded-full border border-amber-300/40" /><div className="absolute -right-3 -top-5 h-36 w-36 rounded-full border border-amber-300/30" /><div className="absolute bottom-8 left-8 h-1 w-1 rounded-full bg-amber-200 shadow-[0_0_18px_5px_rgba(251,191,36,0.25)]" /></div><div className="relative z-10"><p className="font-display text-2xl tracking-wide text-amber-200">{editing ? `✦ Editar portal: ${editing.name} ✦` : "✦ Abrir novo portal ✦"}</p><p className="mt-2 max-w-2xl text-sm text-amber-100/70">Personalize esta passagem mágica: abertura, vídeo, destino e trilha sonora.</p></div>
-          <div role="note" className="relative z-10 rounded-lg border border-amber-300/55 bg-emerald-950/55 p-4 text-sm leading-relaxed text-amber-50">
-            <strong className="block text-base text-amber-200">Link NFC permanente para velas já vendidas</strong>
-            {editing ? <p className="mt-2">Você pode alterar vídeo, fotos, títulos, decoração, playlist e detalhes deste portal sem mudar o endereço gravado nas tags NFC. O link permanece <span className="break-all font-semibold text-amber-200">/portal/{editing.slug}</span>. O nome visível também pode mudar, mas o identificador do link não é renomeado.</p>
-              : <p className="mt-2">Após criar e publicar o portal, o endereço NFC será mantido ao editar seu conteúdo. Grave o link somente depois de publicar o portal definitivo.</p>}
-            <p className="mt-2 text-amber-100/75">Para manter o acesso das clientes, portais publicados ficam protegidos contra despublicação e arquivamento nesta administração. Preserve também o domínio da loja e não exclua o portal original.</p>
+        <form onSubmit={save}
+          aria-label="Configurações do portal"
+          style={{ "--primary": "#59612f", "--color-primary": "#59612f" } as CSSProperties}
+          className="relative mt-6 space-y-5 overflow-hidden rounded-sm border border-primary/40 bg-card p-5 text-card-foreground shadow-[0_12px_35px_rgba(38,48,29,0.12)] md:p-8">
+          <div className="pointer-events-none absolute inset-0 opacity-25" aria-hidden="true"><div className="absolute -right-8 -top-10 h-48 w-48 rounded-full border border-primary/40" /><div className="absolute -right-3 -top-5 h-36 w-36 rounded-full border border-primary/30" /><div className="absolute bottom-8 left-8 h-1 w-1 rounded-full bg-primary" /></div>
+          <div role="note" className="relative z-10 rounded-lg border border-primary/35 bg-[#e9e7d2] p-4 text-sm leading-relaxed text-[#34402b]">
+            <strong className="block">Endereço NFC permanente</strong>
+            {editing ? <p className="mt-1">O link <span className="break-all font-semibold">/portal/{editing.slug}</span> não muda ao editar este portal.</p>
+              : <p className="mt-1">Publique o portal definitivo antes de gravar o link nas velas.</p>}
+            <details className="mt-2">
+              <summary className="cursor-pointer font-medium underline underline-offset-4">Sobre o endereço permanente</summary>
+              <p className="mt-2">Você pode mudar nome, vídeo, fotos, textos e playlist sem alterar o endereço gravado nas tags NFC. Portais publicados continuam protegidos contra despublicação e arquivamento. Preserve o domínio da loja e o portal original.</p>
+            </details>
           </div>
-          <div className="relative z-10 rounded-lg border border-amber-300/30 p-3 text-sm text-amber-100/85">
-            <strong>Botões já preparados:</strong> Playlist no Spotify, Conheça o acervo,
-            Conheça as inspirações e Baixe o aplicativo. A playlist ficará indicada como
-            “em preparação” até você cadastrar o link. Para incluir trechos e referências
-            da coleção, salve o portal e use “Imagens e fragmentos”.
-          </div>
-          <div className="relative z-10 grid gap-4 md:grid-cols-2">
-            <input required placeholder="Nome do portal" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className={inputCls} />
-            <input placeholder="Universo (livro, filme, série)" value={form.universe} onChange={(e) => setForm({ ...form, universe: e.target.value })} className={inputCls} />
-            <input placeholder="URL da capa" value={form.cover_url} onChange={(e) => setForm({ ...form, cover_url: e.target.value })} className={inputCls} />
-            <select value={form.status} disabled={editing?.status === "published"} onChange={(e) => setForm({ ...form, status: e.target.value })} className={inputCls}>
-              <option value="draft">Rascunho</option>
-              <option value="published">Publicado</option>
-              <option value="archived">Arquivado</option>
-            </select>
-            <input placeholder="Título da abertura" value={form.intro_title} onChange={(e) => setForm({ ...form, intro_title: e.target.value })} className={inputCls} />
-            <input placeholder="Texto complementar da abertura" value={form.intro_subtitle} onChange={(e) => setForm({ ...form, intro_subtitle: e.target.value })} className={inputCls} />
-            <input placeholder="URL do vídeo de abertura (MP4)" value={form.intro_video_url} onChange={(e) => setForm({ ...form, intro_video_url: e.target.value })} className={inputCls} />
-            <input placeholder="Texto do botão de entrada" value={form.intro_cta_text} onChange={(e) => setForm({ ...form, intro_cta_text: e.target.value })} className={inputCls} />
-            <label className="text-sm text-muted-foreground">
-              Catálogo de produtos deste tema
-              <select
-                value={categories.find((category) => form.store_category_url === `/loja?categoria=${category.slug}`)?.slug ?? ""}
-                onChange={(e) => {
-                  const category = categories.find((item) => item.slug === e.target.value);
-                  if (category) setForm({ ...form, store_category_url: `/loja?categoria=${category.slug}` });
-                }}
-                className={`mt-1 ${inputCls}`}
-              >
-                <option value="">Escolha uma categoria da loja (opcional)</option>
-                {categories.map((category) => (
-                  <option key={category.id} value={category.slug}>
-                    {category.parent_id ? "↳ " : ""}{category.name}
-                  </option>
-                ))}
-              </select>
-              <span className="mt-1 block text-xs">Escolha a categoria ou subcategoria que reúne os produtos deste universo. Você também pode colar um link manualmente abaixo.</span>
-            </label>
-            <input
-              placeholder="Link do catálogo/categoria na loja"
-              value={form.store_category_url}
-              onChange={(e) => setForm({ ...form, store_category_url: e.target.value })}
-              className={inputCls}
-            />
-            <label className="relative z-10 flex items-center gap-2 text-sm text-amber-100/80">
+
+          <fieldset className="relative z-10 min-w-0 space-y-4">
+            <legend className="mb-3 font-display text-xl text-foreground">Dados do portal</legend>
+            <div className="grid gap-4 md:grid-cols-2">
+              <label className="text-sm text-foreground">Nome do portal
+                <input required placeholder="Nome do portal" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className={`mt-1 ${inputCls}`} />
+              </label>
+              <label className="text-sm text-foreground">Universo
+                <input placeholder="Universo (livro, filme, série)" value={form.universe} onChange={(e) => setForm({ ...form, universe: e.target.value })} className={`mt-1 ${inputCls}`} />
+              </label>
+              <label className="text-sm text-foreground">Imagem de capa (URL)
+                <input placeholder="URL da capa" value={form.cover_url} onChange={(e) => setForm({ ...form, cover_url: e.target.value })} className={`mt-1 ${inputCls}`} />
+              </label>
+              <label className="text-sm text-foreground">Status
+                <select value={form.status} disabled={editing?.status === "published"} onChange={(e) => setForm({ ...form, status: e.target.value })} className={`mt-1 ${inputCls}`}>
+                  <option value="draft">Rascunho</option>
+                  <option value="published">Publicado</option>
+                  <option value="archived">Arquivado</option>
+                </select>
+              </label>
+              <label className="text-sm text-foreground">Catálogo de produtos deste tema
+                <select
+                  value={categories.find((category) => form.store_category_url === `/loja?categoria=${category.slug}`)?.slug ?? ""}
+                  onChange={(e) => {
+                    const category = categories.find((item) => item.slug === e.target.value);
+                    if (category) setForm({ ...form, store_category_url: `/loja?categoria=${category.slug}` });
+                  }}
+                  className={`mt-1 ${inputCls}`}
+                >
+                  <option value="">Escolha uma categoria da loja (opcional)</option>
+                  {categories.map((category) => (
+                    <option key={category.id} value={category.slug}>
+                      {category.parent_id ? "↳ " : ""}{category.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="text-sm text-foreground">Link do catálogo (opcional)
+                <input placeholder="Link do catálogo/categoria na loja" value={form.store_category_url}
+                  onChange={(e) => setForm({ ...form, store_category_url: e.target.value })} className={`mt-1 ${inputCls}`} />
+              </label>
+            </div>
+            <p className="text-xs text-muted-foreground">Escolha uma categoria ou informe o link do catálogo.</p>
+          </fieldset>
+
+          <fieldset className="relative z-10 min-w-0 space-y-4 border-t border-primary/20 pt-4">
+            <legend className="font-display text-xl text-foreground">Abertura em vídeo</legend>
+            <div className="grid gap-4 md:grid-cols-2">
+              <label className="text-sm text-foreground">Título da abertura
+                <input placeholder="Título da abertura" value={form.intro_title} onChange={(e) => setForm({ ...form, intro_title: e.target.value })} className={`mt-1 ${inputCls}`} />
+              </label>
+              <label className="text-sm text-foreground">Texto de apoio (opcional)
+                <input placeholder="Texto complementar da abertura" value={form.intro_subtitle} onChange={(e) => setForm({ ...form, intro_subtitle: e.target.value })} className={`mt-1 ${inputCls}`} />
+              </label>
+              <label className="text-sm text-foreground">Vídeo de abertura (MP4)
+                <input placeholder="URL do vídeo de abertura (MP4)" value={form.intro_video_url} onChange={(e) => setForm({ ...form, intro_video_url: e.target.value })} className={`mt-1 ${inputCls}`} />
+              </label>
+              <label className="text-sm text-foreground">Botão de entrada
+                <input placeholder="Texto do botão de entrada" value={form.intro_cta_text} onChange={(e) => setForm({ ...form, intro_cta_text: e.target.value })} className={`mt-1 ${inputCls}`} />
+              </label>
+            </div>
+            <label className="flex items-center gap-2 text-sm text-foreground">
               <input type="checkbox"
                 checked={editing && isMagicWorld(editing.slug) ? true : form.intro_enabled}
                 disabled={Boolean(editing && isMagicWorld(editing.slug))}
                 onChange={(e) => setForm({ ...form, intro_enabled: e.target.checked })} />
-              Vídeo de abertura obrigatório para o mundo da magia
+              {editing && isMagicWorld(editing.slug) ? "Vídeo de abertura obrigatório para o mundo da magia" : "Exibir vídeo de abertura"}
             </label>
-            <div className="text-sm text-amber-100/75">
-              <p>A abertura não tem botão de pular. “Atravesse o Portal” aparece somente depois que o vídeo termina.</p>
-              <p className="mt-1 text-xs text-amber-100/60">
-                O vídeo atual pode ser substituído pelo novo MP4 sem trocar o link NFC gravado na vela.
-              </p>
+            <p className="text-xs text-muted-foreground">“Atravesse o Portal” aparece quando o vídeo termina. Trocar o MP4 não muda o link NFC.</p>
+          </fieldset>
+
+          <fieldset className="relative z-10 min-w-0 space-y-4 border-t border-primary/20 pt-4">
+            <legend className="font-display text-xl text-foreground">Playlist</legend>
+            <div className="grid gap-4 md:grid-cols-2">
+              <label className="text-sm text-foreground">Link da playlist no Spotify
+                <input type="url" placeholder="Playlist: https://open.spotify.com/playlist/..."
+                  value={form.spotify_playlist_url} onChange={(e) => setForm({ ...form, spotify_playlist_url: e.target.value })} className={`mt-1 ${inputCls}`} />
+              </label>
+              <label className="text-sm text-foreground">Título da seção de playlist
+                <input placeholder="Título da seção de playlist" value={form.spotify_title} onChange={(e) => setForm({ ...form, spotify_title: e.target.value })} className={`mt-1 ${inputCls}`} />
+              </label>
+              <label className="text-sm text-foreground md:col-span-2">Descrição da playlist
+                <textarea placeholder="Descrição da playlist" rows={2} value={form.spotify_description} onChange={(e) => setForm({ ...form, spotify_description: e.target.value })} className={`mt-1 ${inputCls}`} />
+              </label>
             </div>
-            <input type="url" placeholder="Playlist: https://open.spotify.com/playlist/..."
-              value={form.spotify_playlist_url} onChange={(e) => setForm({ ...form, spotify_playlist_url: e.target.value })} className={inputCls} />
-            <input placeholder="Título da seção de playlist" value={form.spotify_title} onChange={(e) => setForm({ ...form, spotify_title: e.target.value })} className={inputCls} />
-          </div>
-          <div className="relative z-10"><label className="mb-2 block text-sm text-amber-100/80">Descrição da playlist</label><textarea placeholder="Descrição da playlist" rows={2} value={form.spotify_description} onChange={(e) => setForm({ ...form, spotify_description: e.target.value })} className={inputCls} /></div>
+            <label className="flex items-center gap-2 text-sm text-foreground">
+              <input type="checkbox" checked={form.spotify_visible} onChange={(e) => setForm({ ...form, spotify_visible: e.target.checked })} />
+              Mostrar seção de playlist
+            </label>
+          </fieldset>
+
           <PortalGalleryEditor themeJson={form.theme_json}
             onChange={theme_json=>setForm(previous=>({...previous,theme_json}))}/>
-          <div className="relative z-10">
-            <label className="mb-2 block text-sm text-amber-100/80">Configurações avançadas de paleta (JSON)</label>
-            <textarea rows={9} spellCheck={false} value={form.theme_json} onChange={(e) => setForm({ ...form, theme_json: e.target.value })} className={inputCls} />
-            <p className="mt-2 text-xs text-amber-100/60">
-              A paleta da coleção poderá ser personalizada depois. Para adicionar fotos do Natal, use o editor visual acima.
-            </p>
-            <p className="mt-1 text-xs text-amber-100/60">Exemplo: {"{\"palette\":{\"background\":\"#17251d\",\"surface\":\"#26382d\",\"text\":\"#f5edda\",\"accent\":\"#c6a65b\",\"buttonText\":\"#17251d\"},\"carousel_items\":[{\"title\":\"Item especial\",\"description\":\"Uma peça deste universo\",\"image_url\":\"https://...\",\"url\":\"\"}]}"}</p>
-          </div>
-          <label className="flex items-center gap-2 text-sm text-muted-foreground">
-            <input type="checkbox" checked={form.spotify_visible} onChange={(e) => setForm({ ...form, spotify_visible: e.target.checked })} />
-            Mostrar seção de playlist
-          </label>
-          <div className="relative z-10 flex flex-wrap gap-3">
-            <button type="submit" className="btn-gold border border-amber-300/60">Salvar alterações</button>
-            <button type="button" onClick={() => { setShowForm(false); setEditing(null); setEditorTab("config"); }} className="border border-amber-700/60 px-4 py-2 text-sm text-amber-100/75 hover:border-amber-300 hover:text-amber-100">Cancelar</button>
+          <details ref={advancedSettingsRef} className="relative z-10 rounded-lg border border-primary/30 p-4">
+            <summary className="cursor-pointer font-medium text-foreground">Configurações avançadas</summary>
+            <label className="mt-4 block text-sm text-foreground">Paleta e opções do portal (JSON)
+              <textarea ref={themeJsonRef} rows={6} spellCheck={false} value={form.theme_json} onChange={(e) => setForm({ ...form, theme_json: e.target.value })} className={`mt-1 font-mono text-sm ${inputCls}`} />
+            </label>
+            <p className="mt-2 text-xs text-muted-foreground">Para adicionar fotos, use o editor visual acima.</p>
+            <details className="mt-3 text-xs text-muted-foreground">
+              <summary className="cursor-pointer underline underline-offset-4">Ver exemplo de configuração</summary>
+              <pre className="mt-2 max-w-full whitespace-pre-wrap break-all font-mono">{"{\"palette\":{\"background\":\"#17251d\",\"surface\":\"#26382d\",\"text\":\"#f5edda\",\"accent\":\"#c6a65b\",\"buttonText\":\"#17251d\"},\"carousel_items\":[{\"title\":\"Item especial\",\"description\":\"Uma peça deste universo\",\"image_url\":\"https://...\",\"url\":\"\"}]}"}</pre>
+            </details>
+          </details>
+          <details className="relative z-10 text-sm text-muted-foreground">
+            <summary className="cursor-pointer font-medium text-foreground">Ajuda do portal</summary>
+            <p className="mt-2">O portal já inclui acesso à playlist, ao acervo, às inspirações e ao aplicativo. A playlist fica “em preparação” até receber um link. Salve o portal para editar fotos e referências na aba de conteúdos.</p>
+          </details>
+          <div className="relative z-10 flex flex-wrap gap-3 border-t border-primary/20 pt-4">
+            <button type="submit" className="inline-flex items-center border border-[#525c2a] bg-[#525c2a] px-7 py-3 text-[0.8rem] font-medium uppercase tracking-[0.2em] text-[#fff9eb] transition-colors hover:bg-[#34402b] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#59612f]">Salvar alterações</button>
+            <button type="button" onClick={() => { setShowForm(false); setEditing(null); setEditorTab("config"); }} className="border border-primary/50 px-4 py-2 text-sm text-foreground hover:bg-primary/10">Cancelar</button>
           </div>
         </form>
       )}

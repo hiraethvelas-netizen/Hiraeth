@@ -51,13 +51,9 @@ export function RelatedProducts({ product }: { product: Pick<Product, "id" | "ca
     <section className="mt-12 border-t border-primary/25 pt-8 sm:mt-16 sm:pt-10"
       aria-label="Outras Chamas para Descobrir">
       <div className="mb-6 sm:mb-8">
-        <p className="eyebrow">Uma história leva à outra</p>
-        <h2 className="mt-2 font-display text-3xl text-foreground sm:text-4xl">
+        <h2 className="font-display text-3xl text-foreground sm:text-4xl">
           Outras Chamas para Descobrir
         </h2>
-        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-          Talvez o seu próximo universo esteja esperando aqui.
-        </p>
       </div>
       <div className="flex min-w-0 snap-x snap-mandatory gap-3 overflow-x-auto overscroll-x-contain scroll-smooth pb-4 sm:gap-5"
         role="region" aria-label="Deslize para ver outras chamas" tabIndex={0}
@@ -78,7 +74,7 @@ export function RelatedProducts({ product }: { product: Pick<Product, "id" | "ca
             <h3 className="mt-3 break-words font-display text-base leading-snug text-foreground sm:text-lg">
               {item.name}
             </h3>
-            <p className="mt-1 text-sm text-primary">{brl(Number(item.sale_price ?? item.price))}</p>
+            <p className="mt-1 text-sm text-foreground">{brl(Number(item.sale_price ?? item.price))}</p>
             {item.sale_price != null && (
               <p className="text-xs text-muted-foreground line-through">{brl(Number(item.price))}</p>
             )}

@@ -102,28 +102,28 @@ function AdminLayout() {
           <nav aria-label="Áreas do painel" className="hidden w-full items-center gap-2 border-t border-primary/15 pt-3 md:flex">
             {PRIMARY_NAV.map(item => <Link key={item.to} to={item.to}
               activeOptions={{ exact: item.to === "/admin" }}
-              className="rounded-full px-3 py-2 text-sm text-muted-foreground hover:bg-primary/10 hover:text-primary [&.active]:bg-primary/10 [&.active]:text-primary">
+              className="rounded-full px-3 py-2 text-sm text-muted-foreground hover:bg-primary/10 hover:text-foreground [&.active]:bg-primary/10 [&.active]:text-foreground">
               {item.label}
             </Link>)}
             {ADMIN_GROUPS.map(group => <details key={group.label} className="group relative">
-              <summary className="cursor-pointer list-none rounded-full px-3 py-2 text-sm text-muted-foreground hover:bg-primary/10 hover:text-primary [&::-webkit-details-marker]:hidden">
+              <summary className="cursor-pointer list-none rounded-full px-3 py-2 text-sm text-muted-foreground hover:bg-primary/10 hover:text-foreground [&::-webkit-details-marker]:hidden">
                 {group.label} <span aria-hidden="true">⌄</span>
               </summary>
               <div className="absolute left-0 top-full z-50 mt-2 w-64 rounded-xl border border-primary/25 bg-background p-2 shadow-xl">
                 {group.links.map(link => <Link key={link.to} to={link.to}
-                  className="block rounded-md px-3 py-2.5 text-sm text-foreground hover:bg-primary/10 hover:text-primary">
+                  className="block rounded-md px-3 py-2.5 text-sm text-foreground hover:bg-primary/10 hover:text-foreground">
                   {link.label}
                 </Link>)}
               </div>
             </details>)}
           </nav>
           <details ref={mobileMenuRef} className="w-full border-t border-primary/15 pt-2 md:hidden">
-            <summary className="flex cursor-pointer list-none items-center justify-between rounded-lg px-2 py-2 text-sm font-medium text-primary [&::-webkit-details-marker]:hidden">
+            <summary className="flex cursor-pointer list-none items-center justify-between rounded-lg px-2 py-2 text-sm font-medium text-foreground [&::-webkit-details-marker]:hidden">
               <span>Menu do painel</span><span aria-hidden="true">☰</span>
             </summary>
             <nav aria-label="Menu do painel" className="mt-2 space-y-1 rounded-lg border border-primary/20 bg-card p-2">
               {PRIMARY_NAV.map(item => <Link key={item.to} to={item.to} onClick={closeMobileMenu}
-                className="block rounded-lg px-3 py-2.5 text-sm font-medium text-foreground hover:bg-primary/10 hover:text-primary">
+                className="block rounded-lg px-3 py-2.5 text-sm font-medium text-foreground hover:bg-primary/10 hover:text-foreground">
                 {item.label}
               </Link>)}
               {ADMIN_GROUPS.map(group => <details key={group.label} className="rounded-lg border-t border-primary/15">
@@ -132,7 +132,7 @@ function AdminLayout() {
                 </summary>
                 <div className="space-y-1 pb-2 pl-3">
                   {group.links.map(link => <Link key={link.to} to={link.to} onClick={closeMobileMenu}
-                    className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-primary/10 hover:text-primary">
+                    className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-primary/10 hover:text-foreground">
                     {link.label}
                   </Link>)}
                 </div>

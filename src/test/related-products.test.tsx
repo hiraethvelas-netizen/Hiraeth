@@ -52,7 +52,9 @@ describe("Outras Chamas para Descobrir", () => {
     ];
     render(<RelatedProducts product={{ id: "current", category_id: "harry-potter" }} />);
     const section = await screen.findByRole("region", { name: "Outras Chamas para Descobrir" });
-    expect(section).toHaveTextContent("Uma história leva à outra");
+    expect(section).not.toHaveTextContent("Uma história leva à outra");
+    expect(section).not.toHaveTextContent("Talvez o seu próximo universo esteja esperando aqui.");
+    expect(section.querySelectorAll("h2")).toHaveLength(1);
     const related = screen.getByTestId("related-products");
     expect(related).toHaveClass("overflow-x-auto", "snap-x", "snap-mandatory");
     expect(related).toHaveAttribute("tabindex", "0");

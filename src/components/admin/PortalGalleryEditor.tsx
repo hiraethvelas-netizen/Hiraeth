@@ -16,7 +16,7 @@ export function PortalGalleryEditor({themeJson,onChange}:Props) {
 
   function saveItems(next:PortalGalleryItem[]) {
     if(theme===null){
-      toast.error("Corrija o JSON do tema antes de editar as fotos.");
+      toast.error("Abra “Configurações avançadas” e corrija o JSON antes de editar as fotos.");
       return;
     }
     onChange(JSON.stringify(updatePortalGallery(theme,next),null,2));
@@ -32,71 +32,70 @@ export function PortalGalleryEditor({themeJson,onChange}:Props) {
     saveItems(next);
   }
 
-  return <section className="relative z-10 rounded-lg border border-amber-300/35 bg-slate-950/40 p-4 md:p-5">
+  return <section className="relative z-10 rounded-lg border border-primary/35 bg-card p-4 md:p-5">
     <div className="flex flex-wrap items-start justify-between gap-3">
       <div>
-        <h3 className="font-display text-2xl text-amber-100">Fotos da edição de Natal</h3>
-        <p className="mt-1 max-w-xl text-sm text-amber-100/75">
-          Adicione fotos quadradas pelo celular; elas aparecerão passando de lado acima do rodapé do portal.
-          Você pode alterar a ordem, as legendas e os links quando quiser.
+        <h3 className="font-display text-2xl text-foreground">Fotos da edição de Natal</h3>
+        <p className="mt-1 max-w-xl text-sm text-muted-foreground">
+          Adicione as fotos do carrossel. Você pode mudar a ordem, as legendas e os links.
         </p>
       </div>
       <button type="button"
-        className="rounded border border-amber-300/60 px-4 py-2 text-sm text-amber-100 hover:bg-amber-300/10"
+        className="rounded border border-primary/60 px-4 py-2 text-sm text-foreground hover:bg-primary/10"
         onClick={()=>saveItems([...items,{
           id:crypto.randomUUID(),title:"",image_url:"",description:"",url:"",
         }])}>+ Adicionar foto</button>
     </div>
-    {items.length===0 && <p className="mt-5 rounded border border-dashed border-amber-200/30 p-5 text-sm text-amber-100/65">
+    {items.length===0 && <p className="mt-5 rounded border border-dashed border-primary/35 p-5 text-sm text-muted-foreground">
       Nenhuma foto cadastrada. Toque em “Adicionar foto” para começar.
     </p>}
     <div className="mt-4 space-y-4">
-      {items.map((item,index)=><div key={item.id} className="rounded border border-amber-300/25 p-4">
+      {items.map((item,index)=><div key={item.id} className="rounded border border-primary/25 p-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <p className="font-medium text-amber-100">Foto {index+1}</p>
+          <p className="font-medium text-foreground">Foto {index+1}</p>
           <div className="flex gap-2">
             <button type="button" aria-label={`Mover foto ${index+1} para a esquerda`}
               disabled={index===0} onClick={()=>move(index,-1)}
-              className="rounded border border-amber-200/30 px-3 py-1 text-sm text-amber-100 disabled:opacity-30">←</button>
+              className="rounded border border-primary/35 px-3 py-1 text-sm text-foreground disabled:opacity-50">←</button>
             <button type="button" aria-label={`Mover foto ${index+1} para a direita`}
               disabled={index===items.length-1} onClick={()=>move(index,1)}
-              className="rounded border border-amber-200/30 px-3 py-1 text-sm text-amber-100 disabled:opacity-30">→</button>
+              className="rounded border border-primary/35 px-3 py-1 text-sm text-foreground disabled:opacity-50">→</button>
             <button type="button" onClick={()=>saveItems(items.filter((_,i)=>i!==index))}
-              className="rounded border border-red-300/50 px-3 py-1 text-sm text-red-200">Excluir</button>
+              className="rounded border border-destructive/50 px-3 py-1 text-sm text-destructive">Excluir</button>
           </div>
         </div>
         {item.image_url&&isSafePortalUrl(item.image_url)&&<img
           src={item.image_url} alt={item.title||`Prévia da foto ${index+1}`}
           className="my-3 aspect-square w-32 rounded object-cover" />}
         <div className="mt-4 grid gap-3 md:grid-cols-2">
-          <label className="text-xs text-amber-100/80">Título/legenda da foto
+          <label className="text-xs text-foreground">Título/legenda da foto
             <input value={item.title} onChange={e=>patch(index,{title:e.target.value})}
               placeholder="Ex.: Natal entre as páginas"
-              className="mt-1 w-full rounded border border-amber-300/30 bg-slate-950/70 px-3 py-2 text-sm text-amber-100"/>
+              className="mt-1 w-full rounded border border-[#878e47] bg-[#fbf7eb] px-3 py-2 text-sm text-[#34402b] placeholder:text-[#625f4b] [color-scheme:light] focus:border-[#59612f] focus:outline-none focus:ring-2 focus:ring-[#59612f]/35"/>
           </label>
-          <label className="text-xs text-amber-100/80">Link (opcional)
+          <label className="text-xs text-foreground">Link (opcional)
             <input value={item.url} onChange={e=>patch(index,{url:e.target.value})}
               placeholder="/loja?categoria=harry-potter"
-              className="mt-1 w-full rounded border border-amber-300/30 bg-slate-950/70 px-3 py-2 text-sm text-amber-100"/>
+              className="mt-1 w-full rounded border border-[#878e47] bg-[#fbf7eb] px-3 py-2 text-sm text-[#34402b] placeholder:text-[#625f4b] [color-scheme:light] focus:border-[#59612f] focus:outline-none focus:ring-2 focus:ring-[#59612f]/35"/>
           </label>
-          <label className="text-xs text-amber-100/80 md:col-span-2">Descrição curta (opcional)
+          <label className="text-xs text-foreground md:col-span-2">Descrição curta (opcional)
             <input value={item.description} onChange={e=>patch(index,{description:e.target.value})}
-              className="mt-1 w-full rounded border border-amber-300/30 bg-slate-950/70 px-3 py-2 text-sm text-amber-100"/>
+              className="mt-1 w-full rounded border border-[#878e47] bg-[#fbf7eb] px-3 py-2 text-sm text-[#34402b] placeholder:text-[#625f4b] [color-scheme:light] focus:border-[#59612f] focus:outline-none focus:ring-2 focus:ring-[#59612f]/35"/>
           </label>
-          <label className="text-xs text-amber-100/80 md:col-span-2">Imagem da coleção
+          <label className="text-xs text-foreground md:col-span-2">Imagem da coleção
             <input type="file" accept="image/jpeg,image/png,image/webp"
               onChange={e=>{
                 const file=e.target.files?.[0];
                 if(file)setCropping({index,source:file});
                 e.currentTarget.value="";
               }}
-              className="mt-1 w-full rounded border border-amber-300/30 bg-slate-950/70 px-3 py-2 text-sm text-amber-100 file:mr-3 file:rounded file:border-0 file:bg-amber-200 file:px-3 file:py-1.5 file:text-slate-900"/>
-            <span className="mt-1 block text-xs opacity-65">JPG, PNG ou WebP até 5 MB. Você poderá ajustar o recorte quadrado antes de enviar.</span>
+              className="mt-1 w-full rounded border border-[#878e47] bg-[#fbf7eb] px-3 py-2 text-sm text-[#34402b] placeholder:text-[#625f4b] [color-scheme:light] focus:border-[#59612f] focus:outline-none focus:ring-2 focus:ring-[#59612f]/35 file:mr-3 file:rounded file:border-0 file:bg-[#e9e7d2] file:px-3 file:py-1.5 file:text-[#34402b]"/>
+            <span className="mt-1 block text-xs text-muted-foreground">JPG, PNG ou WebP até 5 MB. Você poderá ajustar o recorte quadrado antes de enviar.</span>
           </label>
-          <label className="text-xs text-amber-100/80 md:col-span-2">Ou cole a URL da imagem
+          <label className="text-xs text-foreground md:col-span-2">Ou cole a URL da imagem
             <input value={item.image_url} onChange={e=>patch(index,{image_url:e.target.value})}
               placeholder="https://..."
-              className="mt-1 w-full rounded border border-amber-300/30 bg-slate-950/70 px-3 py-2 text-sm text-amber-100"/>
+              className="mt-1 w-full rounded border border-[#878e47] bg-[#fbf7eb] px-3 py-2 text-sm text-[#34402b] placeholder:text-[#625f4b] [color-scheme:light] focus:border-[#59612f] focus:outline-none focus:ring-2 focus:ring-[#59612f]/35"/>
           </label>
         </div>
       </div>)}
