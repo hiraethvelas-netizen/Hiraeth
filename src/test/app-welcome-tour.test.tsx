@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { AppWelcomeTour, openHiraethWelcomeTour } from "@/components/AppWelcomeTour";
 
 beforeEach(() => {
@@ -27,7 +27,7 @@ describe("Acolhimento da primeira visita Hiraeth", () => {
     unmount();
     render(<AppWelcomeTour />);
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-    openHiraethWelcomeTour();
+    act(() => openHiraethWelcomeTour());
     expect(screen.getByRole("dialog")).toBeInTheDocument();
   });
   it("pode ser pulada sem bloquear o uso do app", () => {
