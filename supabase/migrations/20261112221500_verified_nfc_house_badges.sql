@@ -78,6 +78,8 @@ grant execute on function public.has_verified_house_nfc_access(uuid) to authenti
 -- Todos podem manter sua conta, mas somente titulares verificados podem escolher casa.
 drop policy if exists "member houses self insert" on public.member_houses;
 drop policy if exists "member houses self update" on public.member_houses;
+drop policy if exists "member houses verified nfc insert" on public.member_houses;
+drop policy if exists "member houses verified nfc update" on public.member_houses;
 create policy "member houses verified nfc insert" on public.member_houses for insert to authenticated
   with check (user_id = auth.uid() and public.has_verified_house_nfc_access(auth.uid()));
 create policy "member houses verified nfc update" on public.member_houses for update to authenticated
