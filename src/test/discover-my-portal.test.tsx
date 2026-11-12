@@ -3,8 +3,8 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
 import type { Tables } from "@/integrations/supabase/types";
 vi.mock("@tanstack/react-router", () => ({
-  Link: ({ children, params, ...props }: { children: ReactNode; params?: { slug: string }; [key: string]: unknown }) =>
-    <a {...props} href={"/produto/" + params?.slug}>{children}</a>,
+  Link: ({ children, params, to, ...props }: { children: ReactNode; params?: { slug: string }; to?: string; [key: string]: unknown }) =>
+    <a {...props} href={to === "/loja" ? "/loja" : "/produto/" + params?.slug}>{children}</a>,
 }));
 import { DiscoverMyPortal } from "@/components/DiscoverMyPortal";
 
