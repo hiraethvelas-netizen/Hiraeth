@@ -59,11 +59,12 @@ export function RelatedProducts({ product }: { product: Pick<Product, "id" | "ca
           Talvez o seu próximo universo esteja esperando aqui.
         </p>
       </div>
-      <div className="grid grid-cols-2 gap-x-3 gap-y-6 sm:grid-cols-3 sm:gap-x-5 lg:grid-cols-4"
+      <div className="flex min-w-0 snap-x snap-mandatory gap-3 overflow-x-auto overscroll-x-contain scroll-smooth pb-4 sm:gap-5"
+        role="region" aria-label="Deslize para ver outras chamas" tabIndex={0}
         data-testid="related-products">
         {related.map(item => (
           <Link key={item.id} to="/produto/$slug" params={{ slug: item.slug }}
-            className="group block min-w-0 text-center">
+            className="group block w-[44vw] max-w-[220px] min-w-[150px] shrink-0 snap-start text-center sm:w-[210px]">
             <div className="relative aspect-square w-full overflow-hidden bg-transparent">
               {item.images?.[0] ? (
                 <img src={item.images[0]} alt={item.name} loading="lazy"
