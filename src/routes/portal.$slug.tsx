@@ -6,6 +6,7 @@ import { PortalFestiveAccents } from "@/components/PortalFestiveAccents";
 import { PortalIntro } from "@/components/PortalIntro";
 import { PortalChristmasDecor } from "@/components/PortalChristmasDecor";
 import { PortalFeaturedProducts } from "@/components/PortalFeaturedProducts";
+import { PortalLumosAmbient } from "@/components/PortalLumosAmbient";
 import { PortalGuardianLetter } from "@/components/PortalGuardianLetter";
 import { isReturningToPortal } from "@/lib/portal-navigation";
 import { carouselFromTheme, isMagicWorld, magicWorldTitle, portalCatalogDestination, spotifyPlaylistUrl } from "@/lib/portal-experience";
@@ -180,6 +181,7 @@ function PortalPage() {
       />}
 
       <div inert={intro} aria-hidden={intro}>
+      {magicWorld && <PortalLumosAmbient active={lumosActive} />}
       <header data-portal-reveal className="portal-reveal portal-magic-hero relative flex min-h-[52vh] items-center justify-center overflow-hidden px-5 py-24">
         {!magicWorld && portal.cover_url && <img src={portal.cover_url} alt="" className="absolute inset-0 h-full w-full object-cover" />}
         {!magicWorld && <div className="absolute inset-0 bg-gradient-to-b from-[#10251d]/65 via-[#10251d]/80 to-[var(--portal-bg)]" />}
@@ -203,7 +205,7 @@ function PortalPage() {
 
       <main>
         <section data-portal-reveal className="portal-reveal portal-christmas-hall relative mx-auto max-w-5xl overflow-hidden px-5 pb-20 pt-10 md:px-8">
-          {magicWorld && <PortalChristmasDecor scene="actions" />}
+          {magicWorld && <PortalChristmasDecor scene="actions" active={lumosActive} />}
           <div className="relative z-10 mb-10 text-center">
             <p className="text-xs uppercase tracking-[.28em] text-[var(--portal-accent)]">Escolha seu caminho</p>
             <h2 className={magicWorld ? "portal-script-title mt-3" : "mt-3 font-display text-3xl md:text-4xl"}>Portas para este universo</h2>
@@ -232,7 +234,6 @@ function PortalPage() {
           </div>
           {magicWorld && !fragmentsLoading && <PortalGuardianLetter
             fragment={fragments.find(fragment => fragment.position === 10)} />}
-          {magicWorld && <PortalFeaturedProducts theme={portalTheme} />}
           <p className="relative z-10 mt-6 text-center text-xs text-[var(--portal-text)]/65">
             Para instalar no celular, abra o aplicativo no navegador e escolha “Adicionar à tela inicial”, quando disponível.
           </p>
@@ -290,7 +291,7 @@ function PortalPage() {
       </section>}
 
       {(!magicWorld || carouselItems.length > 0) && <section className="portal-carousel-section mt-6 py-12 sm:py-16">
-        {magicWorld && <PortalChristmasDecor scene="gallery" />}
+        {magicWorld && <PortalChristmasDecor scene="gallery" active={lumosActive} />}
         <div className={magicWorld ? "portal-collection-frame mx-auto max-w-6xl px-5 py-10 sm:px-8 sm:py-14" : "mx-auto max-w-6xl px-6"}>
           <div className="portal-collection-heading text-center">
             <p className="text-xs uppercase tracking-[.28em] text-[var(--portal-accent)]">{magicWorld ? "Relíquias deste universo" : "Explore a coleção"}</p>
@@ -328,6 +329,7 @@ function PortalPage() {
 
         </div>
       </section>}
+      {magicWorld && <PortalFeaturedProducts theme={portalTheme} />}
       </main>
 
       <p className="pb-8 text-center text-sm italic text-[var(--portal-text)]/80">

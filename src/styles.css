@@ -3625,3 +3625,92 @@ body > div {
     animation: none;
   }
 }
+
+
+/* Lumos espalhado por TODA a página: pontos de luz do início ao rodapé,
+   com a mesma chave do botão, sem impedir leitura ou cliques. */
+.portal-world--christmas {
+  position: relative;
+  isolation: isolate;
+}
+.portal-world--christmas .portal-lumos-ambient {
+  position: absolute;
+  inset: 0;
+  z-index: 12;
+  overflow: hidden;
+  pointer-events: none;
+}
+.portal-world--christmas .portal-lumos-ambient__light {
+  position: absolute;
+  display: block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+  color: #eac06d;
+  opacity: .12;
+  filter: brightness(.5);
+  transform: scale(.75);
+  transition: opacity .22s ease;
+}
+.portal-world--christmas .portal-lumos-ambient__light:nth-child(4n + 1) { color: #f4c778; }
+.portal-world--christmas .portal-lumos-ambient__light:nth-child(4n + 2) { color: #8cb7f5; }
+.portal-world--christmas .portal-lumos-ambient__light:nth-child(4n + 3) { color: #da93ca; }
+.portal-world--christmas .portal-lumos-ambient__light:nth-child(4n) { color: #8cd3a3; }
+.portal-world--christmas .portal-lumos-ambient--active {
+  background:
+    radial-gradient(ellipse 9% 6% at 6% 12%, rgba(236,192,109,.09), transparent),
+    radial-gradient(ellipse 9% 6% at 93% 30%, rgba(140,183,245,.11), transparent),
+    radial-gradient(ellipse 10% 7% at 7% 52%, rgba(218,147,202,.10), transparent),
+    radial-gradient(ellipse 10% 7% at 92% 74%, rgba(140,211,163,.10), transparent),
+    radial-gradient(ellipse 10% 6% at 8% 93%, rgba(236,192,109,.12), transparent);
+}
+.portal-world--christmas .portal-lumos-ambient--active .portal-lumos-ambient__light {
+  filter: brightness(1.3);
+  opacity: 1;
+  box-shadow: 0 0 8px 3px currentColor, 0 0 23px 6px currentColor;
+  animation: portal-lumos-scattered-blink 1.65s ease-in-out infinite alternate;
+}
+.portal-world--christmas .portal-lumos-ambient--active .portal-lumos-ambient__light:nth-child(3n) {
+  animation-duration: 1.05s;
+}
+.portal-world--christmas .portal-lumos-ambient--active .portal-lumos-ambient__light:nth-child(5n) {
+  animation-duration: 2.1s;
+}
+@keyframes portal-lumos-scattered-blink {
+  0%, 100% { opacity: .18; transform: scale(.72); filter: brightness(.72); }
+  55% { opacity: 1; transform: scale(1.22); filter: brightness(1.4); }
+}
+/* As luzes dos próprios cenários acompanham o botão Lumos. */
+.portal-world--christmas.portal-world--lumos .portal-collection-frame,
+.portal-world--christmas.portal-world--lumos .portal-featured-products {
+  box-shadow: 0 0 40px rgba(225,187,116,.1);
+}
+.portal-world--christmas.portal-world--lumos .portal-carousel-section {
+  background: radial-gradient(ellipse at 45% 30%, rgba(219,178,110,.10), transparent 70%);
+}
+
+/* A vitrine final mostra os produtos como na loja: vela + nome, sem caixas. */
+.portal-world--christmas .portal-featured-products {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+.portal-world--christmas .portal-featured-products__scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(215,181,117,.65) transparent;
+}
+.portal-world--christmas .portal-featured-products__scroll img {
+  background: transparent;
+  filter: drop-shadow(0 12px 14px rgba(0,0,0,.28));
+}
+.portal-world--christmas .portal-featured-products__all:hover {
+  border-color: #f1d69b;
+}
+@media (prefers-reduced-motion: reduce) {
+  .portal-world--christmas .portal-lumos-ambient__light,
+  .portal-world--christmas .portal-lumos-ambient--active .portal-lumos-ambient__light {
+    animation: none;
+    transform: none;
+  }
+}

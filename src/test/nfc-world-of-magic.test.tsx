@@ -136,6 +136,16 @@ describe("Portal mágico: decoração isolada e interativa",()=>{
     expect(container.querySelector(".portal-xmas-extra-sparks")).toBeNull();
     expect(document.querySelector(".portal-xmas-phoenix-flight")).toBeNull();
   });
+  it("espalha os pontos de Lumos também nas ações e na galeria",()=>{
+    const {container}=render(<PortalChristmasDecor scene="actions" active/>);
+    expect(container.querySelector(".portal-xmas-decor--bright")).not.toBeNull();
+    expect(container.querySelectorAll(".portal-xmas-extra-spark")).toHaveLength(12);
+    cleanup();
+    const gallery=render(<PortalChristmasDecor scene="gallery" active/>);
+    expect(gallery.container.querySelector(".portal-xmas-decor--bright")).not.toBeNull();
+    expect(gallery.container.querySelectorAll(".portal-xmas-extra-spark")).toHaveLength(12);
+  });
+
   it("decora com estrelas, astrolábio e bolinhas discretas, sem árvores ou presentes",()=>{
     const {container}=render(<PortalChristmasDecor scene="actions"/>);
     expect(container.querySelector(".portal-magic-astrolabe")).not.toBeNull();
