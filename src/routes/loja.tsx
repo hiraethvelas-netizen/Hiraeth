@@ -203,7 +203,7 @@ useEffect(() => {
 
   return (
     <div className="min-h-screen">
-      <SiteHeader />
+      <SiteHeader onBack={search.categoria ? () => { void navigate({ to: "/loja", search: {}, replace: true }); } : undefined} />
       {!showFavorites && <AcervoNavigation />}
       {!selectedCategory && !showFavorites && <StoreBanners />}
 
@@ -278,7 +278,7 @@ useEffect(() => {
                 ? "w-full"
                 : "w-[calc(50%-0.375rem)] max-w-[230px] sm:w-[calc(33.33%-0.875rem)]")
             }>
-              <button type="button" aria-label={collection.name} onClick={() => { const enter = () => { setCategoryId(collection.id); void navigate({ to: "/loja", search: { ...(search.q ? { q: search.q } : {}), categoria: collection.slug }, replace: true }); window.scrollTo({ top: 0, behavior: "smooth" }); }; if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) enter(); else { setEnteringCategory(collection); window.setTimeout(() => { enter(); setEnteringCategory(null); }, 620); } }} className="hiraeth-collection-card group relative aspect-square w-full overflow-hidden rounded-full text-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">
+              <button type="button" aria-label={collection.name} onClick={() => { const enter = () => { setCategoryId(collection.id); void navigate({ to: "/loja", search: { ...(search.q ? { q: search.q } : {}), categoria: collection.slug } }); window.scrollTo({ top: 0, behavior: "smooth" }); }; if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) enter(); else { setEnteringCategory(collection); window.setTimeout(() => { enter(); setEnteringCategory(null); }, 620); } }} className="hiraeth-collection-card group relative aspect-square w-full overflow-hidden rounded-full text-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">
                 <div className="absolute inset-0 bg-muted">{collection.image_url ? <img src={collection.image_url} alt="" className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110" loading="lazy" /> : <div className="flex h-full items-center justify-center bg-gradient-to-br from-card to-muted text-3xl text-primary" aria-hidden="true">✦</div>}</div>
                 <div className="pointer-events-none absolute inset-0 rounded-full bg-gradient-to-t from-black/85 via-black/5 to-transparent" />
                 <svg viewBox="0 0 200 200" preserveAspectRatio="xMidYMid meet"
