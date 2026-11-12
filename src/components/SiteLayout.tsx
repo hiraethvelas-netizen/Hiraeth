@@ -209,15 +209,17 @@ export function PageShell({
 eyebrow,
 title,
 children,
+wide = false,
 }: {
 eyebrow: string;
 title: string;
 children: ReactNode;
+wide?: boolean;
 }) {
 return (
 <div className="min-h-screen">
 <SiteHeader />
-<main className="mx-auto max-w-2xl px-6 pb-20 pt-12 md:pt-16">
+<main className={"mx-auto px-6 pb-20 pt-12 md:pt-16 " + (wide ? "max-w-5xl" : "max-w-2xl")}>
 <p className="eyebrow">{eyebrow}</p>
 <h1 className="mt-2 text-5xl text-foreground">{title}</h1>
 <div className="mt-8 space-y-5 leading-relaxed text-foreground/85">
