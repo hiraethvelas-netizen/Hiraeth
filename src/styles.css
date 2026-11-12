@@ -3438,3 +3438,190 @@ body > div {
     transform: none;
   }
 }
+
+
+/* Mundo da Magia: atalhos redondos inspirados nos ícones do aplicativo. */
+.portal-world--christmas .portal-action-grid--round {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: center;
+  max-width: 560px;
+  margin-inline: auto;
+  gap: clamp(.6rem, 2.5vw, 1.5rem);
+}
+.portal-world--christmas .portal-action-grid--round .portal-action-card,
+.portal-world--christmas .portal-action-grid--round .portal-action-card:nth-child(even) {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: min(100%, 150px);
+  height: auto;
+  aspect-ratio: 1 / 1;
+  min-height: 0;
+  margin-inline: auto;
+  padding: .7rem;
+  gap: .4rem;
+  border: 1.5px solid #cba865;
+  border-radius: 999px;
+  background: linear-gradient(145deg, #31473c, #162d29 84%);
+  box-shadow: inset 0 0 0 4px #223c33, inset 0 0 0 5px rgba(222,185,117,.42), 0 10px 25px rgba(0,0,0,.27);
+  text-align: center;
+}
+.portal-world--christmas .portal-action-grid--round .portal-action-card::before {
+  inset: 6px;
+  border-radius: 999px;
+  border: 1px solid rgba(236,205,143,.25);
+}
+.portal-world--christmas .portal-action-grid--round .portal-action-card::after {
+  display: none;
+}
+.portal-world--christmas .portal-action-grid--round .portal-action-card > span {
+  min-width: 0;
+  text-align: center;
+}
+.portal-world--christmas .portal-action-grid--round .portal-action-card strong {
+  display: block;
+  font: italic 600 clamp(.95rem, 2.7vw, 1.33rem)/1.06 "Cormorant Garamond", Georgia, serif;
+  color: #fff2d9;
+  text-wrap: balance;
+}
+.portal-world--christmas .portal-action-grid--round .portal-action-card small,
+.portal-world--christmas .portal-action-grid--round .portal-action-card > svg:not(:first-child) {
+  display: none;
+}
+.portal-world--christmas .portal-action-grid--round .portal-action-card > svg:first-child {
+  width: clamp(22px, 4vw, 29px);
+  height: clamp(22px, 4vw, 29px);
+  flex-shrink: 0;
+  color: #e7c687;
+}
+.portal-world--christmas .portal-action-grid--round a.portal-action-card:hover,
+.portal-world--christmas .portal-action-grid--round a.portal-action-card:focus-visible {
+  background: linear-gradient(145deg, #435c47, #244338);
+  border-color: #f3ddac;
+  transform: translateY(-3px);
+  box-shadow: inset 0 0 0 4px #223c33, inset 0 0 0 5px #e3b66f,
+    0 14px 28px rgba(0,0,0,.32), 0 0 18px rgba(241,207,148,.25);
+}
+@media (max-width: 400px) {
+  .portal-world--christmas .portal-action-grid--round { gap: .35rem; }
+  .portal-world--christmas .portal-action-grid--round .portal-action-card { padding: .46rem; }
+  .portal-world--christmas .portal-action-grid--round .portal-action-card strong {
+    font-size: clamp(.85rem, 3.9vw, 1.05rem);
+  }
+}
+
+/* LUMOS: apagado por padrão; ligado, as luzes e partes do portal brilham. */
+.portal-world--christmas:not(.portal-world--lumos) .portal-xmas-bulb,
+.portal-world--christmas:not(.portal-world--lumos) .portal-festive-accents__bulb {
+  animation: none;
+  opacity: .17;
+  filter: brightness(.48);
+  box-shadow: 0 0 2px 1px currentColor;
+}
+.portal-world--christmas.portal-world--lumos .portal-xmas-bulb,
+.portal-world--christmas.portal-world--lumos .portal-festive-accents__bulb {
+  opacity: 1;
+  filter: brightness(1.3);
+  box-shadow: 0 0 10px 4px currentColor, 0 0 26px 7px currentColor;
+  animation: portal-four-colour-twinkle 1.25s ease-in-out infinite alternate;
+}
+.portal-world--christmas.portal-world--lumos .portal-magic-hero {
+  background: radial-gradient(ellipse at 50% 42%, rgba(221,186,120,.20), rgba(18,26,35,.07) 55%, transparent 80%), #111923;
+  box-shadow: inset 0 0 85px rgba(224,182,115,.14);
+}
+.portal-world--christmas.portal-world--lumos .portal-magic-welcome-title {
+  text-shadow: 0 0 24px rgba(232,197,125,.40), 0 5px 24px rgba(0,0,0,.5);
+}
+.portal-world--christmas.portal-world--lumos .portal-christmas-hall {
+  background: radial-gradient(circle at 50% 25%, rgba(230,199,138,.16), transparent 67%), #1b2530;
+}
+.portal-world--christmas.portal-world--lumos .portal-natal-highlight {
+  box-shadow: inset 0 0 48px rgba(253,215,156,.15), 0 15px 38px rgba(0,0,0,.22);
+}
+.portal-world--christmas .portal-xmas-lights-toggle {
+  min-width: 105px;
+  justify-content: center;
+}
+.portal-world--christmas .portal-xmas-decor--bright .portal-xmas-lights-toggle {
+  background: #58294f;
+  border-color: #f6d48e;
+  color: #fff4d9;
+  box-shadow: 0 0 13px 3px rgba(241,186,232,.45), 0 0 28px rgba(234,195,130,.42);
+  animation: portal-lumos-button-blink 1.45s ease-in-out infinite alternate;
+}
+@keyframes portal-lumos-button-blink {
+  0%, 100% {
+    background: #47243d;
+    box-shadow: 0 0 7px 1px rgba(241,186,232,.32), 0 0 14px rgba(234,195,130,.24);
+  }
+  55% {
+    background: #753e66;
+    box-shadow: 0 0 17px 5px rgba(241,186,232,.62), 0 0 35px rgba(234,195,130,.62);
+  }
+}
+
+/* Inspirações: velas leves flutuam nas bordas, atrás do conteúdo. */
+.portal-inspired-main > .portal-inspiration-floating-candles {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.portal-inspiration-floating-candle {
+  position: absolute;
+  display: block;
+  width: 11px;
+  height: 45px;
+  border-radius: 3px 3px 5px 5px;
+  background: linear-gradient(90deg, #9e8b6d, #f7e6c3 22%, #e7cda7 65%, #8d785d);
+  opacity: .58;
+  box-shadow: inset -2px 0 3px rgba(0,0,0,.16), 0 0 20px rgba(229,195,131,.1);
+  animation: portal-inspiration-candle-float 6s ease-in-out infinite alternate;
+}
+.portal-inspiration-floating-flame {
+  position: absolute;
+  bottom: calc(100% + 2px);
+  left: 2px;
+  display: block;
+  width: 7px;
+  height: 13px;
+  border-radius: 65% 8% 65% 65%;
+  background: #f6c574;
+  transform: rotate(12deg);
+  box-shadow: 0 0 10px 3px rgba(246,185,83,.55), 0 0 24px rgba(237,159,79,.32);
+  animation: portal-inspiration-flame-flicker 2.1s ease-in-out infinite alternate;
+}
+.portal-inspiration-floating-candle--1 { left: 3%; top: 4%; animation-delay: -.6s; }
+.portal-inspiration-floating-candle--2 { right: 4%; top: 12%; animation-delay: -2.1s; }
+.portal-inspiration-floating-candle--3 { left: 7%; top: 28%; animation-delay: -3.8s; }
+.portal-inspiration-floating-candle--4 { right: 6%; top: 40%; animation-delay: -1.3s; }
+.portal-inspiration-floating-candle--5 { left: 3%; top: 57%; animation-delay: -4.8s; }
+.portal-inspiration-floating-candle--6 { right: 4%; top: 68%; animation-delay: -2.6s; }
+.portal-inspiration-floating-candle--7 { left: 6%; top: 82%; animation-delay: -1.8s; }
+.portal-inspiration-floating-candle--8 { right: 9%; top: 94%; animation-delay: -3.3s; }
+@keyframes portal-inspiration-candle-float {
+  from { transform: translateY(-8px) rotate(-2deg); }
+  to { transform: translateY(15px) rotate(3deg); }
+}
+@keyframes portal-inspiration-flame-flicker {
+  from { opacity: .6; transform: rotate(8deg) scale(.85); }
+  to { opacity: 1; transform: rotate(-6deg) scale(1.12); }
+}
+@media (max-width: 600px) {
+  .portal-inspiration-floating-candle--3,
+  .portal-inspiration-floating-candle--6,
+  .portal-inspiration-floating-candle--8 { display: none; }
+  .portal-inspiration-floating-candle { opacity: .35; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .portal-world--christmas .portal-xmas-decor--bright .portal-xmas-lights-toggle,
+  .portal-inspiration-floating-candle,
+  .portal-inspiration-floating-flame,
+  .portal-world--christmas.portal-world--lumos .portal-xmas-bulb,
+  .portal-world--christmas.portal-world--lumos .portal-festive-accents__bulb {
+    animation: none;
+  }
+}
