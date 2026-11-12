@@ -1,6 +1,6 @@
 import { getHouse, type HouseId } from "@/lib/house-cup";
 
-export function HouseBadge({ house, large = false }: { house?: HouseId | null; large?: boolean }) {
+export function HouseBadge({ house, large = false }: { house?: HouseId | null | undefined; large?: boolean }) {
   const detail = getHouse(house);
   if (!detail) return null;
   return (

@@ -50,10 +50,10 @@ export function HouseCup() {
             <div key={h.id} className="rounded-xl border border-[#d6cfbb] bg-white/65 px-3 py-4 text-center">
               <div className="flex justify-center"><HouseBadge house={h.id} large /></div>
               <p className="mt-2 text-xs font-semibold">{h.label}</p>
-              <p className="mt-1 font-display text-3xl tabular-nums">{loading ? "—" : scores[h.id]}</p>
-              <p className="text-xs text-[#5b654b]">{percentage(scores[h.id], total)}% dos participantes</p>
+              <p className="mt-1 font-display text-3xl tabular-nums">{loading ? "—" : (scores[h.id] ?? 0)}</p>
+              <p className="text-xs text-[#5b654b]">{percentage(scores[h.id] ?? 0, total)}% dos participantes</p>
               <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-[#dcdccf]"><div className="h-full rounded-full"
-                style={{ width: `${percentage(scores[h.id], total)}%`, backgroundColor: h.background }} /></div>
+                style={{ width: `${percentage(scores[h.id] ?? 0, total)}%`, backgroundColor: h.background }} /></div>
             </div>
           ))}
         </div>}
