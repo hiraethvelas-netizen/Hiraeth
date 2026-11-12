@@ -7,7 +7,7 @@ const blank = { title: "", image_url: "", href: "/loja", position: 1, active: tr
 
 export const Route = createFileRoute("/admin/banners")({ component: BannersAdmin });
 
-function BannersAdmin() {
+export function BannersAdmin() {
   const [items, setItems] = useState<Banner[]>([]);
   const [form, setForm] = useState({ ...blank });
   const [editing, setEditing] = useState<string | null>(null);
