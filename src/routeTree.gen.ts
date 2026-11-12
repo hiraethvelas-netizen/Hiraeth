@@ -43,6 +43,7 @@ import { Route as AdminFinanceiroRouteImport } from './routes/admin/financeiro'
 import { Route as AdminNotificacoesRouteImport } from './routes/admin/notificacoes'
 import { Route as AdminPedidosRouteImport } from './routes/admin/pedidos'
 import { Route as AdminPortaisRouteImport } from './routes/admin/portais'
+import { Route as AdminPortalInspiracoesRouteImport } from './routes/admin/portal-inspiracoes'
 import { Route as AdminProdutosRouteImport } from './routes/admin/produtos'
 import { Route as AdminPromocoesRouteImport } from './routes/admin/promocoes'
 import { Route as AdminSobreRouteImport } from './routes/admin/sobre'
@@ -221,6 +222,11 @@ const AdminPortaisRoute = AdminPortaisRouteImport.update({
   path: '/portais',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminPortalInspiracoesRoute = AdminPortalInspiracoesRouteImport.update({
+  id: '/portal-inspiracoes',
+  path: '/portal-inspiracoes',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminProdutosRoute = AdminProdutosRouteImport.update({
   id: '/produtos',
   path: '/produtos',
@@ -285,6 +291,7 @@ export interface FileRoutesByFullPath {
   '/admin/notificacoes': typeof AdminNotificacoesRoute
   '/admin/pedidos': typeof AdminPedidosRoute
   '/admin/portais': typeof AdminPortaisRoute
+  '/admin/portal-inspiracoes': typeof AdminPortalInspiracoesRoute
   '/admin/produtos': typeof AdminProdutosRoute
   '/admin/promocoes': typeof AdminPromocoesRoute
   '/admin/sobre': typeof AdminSobreRoute
@@ -325,6 +332,7 @@ export interface FileRoutesByTo {
   '/admin/notificacoes': typeof AdminNotificacoesRoute
   '/admin/pedidos': typeof AdminPedidosRoute
   '/admin/portais': typeof AdminPortaisRoute
+  '/admin/portal-inspiracoes': typeof AdminPortalInspiracoesRoute
   '/admin/produtos': typeof AdminProdutosRoute
   '/admin/promocoes': typeof AdminPromocoesRoute
   '/admin/sobre': typeof AdminSobreRoute
@@ -368,6 +376,7 @@ export interface FileRoutesById {
   '/admin/notificacoes': typeof AdminNotificacoesRoute
   '/admin/pedidos': typeof AdminPedidosRoute
   '/admin/portais': typeof AdminPortaisRoute
+  '/admin/portal-inspiracoes': typeof AdminPortalInspiracoesRoute
   '/admin/produtos': typeof AdminProdutosRoute
   '/admin/promocoes': typeof AdminPromocoesRoute
   '/admin/sobre': typeof AdminSobreRoute
@@ -411,6 +420,7 @@ export interface FileRouteTypes {
     | '/admin/notificacoes'
     | '/admin/pedidos'
     | '/admin/portais'
+    | '/admin/portal-inspiracoes'
     | '/admin/produtos'
     | '/admin/promocoes'
     | '/admin/sobre'
@@ -451,6 +461,7 @@ export interface FileRouteTypes {
     | '/admin/notificacoes'
     | '/admin/pedidos'
     | '/admin/portais'
+    | '/admin/portal-inspiracoes'
     | '/admin/produtos'
     | '/admin/promocoes'
     | '/admin/sobre'
@@ -493,6 +504,7 @@ export interface FileRouteTypes {
     | '/admin/notificacoes'
     | '/admin/pedidos'
     | '/admin/portais'
+    | '/admin/portal-inspiracoes'
     | '/admin/produtos'
     | '/admin/promocoes'
     | '/admin/sobre'
@@ -766,6 +778,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminPortaisRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/portal-inspiracoes': {
+      id: '/admin/portal-inspiracoes'
+      path: '/portal-inspiracoes'
+      fullPath: '/admin/portal-inspiracoes'
+      preLoaderRoute: typeof AdminPortalInspiracoesRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/produtos': {
       id: '/admin/produtos'
       path: '/produtos'
@@ -841,6 +860,7 @@ interface AdminRouteChildren {
   AdminNotificacoesRoute: typeof AdminNotificacoesRoute
   AdminPedidosRoute: typeof AdminPedidosRoute
   AdminPortaisRoute: typeof AdminPortaisRoute
+  AdminPortalInspiracoesRoute: typeof AdminPortalInspiracoesRoute
   AdminProdutosRoute: typeof AdminProdutosRoute
   AdminPromocoesRoute: typeof AdminPromocoesRoute
   AdminSobreRoute: typeof AdminSobreRoute
@@ -858,6 +878,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminNotificacoesRoute: AdminNotificacoesRoute,
   AdminPedidosRoute: AdminPedidosRoute,
   AdminPortaisRoute: AdminPortaisRoute,
+  AdminPortalInspiracoesRoute: AdminPortalInspiracoesRoute,
   AdminProdutosRoute: AdminProdutosRoute,
   AdminPromocoesRoute: AdminPromocoesRoute,
   AdminSobreRoute: AdminSobreRoute,
