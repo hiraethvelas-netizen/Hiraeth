@@ -21,6 +21,9 @@ vi.mock("@tanstack/react-router", () => ({
   Link: ({ children }: { children: ReactNode }) => <span>{children}</span>,
 }));
 vi.mock("@/components/admin/PortalFragmentsEditor", () => ({ PortalFragmentsEditor: () => null }));
+vi.mock("@/routes/admin/portal-inspiracoes", () => ({
+  PortalInspiracoesAdmin: () => <div>Editor de fotos integrado</div>,
+}));
 vi.mock("@/components/admin/PortalGalleryEditor", () => ({ PortalGalleryEditor: () => null }));
 vi.mock("sonner", () => ({ toast: { error: vi.fn(), success: mocks.success } }));
 vi.mock("@/integrations/supabase/client", () => ({
@@ -55,8 +58,9 @@ afterEach(() => {
 describe("NFC: endereço permanente de portais publicados", () => {
   it("preserva o link gravado nas velas ao editar nome e vídeo", async () => {
     render(<AdminPortais />);
-    expect(await screen.findByText("Editar fotos das inspirações")).toBeInTheDocument();
     fireEvent.click(await screen.findByRole("button", { name: "Editar" }));
+    expect(screen.getByRole("navigation", { name: "Editar seções do portal" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Fotos e inspirações" })).toBeInTheDocument();
     expect(screen.getByText("/portal/o-mundo-de-magia", { selector: "span" })).toBeInTheDocument();
     expect(
       screen.getAllByRole("combobox")[0]!.querySelector('option[value="published"]'),
@@ -81,5 +85,16 @@ describe("NFC: endereço permanente de portais publicados", () => {
     );
     expect(mocks.update.mock.calls[0]![0]).not.toHaveProperty("slug");
     expect(mocks.eq).toHaveBeenCalledWith("id", publishedPortal.id);
+  });
+
+  it("mostra o editor de fotografias dentro da aba Editar do portal NFC", async () => {
+    render(<AdminPortais />);
+    fireEvent.click(await screen.findByRole("button", { name: "Editar" }));
+    fireEvent.click(screen.getByRole("button", { name: "Fotos e inspirações" }));
+    expect(screen.getByText("Editor de fotos integrado")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Configurações do portal" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Voltar aos portais" }));
+    expect(await screen.findByRole("button", { name: "Editar" })).toBeInTheDocument();
+    expect(screen.queryByText("Editor de fotos integrado")).not.toBeInTheDocument();
   });
 });
