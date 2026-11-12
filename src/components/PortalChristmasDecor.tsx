@@ -24,7 +24,7 @@ export function PortalChristmasDecor({ scene, active, onToggle }: Props) {
       className={`portal-xmas-decor portal-xmas-decor--${scene}${brighter ? " portal-xmas-decor--bright" : ""}`}
     >
       <div className="portal-xmas-atmosphere" aria-hidden="true">
-        {scene === "hero" && brighter && <div className="portal-xmas-extra-sparks" aria-hidden="true">
+        {brighter && <div className="portal-xmas-extra-sparks" aria-hidden="true">
           {[
             ["11%", "25%"], ["23%", "62%"], ["35%", "17%"], ["47%", "74%"],
             ["58%", "35%"], ["71%", "57%"], ["83%", "18%"], ["91%", "72%"],
