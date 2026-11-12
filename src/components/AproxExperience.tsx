@@ -16,7 +16,7 @@ export function AproxExperience() {
     <p className="mx-auto mt-3 max-w-md text-center text-sm leading-6 text-[#eee3cc]">
       Você sabia que algumas velas Hiraeth guardam uma experiência digital? Descubra o que acontece quando a tecnologia encontra as histórias.
     </p>
-    <button type="button" aria-expanded={opened} aria-controls="aprox-letter"
+    <button type="button" aria-label={opened ? "Fechar carta" : "Abrir carta da Aprox"} aria-expanded={opened} aria-controls="aprox-letter"
       onClick={() => setOpened(value => !value)}
       className="group relative mx-auto mt-6 flex w-full max-w-[260px] flex-col items-center gap-3 rounded-2xl p-3 text-[#f7efda] transition-transform hover:-translate-y-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#f4d49e] motion-reduce:transition-none">
       <span aria-hidden="true" className="relative flex h-32 w-full max-w-[225px] items-center justify-center overflow-hidden rounded-xl border border-[#d4b680] bg-[#e6d4b2] shadow-[0_12px_26px_rgba(0,0,0,.24)]">
