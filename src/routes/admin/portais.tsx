@@ -328,7 +328,7 @@ function AdminPortais() {
           </label>
           <div className="relative z-10 flex flex-wrap gap-3">
             <button type="submit" className="btn-gold border border-amber-300/60">Salvar alterações</button>
-            <button type="button" onClick={() => setShowForm(false)} className="border border-amber-700/60 px-4 py-2 text-sm text-amber-100/75 hover:border-amber-300 hover:text-amber-100">Cancelar</button>
+            <button type="button" onClick={() => { setShowForm(false); setEditing(null); setEditorTab("config"); }} className="border border-amber-700/60 px-4 py-2 text-sm text-amber-100/75 hover:border-amber-300 hover:text-amber-100">Cancelar</button>
           </div>
         </form>
       )}
