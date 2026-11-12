@@ -54,6 +54,8 @@ describe("Outras Chamas para Descobrir", () => {
     const section = await screen.findByRole("region", { name: "Outras Chamas para Descobrir" });
     expect(section).toHaveTextContent("Uma história leva à outra");
     const related = screen.getByTestId("related-products");
+    expect(related).toHaveClass("overflow-x-auto", "snap-x", "snap-mandatory");
+    expect(related).toHaveAttribute("tabindex", "0");
     await waitFor(() => expect(related.querySelectorAll("a")).toHaveLength(2));
     expect(related.querySelectorAll("a")[0]).toHaveAttribute("href", "/produto/vela-same");
     expect(screen.queryByText("Vela current")).not.toBeInTheDocument();
