@@ -73,25 +73,25 @@ describe("Inspirações: experiência de descoberta", () => {
     expect(container.querySelector(".portal-house-card--leao")).toBeInTheDocument();
   });
 
-  it("mostra só o título e introdução do Natal e revela cada vela na caixa vermelha com foto", () => {
+  it("reaproveita a vitrine vermelha do Natal e abre a história em diálogo", () => {
     const intro = make("natal-intro", 7, "O Natal no Mundo da Magia",
-      "Um texto mais longo que deve ficar guardado.",
+      "Um texto de abertura para as duas velas.",
       "Duas velas, duas memórias.");
     const { container } = render(<PortalInspirationChapters fragments={[...data, intro]} magicWorld />);
     const natal = container.querySelector("#inspiracao-natal") as HTMLElement;
     expect(within(natal).getAllByText("O Natal no Mundo da Magia")).toHaveLength(1);
-    expect(within(natal).getByText("Referência dos livros")).toBeInTheDocument();
-    expect(within(natal).queryByText("Um texto mais longo que deve ficar guardado.")).not.toBeInTheDocument();
+    expect(natal.querySelector(".portal-natal-highlight")).toBeInTheDocument();
+    expect(natal.querySelector(".portal-natal-discovery__grid")).toBeInTheDocument();
+    expect(within(natal).getByText("Um texto de abertura para as duas velas.")).toBeInTheDocument();
     const photo = within(natal).getByRole("img", { name: "Vela Entre Fios e Magia" });
     expect(photo).toHaveAttribute("src", expect.stringMatching(/.+/));
     const action = within(natal).getByRole("button", { name: /Entre Fios e Magia/ });
-    expect(action).toHaveAttribute("aria-expanded", "false");
     fireEvent.click(action);
-    expect(action).toHaveAttribute("aria-expanded", "true");
-    expect(within(natal).getByText("O primeiro presente de Natal.")).toBeInTheDocument();
-    expect(within(natal).getByText("Aroma: Baunilha & Canela")).toBeInTheDocument();
-    fireEvent.click(action);
-    expect(within(natal).queryByText("O primeiro presente de Natal.")).not.toBeInTheDocument();
+    const dialog = within(natal).getByRole("dialog");
+    expect(within(dialog).getByText("O primeiro presente de Natal.")).toBeInTheDocument();
+    expect(within(dialog).getByText("Aroma: Baunilha & Canela")).toBeInTheDocument();
+    fireEvent.click(within(dialog).getByRole("button", { name: "Fechar informações da vela" }));
+    expect(within(natal).queryByRole("dialog")).not.toBeInTheDocument();
   });
 
   it("preserva a apresentação original dos demais portais", () => {
