@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { ArrowLeft, X } from "lucide-react";
+import { ArrowLeft, ChevronDown, X } from "lucide-react";
+import { portalShortTeaser, splitPortalStory } from "@/lib/portal-story-preview";
 import type { Tables } from "@/integrations/supabase/types";
 import entreFiosPhoto from "@/assets/natal-entre-fios-recorte.webp";
 import grandeSalaoPhoto from "@/assets/natal-grande-salao-recorte.webp";
@@ -21,6 +22,7 @@ const previousReferences: Record<number, string> = {
 export function PortalChristmasShowcase({ fragments }: Props) {
   const [opened, setOpened] = useState<number | null>(null);
   const [aromaOpen, setAromaOpen] = useState(false);
+  const [continued, setContinued] = useState(false);
   const closeRef = useRef<HTMLButtonElement>(null);
   const triggerRefs = useRef(new Map<number, HTMLButtonElement>());
   const previousPosition = useRef<number | null>(null);
@@ -29,6 +31,7 @@ export function PortalChristmasShowcase({ fragments }: Props) {
     .filter((fragment): fragment is Fragment => Boolean(fragment));
   const selected = candles.find(fragment => fragment.position === opened);
   const [storyText, pyramidText] = (selected?.body ?? "").split(/\n\nPirâmide olfativa\s*\n\n/i);
+  const storyParts = splitPortalStory(storyText ?? "", 330);
   const pyramidRows = pyramidText ? pyramidText.split(/\n\n/).map(section => {
     const [heading, ...notes] = section.split("\n");
     return { heading, notes: notes.join(" ").trim() };
@@ -64,7 +67,7 @@ export function PortalChristmasShowcase({ fragments }: Props) {
           className="portal-natal-discovery__candle"
           aria-label={`Conhecer ${fragment.title}`}
           aria-haspopup="dialog"
-          onClick={() => { setAromaOpen(false); setOpened(position); }}>
+          onClick={() => { setAromaOpen(false); setContinued(false); setOpened(position); }}>
           <span className="portal-natal-discovery__picture">
             {photoUrl ? <img className="portal-natal-discovery__photo" src={photoUrl}
               alt={`Vela ${fragment.title}`} loading="lazy" /> : <span className="portal-natal-discovery__placeholder" aria-hidden="true">
@@ -94,8 +97,8 @@ export function PortalChristmasShowcase({ fragments }: Props) {
           <p className="portal-natal-discovery__kicker">A história por trás da chama</p>
           <h3 id="portal-natal-modal-title" className="portal-natal-discovery__reveal-title">{selected.title}</h3>
           <p className="portal-natal-discovery__teaser">
-            {selected.reference && selected.reference !== previousReferences[selected.position ?? -1]
-              ? selected.reference : previewLines[selected.position ?? -1]}
+            {portalShortTeaser(selected.reference && selected.reference !== previousReferences[selected.position ?? -1]
+              ? selected.reference : previewLines[selected.position ?? -1], 130)}
           </p>
           {selected.context && pyramidRows.length === 0 &&
             <p className="portal-natal-discovery__aroma">{selected.context}</p>}
@@ -115,7 +118,17 @@ export function PortalChristmasShowcase({ fragments }: Props) {
             </div>}
           </>}
         </div>
-        <p id="portal-natal-modal-story" className="portal-natal-discovery__story">{storyText}</p>
+        <div id="portal-natal-modal-story" className="portal-natal-discovery__story">
+          <p className="whitespace-pre-line">{storyParts.preview}</p>
+          {storyParts.rest && <>
+            <button type="button" aria-expanded={continued} onClick={() => setContinued(value => !value)}
+              className="portal-story-continue">
+              {continued ? "Mostrar menos" : "Continuar a história"}
+              <ChevronDown size={14} aria-hidden="true" className={continued ? "rotate-180" : ""} />
+            </button>
+            {continued && <p className="mt-4 whitespace-pre-line">{storyParts.rest}</p>}
+          </>}
+        </div>
         <button type="button" className="portal-natal-discovery__close" onClick={() => setOpened(null)}>
           <ArrowLeft size={16} aria-hidden="true"/> Voltar às velas
         </button>
