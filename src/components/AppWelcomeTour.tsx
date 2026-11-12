@@ -10,7 +10,7 @@ const slides = [
 
 function eligiblePage(): boolean {
   if (typeof window === "undefined") return false;
-  return /^\/(inicio|loja|produto|sobre|biblioteca|comunidade|carrinho)(\/|$)/.test(window.location.pathname);
+  return window.location.pathname === "/" || /^\/(inicio|loja|produto|sobre|biblioteca|comunidade|carrinho)(\/|$)/.test(window.location.pathname);
 }
 
 export function openHiraethWelcomeTour() {
@@ -53,7 +53,7 @@ export function AppWelcomeTour() {
       className="hiraeth-welcome-card relative my-auto max-h-[92dvh] w-full max-w-lg overflow-y-auto rounded-3xl border border-[#d8bc85] bg-[#f7efda] p-6 text-[#34402b] shadow-[0_28px_80px_rgba(0,0,0,.5)] outline-none sm:p-9">
       <button type="button" onClick={finish} aria-label="Pular apresentação" className="absolute right-4 top-4 rounded-full border border-[#878e47]/50 p-2 text-[#34402b] hover:bg-[#e9e7d2]"><X size={19}/></button>
       <div className="mb-7 flex items-center gap-3 text-[#5b1d04]" aria-hidden="true"><Flame size={29}/><span className="font-display text-3xl italic">Hiraeth</span></div>
-      <p className="text-xs font-semibold uppercase tracking-[.2em] text-[#6f763d]">{slide.eyebrow}</p>
+      <p className="text-xs font-semibold uppercase tracking-[.2em] text-[#58632f]">{slide.eyebrow}</p>
       <h2 id="hiraeth-welcome-title" className="mt-4 font-display text-4xl leading-[1.1] sm:text-5xl">{slide.title}</h2>
       <p className="mt-5 text-sm leading-7 text-[#4c513f] sm:text-base">{slide.body}</p>
       {step === 1 && <a href="/sobre#aprox-nfc" onClick={finish}
