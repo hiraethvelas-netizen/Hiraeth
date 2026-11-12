@@ -228,7 +228,7 @@ export function CuratedProductGrid({
                   <Heart size={isLarge ? 20 : 14} strokeWidth={1.8}
                     fill={wishlistIds.has(p.id) ? "currentColor" : "none"} />
                 </button>
-                {badge && <span className="hiraeth-product-badge absolute left-1 top-1 z-10 rounded-full bg-[#65744d] px-1.5 py-1 text-[8px] uppercase text-[#f7efda] sm:left-3 sm:top-3 sm:px-3">{badgeText(badge)}</span>}
+                {badge && <span className={"hiraeth-product-badge absolute left-1 top-1 z-10 rounded-full px-1.5 py-1 text-[8px] font-semibold uppercase tracking-wide sm:left-3 sm:top-3 sm:px-3 " + (badge === "limited" ? "hiraeth-product-badge--limited" : "bg-[#65744d] text-[#f7efda]")}>{badgeText(badge)}</span>}
               </div>
               <div className="px-0.5 pb-2 pt-2 sm:px-2 sm:pt-3">
                 {temporary && <p className="mb-1 text-[9px] text-primary">Edição temporária</p>}
