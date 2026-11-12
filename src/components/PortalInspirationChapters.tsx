@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { BookOpen, ChevronDown, Flame, Sparkles, X } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
-import entreFiosPhoto from "@/assets/natal-entre-fios-recorte.webp";
-import grandeSalaoPhoto from "@/assets/natal-grande-salao-recorte.webp";
+import { PortalChristmasShowcase } from "@/components/PortalChristmasShowcase";
+import { PortalFestiveAccents } from "@/components/PortalFestiveAccents";
 
 type Fragment = Tables<"portal_fragments">;
 type House = "leao" | "texugo" | "serpente" | "aguia";
@@ -133,35 +133,6 @@ function RevealStoryCard({ fragment, kind = "story", featured = false }: {
 }
 
 
-function ChristmasInspirationCard({ fragment }: { fragment: Fragment }) {
-  const [expanded, setExpanded] = useState(false);
-  const contentId = `christmas-inspiration-${fragment.id}`;
-  const photo = fragment.image_url || (fragment.position === 8 ? entreFiosPhoto : grandeSalaoPhoto);
-
-  return <article className="portal-christmas-inspiration">
-    <button type="button" className="portal-christmas-inspiration__trigger"
-      aria-expanded={expanded} aria-controls={contentId}
-      onClick={() => setExpanded(value => !value)}>
-      <span className="portal-christmas-inspiration__image-wrap">
-        <img src={photo} className="portal-christmas-inspiration__image"
-          alt={fragment.caption || `Vela ${fragment.title}`} loading="lazy" />
-      </span>
-      <span className="portal-christmas-inspiration__name">{fragment.title}</span>
-      <span className="portal-christmas-inspiration__hint">
-        <Sparkles size={16} aria-hidden="true" />
-        {expanded ? "Recolher a história" : "Revelar a história e o aroma"}
-        <ChevronDown size={16} aria-hidden="true" className={expanded ? "rotate-180" : ""}/>
-      </span>
-    </button>
-    {expanded && <div id={contentId} className="portal-christmas-inspiration__details"
-      role="region" aria-label={`Inspiração de ${fragment.title}`}>
-      {fragment.reference && <p className="portal-christmas-inspiration__reference">{fragment.reference}</p>}
-      <p className="whitespace-pre-line text-sm leading-7 sm:text-base">{fragment.body}</p>
-      {fragment.context && <p className="portal-christmas-inspiration__aroma">{fragment.context}</p>}
-    </div>}
-  </article>;
-}
-
 export function PortalInspirationChapters({ fragments, magicWorld }: { fragments: Fragment[]; magicWorld: boolean }) {
   const [letterOpen, setLetterOpen] = useState(false);
   if (!magicWorld) {
@@ -240,13 +211,18 @@ export function PortalInspirationChapters({ fragments, magicWorld }: { fragments
 
     {christmas.length > 0 && <section id="inspiracao-natal" aria-labelledby="portal-natal-inspiration-title" className="scroll-mt-8">
       <p className="portal-discovery__chapter">V · Memórias de inverno</p>
-      <h3 id="portal-natal-inspiration-title" className="portal-script-title mb-5 mt-2 text-center">O Natal no Mundo da Magia</h3>
-      {at(7).map(fragment => <div key={fragment.id} className="portal-christmas-inspiration__intro mx-auto mb-6 max-w-2xl">
-        <p>{fragment.reference || "Duas velas, duas lembranças para guardar o Natal em cada chama."}</p>
-      </div>)}
-      <div className="grid items-start gap-4 sm:grid-cols-2">
-        {christmas.filter(fragment => fragment.position !== 7).map(fragment =>
-          <ChristmasInspirationCard key={fragment.id} fragment={fragment} />)}
+      <div className="portal-world--christmas">
+        <div className="portal-natal-highlight">
+          <PortalFestiveAccents variant="natal" />
+          <div className="mb-9 text-center">
+            <p className="text-xs uppercase tracking-[.28em] text-[var(--portal-accent)]">Duas velas, duas lembranças</p>
+            <h3 id="portal-natal-inspiration-title" className="portal-script-title mt-3">O Natal no Mundo da Magia</h3>
+            <p className="mx-auto mt-4 max-w-2xl whitespace-pre-line text-sm leading-7 opacity-85 sm:text-base">
+              {at(7)[0]?.body || "O Natal naquele castelo sempre me lembra amizade, presentes feitos com carinho e um salão iluminado de magia. Foi desse aconchego que nasceram duas velas especiais. Toque em cada uma para conhecer sua história."}
+            </p>
+          </div>
+          <PortalChristmasShowcase fragments={christmas.filter(fragment => fragment.position === 8 || fragment.position === 9)} />
+        </div>
       </div>
     </section>}
 
