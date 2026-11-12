@@ -22,6 +22,9 @@ vi.mock("@/components/PortalChristmasDecor", () => ({
     scene: string; active?: boolean; onToggle?: () => void;
   }) => scene === "hero" ? <button type="button" onClick={onToggle} aria-pressed={active}>Lumos</button> : null,
 }));
+vi.mock("@/components/PortalFeaturedProducts", () => ({
+  PortalFeaturedProducts: () => <section data-testid="portal-acervo-final">Conheça o Acervo</section>,
+}));
 vi.mock("@/components/PortalIntro", () => ({
   PortalIntro: ({ onEnter }: { onEnter: () => void }) => (
     <button type="button" onClick={onEnter}>
@@ -146,9 +149,22 @@ describe("Portal NFC: recuperação de falhas de carregamento", () => {
     fireEvent.click(lumos);
     expect(page).toHaveClass("portal-world--lumos");
     expect(lumos).toHaveAttribute("aria-pressed", "true");
+    expect(container.querySelector(".portal-lumos-ambient")).toHaveAttribute("data-active", "true");
+    expect(container.querySelectorAll(".portal-lumos-ambient__light")).toHaveLength(52);
     fireEvent.click(lumos);
     expect(page).not.toHaveClass("portal-world--lumos");
     expect(lumos).toHaveAttribute("aria-pressed", "false");
+    expect(container.querySelector(".portal-lumos-ambient")).toHaveAttribute("data-active", "false");
+  });
+
+  it("coloca a vitrine Conheça o Acervo como última seção da página", async () => {
+    mocks.slug = "o-mundo-de-magia";
+    mocks.returning = true;
+    const { container } = render(<PortalPage />);
+    const acervo = await screen.findByTestId("portal-acervo-final");
+    const main = container.querySelector("main");
+    expect(main?.lastElementChild).toBe(acervo);
+    expect(container.querySelector(".portal-christmas-hall #portal-acervo")).toBeNull();
   });
 
   it("exibe a carta após os atalhos e permite ler o texto compacto", async () => {
