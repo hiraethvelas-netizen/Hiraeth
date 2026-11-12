@@ -35,4 +35,26 @@ describe("Vitrine natalina do Portal NFC", () => {
     fireEvent.click(screen.getByRole("button", { name: /Fechar informações da vela/ }));
     expect(screen.queryByText("Inspiração: amigos no grande salão.")).not.toBeInTheDocument();
   });
+  it("mostra a pirâmide de Chocolate & Baunilha apenas em Revelar aroma", () => {
+    const chocolate = {
+      ...fragments[0],
+      context: "Aroma: Chocolate & Baunilha",
+      body: "O primeiro suéter da Sra. Weasley.\n\nPirâmide olfativa\n\nSaída — Notas tostadas\nAnis, pêssego e cacau.\n\nCorpo — Chocolate cremoso\nChocolate e leite.\n\nFundo — Calor amadeirado\nBaunilha e âmbar.",
+    } as Fragment;
+    render(<PortalChristmasShowcase fragments={[chocolate, fragments[1]!]} />);
+    fireEvent.click(screen.getByRole("button", { name: /Conhecer Entre Fios e Magia/ }));
+    const dialog = screen.getByRole("dialog", { name: "Entre Fios e Magia" });
+    expect(screen.getByText("O primeiro suéter da Sra. Weasley.")).toBeInTheDocument();
+    expect(screen.queryByText("Anis, pêssego e cacau.")).not.toBeInTheDocument();
+    const revelar = screen.getByRole("button", { name: "Revelar aroma" });
+    expect(revelar).toHaveAttribute("aria-expanded", "false");
+    fireEvent.click(revelar);
+    expect(dialog).toContainElement(screen.getByText("Aroma: Chocolate & Baunilha"));
+    expect(screen.getByText("Anis, pêssego e cacau.")).toBeInTheDocument();
+    expect(screen.getByText("Chocolate e leite.")).toBeInTheDocument();
+    expect(screen.getByText("Baunilha e âmbar.")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Ocultar aroma" }));
+    expect(screen.queryByText("Anis, pêssego e cacau.")).not.toBeInTheDocument();
+  });
+
 });
