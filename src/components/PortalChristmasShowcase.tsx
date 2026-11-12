@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { ArrowLeft, X } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 import entreFiosPhoto from "@/assets/natal-entre-fios-recorte.webp";
@@ -75,8 +76,12 @@ export function PortalChristmasShowcase({ fragments }: Props) {
         </button>;
       })}
     </div>
+    <p className="portal-natal-discovery__cta">
+      ✦ Toque em uma das velas para abrir a história que inspirou sua fragrância ✦
+    </p>
 
-    {selected && <div className="portal-natal-modal-backdrop" onMouseDown={event => {
+    {selected && createPortal(<div className="portal-world--christmas portal-natal-overlay-root">
+      <div className="portal-natal-modal-backdrop" onMouseDown={event => {
         if (event.target === event.currentTarget) setOpened(null);
       }}>
       <section role="dialog" aria-modal="true" aria-labelledby="portal-natal-modal-title"
@@ -115,6 +120,7 @@ export function PortalChristmasShowcase({ fragments }: Props) {
           <ArrowLeft size={16} aria-hidden="true"/> Voltar às velas
         </button>
       </section>
-    </div>}
+      </div>
+    </div>, document.body)}
   </div>;
 }

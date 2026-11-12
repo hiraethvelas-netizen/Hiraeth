@@ -2268,7 +2268,7 @@ body > div {
 }
 .portal-house-ribbon--leao { --house-a: #852b31; --house-b: #d3ac5e; }
 .portal-house-ribbon--texugo { --house-a: #e4bc5c; --house-b: #24221e; }
-.portal-house-ribbon--aguia { --house-a: #22517c; --house-b: #c5cbd0; }
+.portal-house-ribbon--aguia { --house-a: #22517c; --house-b: #b5793c; }
 .portal-house-ribbon--serpente { --house-a: #28624b; --house-b: #c4c9c6; }
 
 .portal-world .portal-house-card {
@@ -2285,7 +2285,7 @@ body > div {
 }
 .portal-world .portal-house-card--leao { --house-a: #852b31; --house-b: #d3ac5e; }
 .portal-world .portal-house-card--texugo { --house-a: #e4bc5c; --house-b: #24221e; }
-.portal-world .portal-house-card--aguia { --house-a: #22517c; --house-b: #c5cbd0; }
+.portal-world .portal-house-card--aguia { --house-a: #22517c; --house-b: #b5793c; }
 .portal-world .portal-house-card--serpente { --house-a: #28624b; --house-b: #c4c9c6; }
 .portal-house-palette {
   display: flex;
@@ -2946,7 +2946,7 @@ body > div {
   width: min(50%, 188px);
   height: 5px;
   border-radius: 2px;
-  background: linear-gradient(90deg, #86222d 0 12.5%, #d6ab5b 12.5% 25%, #ebbd62 25% 37.5%, #24231e 37.5% 50%, #25517b 50% 62.5%, #c5cad3 62.5% 75%, #286049 75% 87.5%, #c3ccc4 87.5% 100%);
+  background: linear-gradient(90deg, #86222d 0 12.5%, #d6ab5b 12.5% 25%, #ebbd62 25% 37.5%, #24231e 37.5% 50%, #25517b 50% 62.5%, #b5793c 62.5% 75%, #286049 75% 87.5%, #c3ccc4 87.5% 100%);
   border: 1px solid rgba(248, 222, 173, .4);
   box-shadow: 0 2px 7px rgba(0,0,0,.25);
 }
@@ -3324,4 +3324,117 @@ body > div {
   stroke-width: 3px;
   stroke-linejoin: round;
   filter: drop-shadow(0 2px 3px rgba(0,0,0,.7));
+}
+
+/* Mundo da Magia — mais luzes coloridas, sem reintroduzir a Fênix. */
+.portal-world--christmas .portal-xmas-extra-sparks {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.portal-world--christmas .portal-xmas-extra-spark {
+  position: absolute;
+  display: block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #f1c870;
+  color: #f1c870;
+  opacity: .95;
+  box-shadow: 0 0 10px 4px currentColor, 0 0 27px 7px currentColor;
+  animation: portal-extra-magic-glimmer 1.65s ease-in-out infinite alternate;
+}
+.portal-world--christmas .portal-xmas-extra-spark:nth-child(4n + 1) { color: #92aaff; background: currentColor; }
+.portal-world--christmas .portal-xmas-extra-spark:nth-child(4n + 2) { color: #f0a3c5; background: currentColor; }
+.portal-world--christmas .portal-xmas-extra-spark:nth-child(4n + 3) { color: #8edcb4; background: currentColor; }
+.portal-world--christmas .portal-xmas-extra-spark:nth-child(4n) { color: #f4c679; background: currentColor; }
+.portal-world--christmas .portal-xmas-decor--hero.portal-xmas-decor--bright .portal-xmas-bulb {
+  width: 8px;
+  height: 8px;
+  opacity: 1;
+  filter: brightness(1.25);
+  box-shadow: 0 0 12px 5px currentColor, 0 0 32px 9px currentColor;
+  animation: portal-extra-magic-glimmer 1.45s ease-in-out infinite alternate;
+}
+.portal-world--christmas .portal-xmas-decor--hero.portal-xmas-decor--bright .portal-xmas-bulb:nth-child(3n) {
+  animation-delay: -.65s;
+}
+.portal-world--christmas .portal-xmas-decor--hero.portal-xmas-decor--bright .portal-xmas-bulb:nth-child(4n) {
+  animation-delay: -1.1s;
+}
+.portal-world--christmas .portal-xmas-decor--bright .portal-xmas-lights-toggle {
+  border-color: #f4cc86;
+  background: #4b2851;
+  box-shadow: 0 0 18px rgba(222, 170, 242, .45);
+}
+@keyframes portal-extra-magic-glimmer {
+  0%, 100% { opacity: .38; transform: scale(.75); filter: brightness(.85); }
+  55% { opacity: 1; transform: scale(1.24); filter: brightness(1.6); }
+}
+
+/* Natal — duas fotos na mesma moldura, com área de produto padronizada. */
+.portal-world--christmas .portal-natal-discovery__grid {
+  align-items: stretch;
+}
+.portal-world--christmas .portal-natal-discovery__candle {
+  height: 100%;
+  justify-content: flex-end;
+}
+.portal-world--christmas .portal-natal-discovery__picture {
+  width: 100%;
+  height: clamp(185px, 30vw, 245px);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+.portal-world--christmas .portal-natal-discovery__photo {
+  display: block;
+  width: min(100%, 160px);
+  height: 100%;
+  max-height: 235px;
+  margin-inline: auto;
+  object-fit: contain;
+  object-position: center bottom;
+}
+.portal-world--christmas .portal-natal-discovery__name {
+  min-height: 2.25em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.portal-world--christmas .portal-natal-discovery__cta {
+  max-width: 38rem;
+  margin: 1.8rem auto 0;
+  color: #f7dfb1;
+  font: 500 .85rem/1.6 "DM Sans", sans-serif;
+  letter-spacing: .015em;
+  text-align: center;
+}
+/* A janela de história é montada no body, nunca recortada pela moldura de Natal. */
+.portal-natal-overlay-root .portal-natal-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+}
+@media (max-width: 640px) {
+  .portal-world--christmas .portal-natal-discovery__picture {
+    height: clamp(163px, 43vw, 212px);
+  }
+  .portal-world--christmas .portal-natal-discovery__photo {
+    width: min(100%, 132px);
+    max-height: 200px;
+  }
+  .portal-world--christmas .portal-natal-discovery__cta {
+    margin-top: 1.25rem;
+    padding-inline: .5rem;
+    font-size: .78rem;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .portal-world--christmas .portal-xmas-extra-spark,
+  .portal-world--christmas .portal-xmas-decor--hero.portal-xmas-decor--bright .portal-xmas-bulb {
+    animation: none;
+    opacity: .85;
+    transform: none;
+  }
 }

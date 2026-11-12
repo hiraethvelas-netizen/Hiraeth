@@ -87,11 +87,11 @@ describe("Inspirações: experiência de descoberta", () => {
     expect(photo).toHaveAttribute("src", expect.stringMatching(/.+/));
     const action = within(natal).getByRole("button", { name: /Entre Fios e Magia/ });
     fireEvent.click(action);
-    const dialog = within(natal).getByRole("dialog");
+    const dialog = screen.getByRole("dialog");
     expect(within(dialog).getByText("O primeiro presente de Natal.")).toBeInTheDocument();
     expect(within(dialog).getByText("Aroma: Baunilha & Canela")).toBeInTheDocument();
     fireEvent.click(within(dialog).getByRole("button", { name: "Fechar informações da vela" }));
-    expect(within(natal).queryByRole("dialog")).not.toBeInTheDocument();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 
   it("preserva a apresentação original dos demais portais", () => {

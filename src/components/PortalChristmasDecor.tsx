@@ -19,6 +19,15 @@ export function PortalChristmasDecor({ scene }: Props) {
       className={`portal-xmas-decor portal-xmas-decor--${scene}${brighter ? " portal-xmas-decor--bright" : ""}`}
     >
       <div className="portal-xmas-atmosphere" aria-hidden="true">
+        {scene === "hero" && brighter && <div className="portal-xmas-extra-sparks" aria-hidden="true">
+          {[
+            ["11%", "25%"], ["23%", "62%"], ["35%", "17%"], ["47%", "74%"],
+            ["58%", "35%"], ["71%", "57%"], ["83%", "18%"], ["91%", "72%"],
+            ["16%", "85%"], ["63%", "88%"], ["79%", "43%"], ["39%", "48%"],
+          ].map(([left, top], index) => <span key={index}
+            className="portal-xmas-extra-spark"
+            style={{ left, top, animationDelay: `-${index * 0.27}s` }} />)}
+        </div>}
         <div className="portal-xmas-fairy-lights">
           {Array.from({ length: bulbs }, (_, index) => (
             <span key={index} className="portal-xmas-bulb" />
@@ -59,7 +68,7 @@ export function PortalChristmasDecor({ scene }: Props) {
           type="button"
           className="portal-xmas-lights-toggle"
           aria-pressed={brighter}
-          aria-label="Mais magia: acender luzes coloridas"
+          aria-label={brighter ? "Mais magia: apagar luzes coloridas" : "Mais magia: acender luzes coloridas"}
           onClick={() => setBrighter((value) => !value)}
         >
           <Sparkles aria-hidden="true" size={17} strokeWidth={1.6} />
