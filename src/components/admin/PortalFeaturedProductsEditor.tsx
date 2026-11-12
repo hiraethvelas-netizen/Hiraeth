@@ -52,7 +52,7 @@ export function PortalFeaturedProductsEditor({ themeJson, onChange }: Props) {
   return <section className="relative z-10 rounded-xl border border-primary/35 bg-card p-4 md:p-5" aria-label="Selecionar velas em destaque do Portal NFC">
     <h3 className="font-display text-2xl text-foreground">Velas em destaque no Portal NFC</h3>
     <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-      Escolha até cinco velas publicadas para o retângulo de fotos que desliza para o lado no Mundo da Magia.
+      Escolha até cinco velas publicadas para a vitrine de velas soltas ao final do Mundo da Magia.
       A ordem selecionada aqui será a ordem do carrossel. Sem seleção, aparecem até cinco velas publicadas recentes.
       Para publicar suas escolhas, salve o portal.
     </p>
