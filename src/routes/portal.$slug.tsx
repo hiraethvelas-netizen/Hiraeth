@@ -8,7 +8,9 @@ import { PortalChristmasDecor } from "@/components/PortalChristmasDecor";
 import { PortalFeaturedProducts } from "@/components/PortalFeaturedProducts";
 import { PortalLumosAmbient } from "@/components/PortalLumosAmbient";
 import { PortalGuardianLetter } from "@/components/PortalGuardianLetter";
-import { isReturningToPortal } from "@/lib/portal-navigation";
+import { PortalShortcutButtons } from "@/components/PortalShortcutButtons";
+import { portalShortTeaser } from "@/lib/portal-story-preview";
+import { clearPortalReturn, hasPortalReturnQuery, hasRecentPortalReturn, isReturningToPortal } from "@/lib/portal-navigation";
 import { carouselFromTheme, isMagicWorld, magicWorldTitle, portalCatalogDestination, spotifyPlaylistUrl } from "@/lib/portal-experience";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -34,7 +36,11 @@ export const Route = createFileRoute("/portal/$slug")({
 
 function PortalPage() {
   const { slug } = Route.useParams();
-  const skipIntro = Route.useSearch().inicio === "1";
+  const [returnFromInspirations] = useState(() => hasRecentPortalReturn(slug));
+  const skipIntro = Route.useSearch().inicio === "1" || hasPortalReturnQuery() || returnFromInspirations;
+  useEffect(() => {
+    if (returnFromInspirations) clearPortalReturn(slug);
+  }, [returnFromInspirations, slug]);
   const [portal, setPortal] = useState<Portal | null>(null);
   const [fragments, setFragments] = useState<Fragment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -197,7 +203,7 @@ function PortalPage() {
             {displayTitle}
           </h1>}
           <p className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-[var(--portal-text)]/85">
-            {portal.intro_subtitle || (magicWorld ? "Sob velas flutuantes e um céu de encantamentos, cada chama abre as portas de um universo mágico." : "Cada chama guarda uma história. Escolha o caminho que deseja explorar.")}
+            {portalShortTeaser(portal.intro_subtitle || (magicWorld ? "Sob velas flutuantes e um céu de encantamentos, cada chama abre as portas de um universo mágico." : "Cada chama guarda uma história. Escolha o caminho que deseja explorar."), 145)}
           </p>
           <div className="mx-auto mt-8 h-px w-28 bg-[var(--portal-accent)]/70" />
         </div>
@@ -210,7 +216,10 @@ function PortalPage() {
             <p className="text-xs uppercase tracking-[.28em] text-[var(--portal-accent)]">Escolha seu caminho</p>
             <h2 className={magicWorld ? "portal-script-title mt-3" : "mt-3 font-display text-3xl md:text-4xl"}>Portas para este universo</h2>
           </div>
-          <div className={`portal-action-grid portal-action-grid--ornate relative z-10 grid gap-4 ${magicWorld ? "portal-action-grid--round" : "sm:grid-cols-2"}`}>
+          {magicWorld ? <PortalShortcutButtons theme={portalTheme}
+            spotifyUrl={spotifyUrl} spotifyVisible={portal.spotify_visible}
+            inspirationUrl={`/portal/${encodeURIComponent(slug)}/inspiracoes`}
+            appUrl={appUrl} /> : <div className="portal-action-grid portal-action-grid--ornate relative z-10 grid gap-4 sm:grid-cols-2">
             {spotifyUrl && portal.spotify_visible ? <a className="portal-action-card" href={spotifyUrl}
                 target="_blank" rel="noopener noreferrer" aria-label="Ouvir playlist da coleção no Spotify">
                 <Headphones aria-hidden="true" size={26}/><span><strong>Playlist no Spotify</strong>
@@ -231,12 +240,9 @@ function PortalPage() {
               <Smartphone aria-hidden="true" size={26}/><span><strong>Baixe o aplicativo</strong>
               <small>Abra o Portal Digital Hiraeth no navegador</small></span><ArrowUpRight aria-hidden="true" size={19}/>
             </a>
-          </div>
+          </div>}
           {magicWorld && !fragmentsLoading && <PortalGuardianLetter
             fragment={fragments.find(fragment => fragment.position === 10)} />}
-          <p className="relative z-10 mt-6 text-center text-xs text-[var(--portal-text)]/65">
-            Para instalar no celular, abra o aplicativo no navegador e escolha “Adicionar à tela inicial”, quando disponível.
-          </p>
         </section>
 
       {portal.spotify_visible && embed && <section data-portal-reveal
