@@ -24,8 +24,9 @@ describe("Inspirações: experiência de descoberta", () => {
     expect(screen.getByRole("button", { name: /Entre Fios e Magia/ })).toBeInTheDocument();
     expect(screen.queryByText("A sala comunal é inspiradora.")).not.toBeInTheDocument();
     expect(screen.queryByText("Uma carta sobre encontrar conforto e sentir-se em casa.")).not.toBeInTheDocument();
-    expect(screen.getByRole("navigation", { name: "Explorar inspirações" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Quatro casas" })).toHaveAttribute("href", "#inspiracao-casas");
+    expect(screen.queryByRole("navigation", { name: "Explorar inspirações" })).not.toBeInTheDocument();
+    expect(screen.queryByText("I · Como tudo começou")).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Quatro casas, quatro essências" })).toBeInTheDocument();
   });
 
   it("revela aroma e história separadamente, sem abrir outras casas", () => {
@@ -66,10 +67,9 @@ describe("Inspirações: experiência de descoberta", () => {
     expect(sections).toEqual([
       "inspiracao-origem", "inspiracao-seletora", "inspiracao-carta", "inspiracao-casas", "inspiracao-natal",
     ]);
-    const nav = screen.getByRole("navigation", { name: "Explorar inspirações" });
-    expect(within(nav).getAllByRole("link").map(link => link.textContent)).toEqual([
-      "A origem", "A Seletora", "A carta", "Quatro casas", "Natal",
-    ]);
+    expect(screen.queryByText("IV · Os quatro caminhos")).not.toBeInTheDocument();
+    expect(screen.queryByText("Cada casa guarda um aroma. Escolha qual segredo deseja revelar.")).not.toBeInTheDocument();
+    expect(screen.queryByText("O segredo da seleção")).not.toBeInTheDocument();
     expect(container.querySelector(".portal-house-card--leao")).toBeInTheDocument();
   });
 
