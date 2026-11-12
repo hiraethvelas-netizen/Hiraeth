@@ -51,6 +51,21 @@ describe("Inspirações: experiência de descoberta", () => {
     expect(within(card).queryByText("A sala comunal é inspiradora.")).not.toBeInTheDocument();
   });
 
+  it("divide uma inspiração longa e deixa a continuação por escolha da pessoa", () => {
+    const story = "Um mundo que acolhe. ".repeat(38);
+    const { container } = render(<PortalInspirationChapters fragments={[make("longa", 3, "Casa do Leão", story, "Aroma: Trussardi")]} magicWorld />);
+    const card = container.querySelector(".portal-house-card--leao") as HTMLElement;
+    fireEvent.click(within(card).getByRole("button", { name: "Conhecer a inspiração" }));
+    const continueButton = within(card).getByRole("button", { name: "Continuar a história" });
+    expect(continueButton).toHaveAttribute("aria-expanded", "false");
+    expect(within(card).queryByText(/Um mundo que acolhe\.\s+Um mundo que acolhe\.\s+Um mundo que acolhe\.\s+Um mundo que acolhe\.\s+Um mundo que acolhe\./)).toBeInTheDocument();
+    fireEvent.click(continueButton);
+    expect(continueButton).toHaveAttribute("aria-expanded", "true");
+    expect(within(card).getByRole("button", { name: "Mostrar menos" })).toBeInTheDocument();
+    fireEvent.click(within(card).getByRole("button", { name: "Mostrar menos" }));
+    expect(within(card).queryByRole("button", { name: "Continuar a história" })).toBeInTheDocument();
+  });
+
   it("deixa a carta apenas na tela principal do portal e preserva os cartões", () => {
     render(<PortalInspirationChapters fragments={data} magicWorld />);
     expect(screen.queryByRole("button", { name: /toque no selo vermelho/i })).not.toBeInTheDocument();
