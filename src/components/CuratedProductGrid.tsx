@@ -226,7 +226,7 @@ export function CuratedProductGrid({
   }
 
   return (
-    <section className="mt-10 min-w-0" aria-label={displayedTitle}>
+    <section className={scope === "home" ? "mt-6 min-w-0" : "mt-10 min-w-0"} aria-label={displayedTitle}>
       {!showFavorites && !searching && (
         <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
           <div>
@@ -316,10 +316,10 @@ export function CuratedProductGrid({
                 (draggingId === p.id ? " rounded-lg outline outline-2 outline-offset-2 outline-primary" : "")}>
               <Link to="/produto/$slug" params={{ slug: p.slug }}
               className={"hiraeth-product-card group relative block min-w-0 bg-transparent text-center transition-transform duration-300 " +
-                (isLarge ? "hiraeth-featured-flame mx-auto w-[72%] max-w-[340px] sm:w-[68%] sm:max-w-[400px]" : "")}
+                (isLarge ? "hiraeth-featured-flame mx-auto w-[62%] max-w-[260px] sm:w-[56%] sm:max-w-[320px]" : "")}
               data-product-badge={badge ?? undefined}>
               <div className={"hiraeth-product-visual relative overflow-hidden bg-transparent " +
-                (isLarge ? "aspect-[4/5] sm:aspect-square" : "aspect-square")}>
+                "aspect-square"}>
                 {p.images?.[0] ? (
                   <img src={p.images[0]} alt={p.name}
                     className="hiraeth-product-image h-full w-full object-contain p-1 transition-transform duration-700 group-hover:scale-[1.06] sm:p-3"
@@ -328,8 +328,8 @@ export function CuratedProductGrid({
                 <button type="button" onClick={e => onWishlist(p.id, e)}
                   aria-label={wishlistIds.has(p.id) ? "Remover dos favoritos" : "Adicionar aos favoritos"}
                   aria-pressed={wishlistIds.has(p.id)}
-                  className="absolute right-0.5 top-0.5 z-10 rounded-full bg-[#f5efe5]/90 p-1 text-[#68764f] shadow-sm sm:right-3 sm:top-3 sm:p-2">
-                  <Heart size={isLarge ? 20 : 14} strokeWidth={1.8}
+                  className={"absolute z-10 flex items-center justify-center rounded-full border border-[#878e47]/35 bg-[#f7efda]/95 text-[#68764f] shadow-sm transition-transform hover:scale-105 " + (isLarge ? "right-0 top-[12%] h-9 w-9 p-1.5 sm:right-1 sm:top-[11%]" : "right-0.5 top-0.5 p-1 sm:right-3 sm:top-3 sm:p-2")}>
+                  <Heart size={isLarge ? 18 : 14} strokeWidth={1.8}
                     fill={wishlistIds.has(p.id) ? "currentColor" : "none"} />
                 </button>
               </div>
@@ -365,7 +365,7 @@ export function CuratedProductGrid({
               </Link>
               {isAdmin && editMode && !showFavorites && !searching && (
                 <div role="group" aria-label={"Organizar vela " + p.name}
-                  className={"mt-1 flex flex-wrap items-center justify-center gap-1.5 rounded-lg border border-primary/25 bg-card/90 p-1.5 " + (isLarge ? "mx-auto w-full max-w-[400px]" : "")}>
+                  className={"mt-1 flex flex-wrap items-center justify-center gap-1.5 rounded-lg border border-primary/25 bg-card/90 p-1.5 " + (isLarge ? "mx-auto w-full max-w-[320px]" : "")}>
                   <button type="button" disabled={quickSaving !== null || saving}
                     onClick={() => void changeCardSize(p.id, "normal")}
                     aria-label={"Exibir " + p.name + " em fileira de duas"}

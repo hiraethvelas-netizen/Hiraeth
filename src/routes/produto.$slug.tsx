@@ -7,6 +7,8 @@ import { SiteFooter, SiteHeader } from "@/components/SiteLayout";
 import { RelatedProducts } from "@/components/RelatedProducts";
 import { brl } from "@/lib/format";
 import { productBadgeLabel, productBadgeStyle } from "@/lib/product-badges";
+import { ProductDescription } from "@/components/ProductDescription";
+import { ShoppingBag } from "lucide-react";
 import { visiblePrice } from "@/lib/store-pricing";
 import { useStorePromotions } from "@/lib/use-store-promotions";
 import { useCart } from "@/lib/cart";
@@ -271,8 +273,9 @@ function ProdutoPage() {
             )}
           </div>
 
-          <div>
-            <h1 className="text-4xl text-foreground">{product.name}</h1>
+          <div className="min-w-0">
+            <p className="text-xs font-semibold uppercase tracking-[.19em] text-[#6d753e] dark:text-[#d5bf86]">Acervo Hiraeth</p>
+            <h1 className="mt-2 font-display text-4xl leading-tight text-foreground sm:text-5xl">{product.name}</h1>
             {product.fragrance && <p className="eyebrow mt-2 text-lg">{product.fragrance}</p>}
 
             {hasCombinedVariants && variantGroups.map(group => (
@@ -315,7 +318,7 @@ function ProdutoPage() {
               {pricePreview.hasDiscount && !requiresChoice && (
                 <span className="text-lg text-muted-foreground line-through" aria-label="Preço original">{brl(pricePreview.original)}</span>
               )}
-              <span className="text-3xl text-primary">{hasCombinedVariants && requiresChoice
+              <span className="text-3xl font-medium text-[#626d34] dark:text-[#d9c892]">{hasCombinedVariants && requiresChoice
                 ? `A partir de ${brl(Math.min(...combinationVariants.map(row => visiblePrice({
                     id: product.id, category_id: product.category_id,
                     price: row.price, sale_price: row.sale_price,
@@ -323,27 +326,18 @@ function ProdutoPage() {
                 : brl(pricePreview.current)}</span>
             </div>
 
-            {aromaNotes.length > 0 && <section className="mt-6 border-l-2 border-primary pl-4"><h2 className="font-display text-xl text-foreground">Pirâmide olfativa</h2>{([["Saída", "top"], ["Corpo", "heart"], ["Fundo", "base"]] as const).map(([label, key])=>{const notes=pyramid[key];return notes.length ? <div key={label} className="mt-3"><p className="text-xs uppercase tracking-widest text-primary">{label}</p><p className="mt-1 text-sm text-foreground/85">{notes.join(", ")}</p></div> : null;})}</section>}
+            <ProductDescription key={product.id} id={product.id} description={product.description}
+              features={product.features} pyramid={pyramid} showPyramid={aromaNotes.length > 0} />
 
-            {product.description && (
-              <p className="mt-6 leading-relaxed text-foreground/85">{product.description}</p>
-            )}
-
-            {product.features && product.features.length > 0 && (
-              <ul className="mt-4 list-disc space-y-1 pl-6 text-foreground/85 marker:text-primary">
-                {product.features.map((f, i) => (
-                  <li key={i}>{f}</li>
-                ))}
-              </ul>
-            )}
-
-            <div className="mt-8 flex items-center gap-4">
-              <div className="flex items-center border">
-                <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="px-3 py-2 text-lg">−</button>
+            <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-stretch sm:gap-4">
+              <div className="flex w-fit items-center self-center rounded-full border border-primary/45 sm:self-auto">
+                <button type="button" aria-label="Diminuir quantidade"
+                  onClick={() => setQuantity(Math.max(1, quantity - 1))} className="min-h-12 rounded-l-full px-4 py-2 text-lg text-foreground">−</button>
                 <span className="w-10 text-center">{quantity}</span>
-                <button onClick={() => setQuantity(Math.min(quantity + 1, Math.max(1, remainingToAdd)))} className="px-3 py-2 text-lg">+</button>
+                <button type="button" aria-label="Aumentar quantidade"
+                  onClick={() => setQuantity(Math.min(quantity + 1, Math.max(1, remainingToAdd)))} className="min-h-12 rounded-r-full px-4 py-2 text-lg text-foreground">+</button>
               </div>
-              <button
+              <button type="button"
                 disabled={outOfStock || requiresChoice || cartQuantityLimitReached || quantity > remainingToAdd}
                 onClick={() => {
                   if (requiresChoice || !variantKey && hasCombinedVariants) { toast.error("Escolha as variações do produto."); return; }
@@ -363,8 +357,9 @@ function ProdutoPage() {
                   );
                   toast.success("Adicionado ao carrinho.");
                 }}
-                className="btn-gold flex-1 justify-center disabled:cursor-not-allowed disabled:opacity-40"
+                className="inline-flex min-h-12 w-full flex-1 items-center justify-center gap-2 rounded-full border border-[#5b1d04] bg-[#5b1d04] px-6 py-3 text-center text-sm font-semibold tracking-wide text-[#f7efda] shadow-[0_8px_22px_rgba(91,29,4,.18)] transition-all hover:bg-[#763119] hover:shadow-[0_10px_25px_rgba(91,29,4,.25)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-40"
               >
+                <ShoppingBag size={18} aria-hidden="true" />
                 {requiresChoice ? "Escolha as variações" : outOfStock ? "Estoque esgotado" : cartQuantityLimitReached ? "Limite na sacola" : "Adicionar ao carrinho"}
               </button>
             </div>

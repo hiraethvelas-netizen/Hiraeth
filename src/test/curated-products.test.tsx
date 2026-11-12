@@ -46,7 +46,7 @@ describe("Hiraeth featured product sections", () => {
     expect(grid.querySelectorAll("[data-product-size]")).toHaveLength(2);
     expect(grid.querySelector('[data-product-size="large"]')).toHaveTextContent("Vela A");
     expect(grid.querySelector('[data-product-size="large"]')).toHaveClass("col-span-2", "items-center");
-    expect(grid.querySelector('[data-product-size="large"] .hiraeth-product-card')).toHaveClass("mx-auto", "max-w-[340px]", "sm:max-w-[400px]");
+    expect(grid.querySelector('[data-product-size="large"] .hiraeth-product-card')).toHaveClass("mx-auto", "max-w-[260px]", "sm:max-w-[320px]");
     expect(grid).toHaveClass("grid-cols-2");
   });
 
