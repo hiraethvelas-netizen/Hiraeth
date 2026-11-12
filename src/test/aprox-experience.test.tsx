@@ -4,26 +4,27 @@ import { AproxExperience } from "@/components/AproxExperience";
 
 afterEach(cleanup);
 
-describe("Tecnologia Aprox explicada no app", () => {
-  it("abre uma carta interativa e explica como funciona o NFC em três etapas", () => {
+describe("Carta da Aprox na página inicial", () => {
+  it("mostra um recado curto e abre e fecha a carta sem simulador", () => {
     render(<AproxExperience />);
-    expect(screen.getByRole("heading", { name: "Quando a chama encontra a tecnologia." })).toBeInTheDocument();
-    const toggle = screen.getByRole("button", { name: /Abra o segredo da aproximação/ });
+    expect(screen.getByRole("heading", { name: "Uma chama. Um toque. Um universo." })).toBeInTheDocument();
+    const toggle = screen.getByRole("button", { name: /Abrir carta da Aprox/ });
     expect(toggle).toHaveAttribute("aria-expanded", "false");
+    expect(screen.queryByRole("article", { name: /Carta sobre a tecnologia Aprox/ })).not.toBeInTheDocument();
     fireEvent.click(toggle);
-    expect(toggle).toHaveAttribute("aria-expanded", "true");
-    expect(screen.getByText(/A Aprox conecta a vela ao universo digital/)).toBeInTheDocument();
+    expect(screen.getByRole("article", { name: "Carta sobre a tecnologia Aprox" })).toBeInTheDocument();
+    expect(screen.getByText(/A Aprox também participou do desenvolvimento/)).toBeInTheDocument();
     expect(screen.getByText(/Não é preciso instalar o aplicativo/)).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: /2. Atravesse/ }));
-    expect(screen.getByText(/O celular abre uma página/)).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: /3. Permaneça/ }));
-    expect(screen.getByRole("link", { name: /Conhecer o Acervo/ })).toHaveAttribute("href", "/loja");
+    expect(screen.queryByRole("button", { name: /simular aproximação NFC/i })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Fechar carta" }));
+    expect(screen.queryByRole("article", { name: /Carta sobre a tecnologia Aprox/ })).not.toBeInTheDocument();
   });
-  it("distingue o simulador ilustrativo da leitura real do NFC", () => {
+
+  it("explica a relação entre vela, NFC e aplicativo em termos acessíveis", () => {
     render(<AproxExperience />);
-    fireEvent.click(screen.getByRole("button", { name: /Abra o segredo da aproximação/ }));
-    fireEvent.click(screen.getByRole("button", { name: "Simular aproximação NFC" }));
-    expect(screen.getByText("Portal aberto")).toBeInTheDocument();
-    expect(screen.getByText(/Demonstração ilustrativa/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Abrir carta da Aprox" }));
+    expect(screen.getByText(/aproxime um celular compatível com NFC/)).toBeInTheDocument();
+    expect(screen.getByText(/círculo do fogo/i)).toBeInTheDocument();
+    expect(screen.getByText(/acesso à internet/i)).toBeInTheDocument();
   });
 });
