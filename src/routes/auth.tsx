@@ -6,7 +6,7 @@ import { SiteFooter, SiteHeader } from "@/components/SiteLayout";
 import { HOUSES, type HouseId } from "@/lib/house-cup";
 import { toast } from "sonner";
 
-type Search = { redirect?: string; mode?: string; source?: string };
+type Search = { redirect?: string | undefined; mode?: string | undefined; source?: string | undefined };
 
 export const Route = createFileRoute("/auth")({
   validateSearch: (search: Record<string, unknown>): Search => ({
