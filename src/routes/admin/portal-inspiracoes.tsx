@@ -18,12 +18,6 @@ const fallbackPhotos: Partial<Record<number, string>> = {
   8: entreFiosPhoto,
   9: grandeSalaoPhoto,
 };
-const defaultTitles: Record<number, string> = {
-  3: "Casa do Leão", 4: "Casa do Texugo", 5: "Casa da Serpente",
-  6: "Casa da Águia", 7: "Introdução do Natal",
-  8: "Entre Fios e Magia", 9: "O Grande Salão de Natal",
-};
-
 export const Route = createFileRoute("/admin/portal-inspiracoes")({
   head: () => ({ meta: [{ title: "Fotos e textos do Portal NFC — Hiraeth" }] }),
   component: PortalInspiracoesAdmin,
@@ -236,6 +230,9 @@ function StoryForm({ fragment, draft, setDraft, saving, onSave, onCancel }: {
       <textarea rows={2} className="mt-1 w-full border bg-background px-3 py-2" value={draft.reference}
         onChange={event => setDraft({ ...draft, reference: event.target.value })} />
     </label>}
+    {intro && <p className="text-xs text-muted-foreground">
+      O primeiro parágrafo aparece no destaque vermelho da página de inspirações. O texto completo permanece salvo.
+    </p>}
     <label className="block text-sm">{intro ? "Texto de abertura" : "História da vela"}
       <textarea rows={intro ? 4 : 8} className="mt-1 w-full border bg-background px-3 py-2" required
         value={draft.body} onChange={event => setDraft({ ...draft, body: event.target.value })} />
