@@ -1,8 +1,9 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import type { ReactNode } from "react";
 import type { Tables } from "@/integrations/supabase/types";
 vi.mock("@tanstack/react-router", () => ({
-  Link: ({ children, params, ...props }: { children: React.ReactNode; params?: { slug: string }; [key: string]: unknown }) =>
+  Link: ({ children, params, ...props }: { children: ReactNode; params?: { slug: string }; [key: string]: unknown }) =>
     <a {...props} href={"/produto/" + params?.slug}>{children}</a>,
 }));
 import { DiscoverMyPortal } from "@/components/DiscoverMyPortal";
