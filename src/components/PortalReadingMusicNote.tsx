@@ -131,8 +131,9 @@ export function PortalReadingMusicNote() {
     </button>
     {visible && <div id="portal-reading-music-note"
       className="w-[min(85vw,340px)] min-w-0 rounded-xl border border-[#d3b575]/35 bg-[#1b2d25]/95 px-3 py-3 text-center text-xs leading-relaxed text-[#f7efda] shadow-lg sm:text-sm">
-      <p className="font-display text-lg italic text-[#ead0a0]">Sinta-se em casa.</p>
-      <p className="mt-1">Deixe <strong>Runaway — AURORA</strong> acompanhar esta leitura.</p>
+      <p className="font-display text-lg italic leading-snug text-[#ead0a0]">Há uma saudade que só Hogwarts sabe explicar.</p>
+      <p className="mt-2 leading-relaxed">Harry passou tanto tempo procurando um lugar ao qual pertencer… até descobrir que, entre aquelas paredes, ele tinha encontrado um lar.</p>
+      <p className="mt-2 leading-relaxed">Ao som de <strong>Runaway — AURORA</strong>, que você também se sinta de volta em casa. ✨</p>
       <div ref={playerHost} className="mt-3 min-h-[152px] overflow-hidden rounded-lg"
         aria-label="Player oficial do Spotify para Runaway, de AURORA" />
       {!playerReady && !playerError && <p role="status" className="mt-2 text-[11px] text-[#f7efda]/75">Preparando a música...</p>}

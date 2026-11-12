@@ -38,8 +38,10 @@ describe("Trilha sonora das inspirações NFC", () => {
 
     fireEvent.click(button);
     expect(button).toHaveAttribute("aria-pressed", "true");
-    expect(screen.getByText("Sinta-se em casa.")).toBeInTheDocument();
-    expect(screen.getByText(/Deixe/)).toHaveTextContent("Runaway — AURORA");
+    expect(screen.getByText("Há uma saudade que só Hogwarts sabe explicar.")).toBeInTheDocument();
+    expect(screen.getByText(/Harry passou tanto tempo procurando/)).toHaveTextContent("ele tinha encontrado um lar.");
+    expect(screen.getByText(/Ao som de/)).toHaveTextContent("Runaway — AURORA");
+    expect(screen.getByText(/Ao som de/)).toHaveTextContent("que você também se sinta de volta em casa.");
     expect(screen.getByRole("link", { name: "Abrir Runaway no Spotify" }))
       .toHaveAttribute("href", "https://open.spotify.com/track/6Lv7cJFhuQYRmjeI3QqaWp");
 
