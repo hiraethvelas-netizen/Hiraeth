@@ -1,5 +1,5 @@
 import { createFileRoute, Link, Outlet, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Moon, Sun } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useTheme } from "@/lib/theme";
@@ -38,6 +38,8 @@ const ADMIN_GROUPS = [
 function AdminLayout() {
   const navigate = useNavigate();
   const [allowed, setAllowed] = useState<boolean | null>(null);
+  const mobileMenuRef = useRef<HTMLDetailsElement>(null);
+  const closeMobileMenu = () => { if (mobileMenuRef.current) mobileMenuRef.current.open = false; };
   const { isDark: darkMode, toggleTheme } = useTheme();
 
   useEffect(() => {
@@ -115,12 +117,12 @@ function AdminLayout() {
               </div>
             </details>)}
           </nav>
-          <details className="w-full border-t border-primary/15 pt-2 md:hidden">
+          <details ref={mobileMenuRef} className="w-full border-t border-primary/15 pt-2 md:hidden">
             <summary className="flex cursor-pointer list-none items-center justify-between rounded-lg px-2 py-2 text-sm font-medium text-primary [&::-webkit-details-marker]:hidden">
               <span>Menu do painel</span><span aria-hidden="true">☰</span>
             </summary>
             <nav aria-label="Menu do painel" className="mt-2 space-y-1 rounded-lg border border-primary/20 bg-card p-2">
-              {PRIMARY_NAV.map(item => <Link key={item.to} to={item.to}
+              {PRIMARY_NAV.map(item => <Link key={item.to} to={item.to} onClick={closeMobileMenu}
                 className="block rounded-lg px-3 py-2.5 text-sm font-medium text-foreground hover:bg-primary/10 hover:text-primary">
                 {item.label}
               </Link>)}
@@ -129,7 +131,7 @@ function AdminLayout() {
                   {group.label} <span aria-hidden="true">⌄</span>
                 </summary>
                 <div className="space-y-1 pb-2 pl-3">
-                  {group.links.map(link => <Link key={link.to} to={link.to}
+                  {group.links.map(link => <Link key={link.to} to={link.to} onClick={closeMobileMenu}
                     className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-primary/10 hover:text-primary">
                     {link.label}
                   </Link>)}
