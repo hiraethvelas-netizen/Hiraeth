@@ -33,12 +33,21 @@ import { PortalFeaturedProducts } from "@/components/PortalFeaturedProducts";
 afterEach(cleanup);
 
 describe("Carrossel de velas publicadas do Portal NFC", () => {
-  it("mostra cinco velas no retângulo, navegando diretamente para cada produto", async () => {
+  it("mostra cinco velas sem cartões, com link individual e botão para o Acervo completo", async () => {
     render(<PortalFeaturedProducts theme={{}} />);
     await waitFor(() => expect(screen.getAllByRole("link", { name: /Conhecer vela/ })).toHaveLength(5));
     expect(screen.getByRole("region", { name: "Velas do Acervo para deslizar horizontalmente" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Conhecer vela Vela A" })).toHaveAttribute("href", "/produto/vela-a");
     expect(screen.queryByRole("link", { name: /Camiseta/ })).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Conheça o Acervo" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Conheça o Acervo Completo" }))
+      .toHaveAttribute("href", "/loja");
+    expect(screen.queryByRole("button", { name: /Ver velas anteriores|Ver próximas velas/ }))
+      .not.toBeInTheDocument();
+    const product = screen.getByRole("link", { name: "Conhecer vela Vela A" });
+    expect(product).toHaveClass("bg-transparent");
+    expect(product).not.toHaveClass("rounded-xl", "border");
+    expect(screen.getByRole("img", { name: "Vela A" })).toHaveClass("object-contain", "bg-transparent");
   });
 
   it("respeita a ordem escolhida e não adiciona produtos além dos selecionados", async () => {
