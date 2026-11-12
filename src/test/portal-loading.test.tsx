@@ -18,6 +18,13 @@ vi.mock("@tanstack/react-router", () => ({
   notFound: () => new Error("Portal não encontrado"),
 }));
 vi.mock("@/components/SiteLayout", () => ({ SiteFooter: () => null }));
+vi.mock("@/components/HouseCup", () => ({
+  HouseCup: () => <section id="portal-taca-casas" data-testid="portal-taca-casas">Taça das Casas</section>,
+}));
+vi.mock("@/components/MagicPolls", () => ({
+  MagicPolls: () => <section id="portal-quiz-criativo" data-testid="portal-quiz-criativo">Quiz criativo</section>,
+}));
+
 vi.mock("@/components/PortalChristmasDecor", () => ({
   PortalChristmasDecor: ({ scene, active, onToggle }: {
     scene: string; active?: boolean; onToggle?: () => void;
@@ -170,13 +177,17 @@ describe("Portal NFC: recuperação de falhas de carregamento", () => {
     expect(container.querySelector(".portal-lumos-ambient")).toHaveAttribute("data-active", "false");
   });
 
-  it("coloca a vitrine Conheça o Acervo como última seção da página", async () => {
+  it("mostra o quiz após o Natal e deixa a Taça das Casas como última seção", async () => {
     mocks.slug = "o-mundo-de-magia";
     mocks.returning = true;
     const { container } = render(<PortalPage />);
     const acervo = await screen.findByTestId("portal-acervo-final");
+    const quiz = screen.getByTestId("portal-quiz-criativo");
+    const taca = screen.getByTestId("portal-taca-casas");
     const main = container.querySelector("main");
-    expect(main?.lastElementChild).toBe(acervo);
+    expect(main?.lastElementChild?.contains(taca)).toBe(true);
+    expect(acervo.compareDocumentPosition(quiz) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(quiz.compareDocumentPosition(taca) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(container.querySelector(".portal-christmas-hall #portal-acervo")).toBeNull();
   });
 
