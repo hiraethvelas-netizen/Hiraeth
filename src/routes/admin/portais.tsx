@@ -1,6 +1,7 @@
 import type { Json } from "@/integrations/supabase/types";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
+import { Pencil } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { slugify } from "@/lib/format";
 import { toast } from "sonner";
@@ -308,9 +309,16 @@ function AdminPortais() {
         </form>
       )}
 
-      {editing && !showForm && (
+      {editing && !showForm && <>
+        {isMagicWorld(editing.slug) && (
+          <Link to="/admin/portal-inspiracoes"
+            className="mt-5 inline-flex items-center gap-2 rounded-full border border-primary/45 bg-primary/10 px-4 py-3 text-sm font-semibold text-primary hover:bg-primary/20">
+            <Pencil size={17} aria-hidden="true" />
+            Editar fotos das polaroids e inspirações
+          </Link>
+        )}
         <PortalFragmentsEditor portalId={editing.id} />
-      )}
+      </>}
 
       {loading ? (
         <p className="mt-8 text-muted-foreground">Carregando...</p>
@@ -349,6 +357,12 @@ function AdminPortais() {
                   </Link>
                 )}
                 <button onClick={() => startEdit(p)} className="px-3 py-1 text-muted-foreground hover:text-primary">Editar</button>
+                {isMagicWorld(p.slug) && (
+                  <Link to="/admin/portal-inspiracoes"
+                    className="inline-flex items-center gap-1.5 rounded-full border border-primary/40 px-3 py-1.5 text-primary hover:bg-primary/10">
+                    <Pencil size={14} aria-hidden="true" /> Editar fotos das inspirações
+                  </Link>
+                )}
                 <button onClick={() => duplicate(p)} className="px-3 py-1 text-muted-foreground hover:text-primary">Duplicar</button>
                 {p.status === "draft" && (
                   <button onClick={() => archive(p)} className="px-3 py-1 text-muted-foreground hover:text-destructive">Arquivar</button>
