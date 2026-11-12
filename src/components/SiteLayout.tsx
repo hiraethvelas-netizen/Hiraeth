@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { InlineEditor } from "@/components/InlineEditor";
 import { useAdminEdit } from "@/lib/admin-edit";
 import { useTheme } from "@/lib/theme";
+import { AppWelcomeTour, openHiraethWelcomeTour } from "@/components/AppWelcomeTour";
 import { Instagram, Music2, MessageCircle, Mail, Bell } from "lucide-react";
 import { useNotificationDot } from "@/lib/use-notification-dot";
 import { toast } from "sonner";
@@ -44,6 +45,7 @@ export function SiteHeader({ onBack }: { onBack?: (() => void) | undefined } = {
   }
 
   return (
+    <>
     <header className="relative z-[80] w-full border-b border-primary/20 bg-background px-5 py-4 md:px-10">
       <div className="mx-auto grid max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-3">
         <div className="flex items-center gap-3">
@@ -131,6 +133,8 @@ export function SiteHeader({ onBack }: { onBack?: (() => void) | undefined } = {
         </div>
       </div>
     </header>
+    <AppWelcomeTour />
+    </>
   );
 }
 
@@ -180,6 +184,7 @@ export function SiteFooter() {
         <Link to="/seguranca" className="transition hover:text-primary">Segurança e denúncias</Link>
         <Link to="/termos" className="transition hover:text-primary">Termos e comunidade</Link>
         <Link to="/privacidade" className="transition hover:text-primary">Privacidade</Link>
+        <a href="/sobre#aprox-nfc" className="transition hover:text-primary">Tecnologia Aprox</a>
       </nav>
       <div className="mt-4"><InlineEditor label="contatos do rodapé" fields={[
         { name: "instagram_url", label: "Link do Instagram", type: "text" },
@@ -189,6 +194,10 @@ export function SiteFooter() {
       ]} values={{ instagram_url: profile?.instagram_url ?? "", whatsapp_number: profile?.whatsapp_number ?? "", whatsapp_url: profile?.whatsapp_url ?? "", contact_email: profile?.contact_email ?? "" }} onSave={saveContacts} />
       <div className="mt-3"><InlineEditor label="TikTok do rodapé" fields={[{ name: "tiktok_url", label: "Link do TikTok", type: "text" }]} values={{ tiktok_url: tiktokUrl }} onSave={saveTikTok} /></div>
       </div>
+      <button type="button" onClick={openHiraethWelcomeTour}
+        className="mt-6 inline-flex min-h-10 items-center rounded-full border border-primary/35 px-5 py-2 text-xs font-medium text-foreground transition-colors hover:bg-primary/10">
+        Primeira vez por aqui? Conheça a Hiraeth
+      </button>
       <p className="mt-5">© {new Date().getFullYear()} Hiraeth ·{" "}
         <span>Onde a Chama Acesa te Espera</span>
       </p>
