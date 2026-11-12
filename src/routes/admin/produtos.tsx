@@ -1,7 +1,7 @@
 import { type StockEssence, type CandleIngredient } from "@/components/admin/CandleEssenceEditor";
 import { essenceNotesPayload, type NotesDraft } from "@/lib/fragrance";
-import { createFileRoute } from "@tanstack/react-router";
-import { useCallback, useEffect, useState, type SetStateAction } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useCallback, useEffect, useRef, useState, type SetStateAction } from "react";
 import { CandleRecipesEditor } from "@/components/admin/CandleRecipesEditor";
 import { recipePayload, withRecipeIds, type StockUnit, type VariantRecipes } from "@/lib/candle-recipes";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,6 +13,7 @@ import { ProductVariantsEditor } from "@/components/admin/ProductVariantsEditor"
 import { ImageCropEditor } from "@/components/ImageCropEditor";
 import type { CropAspect } from "@/lib/image-crop";
 import { validateVariantSetup, variantSetupFrom, variantTotalStock, type VariantSetup } from "@/lib/product-variants";
+import { filterAdminProducts } from "@/lib/admin-product-search";
 
 type Product = Tables<"products">;
 type Category = Tables<"categories"> & { parent_id?: string | null };
@@ -29,7 +30,11 @@ const emptyForm = {
   product_type: "candle", product_badge: "",
 };
 
-function AdminProdutos() {
+export function AdminProdutos({ mode = "list", productId }: { mode?: "list" | "new" | "edit"; productId?: string } = {}) {
+  const navigate = useNavigate();
+  const initialized = useRef<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
@@ -41,7 +46,7 @@ function AdminProdutos() {
     setVariantsState(previous => withRecipeIds(typeof next === "function" ? next(previous) : next));
   }, []);
   const [variantRecipes, setVariantRecipes] = useState<VariantRecipes>({});
-  const [showForm, setShowForm] = useState(false);
+  const [showForm, setShowForm] = useState(mode === "new");
   const [uploading, setUploading] = useState(false);
   const [photoCrop, setPhotoCrop] = useState<{
     source: File | string; pending: File[]; replaceIndex?: number;
@@ -108,12 +113,15 @@ function AdminProdutos() {
       images: p.images ?? [], status: p.status,
       product_type: (p as Product & { product_type?: string }).product_type ?? (/camiseta|t-shirt|roupa|vestuário/i.test(p.name) ? "artifact" : "candle"), product_badge: (p as any).product_badge ?? "",
     });
-    setShowForm(false);
     const [standard, specific] = await Promise.all([
       db.from("product_essences").select("essence_id,quantity_ml,essences(name,stock_unit)").eq("product_id", p.id),
       db.from("product_variant_essences").select("recipe_id,essence_id,quantity,essences(name,stock_unit)").eq("product_id", p.id),
     ]);
-    if (standard.error || specific.error) { toast.error("Não foi possível carregar as receitas. Confira a atualização do banco e tente novamente antes de editar."); return; }
+    if (standard.error || specific.error) {
+      setLoadError("Não foi possível carregar as receitas desta vela. Confira as permissões e tente novamente.");
+      toast.error("Não foi possível carregar as receitas. Confira a atualização do banco e tente novamente antes de editar.");
+      return;
+    }
     setVariants(variantSetupFrom(p.variants));
     setProductAromas((standard.data ?? []).map((r:any) => ({essence_id:r.essence_id,quantity_ml:Number(r.quantity_ml),name:r.essences?.name ?? "Aroma",stock_unit:r.essences?.stock_unit ?? "ml"})));
     const recipes: VariantRecipes = {};
@@ -124,10 +132,20 @@ function AdminProdutos() {
     setShowForm(true);
   }
 
-  function startNew() { setEditing(null); setForm({ ...emptyForm }); setVariants(variantSetupFrom([])); setProductAromas([]); setVariantRecipes({}); setPhotoCrop(null); setShowForm(true); }
+  useEffect(() => {
+    if (mode !== "edit" || loading || loadError || !productId || initialized.current === productId) return;
+    const selected = products.find(product => product.id === productId);
+    if (!selected) {
+      setLoadError("Este produto não foi encontrado. Volte à lista e selecione uma vela publicada.");
+      return;
+    }
+    initialized.current = productId;
+    void startEdit(selected);
+  }, [mode, productId, loading, loadError, products]);
 
-  function chooseProductPhotos(files: FileList | null) {
-    if (!files?.length) return;
+
+  async function chooseProductPhotos(files: FileList | null) {
+    if (!files?.length || uploading) return;
     const accepted: File[] = [];
     for (const file of Array.from(files)) {
       if (!["image/jpeg", "image/png", "image/webp", "image/gif"].includes(file.type)) {
@@ -139,8 +157,23 @@ function AdminProdutos() {
       }
     }
     if (!accepted.length) return;
-    setPhotoAspect("portrait");
-    setPhotoCrop({ source: accepted[0]!, pending: accepted.slice(1) });
+    setUploading(true);
+    const uploaded: string[] = [];
+    try {
+      for (const file of accepted) {
+        try {
+          uploaded.push(await uploadProductPhoto(file));
+        } catch (error) {
+          toast.error(error instanceof Error ? error.message : "Falha ao enviar uma foto.");
+        }
+      }
+      if (uploaded.length) {
+        setForm(previous => ({ ...previous, images: [...previous.images, ...uploaded] }));
+        toast.success(uploaded.length === 1 ? "Foto adicionada. Use Editar foto para recortar, se desejar." : `${uploaded.length} fotos adicionadas. Você pode recortá-las pelo botão Editar foto.`);
+      }
+    } finally {
+      setUploading(false);
+    }
   }
 
   async function uploadProductPhoto(file: File): Promise<string> {
@@ -257,8 +290,12 @@ function AdminProdutos() {
         throw new Error("Produto e receitas não foram salvos. Confira a atualização do banco e tente novamente.");
       }
       toast.success(editing ? "Produto atualizado." : "Produto criado.");
-      setShowForm(false);
-      await load();
+      if (mode !== "list") {
+        await navigate({ to: "/admin/produtos" });
+      } else {
+        setShowForm(false);
+        await load();
+      }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Não foi possível salvar o produto. Confira a atualização do banco e suas permissões.");
     } finally { setSaving(false); }
@@ -299,7 +336,7 @@ function AdminProdutos() {
     toast.success("Produto removido."); load();
   }
 
-  const inputCls = "w-full border bg-[#fbf7eb] px-3 py-2 text-[#34402b] placeholder:text-[#625f4b] [color-scheme:light] focus:border-primary focus:outline-none";
+  const inputCls = "min-h-11 w-full rounded-xl border border-[#8a9066] bg-[#fbf7eb] px-3 py-2 text-[#34402b] placeholder:text-[#6a664d] [color-scheme:light] focus:border-[#47532c] focus:outline-none focus:ring-2 focus:ring-[#878e47]/30";
   const parentCategories = categories.filter((c) => !c.parent_id);
   const categoryLabel = (id: string | null) => {
     const cat = categories.find((c) => c.id === id);
@@ -307,6 +344,8 @@ function AdminProdutos() {
     const parent = cat.parent_id ? categories.find((c) => c.id === cat.parent_id) : null;
     return parent ? `${parent.name} / ${cat.name}` : cat.name;
   };
+
+  const filteredProducts = filterAdminProducts(products, categories, searchTerm, statusFilter);
 
   return <div>
     <div className="flex items-center justify-between gap-4">
