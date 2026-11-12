@@ -28,7 +28,7 @@ function ThemeToggle() {
   );
 }
 
-export function SiteHeader() {
+export function SiteHeader({ onBack }: { onBack?: (() => void) | undefined } = {}) {
   const router = useRouter();
   const cart = useCart();
   const { isAdmin, editMode, toggle } = useAdminEdit();
@@ -47,7 +47,7 @@ export function SiteHeader() {
     <header className="relative z-[80] w-full border-b border-primary/20 bg-background px-5 py-4 md:px-10">
       <div className="mx-auto grid max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-3">
         <div className="flex items-center gap-3">
-        <button type="button" onClick={() => { if (router.history.canGoBack()) router.history.back(); else window.location.assign("/inicio"); }} className="flex h-9 w-9 items-center justify-center rounded-full border border-primary/25 text-foreground transition-colors hover:bg-primary/10" aria-label="Voltar" title="Voltar"><span aria-hidden="true" className="text-xl leading-none">←</span></button>
+        <button type="button" onClick={() => { if (onBack) onBack(); else if (router.history.canGoBack()) router.history.back(); else window.location.assign("/inicio"); }} className="flex h-9 w-9 items-center justify-center rounded-full border border-primary/25 text-foreground transition-colors hover:bg-primary/10" aria-label="Voltar" title="Voltar"><span aria-hidden="true" className="text-xl leading-none">←</span></button>
         <details className="relative w-fit">
           <summary
             className="flex cursor-pointer list-none items-center gap-2 text-sm text-foreground/85 transition-colors hover:text-primary [&::-webkit-details-marker]:hidden"

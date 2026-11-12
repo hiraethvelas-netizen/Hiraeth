@@ -6,6 +6,7 @@ import { CandleRecipesEditor } from "@/components/admin/CandleRecipesEditor";
 import { recipePayload, withRecipeIds, type StockUnit, type VariantRecipes } from "@/lib/candle-recipes";
 import { supabase } from "@/integrations/supabase/client";
 import { brl, slugify } from "@/lib/format";
+import { PRODUCT_BADGE_OPTIONS } from "@/lib/product-badges";
 import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
 import { ProductVariantsEditor } from "@/components/admin/ProductVariantsEditor";
@@ -329,7 +330,7 @@ function AdminProdutos() {
         </label>
         <label className="text-sm text-muted-foreground">SKU<input placeholder="Código interno (opcional)" value={form.sku} onChange={(e) => setForm({ ...form, sku: e.target.value })} className={`mt-1 ${inputCls}`} /></label>
         
-        <label className="text-sm text-muted-foreground">Selo do produto<select value={form.product_badge} onChange={(e) => setForm({ ...form, product_badge: e.target.value })} className={`mt-1 ${inputCls}`}><option value="">Sem selo</option><option value="new">Novidade</option><option value="limited">Edição limitada</option><option value="bestseller">Mais vendido</option></select></label>
+        <label className="text-sm text-muted-foreground">Selo do produto<select value={form.product_badge} onChange={(e) => setForm({ ...form, product_badge: e.target.value })} className={`mt-1 ${inputCls}`}><option value="">Sem selo</option>{PRODUCT_BADGE_OPTIONS.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
         <label className="text-sm text-muted-foreground">Status<select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })} className={`mt-1 ${inputCls}`}><option value="draft">Rascunho</option><option value="published">Publicado</option><option value="archived">Arquivado</option></select></label>
       </div>
       {form.product_type === "candle" && <CandleRecipesEditor
