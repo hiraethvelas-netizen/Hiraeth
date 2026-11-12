@@ -69,7 +69,7 @@ describe("Hiraeth featured product sections", () => {
       wishlistIds={new Set()} onWishlist={vi.fn()} onSaveProduct={vi.fn()} />);
     const grid = screen.getByTestId("curated-product-grid");
     const ids = () => Array.from(grid.querySelectorAll<HTMLElement>("[data-curation-product-id]"))
-      .map(node => node.dataset.curationProductId);
+      .map(node => node.dataset["curationProductId"]);
     expect(ids()).toEqual(["a", "b", "c"]);
     const handle = screen.getByRole("button", { name: /Segure e arraste Vela A/ });
     const target = grid.querySelector('[data-curation-product-id="c"]')!;
