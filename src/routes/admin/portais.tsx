@@ -1,3 +1,4 @@
+import { MagicPollAdmin } from "@/components/admin/MagicPollAdmin";
 import type { Json } from "@/integrations/supabase/types";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
@@ -388,6 +389,7 @@ function AdminPortais() {
         {isMagicWorld(editing.slug)
           ? <>
               <PortalInspiracoesAdmin portalId={editing.id} />
+              <MagicPollAdmin />
               <details className="rounded-xl border border-primary/25 bg-card p-4">
                 <summary className="cursor-pointer text-sm font-medium text-primary">Mais textos e fragmentos do portal</summary>
                 <PortalFragmentsEditor portalId={editing.id} />
