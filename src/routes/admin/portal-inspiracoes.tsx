@@ -24,7 +24,7 @@ export const Route = createFileRoute("/admin/portal-inspiracoes")({
   component: PortalInspiracoesAdmin,
 });
 
-function PortalInspiracoesAdmin() {
+export function PortalInspiracoesAdmin({ portalId }: { portalId?: string } = {}) {
   const [portal, setPortal] = useState<Portal | null>(null);
   const [fragments, setFragments] = useState<Fragment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -36,8 +36,10 @@ function PortalInspiracoesAdmin() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const { data: p, error: portalError } = await supabase.from("portals")
-      .select("*").eq("slug", "o-mundo-de-magia").maybeSingle();
+    const portalQuery = supabase.from("portals").select("*");
+    const { data: p, error: portalError } = await (portalId
+      ? portalQuery.eq("id", portalId)
+      : portalQuery.eq("slug", "o-mundo-de-magia")).maybeSingle();
     if (portalError || !p) {
       toast.error("Não foi possível localizar o Portal O Mundo da Magia.");
       setLoading(false);
@@ -52,7 +54,7 @@ function PortalInspiracoesAdmin() {
       setFragments(items ?? []);
     }
     setLoading(false);
-  }, []);
+  }, [portalId]);
 
   useEffect(() => { void load(); }, [load]);
 
@@ -124,7 +126,7 @@ function PortalInspiracoesAdmin() {
   );
 
   return <div className="space-y-8">
-    <header>
+    {!portalId && <header>
       <p className="text-xs uppercase tracking-[.2em] text-primary">Portal NFC · Mundo da Magia</p>
       <h1 className="mt-2 font-display text-3xl sm:text-4xl">Fotografias e histórias</h1>
       <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
@@ -135,7 +137,7 @@ function PortalInspiracoesAdmin() {
         <Link to="/admin/portais" className="text-primary underline underline-offset-4">Voltar aos portais</Link>
         <a href="/portal/o-mundo-de-magia/inspiracoes" className="text-primary underline underline-offset-4">Ver inspirações</a>
       </div>
-    </header>
+    </header>}
 
     {loading ? <p role="status">Carregando fotografias...</p> : !portal ? <p role="alert">Portal não encontrado.</p> : <>
       <section aria-labelledby="photos-houses-title">
