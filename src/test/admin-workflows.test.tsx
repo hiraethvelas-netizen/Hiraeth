@@ -224,26 +224,23 @@ describe("Product and essence forms", () => {
       ),
     );
   });
-  it("opens a crop preview before uploading the product picture and can adjust it again", async () => {
+  it("uploads the product image immediately and only opens the editor on demand", async () => {
     await newProduct();
     fireEvent.change(screen.getByLabelText("+ Escolher imagens"), {
       target: { files: [new File(["foto"], "vela.png", { type: "image/png" })] },
     });
-    expect(screen.getByText("Prévia de recorte para teste")).toBeInTheDocument();
-    expect(mocks.storageUpload).not.toHaveBeenCalled();
-    fireEvent.click(screen.getByRole("button", { name: "Aplicar recorte" }));
     await waitFor(() => expect(mocks.storageUpload).toHaveBeenCalledTimes(1));
+    expect(screen.queryByText("Prévia de recorte para teste")).not.toBeInTheDocument();
     await screen.findByText("Imagem principal");
-    expect(screen.getByRole("button", { name: "Ajustar foto" })).toBeInTheDocument();
-
     fireEvent.click(screen.getByRole("button", { name: "Ajustar foto" }));
     expect(screen.getByText("Prévia de recorte para teste")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Voltar sem alterar" }));
+    expect(screen.queryByText("Prévia de recorte para teste")).not.toBeInTheDocument();
     expect(screen.getByText("Imagem principal")).toBeInTheDocument();
     expect(mocks.storageUpload).toHaveBeenCalledTimes(1);
   });
 
-  it("crops a multiple-image selection one image at a time", async () => {
+  it("uploads multiple selected product images without forcing any cropping", async () => {
     await newProduct();
     fireEvent.change(screen.getByLabelText("+ Escolher imagens"), {
       target: { files: [
@@ -251,14 +248,10 @@ describe("Product and essence forms", () => {
         new File(["foto2"], "vela-2.png", { type: "image/png" }),
       ] },
     });
-    expect(screen.getByText("Próximas fotos: 1. Ao aplicar ou cancelar, você passa para a próxima.")).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Aplicar recorte" }));
-    await waitFor(() => expect(mocks.storageUpload).toHaveBeenCalledTimes(1));
-    expect(screen.getByText("Prévia de recorte para teste")).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Aplicar recorte" }));
     await waitFor(() => expect(mocks.storageUpload).toHaveBeenCalledTimes(2));
     expect(screen.queryByText("Prévia de recorte para teste")).not.toBeInTheDocument();
-    expect(screen.getByText("Imagem 2")).toBeInTheDocument();
+    await screen.findByText("Imagem 2");
+    expect(screen.getByText("Imagem principal")).toBeInTheDocument();
   });
 
   it("stores the pyramid on the essence instead of requiring it for each candle", async () => {
