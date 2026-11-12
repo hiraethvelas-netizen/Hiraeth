@@ -1,61 +1,45 @@
 import { useState } from "react";
-import { ArrowUpRight, Flame, Nfc, Smartphone } from "lucide-react";
+import { Flame, Nfc } from "lucide-react";
 
-type Chapter = "toque" | "portal" | "app";
-const chapters: { id: Chapter; title: string; note: string }[] = [
-  { id: "toque", title: "Aproxime", note: "Uma vela Hiraeth com NFC carrega um acesso ao seu portal digital. Aproxime um celular compatível da área indicada da vela." },
-  { id: "portal", title: "Atravesse", note: "O celular abre uma página com a experiência daquele universo: inspirações, histórias e outros detalhes da coleção." },
-  { id: "app", title: "Permaneça", note: "No aplicativo Hiraeth, o Acervo, o Círculo do Fogo e a Biblioteca continuam essa experiência além da vela." },
-];
-
+/**
+ * Carta editorial da tecnologia Aprox.
+ * A experiência NFC é explicada com clareza, sem simulador e sem pop-up automático.
+ */
 export function AproxExperience() {
   const [opened, setOpened] = useState(false);
-  const [chapter, setChapter] = useState<Chapter>("toque");
-  const [simulated, setSimulated] = useState(false);
-  const active = chapters.find(item => item.id === chapter)!;
 
   return <section id="aprox-nfc" aria-labelledby="aprox-heading"
-    className="hiraeth-aprox relative scroll-mt-8 overflow-hidden rounded-3xl border border-[#c6a65b]/65 bg-[#1c3026] px-5 py-9 text-[#f7efda] shadow-lg sm:px-9 sm:py-11">
-    <span className="pointer-events-none absolute -right-12 -top-12 h-44 w-44 rounded-full border border-[#c6a65b]/25" aria-hidden="true" />
-    <p className="text-xs font-semibold uppercase tracking-[.24em] text-[#e4ca94]">Hiraeth × APROX · Tecnologia NFC</p>
-    <h2 id="aprox-heading" className="mt-3 font-display text-3xl leading-tight sm:text-5xl">Quando a chama encontra a tecnologia.</h2>
-    <p className="mt-3 max-w-lg text-sm leading-7 text-[#eee3cc] sm:text-base">Uma história não precisa terminar quando você apaga a vela. Com a tecnologia Aprox, ela pode continuar em um portal digital.</p>
+    className="hiraeth-aprox relative mx-auto w-full max-w-3xl scroll-mt-8 overflow-hidden rounded-3xl border border-[#c6a65b]/65 bg-[#1c3026] px-5 py-8 text-[#f7efda] shadow-lg sm:px-9 sm:py-10">
+    <div aria-hidden="true" className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full border border-[#c6a65b]/25" />
+    <p className="text-center text-[11px] font-semibold uppercase tracking-[.22em] text-[#e4ca94]">Hiraeth × APROX · Tecnologia NFC</p>
+    <h2 id="aprox-heading" className="mt-3 text-center font-display text-3xl leading-tight sm:text-4xl">Uma chama. Um toque. Um universo.</h2>
+    <p className="mx-auto mt-3 max-w-md text-center text-sm leading-6 text-[#eee3cc]">
+      Você sabia que algumas velas Hiraeth guardam uma experiência digital? Descubra o que acontece quando a tecnologia encontra as histórias.
+    </p>
     <button type="button" aria-expanded={opened} aria-controls="aprox-letter"
       onClick={() => setOpened(value => !value)}
-      className="group mx-auto mt-7 flex w-full max-w-sm flex-col items-center gap-3 rounded-2xl border border-[#d2b681]/40 bg-[#f7efda]/[.07] p-5 text-[#f7efda] transition-colors hover:bg-[#f7efda]/[.13] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#f4d49e]">
-      <span className="relative flex h-24 w-40 items-center justify-center rounded-xl border border-[#d4b680] bg-[#e6d4b2] shadow-xl transition-transform group-hover:-translate-y-1" aria-hidden="true">
-        <span className="absolute inset-x-0 top-0 h-[67%] bg-[#f4e5c9] [clip-path:polygon(0_0,50%_90%,100%_0)]"/>
-        <span className="relative flex h-12 w-12 items-center justify-center rounded-full border-2 border-[#b77b51] bg-[#5b1d04] text-[#f7efda]"><Nfc size={23}/></span>
+      className="group relative mx-auto mt-6 flex w-full max-w-[260px] flex-col items-center gap-3 rounded-2xl p-3 text-[#f7efda] transition-transform hover:-translate-y-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#f4d49e] motion-reduce:transition-none">
+      <span aria-hidden="true" className="relative flex h-32 w-full max-w-[225px] items-center justify-center overflow-hidden rounded-xl border border-[#d4b680] bg-[#e6d4b2] shadow-[0_12px_26px_rgba(0,0,0,.24)]">
+        <span className="absolute inset-x-0 top-0 h-[70%] bg-[#f3e5c8] [clip-path:polygon(0_0,50%_82%,100%_0)]" />
+        <span className="absolute left-1/2 top-[57%] flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-[3px] border-[#b77b51] bg-[#5b1d04] text-[#f7efda] shadow-md"><Flame size={25}/></span>
       </span>
-      <span className="font-display text-xl italic">{opened ? "Fechar a carta da Aprox" : "Abra o segredo da aproximação"}</span>
-      <span className="text-xs text-[#e4ca94]">{opened ? "Toque para recolher" : "Um toque revela como funciona"}</span>
+      <span className="font-display text-xl italic">{opened ? "Fechar carta" : "Abrir carta da Aprox"}</span>
+      <span className="text-xs text-[#e4ca94]">{opened ? "Recolher explicação" : "Toque no selo para descobrir"}</span>
     </button>
-    {opened && <div id="aprox-letter" className="mt-6 rounded-2xl border border-[#c6a65b]/50 bg-[#f7efda] p-5 text-[#34402b] sm:p-7">
-      <p className="text-[11px] font-semibold uppercase tracking-[.2em] text-[#5b1d04]">Mais do que tecnologia, conexões reais.</p>
-      <h3 className="mt-2 font-display text-3xl">Como funciona a experiência?</h3>
-      <p className="mt-2 text-sm leading-6">A Hiraeth transforma histórias em aromas. A Aprox conecta a vela ao universo digital por NFC e desenvolveu o aplicativo da Hiraeth.</p>
-      <div className="mt-5 grid grid-cols-3 gap-2" role="group" aria-label="Etapas da experiência NFC">
-        {chapters.map((item, index) => <button type="button" key={item.id}
-          onClick={() => setChapter(item.id)} aria-pressed={chapter === item.id}
-          className={"min-h-12 rounded-full border px-2 py-2 text-xs font-semibold transition-colors sm:text-sm " + (chapter === item.id ? "border-[#34402b] bg-[#34402b] text-[#f7efda]" : "border-[#878e47]/60 bg-[#f1ead7] text-[#34402b] hover:bg-[#e5e6d0]")}>
-          {index + 1}. {item.title}
-        </button>)}
+    {opened && <article id="aprox-letter" aria-label="Carta sobre a tecnologia Aprox"
+      className="mx-auto mt-6 max-w-xl rounded-2xl border border-[#c6a65b]/55 bg-[#f7efda] p-5 text-[#34402b] shadow-xl sm:p-8">
+      <p className="text-center text-[11px] font-semibold uppercase tracking-[.19em] text-[#5b1d04]">Uma carta para quem chegou até aqui</p>
+      <h3 className="mt-3 text-center font-display text-3xl leading-tight">A magia continua depois da chama.</h3>
+      <p className="mt-4 text-sm leading-7">
+        A Hiraeth transforma histórias em aromas. Com a tecnologia <strong>Aprox</strong>, algumas de nossas velas também podem abrir um portal digital: aproxime um celular compatível com NFC da área indicada na vela e descubra as inspirações daquele universo.
+      </p>
+      <p className="mt-3 text-sm leading-7">
+        A Aprox também participou do desenvolvimento do aplicativo Hiraeth, onde você encontra nosso Acervo, a comunidade Círculo do Fogo e a sua Biblioteca de velas.
+      </p>
+      <div className="mt-5 flex items-start gap-3 rounded-xl border border-[#b7aa83]/55 bg-[#ede7d7] p-4 text-sm leading-6 text-[#34402b]">
+        <Nfc size={22} className="mt-0.5 shrink-0 text-[#5b1d04]" aria-hidden="true"/>
+        <p>O celular precisa ser compatível com NFC, com a função ativada quando necessário e acesso à internet. <strong>Não é preciso instalar o aplicativo</strong> para abrir a página do portal pelo NFC.</p>
       </div>
-      <div className="mt-5 grid items-center gap-5 sm:grid-cols-[minmax(0,1fr)_140px]">
-        <div>
-          <h4 className="font-display text-2xl text-[#34402b]">{active.title}</h4>
-          <p className="mt-2 text-sm leading-7 text-[#4c513f]">{active.note}</p>
-          {chapter === "toque" && <p className="mt-3 text-xs leading-5 text-[#626349]">Para abrir o portal, o celular precisa ser compatível com NFC, ter a função ativada quando necessário e acesso à internet. Não é preciso instalar o aplicativo apenas para abrir o link.</p>}
-          {chapter === "app" && <a href="/loja" className="mt-4 inline-flex items-center gap-2 rounded-full bg-[#5b1d04] px-5 py-3 text-xs font-semibold text-[#f7efda]">Conhecer o Acervo <ArrowUpRight size={15}/></a>}
-        </div>
-        <button type="button" onClick={() => setSimulated(value => !value)}
-          aria-pressed={simulated} aria-label={simulated ? "Reiniciar demonstração da aproximação" : "Simular aproximação NFC"}
-          className="flex min-h-40 flex-col items-center justify-center gap-2 rounded-2xl border border-[#a39c79] bg-[#eae1cc] p-4 text-[#34402b]">
-          {simulated ? <><Flame size={30} className="text-[#5b1d04]"/><span className="text-center font-display text-xl">Portal aberto</span></>
-            : <><Smartphone size={32}/><Nfc size={20}/><span className="text-center text-xs font-medium">Toque para simular</span></>}
-        </button>
-      </div>
-      <p className="mt-3 text-center text-[11px] text-[#626349]">Demonstração ilustrativa: o NFC real está nas velas compatíveis.</p>
-    </div>}
+    </article>}
   </section>;
 }
