@@ -21,6 +21,7 @@ const NAV = [
   { to: "/admin/expedicao", label: "Correio da Fênix · Expedição" },
   { to: "/admin/avaliacoes", label: "Relatos do Acervo" },
   { to: "/admin/portais", label: "Portais NFC" },
+  { to: "/admin/portal-inspiracoes", label: "Fotos e histórias NFC" },
   { to: "/admin/financeiro", label: "Financeiro" },
   { to: "/admin/aparencia", label: "Aparência" },
   { to: "/admin/sobre", label: "Sobre e contatos" },
