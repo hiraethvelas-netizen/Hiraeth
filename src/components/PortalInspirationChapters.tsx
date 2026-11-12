@@ -154,9 +154,9 @@ export function PortalInspirationChapters({ fragments, magicWorld }: { fragments
           <span className="relative block h-44 overflow-hidden rounded-lg border border-[#b7a080] bg-[#d7c6a5] shadow-[0_15px_40px_rgba(0,0,0,.28)] transition-transform duration-300 group-hover:-translate-y-1 motion-reduce:transition-none">
             <span className="absolute inset-0 bg-[#e9ddc4] [clip-path:polygon(0_0,50%_62%,100%_0)]" aria-hidden="true" />
             <span className="absolute inset-x-0 bottom-0 h-[64%] bg-[#e3d2ae] [clip-path:polygon(0_100%,50%_0,100%_100%)]" aria-hidden="true" />
-            <span className="absolute left-1/2 top-[55%] flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-4 border-[#6e7538] bg-[#878e47] text-[#f7efda] shadow-md" aria-hidden="true"><Flame size={27}/></span>
+            <span className="absolute left-1/2 top-[55%] flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-4 border-[#9e6e47] bg-[#5b1d04] text-[#f7efda] shadow-md" aria-hidden="true"><Flame size={27}/></span>
           </span>
-          <span className="mt-4 block text-sm font-medium text-[var(--portal-accent)]">Toque no selo verde para abrir a carta</span>
+          <span className="mt-4 block text-sm font-medium text-[var(--portal-accent)]">Toque no selo vermelho para abrir a carta</span>
         </> : <span className="inline-flex items-center gap-2 rounded-full border border-[var(--portal-accent)] px-6 py-3 text-sm"><X size={16}/> Fechar carta</span>}
       </button>
       {letterOpen && <article id="portal-letter-content" className="mt-6 rounded-lg border border-[#c4ad7b] bg-[#f7efda] px-6 py-8 text-left text-[#513c2b] shadow-[0_16px_40px_rgba(0,0,0,.24)] sm:px-12 sm:py-12">
