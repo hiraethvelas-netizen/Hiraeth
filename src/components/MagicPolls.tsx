@@ -119,7 +119,7 @@ export function MagicPolls({ variant = "community" }: { variant?: "community" | 
         Ajude a Hiraeth a criar o próximo capítulo
       </h2>
       <p className={portal ? "mx-auto mt-4 max-w-2xl text-center text-sm leading-7 text-[#ecedff] sm:text-base" : "mx-auto mt-4 max-w-2xl text-center text-sm leading-7 text-foreground"}>
-        Como cheiram os lugares e os personagens que moram na sua imaginação? Suas respostas ajudam a inspirar as próximas velas da coleção.
+        Que sensações você gostaria de viver nas cenas do Mundo da Magia? Conte o que imagina, sente e gostaria de transformar nos próximos portais da coleção.
       </p>
       {!open ? <div className="mt-7 text-center">
         <button type="button" onClick={() => { setOpen(true); setFinished(false); setStep(0); }}
