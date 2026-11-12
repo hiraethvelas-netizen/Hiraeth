@@ -51,21 +51,17 @@ describe("Inspirações: experiência de descoberta", () => {
     expect(within(card).queryByText("A sala comunal é inspiradora.")).not.toBeInTheDocument();
   });
 
-  it("mantém a carta em envelope até a pessoa tocar no selo vermelho", () => {
+  it("deixa a carta apenas na tela principal do portal e preserva os cartões", () => {
     render(<PortalInspirationChapters fragments={data} magicWorld />);
-    const button = screen.getByRole("button", { name: /toque no selo vermelho para abrir a carta/i });
-    expect(button).toHaveAttribute("aria-expanded", "false");
-    fireEvent.click(button);
-    expect(screen.getByText("Uma carta sobre encontrar conforto e sentir-se em casa.")).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: /fechar carta/i }));
-    expect(screen.queryByText("Uma carta sobre encontrar conforto e sentir-se em casa.")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /toque no selo vermelho/i })).not.toBeInTheDocument();
+    expect(screen.queryByText("Uma carta da Guardiã da Chama")).not.toBeInTheDocument();
   });
 
-  it("coloca a carta entre a Seletora e as quatro casas sem mudar os cartões das casas", () => {
+  it("mantém as casas sem a carta entre os capítulos", () => {
     const { container } = render(<PortalInspirationChapters fragments={data} magicWorld />);
     const sections = Array.from(container.querySelectorAll("section[id^='inspiracao-']")).map(el => el.id);
     expect(sections).toEqual([
-      "inspiracao-origem", "inspiracao-seletora", "inspiracao-carta", "inspiracao-casas", "inspiracao-natal",
+      "inspiracao-origem", "inspiracao-seletora", "inspiracao-casas", "inspiracao-natal",
     ]);
     expect(screen.queryByText("IV · Os quatro caminhos")).not.toBeInTheDocument();
     expect(screen.queryByText("Cada casa guarda um aroma. Escolha qual segredo deseja revelar.")).not.toBeInTheDocument();
