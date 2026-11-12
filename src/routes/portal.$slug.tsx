@@ -5,6 +5,7 @@ import { PortalChristmasShowcase } from "@/components/PortalChristmasShowcase";
 import { PortalFestiveAccents } from "@/components/PortalFestiveAccents";
 import { PortalIntro } from "@/components/PortalIntro";
 import { PortalChristmasDecor } from "@/components/PortalChristmasDecor";
+import { PortalFeaturedProducts } from "@/components/PortalFeaturedProducts";
 import { carouselFromTheme, isMagicWorld, magicWorldTitle, portalCatalogDestination, spotifyPlaylistUrl } from "@/lib/portal-experience";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -209,10 +210,10 @@ function PortalPage() {
                 <Headphones aria-hidden="true" size={26}/><span><strong>Playlist no Spotify</strong>
                 <small>Em preparação — o link será adicionado em breve</small></span>
               </div>}
-            <a className="portal-action-card" href={catalogUrl}>
+            {!magicWorld && <a className="portal-action-card" href={catalogUrl}>
               <LibraryBig aria-hidden="true" size={26}/><span><strong>Conheça o acervo</strong>
               <small>Explore as velas desta coleção</small></span><ArrowUpRight aria-hidden="true" size={19}/>
-            </a>
+            </a>}
             <a className="portal-action-card" href={magicWorld ? `/portal/${encodeURIComponent(slug)}/inspiracoes` : "#portal-inspiracoes"}>
               <BookOpenText aria-hidden="true" size={26}/><span><strong>Conheça as inspirações</strong>
               <small>Histórias e referências por trás de cada criação</small></span><ArrowUpRight aria-hidden="true" size={19}/>
@@ -222,6 +223,7 @@ function PortalPage() {
               <small>Abra o Portal Digital Hiraeth no navegador</small></span><ArrowUpRight aria-hidden="true" size={19}/>
             </a>
           </div>
+          {magicWorld && <PortalFeaturedProducts theme={portalTheme} />}
           <p className="relative z-10 mt-6 text-center text-xs text-[var(--portal-text)]/65">
             Para instalar no celular, abra o aplicativo no navegador e escolha “Adicionar à tela inicial”, quando disponível.
           </p>
@@ -255,11 +257,6 @@ function PortalPage() {
               Tentar carregar novamente
             </button>
           </div> : <PortalChristmasShowcase fragments={fragments} />}
-        <div className="mt-10 text-center">
-          <a href={catalogUrl} className="portal-natal-acervo-link mx-auto inline-flex items-center justify-center gap-2" aria-label="Conheça o acervo Hiraeth">
-            Conheça o acervo <ArrowUpRight size={17} aria-hidden="true"/>
-          </a>
-        </div>
         </div>
       </section> : <section id="portal-inspiracoes" className="mx-auto max-w-4xl scroll-mt-10 px-5 py-12 md:px-8">
         <div className="mb-10 text-center">
@@ -319,9 +316,7 @@ function PortalPage() {
               As fotografias oficiais da coleção aparecerão aqui assim que forem adicionadas em “Meus Portais NFC”.
             </p>
           </div>}
-          {magicWorld && <a href={catalogUrl} className="portal-collection-shop-link mx-auto mt-9 inline-flex items-center justify-center gap-3">
-            Explorar o acervo <ArrowUpRight size={17} aria-hidden="true"/>
-          </a>}
+
         </div>
       </section>}
       </main>
