@@ -97,4 +97,63 @@ describe("NFC: endereço permanente de portais publicados", () => {
     expect(await screen.findByRole("button", { name: "Editar" })).toBeInTheDocument();
     expect(screen.queryByText("Editor de fotos integrado")).not.toBeInTheDocument();
   });
+
+  it("mantém as opções avançadas recolhidas e preserva o tema ao salvar", async () => {
+    render(<AdminPortais />);
+    fireEvent.click(await screen.findByRole("button", { name: "Editar" }));
+    expect(screen.getByRole("textbox", { name: "Nome do portal" })).toHaveValue("Nome original");
+    expect(screen.getByRole("textbox", { name: "Vídeo de abertura (MP4)" })).toHaveValue(
+      "/abertura.mp4",
+    );
+    expect(screen.getByRole("group", { name: "Dados do portal" })).toBeInTheDocument();
+    expect(screen.getByRole("group", { name: "Abertura em vídeo" })).toBeInTheDocument();
+    expect(screen.getByRole("group", { name: "Playlist" })).toBeInTheDocument();
+    const summary = screen.getByText("Configurações avançadas");
+    const details = summary.closest("details")!;
+    expect(details.open).toBe(false);
+    fireEvent.click(summary);
+    expect(details.open).toBe(true);
+    const theme = {
+      palette: { accent: "#c6a65b" },
+      custom_setting: "preservar",
+      carousel_items: [],
+    };
+    fireEvent.change(screen.getByLabelText("Paleta e opções do portal (JSON)"), {
+      target: { value: JSON.stringify(theme) },
+    });
+    fireEvent.click(summary);
+    expect(details.open).toBe(false);
+    fireEvent.click(screen.getByRole("button", { name: "Salvar alterações" }));
+    await waitFor(() =>
+      expect(mocks.update).toHaveBeenCalledWith(expect.objectContaining({ theme })),
+    );
+  });
+
+  it("abre as opções avançadas e foca o JSON inválido sem salvar parcialmente", async () => {
+    render(<AdminPortais />);
+    fireEvent.click(await screen.findByRole("button", { name: "Editar" }));
+    const summary = screen.getByText("Configurações avançadas");
+    fireEvent.click(summary);
+    const theme = screen.getByLabelText("Paleta e opções do portal (JSON)");
+    fireEvent.change(theme, { target: { value: "{" } });
+    fireEvent.click(summary);
+    expect(summary.closest("details")).not.toHaveAttribute("open");
+    fireEvent.click(screen.getByRole("button", { name: "Salvar alterações" }));
+    expect(summary.closest("details")).toHaveAttribute("open");
+    expect(theme).toHaveFocus();
+    expect(mocks.update).not.toHaveBeenCalled();
+  });
+
+  it("cancela as alterações e retorna à lista sem persistir o rascunho", async () => {
+    render(<AdminPortais />);
+    fireEvent.click(await screen.findByRole("button", { name: "Editar" }));
+    fireEvent.change(screen.getByRole("textbox", { name: "Nome do portal" }), {
+      target: { value: "Nome ainda não salvo" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Cancelar" }));
+    expect(await screen.findByRole("button", { name: "Editar" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "+ Novo portal" })).toBeInTheDocument();
+    expect(screen.queryByRole("form", { name: "Configurações do portal" })).not.toBeInTheDocument();
+    expect(mocks.update).not.toHaveBeenCalled();
+  });
 });
