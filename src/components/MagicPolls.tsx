@@ -105,10 +105,10 @@ export function MagicPolls({ variant = "community" }: { variant?: "community" | 
   return <section id={portal ? "portal-quiz-criativo" : undefined} className={sectionStyles}
     aria-label="Perguntas para criar a próxima coleção">
     {portal && <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
-      {[
+      {([
         ["9%","15%","0s"],["85%","13%","0.7s"],["26%","80%","1.4s"],["93%","72%","1.8s"],
         ["72%","31%","0.5s"],["8%","64%","2.2s"],["54%","6%","0.3s"],
-      ].map(([left,top,delay]) => <span key={left + top} style={{ left, top, animationDelay: delay }}
+      ] as const).map(([left,top,delay]) => <span key={left + top} style={{ left, top, animationDelay: delay }}
         className="motion-safe:animate-pulse absolute h-1.5 w-1.5 rounded-full bg-[#fbebb4] opacity-65 shadow-[0_0_12px_3px_rgba(234,219,157,0.65)]" />)}
     </div>}
     <div className="relative z-10">
