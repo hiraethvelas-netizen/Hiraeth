@@ -349,4 +349,24 @@ describe("Bolinhas das subcategorias na loja", () => {
       ),
     );
   });
+  it("centraliza a única coleção, curva o nome e permite salvar duas bolinhas por fileira", async () => {
+    mocks.editing = true;
+    render(<Store />);
+    const onlyCollection = await screen.findByRole("button", { name: "Harry Potter" });
+    expect(onlyCollection.querySelector("svg.hiraeth-collection-arc textPath")).toHaveTextContent("Harry Potter");
+    const dialog = await openOptions();
+    const select = within(dialog).getByLabelText("Posição das bolinhas");
+    expect(select).toHaveValue("center");
+    fireEvent.change(select, { target: { value: "two" } });
+    fireEvent.click(within(dialog).getByRole("button", { name: "Salvar" }));
+    await waitFor(() => expect(mocks.write).toHaveBeenCalledWith(
+      "site_content",
+      expect.objectContaining({
+        key: COLLECTION_VISIBILITY_KEY,
+        value: expect.objectContaining({ circleLayout: "two", visibleCategoryIds: ["hp"] }),
+      }),
+    ));
+    expect(await screen.findByRole("button", { name: "Harry Potter" })).toBeInTheDocument();
+  });
+
 });
