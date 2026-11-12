@@ -55,6 +55,7 @@ afterEach(() => {
 describe("NFC: endereço permanente de portais publicados", () => {
   it("preserva o link gravado nas velas ao editar nome e vídeo", async () => {
     render(<AdminPortais />);
+    expect(await screen.findByText("Editar fotos das inspirações")).toBeInTheDocument();
     fireEvent.click(await screen.findByRole("button", { name: "Editar" }));
     expect(screen.getByText("/portal/o-mundo-de-magia", { selector: "span" })).toBeInTheDocument();
     expect(
