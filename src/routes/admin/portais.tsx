@@ -1,3 +1,4 @@
+import { MagicPollAdmin } from "@/components/admin/MagicPollAdmin";
 import type { Json } from "@/integrations/supabase/types";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
@@ -48,6 +49,7 @@ function AdminPortais() {
   const [form, setForm] = useState(emptyForm);
   const [showForm, setShowForm] = useState(false);
   const [editorTab, setEditorTab] = useState<"config" | "inspirations">("config");
+  const [pollEditorOpen, setPollEditorOpen] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [loadError, setLoadError] = useState(false);
   const advancedSettingsRef = useRef<HTMLDetailsElement>(null);
@@ -388,6 +390,13 @@ function AdminPortais() {
         {isMagicWorld(editing.slug)
           ? <>
               <PortalInspiracoesAdmin portalId={editing.id} />
+              <section className="rounded-xl border border-primary/25 p-4">
+                <button type="button" onClick={() => setPollEditorOpen(value => !value)}
+                  className="text-sm font-semibold text-primary underline underline-offset-4">
+                  {pollEditorOpen ? "Fechar edição das enquetes" : "Editar enquetes do Mundo da Magia"}
+                </button>
+                {pollEditorOpen && <div className="mt-4"><MagicPollAdmin /></div>}
+              </section>
               <details className="rounded-xl border border-primary/25 bg-card p-4">
                 <summary className="cursor-pointer text-sm font-medium text-primary">Mais textos e fragmentos do portal</summary>
                 <PortalFragmentsEditor portalId={editing.id} />

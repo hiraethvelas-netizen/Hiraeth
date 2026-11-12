@@ -1,3 +1,8 @@
+import { HouseBadge } from "@/components/HouseBadge";
+import { HouseChoiceCards } from "@/components/HouseChoiceCards";
+import { HouseCup } from "@/components/HouseCup";
+import { MagicPolls } from "@/components/MagicPolls";
+import { HOUSE_CHANGED_EVENT, type HouseId } from "@/lib/house-cup";
 import { useLibraryCategories } from "@/hooks/use-library-categories";
 // Chat do Círculo do Fogo: interface leve, com ações por mensagem e permissões do autor.
 import { createFileRoute } from "@tanstack/react-router";
@@ -24,12 +29,28 @@ type CommunityInterest = { id: string; interest_type: "book" | "movie" | "series
 function InterestBookshelf({ items, onSelect }: { items: CommunityInterest[]; onSelect?: (item: CommunityInterest) => void }) {
   const [filter, setFilter] = useState<"all" | "movie" | "series" | "book" | "other">("all");
   const visible = filter === "all" ? items : items.filter(item => item.interest_type === filter);
-  const filters = [{id:"all",label:"Todos"},{id:"movie",label:"Filmes"},{id:"series",label:"Séries"},{id:"book",label:"Livros"},{id:"other",label:"Outros"}] as const;
-  return <div>
-    <div className="mb-5 flex flex-wrap gap-2">{filters.map(item => <button key={item.id} type="button" onClick={() => setFilter(item.id)} className={"rounded-full border px-3 py-2 text-xs " + (filter === item.id ? "border-primary bg-primary/10 text-primary" : "border-primary/20 text-muted-foreground")}>{item.label}</button>)}</div>
-    {visible.length === 0 ? <p className="py-8 text-center text-sm text-muted-foreground">Este universo ainda está sendo construído.</p> : <div className="space-y-3 rounded-xl border border-[#795638]/50 bg-[#eadfc9] p-3 shadow-inner dark:bg-[#30251d]">
-      {Array.from({ length: Math.ceil(visible.length / 3) }, (_, row) => <div key={row} className="grid grid-cols-3 min-h-[150px] items-end gap-3 border-b-[9px] border-[#795638] px-2 pb-2 shadow-[0_5px_5px_-4px_rgba(0,0,0,0.7)]">{visible.slice(row * 3, row * 3 + 3).map(item => <article key={item.id} role={onSelect ? "button" : undefined} tabIndex={onSelect ? 0 : undefined} onClick={() => onSelect?.(item)} onKeyDown={event => { if (onSelect && (event.key === "Enter" || event.key === " ")) { event.preventDefault(); onSelect(item); } }} aria-label={onSelect ? `Editar ou remover ${item.title}` : undefined} className={`mx-auto w-full min-w-0 max-w-[88px] text-center ${onSelect ? "cursor-pointer rounded-md outline-none transition-transform hover:-translate-y-1 focus-visible:ring-2 focus-visible:ring-[#c6a46a]" : ""}`}><div className="aspect-[78/112] w-full max-w-[78px] overflow-hidden rounded-sm border border-[#8c704d] bg-[#d9c8a9] shadow-md">{item.image_url ? <img src={item.image_url} alt={"Capa de " + item.title} className="h-full w-full object-cover"/> : <div className="flex h-full items-center justify-center p-2 text-[10px] font-semibold text-[#60472f]">{item.title}</div>}</div><p className="mt-2 line-clamp-2 text-[11px] font-medium text-[#493725] dark:text-[#f0e4d0]">{item.title}</p></article>)}</div>)}
-    </div>}
+  const filters = [{ id: "all", label: "Todos" }, { id: "book", label: "Livros" }, { id: "movie", label: "Filmes" }, { id: "series", label: "Séries" }, { id: "other", label: "Outros" }] as const;
+  return <div className="rounded-2xl border border-[#9e956f]/35 bg-[#17251d] p-3 text-[#f7efda] shadow-sm sm:p-5">
+    <div className="mb-5 flex flex-wrap gap-2">{filters.map(item => <button key={item.id} type="button"
+      onClick={() => setFilter(item.id)}
+      className={"rounded-full border px-3 py-2 text-xs font-semibold transition-colors " +
+        (filter === item.id ? "border-[#d2bc80] bg-[#d2bc80] text-[#1f2d23]" : "border-[#d2bc80]/40 text-[#f7efda] hover:bg-white/10")}>
+      {item.label}</button>)}</div>
+    {visible.length === 0 ? <p className="py-10 text-center text-sm text-[#e4decf]">Este universo ainda está sendo construído.</p> :
+      <div className="grid grid-cols-2 gap-x-3 gap-y-6 sm:grid-cols-3 lg:grid-cols-4">
+        {visible.map(item => <article key={item.id} role={onSelect ? "button" : undefined}
+          tabIndex={onSelect ? 0 : undefined}
+          onClick={() => onSelect?.(item)}
+          onKeyDown={event => { if (onSelect && (event.key === "Enter" || event.key === " ")) { event.preventDefault(); onSelect(item); } }}
+          aria-label={onSelect ? `Editar ou remover ${item.title}` : undefined}
+          className={"min-w-0 rounded-md outline-none " + (onSelect ? "cursor-pointer transition-transform hover:-translate-y-1 focus-visible:ring-2 focus-visible:ring-[#d2bc80]" : "")}>
+          <div className="aspect-[2/3] w-full overflow-hidden rounded-md border border-[#947e58]/70 bg-[#304030] shadow-[0_8px_18px_rgba(0,0,0,.3)]">
+            {item.image_url ? <img loading="lazy" src={item.image_url} alt={"Capa de " + item.title} className="h-full w-full object-cover" /> :
+              <div className="flex h-full items-center justify-center bg-[linear-gradient(150deg,#455d43,#1d3128)] px-3 text-center font-display text-base leading-snug text-[#f7efda]">{item.title}</div>}
+          </div>
+          <p className="mt-2 line-clamp-2 min-h-10 text-center text-xs font-medium leading-5 text-[#f7efda] sm:text-sm">{item.title}</p>
+        </article>)}
+      </div>}
   </div>;
 }
 
@@ -41,6 +62,8 @@ export const Route = createFileRoute("/_authenticated/comunidade")({
 function Comunidade() {
   const categoryOptions = useLibraryCategories();
   const [userId, setUserId] = useState("");
+  const [memberHouses, setMemberHouses] = useState<Record<string, HouseId | null>>({});
+  const [houseSaving, setHouseSaving] = useState(false);
   const [joined, setJoined] = useState(false);
   const [tab, setTab] = useState<Tab>(() => {
     // Links from Sinais da Chama open the relevant area of the community.
@@ -83,6 +106,18 @@ function Comunidade() {
   const [publicLibrary, setPublicLibrary] = useState<LibraryCandle[]>([]);
   const [avatarUploading, setAvatarUploading] = useState(false);
 
+  async function loadMemberHouses(userIds: string[]) {
+    const ids = [...new Set(userIds.filter(Boolean))].slice(0, 200);
+    if (!ids.length) return;
+    const { data, error } = await (supabase as any).rpc("get_member_houses", { p_user_ids: ids });
+    if (error) { console.warn("Os selos das casas não puderam ser carregados.", error); return; }
+    setMemberHouses(current => ({
+      ...current,
+      ...Object.fromEntries(ids.map(id => [id, null])),
+      ...Object.fromEntries((Array.isArray(data) ? data : []).map((entry: { user_id: string; house: HouseId }) => [entry.user_id, entry.house])),
+    }));
+  }
+
   async function loadInterests(currentUserId = userId) {
     const { data, error } = await (supabase as any).from("community_interests").select("id,interest_type,title,image_url").eq("user_id", currentUserId).order("created_at", { ascending: true });
     if (error) { toast.error("Não foi possível carregar seus interesses."); return; }
@@ -107,6 +142,7 @@ function Comunidade() {
     const rows = (data ?? []) as Message[];
     if (!rows.length) { setMessages([]); return; }
     const ids: string[] = [...new Set<string>(rows.map((message: Message) => message.user_id))];
+    void loadMemberHouses(ids);
     const messageIds = rows.map(message => message.id);
     const [{ data: profiles, error: profilesError }, { data: reactions, error: reactionsError }, roles] = await Promise.all([
       (supabase as any).from("community_profiles").select("user_id,username,avatar_url").in("user_id", ids),
@@ -141,6 +177,7 @@ function Comunidade() {
     if (!rows.length) { setPosts([]); return; }
     const ids = rows.map((p: any) => p.id);
     const users: string[] = [...new Set<string>(rows.map((p: any) => String(p.user_id)))];
+    void loadMemberHouses(users);
     const [{ data: profiles }, { data: reactions }, { data: commentRows }] = await Promise.all([
       (supabase as any).from("community_profiles").select("user_id,username,avatar_url").in("user_id", users),
       (supabase as any).from("community_post_reactions").select("post_id,user_id,reaction_type").in("post_id", ids),
@@ -175,6 +212,7 @@ function Comunidade() {
       const { data: membership } = await (supabase as any).from("community_memberships").select("user_id").eq("user_id", data.user.id).maybeSingle();
       if (membership) {
         setJoined(true);
+        void loadMemberHouses([data.user.id]);
         const { data: p } = await (supabase as any).from("community_profiles").select("*").eq("user_id", data.user.id).maybeSingle();
         if (p) setProfile(p);
         await Promise.all([loadMessages(data.user.id), loadFeed(data.user.id), loadInterests(data.user.id), loadLibrary(data.user.id)]);
@@ -189,6 +227,7 @@ function Comunidade() {
     const { error } = await (supabase as any).from("community_memberships").insert({ user_id: userId });
     if (error && error.code !== "23505") { toast.error("Não foi possível concluir sua participação."); setSaving(false); return; }
     setJoined(true);
+    void loadMemberHouses([userId]);
     const { data: auth } = await supabase.auth.getUser();
     const suggested = auth.user?.user_metadata?.["display_name"] || auth.user?.email?.split("@")[0] || "integrante";
     const { error: profileError } = await (supabase as any).from("community_profiles").upsert({ user_id: userId, username: String(suggested).slice(0, 30) }, { onConflict: "user_id" });
@@ -340,6 +379,7 @@ function Comunidade() {
     const { data, error } = await (supabase as any).from("community_post_comments").select("id,post_id,user_id,body,created_at").eq("post_id", postId).order("created_at", { ascending: true });
     if (error) { toast.error("Não foi possível carregar os comentários."); return; }
     const userIds = [...new Set((data ?? []).map((c: any) => c.user_id))];
+    void loadMemberHouses(userIds as string[]);
     const { data: people } = userIds.length ? await (supabase as any).from("community_profiles").select("user_id,username").in("user_id", userIds) : { data: [] };
     const names = new Map((people ?? []).map((p: any) => [p.user_id, p.username]));
     setComments(current => ({ ...current, [postId]: (data ?? []).map((c: any) => ({ ...c, author: names.get(c.user_id) || "Integrante" })) }));
@@ -564,6 +604,7 @@ function Comunidade() {
     if (!memberId) { toast.error("Não foi possível identificar este integrante."); return; }
     if (memberId === userId) { setPublicMember(null); setTab("perfil"); setProfileSection("info"); return; }
 
+    void loadMemberHouses([memberId]);
     const cachedPost = posts.find(post => post.user_id === memberId);
     const cachedMessage = messages.find(message => message.user_id === memberId);
     const fallbackProfile: PublicMember = {
@@ -623,6 +664,18 @@ function Comunidade() {
     }
   }
 
+  async function saveHouse(house: HouseId | null) {
+    if (!userId || houseSaving) return;
+    setHouseSaving(true);
+    const { error } = await (supabase as any).from("member_houses")
+      .upsert({ user_id: userId, house, updated_at: new Date().toISOString() }, { onConflict: "user_id" });
+    setHouseSaving(false);
+    if (error) { toast.error("Não foi possível atualizar sua casa."); return; }
+    setMemberHouses(current => ({ ...current, [userId]: house }));
+    window.dispatchEvent(new Event(HOUSE_CHANGED_EVENT));
+    toast.success(house ? "Sua casa foi atualizada!" : "Você pode descobrir sua casa quando quiser.");
+  }
+
   async function saveProfile(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
@@ -654,7 +707,7 @@ function Comunidade() {
           <div className="relative mt-2 h-24 w-24 overflow-hidden rounded-full border-[3px] border-[#d7bd83] bg-[#e8dcc3] shadow-[0_0_0_6px_rgba(215,189,131,0.12),0_10px_28px_rgba(0,0,0,0.3)]">
             {publicMember.avatar_url ? <img src={publicMember.avatar_url} alt={"Foto de " + publicMember.username} className="h-full w-full object-cover"/> : <UserRound className="m-auto mt-7 text-[#4a5d48]" size={34}/>}
           </div>
-          <h2 className="relative font-display text-3xl leading-tight sm:text-4xl">{publicMember.username}</h2>
+          <div className="relative flex items-center gap-2"><h2 className="font-display text-3xl leading-tight sm:text-4xl">{publicMember.username}</h2><HouseBadge house={memberHouses[publicMember.user_id]} large /></div>
           <p className="relative text-[10px] uppercase tracking-[.2em] text-[#e2d3b6]">Integrante da comunidade</p>
         </header>
         <nav className={"sticky top-0 z-10 grid border-b border-[#d8c9aa] bg-[#fbf7ec]/95 px-2 shadow-[0_4px_12px_rgba(70,52,28,0.06)] backdrop-blur " + (publicMember.library_visible ? "grid-cols-4" : "grid-cols-3")}>{([{id:"profile",label:"Perfil"},{id:"universe",label:"Meu Universo"},...(publicMember.library_visible ? [{id:"library" as const,label:"Minha Biblioteca"}] : []),{id:"posts",label:"Publicações"}] as const).map(item => <button key={item.id} type="button" onClick={() => setPublicSection(item.id)} className={"min-h-12 border-b-[3px] px-1 py-3 text-xs font-semibold transition-colors md:text-sm " + (publicSection === item.id ? "border-[#9a713d] text-[#334b37]" : "border-transparent text-[#766b57] hover:bg-[#eee5d3] hover:text-[#334b37]")}>{item.label}</button>)}</nav>
@@ -705,6 +758,8 @@ function Comunidade() {
               <p className="mt-5 text-base leading-8 text-muted-foreground md:text-lg">O Círculo do Fogo é o espaço de encontro da Hiraeth para quem encontra nas histórias um jeito de sentir, imaginar e se conectar. É um lugar para conversar sobre livros, filmes e séries, dividir descobertas, conhecer pessoas com gostos parecidos e criar novas lembranças em torno dos universos que amamos.</p>
             </div>
             <CommunityStorySpotlight onAnswer={() => { setTab("feed"); setComposerOpen(true); }} />
+            <HouseCup />
+            <MagicPolls />
             <div className="grid gap-5 md:grid-cols-3">
               <article className="community-overview-card rounded-3xl border p-6"><div className="mb-4 flex h-11 w-11 items-center justify-center rounded-full bg-primary/10 text-primary"><MessageCircle/></div><h3 className="font-display text-2xl">Converse no Chat</h3><p className="mt-3 text-sm leading-7 text-muted-foreground">Participe das conversas em tempo real, troque ideias, faça perguntas e fale sobre aquilo que está lendo ou assistindo. É o cantinho para uma conversa espontânea entre integrantes.</p></article>
               <article className="community-overview-card rounded-3xl border p-6"><div className="mb-4 flex h-11 w-11 items-center justify-center rounded-full bg-primary/10 text-primary"><ImagePlus/></div><h3 className="font-display text-2xl">Compartilhe no Feed</h3><p className="mt-3 text-sm leading-7 text-muted-foreground">Publique fotos, opiniões, trechos de experiências e descobertas. Reaja às publicações com corações e foguinhos, comente e participe do que outras pessoas estão compartilhando.</p></article>
@@ -728,7 +783,7 @@ function Comunidade() {
                 return <article key={message.id} className={`flex w-full flex-col ${ownMessage ? "items-end" : "items-start"}`}>
                   <div className={`relative w-fit max-w-[88%] rounded-2xl px-3.5 py-2.5 shadow-sm ${ownMessage ? "rounded-tr-sm border border-[#c6d5bd] bg-[#e3edda] text-[#243629] dark:border-[#50664f] dark:bg-[#304532] dark:text-[#f1f0e7]" : "rounded-tl-sm border border-[#e4ddcf] bg-[#f7efda] text-[#33352f] dark:border-[#455047] dark:bg-[#26332a] dark:text-[#f1f0e7]"} ${messageIdentity.bubbleClassName} ${message.is_pinned ? "ring-2 ring-[#b99a5b]/70" : ""}`}>
                     <div className="mb-1 flex items-center gap-2 pr-6">
-                      <button type="button" onClick={() => void openPublicProfile(message.user_id)} className="text-xs font-bold text-[#80653a] hover:underline dark:text-[#d6bd88]">{message.is_admin ? "Hiraeth" : message.community_profiles?.username || "Integrante"}</button>
+                      <button type="button" onClick={() => void openPublicProfile(message.user_id)} className="text-xs font-bold text-[#80653a] hover:underline dark:text-[#d6bd88]">{message.is_admin ? "Hiraeth" : message.community_profiles?.username || "Integrante"}</button><HouseBadge house={memberHouses[message.user_id]} />
                       {messageIdentity.label && <span className="community-official-badge">{messageIdentity.label}</span>}{message.is_pinned && <span className="text-[9px] font-semibold text-[#a27b35]">Fixada</span>}
                     </div>
                     {editingMessageId === message.id ? <div className="min-w-[220px] space-y-2">
@@ -782,7 +837,7 @@ function Comunidade() {
             {posts.length === 0 ? <div className="border border-dashed border-primary/30 px-5 py-12 text-center"><Flame className="mx-auto text-primary" size={30}/><p className="mt-3 font-display text-xl">A primeira chama do Feed pode ser sua</p><p className="mt-1 text-sm text-muted-foreground">Compartilhe uma foto ou escreva algo para começar.</p></div> : posts.map(post => <article key={post.id} className={`overflow-hidden rounded-xl border transition-shadow ${post.is_admin ? "border-[3px] border-[#b58a3b] bg-[linear-gradient(145deg,#f4dfaa_0%,#ead09a_48%,#f6e9c9_100%)] text-[#20382b] shadow-[0_8px_28px_rgba(125,89,28,0.28),inset_0_0_0_2px_rgba(255,255,255,0.55)] dark:bg-[linear-gradient(145deg,#4b3b20_0%,#66502b_48%,#3b3827_100%)] dark:text-[#f7edcf]" : "border border-primary/20 bg-gradient-to-br from-background via-background to-primary/[0.04] shadow-sm"}`}>
               <div className="flex items-start gap-3 p-4">
                 <button type="button" onClick={() => void openPublicProfile(post.user_id)} aria-label={"Abrir perfil de " + post.author} className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#20382b] text-[#e8d8b4]">{post.avatar_url ? <img src={post.avatar_url} alt="" className="h-full w-full object-cover"/> : post.author.slice(0,1).toUpperCase()}</button>
-                <div className="min-w-0 flex-1"><button type="button" onClick={() => void openPublicProfile(post.user_id)} className="block text-sm font-semibold hover:underline">{post.author}</button>{post.is_admin && <span className="mt-1 inline-flex items-center gap-1 rounded-full border border-[#806126]/60 bg-[#20382b] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#f5dfaa]">✦ Hiraeth oficial</span>}<time className={`block text-xs ${post.is_admin ? "text-[#66502b] dark:text-[#f0dfb5]" : "text-muted-foreground"}`}>{new Date(post.created_at).toLocaleString("pt-BR")}</time></div>
+                <div className="min-w-0 flex-1"><div className="flex items-center gap-2"><button type="button" onClick={() => void openPublicProfile(post.user_id)} className="block text-sm font-semibold hover:underline">{post.author}</button><HouseBadge house={memberHouses[post.user_id]} /></div>{post.is_admin && <span className="mt-1 inline-flex items-center gap-1 rounded-full border border-[#806126]/60 bg-[#20382b] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#f5dfaa]">✦ Hiraeth oficial</span>}<time className={`block text-xs ${post.is_admin ? "text-[#66502b] dark:text-[#f0dfb5]" : "text-muted-foreground"}`}>{new Date(post.created_at).toLocaleString("pt-BR")}</time></div>
                 {(post.user_id === userId || isAdmin) && <div className="flex gap-1">{post.user_id === userId && <button type="button" onClick={() => void editPost(post)} aria-label="Editar publicação" className="rounded p-2 text-muted-foreground hover:text-primary"><span className="text-xs">Editar</span></button>}<button type="button" onClick={() => void deletePost(post)} aria-label="Excluir publicação" className="rounded p-2 text-muted-foreground hover:text-destructive"><Trash2 size={16}/></button></div>}
               </div>
               {post.body && <p className="whitespace-pre-wrap px-4 pb-4 text-sm leading-relaxed">{post.body}</p>}
@@ -793,7 +848,7 @@ function Comunidade() {
                 <button type="button" onClick={() => void toggleComments(post.id)} className="ml-auto inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm text-muted-foreground hover:bg-primary/5 hover:text-primary"><MessageCircle size={17}/> {post.commentCount} comentários</button>
               </div>
               {openComments === post.id && <div className="space-y-3 border-t border-primary/10 bg-card/40 dark:bg-card p-4">
-                {(comments[post.id] ?? []).map(comment => <div key={comment.id} className="text-sm"><span className="font-semibold text-primary">{comment.author}</span><p className="mt-0.5 whitespace-pre-wrap">{comment.body}</p><time className="text-[10px] text-muted-foreground">{new Date(comment.created_at).toLocaleString("pt-BR")}</time></div>)}
+                {(comments[post.id] ?? []).map(comment => <div key={comment.id} className="text-sm"><span className="inline-flex items-center gap-1.5"><span className="font-semibold text-primary">{comment.author}</span><HouseBadge house={memberHouses[comment.user_id]} /></span><p className="mt-0.5 whitespace-pre-wrap">{comment.body}</p><time className="text-[10px] text-muted-foreground">{new Date(comment.created_at).toLocaleString("pt-BR")}</time></div>)}
                 {(comments[post.id] ?? []).length === 0 && <p className="text-xs text-muted-foreground">Seja a primeira pessoa a comentar.</p>}
                 <form onSubmit={e => void addComment(e, post.id)} className="flex gap-2"><input value={commentDrafts[post.id] ?? ""} onChange={e => setCommentDrafts(current => ({ ...current, [post.id]: e.target.value }))} maxLength={2000} placeholder="Escreva um comentário..." className="min-w-0 flex-1 border bg-background dark:bg-card px-3 py-2 text-sm"/><button type="submit" aria-label="Enviar comentário" className="btn-gold px-3"><Send size={16}/></button></form>
               </div>}
@@ -803,8 +858,12 @@ function Comunidade() {
             <div className="mb-6"><p className="eyebrow">Sua presença no Círculo</p><h2 className="mt-1 font-display text-3xl">Meu perfil</h2><p className="mt-2 text-sm text-muted-foreground">Cuide das suas informações, reúna seus universos favoritos e mostre sua coleção Hiraeth.</p></div>
             <nav className="mb-7 grid grid-cols-2 border-b border-primary/20 sm:grid-cols-4">{([{id:"info",label:"Informações"},{id:"universe",label:"Meu Universo"},{id:"library",label:"Minha Biblioteca"},{id:"posts",label:"Publicações"}] as const).map(item => <button key={item.id} type="button" onClick={() => setProfileSection(item.id)} className={"border-b-2 px-2 py-3 text-sm " + (profileSection === item.id ? "border-primary text-primary" : "border-transparent text-muted-foreground")}>{item.label}</button>)}</nav>
             {profileSection === "info" && <form onSubmit={saveProfile} className="mx-auto grid max-w-2xl gap-4 rounded-xl border border-primary/20 bg-background/60 p-5 md:p-7"><div className="flex items-center gap-4"><div className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-primary/40 bg-[#20382b] text-[#e8d8b4]">{profile.avatar_url ? <img src={profile.avatar_url} alt="Sua foto de perfil" className="h-full w-full object-cover"/> : <UserRound size={34}/>}</div><label className="cursor-pointer text-sm text-primary underline">{avatarUploading ? "Enviando foto..." : "Alterar foto de perfil"}<input type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="sr-only" disabled={avatarUploading} onChange={e => void uploadAvatar(e.target.files?.[0])}/></label></div>
-              <label className="grid gap-2 text-sm">Nome de usuário<input required maxLength={30} value={profile.username} onChange={e => setProfile({ ...profile, username: e.target.value })} className="border bg-transparent p-3"/></label><label className="grid gap-2 text-sm">Sobre mim<textarea maxLength={500} value={profile.bio ?? ""} onChange={e => setProfile({ ...profile, bio: e.target.value })} className="border bg-transparent p-3" rows={3}/></label><label className="flex items-start gap-3 rounded-lg border border-primary/20 p-3 text-sm"><input type="checkbox" checked={profile.library_visible !== false} onChange={e => setProfile({ ...profile, library_visible: e.target.checked })} className="mt-1 accent-[var(--primary)]"/><span><strong className="block text-foreground">Exibir minha Biblioteca na Comunidade</strong><span className="mt-1 block text-xs leading-relaxed text-muted-foreground">Quando ativado, outros integrantes poderão visualizar suas velas e os detalhes que você compartilhou. Somente você poderá editar sua coleção.</span></span></label><label className="grid gap-2 text-sm">Instagram<input value={profile.instagram_url ?? ""} onChange={e => setProfile({ ...profile, instagram_url: e.target.value })} className="border bg-transparent p-3" placeholder="https://instagram.com/..."/></label><label className="grid gap-2 text-sm">TikTok<input value={profile.tiktok_url ?? ""} onChange={e => setProfile({ ...profile, tiktok_url: e.target.value })} className="border bg-transparent p-3" placeholder="https://tiktok.com/@..."/></label><label className="grid gap-2 text-sm">Outra rede social<input value={profile.other_social_url ?? ""} onChange={e => setProfile({ ...profile, other_social_url: e.target.value })} className="border bg-transparent p-3"/></label><button disabled={saving} className="btn-gold justify-self-start">{saving ? "Salvando..." : "Salvar perfil"}</button></form>}
-            {profileSection === "universe" && <section className="rounded-xl border border-primary/20 bg-background/60 p-5 md:p-7"><p className="eyebrow">Livros, telas e paixões</p><h3 className="mt-1 font-display text-3xl">Meu Universo</h3><p className="mt-1 text-sm text-muted-foreground">Adicione livros, filmes, séries e outros interesses. Eles ficam organizados em uma estante com três itens por fileira.</p><form onSubmit={addInterest} className="mt-5 grid gap-2 sm:grid-cols-[auto_minmax(0,1fr)_auto]"><select value={interestType} onChange={e => setInterestType(e.target.value as typeof interestType)} className="border bg-background px-3 py-2 text-sm"><option value="book">Livro</option><option value="movie">Filme</option><option value="series">Série</option><option value="other">Outro</option></select><input value={interestTitle} onChange={e => setInterestTitle(e.target.value)} maxLength={160} placeholder="Nome do livro, filme, série..." className="min-w-0 border bg-background px-3 py-2 text-sm"/><button type="submit" disabled={interestUploading} className="btn-gold">{interestUploading ? "Salvando..." : "Adicionar"}</button><label className="sm:col-span-3 flex cursor-pointer items-center gap-2 text-xs text-primary underline">Adicionar capa (opcional)<input id="community-interest-cover" type="file" accept="image/*" className="sr-only" onChange={e => setInterestCover(e.target.files?.[0] ?? null)}/></label>{interestCover && <p className="sm:col-span-3 text-xs text-muted-foreground">{interestCover.name}</p>}</form><div className="mt-7"><InterestBookshelf items={interests} onSelect={item => { setSelectedInterest(item); setEditingInterestTitle(item.title); setEditingInterestType(item.interest_type); setEditingInterestCover(null); }}/></div>{selectedInterest && <div className="fixed inset-0 z-[140] flex items-center justify-center overflow-y-auto bg-black/70 p-3 sm:p-6" role="dialog" aria-modal="true" aria-label={"Editar interesse " + selectedInterest.title}><section className="relative my-auto w-full max-w-md rounded-xl border border-[#d6c9ae] bg-[#f7f1e5] p-5 text-[#29342c] shadow-2xl sm:p-6"><button type="button" onClick={() => { setSelectedInterest(null); setEditingInterestCover(null); }} disabled={interestUploading} className="absolute right-3 top-3 rounded-full p-2 text-[#29342c] hover:bg-[#ece4d3]" aria-label="Fechar"><X size={19}/></button><p className="text-[10px] font-semibold uppercase tracking-[.2em] text-[#806b47]">Meu Universo</p><h4 className="mt-2 pr-8 font-display text-2xl text-[#29342c]">Editar interesse</h4><div className="mt-5 space-y-4"><label className="block text-sm font-semibold text-[#29342c]">Nome<input value={editingInterestTitle} onChange={event => setEditingInterestTitle(event.target.value)} maxLength={160} className="mt-1 w-full rounded-md border border-[#c9bea8] bg-white px-3 py-3 text-[#29342c] placeholder:text-[#756d60] outline-none focus:border-[#506b4f]"/></label><label className="block text-sm font-semibold text-[#29342c]">Tipo<select value={editingInterestType} onChange={event => setEditingInterestType(event.target.value as CommunityInterest["interest_type"])} className="mt-1 w-full rounded-md border border-[#c9bea8] bg-white px-3 py-3 text-[#29342c]"><option value="book">Livro</option><option value="movie">Filme</option><option value="series">Série</option><option value="other">Outro</option></select></label><label className="block text-sm font-semibold text-[#29342c]">Trocar capa (opcional)<input type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={event => setEditingInterestCover(event.currentTarget.files?.[0] ?? null)} className="mt-2 block w-full text-sm text-[#4e584c] file:mr-3 file:rounded-full file:border file:border-[#a99b7d] file:bg-[#ece4d3] file:px-3 file:py-2 file:text-sm file:font-semibold file:text-[#29342c]"/></label>{editingInterestCover && <p className="text-xs text-[#625d50]">{editingInterestCover.name}</p>}</div><div className="mt-6 flex flex-wrap items-center justify-between gap-3"><button type="button" onClick={() => void removeSelectedInterest()} disabled={interestUploading} className="rounded-full border border-red-300 px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-50">Excluir</button><div className="flex gap-2"><button type="button" onClick={() => { setSelectedInterest(null); setEditingInterestCover(null); }} disabled={interestUploading} className="rounded-full border border-[#b6aa92] px-4 py-2 text-sm font-medium text-[#29342c] hover:bg-[#ece4d3]">Cancelar</button><button type="button" onClick={() => void saveInterestEdit()} disabled={interestUploading} className="btn-gold">{interestUploading ? "Salvando..." : "Salvar"}</button></div></div></section></div>}</section>}
+              <div className="rounded-xl border border-primary/25 bg-primary/5 p-4">
+                <div className="mb-3 flex items-center gap-2"><p className="font-display text-xl">Minha Casa</p><HouseBadge house={memberHouses[userId]} /></div>
+                <p className="mb-4 text-xs text-muted-foreground">Sua escolha participa da Taça das Casas e aparece como um selo ao lado do seu nome. Você pode mudar quando quiser.</p>
+                <HouseChoiceCards selected={memberHouses[userId] ?? null} onSelect={saveHouse} busy={houseSaving} />
+              </div><label className="grid gap-2 text-sm">Nome de usuário<input required maxLength={30} value={profile.username} onChange={e => setProfile({ ...profile, username: e.target.value })} className="border bg-transparent p-3"/></label><label className="grid gap-2 text-sm">Sobre mim<textarea maxLength={500} value={profile.bio ?? ""} onChange={e => setProfile({ ...profile, bio: e.target.value })} className="border bg-transparent p-3" rows={3}/></label><label className="flex items-start gap-3 rounded-lg border border-primary/20 p-3 text-sm"><input type="checkbox" checked={profile.library_visible !== false} onChange={e => setProfile({ ...profile, library_visible: e.target.checked })} className="mt-1 accent-[var(--primary)]"/><span><strong className="block text-foreground">Exibir minha Biblioteca na Comunidade</strong><span className="mt-1 block text-xs leading-relaxed text-muted-foreground">Quando ativado, outros integrantes poderão visualizar suas velas e os detalhes que você compartilhou. Somente você poderá editar sua coleção.</span></span></label><label className="grid gap-2 text-sm">Instagram<input value={profile.instagram_url ?? ""} onChange={e => setProfile({ ...profile, instagram_url: e.target.value })} className="border bg-transparent p-3" placeholder="https://instagram.com/..."/></label><label className="grid gap-2 text-sm">TikTok<input value={profile.tiktok_url ?? ""} onChange={e => setProfile({ ...profile, tiktok_url: e.target.value })} className="border bg-transparent p-3" placeholder="https://tiktok.com/@..."/></label><label className="grid gap-2 text-sm">Outra rede social<input value={profile.other_social_url ?? ""} onChange={e => setProfile({ ...profile, other_social_url: e.target.value })} className="border bg-transparent p-3"/></label><button disabled={saving} className="btn-gold justify-self-start">{saving ? "Salvando..." : "Salvar perfil"}</button></form>}
+            {profileSection === "universe" && <section className="rounded-xl border border-primary/20 bg-background/60 p-5 md:p-7"><p className="eyebrow">Livros, telas e paixões</p><h3 className="mt-1 font-display text-3xl">Meu Universo</h3><p className="mt-1 text-sm text-muted-foreground">Adicione livros, filmes, séries e outros interesses. Eles aparecem em uma galeria de capas, com livros, filmes e séries lado a lado.</p><form onSubmit={addInterest} className="mt-5 grid gap-2 sm:grid-cols-[auto_minmax(0,1fr)_auto]"><select value={interestType} onChange={e => setInterestType(e.target.value as typeof interestType)} className="border bg-background px-3 py-2 text-sm"><option value="book">Livro</option><option value="movie">Filme</option><option value="series">Série</option><option value="other">Outro</option></select><input value={interestTitle} onChange={e => setInterestTitle(e.target.value)} maxLength={160} placeholder="Nome do livro, filme, série..." className="min-w-0 border bg-background px-3 py-2 text-sm"/><button type="submit" disabled={interestUploading} className="btn-gold">{interestUploading ? "Salvando..." : "Adicionar"}</button><label className="sm:col-span-3 flex cursor-pointer items-center gap-2 text-xs text-primary underline">Adicionar capa (opcional)<input id="community-interest-cover" type="file" accept="image/*" className="sr-only" onChange={e => setInterestCover(e.target.files?.[0] ?? null)}/></label>{interestCover && <p className="sm:col-span-3 text-xs text-muted-foreground">{interestCover.name}</p>}</form><div className="mt-7"><InterestBookshelf items={interests} onSelect={item => { setSelectedInterest(item); setEditingInterestTitle(item.title); setEditingInterestType(item.interest_type); setEditingInterestCover(null); }}/></div>{selectedInterest && <div className="fixed inset-0 z-[140] flex items-center justify-center overflow-y-auto bg-black/70 p-3 sm:p-6" role="dialog" aria-modal="true" aria-label={"Editar interesse " + selectedInterest.title}><section className="relative my-auto w-full max-w-md rounded-xl border border-[#d6c9ae] bg-[#f7f1e5] p-5 text-[#29342c] shadow-2xl sm:p-6"><button type="button" onClick={() => { setSelectedInterest(null); setEditingInterestCover(null); }} disabled={interestUploading} className="absolute right-3 top-3 rounded-full p-2 text-[#29342c] hover:bg-[#ece4d3]" aria-label="Fechar"><X size={19}/></button><p className="text-[10px] font-semibold uppercase tracking-[.2em] text-[#806b47]">Meu Universo</p><h4 className="mt-2 pr-8 font-display text-2xl text-[#29342c]">Editar interesse</h4><div className="mt-5 space-y-4"><label className="block text-sm font-semibold text-[#29342c]">Nome<input value={editingInterestTitle} onChange={event => setEditingInterestTitle(event.target.value)} maxLength={160} className="mt-1 w-full rounded-md border border-[#c9bea8] bg-white px-3 py-3 text-[#29342c] placeholder:text-[#756d60] outline-none focus:border-[#506b4f]"/></label><label className="block text-sm font-semibold text-[#29342c]">Tipo<select value={editingInterestType} onChange={event => setEditingInterestType(event.target.value as CommunityInterest["interest_type"])} className="mt-1 w-full rounded-md border border-[#c9bea8] bg-white px-3 py-3 text-[#29342c]"><option value="book">Livro</option><option value="movie">Filme</option><option value="series">Série</option><option value="other">Outro</option></select></label><label className="block text-sm font-semibold text-[#29342c]">Trocar capa (opcional)<input type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={event => setEditingInterestCover(event.currentTarget.files?.[0] ?? null)} className="mt-2 block w-full text-sm text-[#4e584c] file:mr-3 file:rounded-full file:border file:border-[#a99b7d] file:bg-[#ece4d3] file:px-3 file:py-2 file:text-sm file:font-semibold file:text-[#29342c]"/></label>{editingInterestCover && <p className="text-xs text-[#625d50]">{editingInterestCover.name}</p>}</div><div className="mt-6 flex flex-wrap items-center justify-between gap-3"><button type="button" onClick={() => void removeSelectedInterest()} disabled={interestUploading} className="rounded-full border border-red-300 px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-50">Excluir</button><div className="flex gap-2"><button type="button" onClick={() => { setSelectedInterest(null); setEditingInterestCover(null); }} disabled={interestUploading} className="rounded-full border border-[#b6aa92] px-4 py-2 text-sm font-medium text-[#29342c] hover:bg-[#ece4d3]">Cancelar</button><button type="button" onClick={() => void saveInterestEdit()} disabled={interestUploading} className="btn-gold">{interestUploading ? "Salvando..." : "Salvar"}</button></div></div></section></div>}</section>}
             {profileSection === "library" && <section className="rounded-xl border border-primary/20 bg-background/60 p-5 md:p-7"><p className="eyebrow">Sua coleção Hiraeth</p><h3 className="mt-1 font-display text-3xl">Minha Biblioteca</h3><p className="mt-1 text-sm text-muted-foreground">Suas compras aparecem automaticamente aqui. Registre também suas velas antigas, complete os detalhes e avalie com foguinhos depois que o pedido for entregue.</p><div className="mt-6"><CandleBookshelf categoryOptions={categoryOptions} items={library} editable onAdd={addLibraryCandle} onUpdate={updateLibraryCandle} onFavorite={toggleLibraryFavorite} onRemove={item => removeLibraryCandle(item.id)} onMarkFinished={toggleLibraryFinished}/></div></section>}
             {profileSection === "posts" && <section className="mx-auto max-w-3xl space-y-4"><h3 className="font-display text-3xl">Minhas publicações</h3>{posts.filter(post => post.user_id === userId).map(post => <article key={post.id} className="border border-primary/20 bg-background/60 p-4"><p className="whitespace-pre-wrap text-sm">{post.body}</p>{post.image_urls?.length > 0 && <div className="mt-3 grid grid-cols-2 gap-2">{post.image_urls.map(url => <img key={url} src={url} alt="Foto publicada" className="aspect-square w-full object-cover"/>)}</div>}<time className="mt-3 block text-xs text-muted-foreground">{new Date(post.created_at).toLocaleString("pt-BR")}</time></article>)}{posts.filter(post => post.user_id === userId).length === 0 && <p className="text-sm text-muted-foreground">Você ainda não publicou no Feed.</p>}</section>}
           </section>}

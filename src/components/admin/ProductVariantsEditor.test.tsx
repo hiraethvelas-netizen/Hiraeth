@@ -84,12 +84,12 @@ describe("editing existing product variations", () => {
     expect(rows[0].options).toEqual({ Cor: "Vermelha", Tamanho: "G" });
   });
 
-  it("opens the image editor before replacing the variation photo", async () => {
+  it("opens variation image editing on demand and preserves values after applying", async () => {
     render(<Harness />);
-    fireEvent.click(screen.getByRole("button", { name: "Ajustar foto" }));
-    expect(screen.getByText("Prévia de edição da variação")).toBeInTheDocument();
     const initial = JSON.parse(screen.getByTestId("variation-state").textContent ?? "[]");
     expect(initial[0].image).toBe("https://cdn.test/vermelha-p.webp");
+    fireEvent.click(screen.getByRole("button", { name: "Editar foto (recortar, girar e ampliar)" }));
+    expect(screen.getByText("Prévia de edição da variação")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Aplicar recorte" }));
     await waitFor(() => {
       const rows = JSON.parse(screen.getByTestId("variation-state").textContent ?? "[]");

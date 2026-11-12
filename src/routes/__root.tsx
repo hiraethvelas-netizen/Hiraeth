@@ -1,3 +1,4 @@
+import { HouseOnboarding } from "@/components/HouseOnboarding";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Outlet,
@@ -126,6 +127,7 @@ function RootComponent() {
         <CartProvider>
           {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
           <Outlet />
+          <HouseOnboarding />
         </CartProvider>
         <Toaster />
       </QueryClientProvider>

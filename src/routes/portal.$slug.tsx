@@ -1,3 +1,5 @@
+import { HouseCup } from "@/components/HouseCup";
+import { MagicPolls } from "@/components/MagicPolls";
 import { createFileRoute, notFound } from "@tanstack/react-router";
 import { ArrowUpRight, BookOpenText, Headphones, LibraryBig, Smartphone } from "lucide-react";
 import { PortalInspirationCard } from "@/components/PortalInspirationChapters";
@@ -245,6 +247,10 @@ function PortalPage() {
             fragment={fragments.find(fragment => fragment.position === 10)} />}
         </section>
 
+      {magicWorld && <section className="relative z-10 mx-auto max-w-6xl space-y-7 px-4 py-10 sm:px-8">
+        <HouseCup />
+        <MagicPolls />
+      </section>}
       {portal.spotify_visible && embed && <section data-portal-reveal
         className="portal-reveal mx-auto max-w-2xl px-5 pb-16">
         <p className="text-center text-xs uppercase tracking-[.28em] text-[var(--portal-accent)]">Trilha sonora</p>

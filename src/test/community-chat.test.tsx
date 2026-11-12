@@ -130,7 +130,7 @@ describe.each(["light", "dark"])("Community chat (%s theme, mocked database)", (
   });
 });
 
-it("fills each universe row before starting the next row, with three items per row", async () => {
+it("shows the two-column mobile cover gallery in the original interest order", async () => {
   mocks.interests = Array.from({ length: 7 }, (_, index) => ({
     id: String(index),
     title: `Livro ${index + 1}`,
@@ -139,10 +139,11 @@ it("fills each universe row before starting the next row, with three items per r
   render(<Community />);
   fireEvent.click(await screen.findByRole("button", { name: "Meu perfil" }));
   fireEvent.click(screen.getByRole("button", { name: "Meu Universo" }));
-  const buttons = await screen.findAllByRole("button", { name: /Editar ou remover Livro/ });
-  expect(buttons).toHaveLength(7);
-  const rows = [...new Set(buttons.map((button) => button.parentElement))];
-  expect(rows.map((row) => row?.querySelectorAll('[role="button"]').length)).toEqual([3, 3, 1]);
-  expect(rows[0]?.textContent).toMatch(/Livro 1.*Livro 2.*Livro 3/);
-  expect(rows[1]?.textContent).toMatch(/Livro 4.*Livro 5.*Livro 6/);
+  const cards = await screen.findAllByRole("button", { name: /Editar ou remover Livro/ });
+  expect(cards).toHaveLength(7);
+  expect(cards[0]?.parentElement?.className).toContain("grid-cols-2");
+  expect(cards[0]?.parentElement?.className).toContain("sm:grid-cols-3");
+  expect(cards.map(card => card.getAttribute("aria-label"))).toEqual(
+    Array.from({ length: 7 }, (_, index) => `Editar ou remover Livro ${index + 1}`),
+  );
 });
