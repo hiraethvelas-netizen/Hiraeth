@@ -11,7 +11,7 @@ export function AproxExperience() {
   return <section id="aprox-nfc" aria-labelledby="aprox-heading"
     className="hiraeth-aprox relative mx-auto w-full max-w-3xl scroll-mt-8 overflow-hidden rounded-3xl border border-[#c6a65b]/65 bg-[#1c3026] px-5 py-8 text-[#f7efda] shadow-lg sm:px-9 sm:py-10">
     <div aria-hidden="true" className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full border border-[#c6a65b]/25" />
-    <p className="text-center text-[11px] font-semibold uppercase tracking-[.22em] text-[#e4ca94]">Hiraeth × APROX · Tecnologia NFC</p>
+    <p className="text-center text-[11px] font-semibold uppercase tracking-[.22em] text-[#e4ca94]">Tecnologia Aprox</p>
     <h2 id="aprox-heading" className="mt-3 text-center font-display text-3xl leading-tight sm:text-4xl">Uma chama. Um toque. Um universo.</h2>
     <p className="mx-auto mt-3 max-w-md text-center text-sm leading-6 text-[#eee3cc]">
       Você sabia que algumas velas Hiraeth guardam uma experiência digital? Descubra o que acontece quando a tecnologia encontra as histórias.
