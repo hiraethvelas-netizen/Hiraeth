@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Pencil } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
@@ -28,6 +29,7 @@ function PortalInspiracoesAdmin() {
   const [fragments, setFragments] = useState<Fragment[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState<number | null>(null);
+  const photoInputs = useRef<Record<number, HTMLInputElement | null>>({});
   const [editing, setEditing] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
   const [draft, setDraft] = useState<StoryDraft>({ title: "", reference: "", body: "", context: "" });
@@ -153,16 +155,21 @@ function PortalInspiracoesAdmin() {
                 </div>
                 <p className="mt-3 text-center font-serif text-base text-[#4a3328]">{fragment.title}</p>
               </div>
-              <label className="mt-4 block text-sm font-medium text-foreground">
-                {uploading === fragment.position ? "Enviando foto..." : "Trocar foto da polaroid"}
-                <input type="file" accept="image/png,image/jpeg,image/webp" disabled={uploading !== null}
-                  aria-label={"Trocar foto de " + fragment.title} className="mt-2 block w-full text-xs text-foreground"
-                  onChange={event => {
-                    const file = event.currentTarget.files?.[0];
-                    event.currentTarget.value = "";
-                    if (file) void sendPhoto(fragment.position, file);
-                  }} />
-              </label>
+              <button type="button" disabled={uploading !== null}
+                aria-label={"Editar foto da polaroid " + fragment.title}
+                onClick={() => photoInputs.current[fragment.position]?.click()}
+                className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full border border-primary/50 bg-primary/10 px-3 py-2.5 text-sm font-medium text-primary transition-colors hover:bg-primary/20 disabled:opacity-50">
+                <Pencil size={16} aria-hidden="true" />
+                {uploading === fragment.position ? "Enviando foto..." : "Editar foto da polaroid"}
+              </button>
+              <input ref={element => { photoInputs.current[fragment.position] = element; }}
+                type="file" accept="image/png,image/jpeg,image/webp" disabled={uploading !== null}
+                aria-label={"Trocar foto de " + fragment.title} className="sr-only"
+                onChange={event => {
+                  const file = event.currentTarget.files?.[0];
+                  event.currentTarget.value = "";
+                  if (file) void sendPhoto(fragment.position, file);
+                }} />
               <p className="mt-2 text-xs text-muted-foreground">{fragment.image_url ? "Foto personalizada em uso" : "Foto padrão ou aguardando envio"}</p>
             </article>
           ))}
@@ -191,16 +198,21 @@ function PortalInspiracoesAdmin() {
                   className="h-full max-w-full object-contain" />
               </div>
               <h3 className="mt-3 text-center font-display text-xl">{fragment.title}</h3>
-              <label className="mt-4 block text-sm font-medium text-foreground">
-                {uploading === fragment.position ? "Enviando foto..." : "Trocar foto recortada"}
-                <input type="file" accept="image/png,image/jpeg,image/webp" disabled={uploading !== null}
-                  aria-label={"Trocar foto de " + fragment.title} className="mt-2 block w-full text-xs text-foreground"
-                  onChange={event => {
-                    const file = event.currentTarget.files?.[0];
-                    event.currentTarget.value = "";
-                    if (file) void sendPhoto(fragment.position, file);
-                  }} />
-              </label>
+              <button type="button" disabled={uploading !== null}
+                aria-label={"Editar foto da vela " + fragment.title}
+                onClick={() => photoInputs.current[fragment.position]?.click()}
+                className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full border border-primary/50 bg-primary/10 px-3 py-2.5 text-sm font-medium text-primary transition-colors hover:bg-primary/20 disabled:opacity-50">
+                <Pencil size={16} aria-hidden="true" />
+                {uploading === fragment.position ? "Enviando foto..." : "Editar foto da vela"}
+              </button>
+              <input ref={element => { photoInputs.current[fragment.position] = element; }}
+                type="file" accept="image/png,image/jpeg,image/webp" disabled={uploading !== null}
+                aria-label={"Trocar foto de " + fragment.title} className="sr-only"
+                onChange={event => {
+                  const file = event.currentTarget.files?.[0];
+                  event.currentTarget.value = "";
+                  if (file) void sendPhoto(fragment.position, file);
+                }} />
               <p className="mt-4 line-clamp-3 whitespace-pre-line text-sm text-muted-foreground">{fragment.body}</p>
               <button type="button" onClick={() => openText(fragment)}
                 className="mt-3 text-sm font-medium text-primary underline underline-offset-4">
