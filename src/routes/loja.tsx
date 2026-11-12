@@ -275,7 +275,7 @@ useEffect(() => {
 
         {!categoryId && !showFavorites && visibleCollections.length > 0 && <section className="mt-8" aria-label="Coleções em destaque">
           <div className="mb-3 flex flex-wrap items-center justify-end gap-2">
-            <a href="/sobre#aprox-nfc" className="inline-flex min-h-11 items-center rounded-full border border-primary/45 px-4 py-2 text-xs font-semibold text-foreground transition hover:bg-primary/10">Conheça a tecnologia Aprox</a>
+            <a href="/inicio#aprox-nfc" className="inline-flex min-h-11 items-center rounded-full border border-primary/45 px-4 py-2 text-xs font-semibold text-foreground transition hover:bg-primary/10">Conheça a tecnologia Aprox</a>
             <DiscoverMyPortal products={products} categories={categories} />
           </div>
           <div className="mb-4 flex items-end justify-between gap-3"><div className="min-w-0"><p className="eyebrow">{pageSettings.eyebrow}</p><h2 className="hiraeth-editorial-title hiraeth-acervo-heading !mx-0 mt-2 !text-left !text-4xl md:!text-6xl">{pageSettings.title}</h2>{pageSettings.intro && <p className="mt-3 max-w-2xl text-sm text-muted-foreground md:text-base">{pageSettings.intro}</p>}</div><span className="shrink-0 text-xs text-muted-foreground">{visibleCollections.length} {visibleCollections.length === 1 ? "universo" : "universos"}</span></div>

@@ -6,7 +6,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { InlineEditor } from "@/components/InlineEditor";
 import { useAdminEdit } from "@/lib/admin-edit";
 import { useTheme } from "@/lib/theme";
-import { AppWelcomeTour, openHiraethWelcomeTour } from "@/components/AppWelcomeTour";
 import { Instagram, Music2, MessageCircle, Mail, Bell } from "lucide-react";
 import { useNotificationDot } from "@/lib/use-notification-dot";
 import { toast } from "sonner";
@@ -72,11 +71,10 @@ export function SiteHeader({ onBack }: { onBack?: (() => void) | undefined } = {
             <Link to="/configuracoes" search={{ tab: "configuracoes" }} className="block rounded px-3 py-2.5 text-sm text-foreground/85 transition-colors hover:bg-primary/10 hover:text-primary">
               Configurações
             </Link>
-            <button type="button" onClick={openHiraethWelcomeTour}
-              className="block w-full rounded px-3 py-2.5 text-left text-sm text-foreground/85 transition-colors hover:bg-primary/10">
+            <Link to="/sobre" className="block rounded px-3 py-2.5 text-sm text-foreground/85 transition-colors hover:bg-primary/10">
               Como funciona a Hiraeth?
-            </button>
-            <a href="/sobre#aprox-nfc" className="block rounded px-3 py-2.5 text-sm text-foreground/85 transition-colors hover:bg-primary/10">
+            </Link>
+            <a href="/inicio#aprox-nfc" className="block rounded px-3 py-2.5 text-sm text-foreground/85 transition-colors hover:bg-primary/10">
               Conhecer a tecnologia Aprox
             </a>
             <div className="my-1 border-t border-primary/20 pt-1">
@@ -140,7 +138,6 @@ export function SiteHeader({ onBack }: { onBack?: (() => void) | undefined } = {
         </div>
       </div>
     </header>
-    <AppWelcomeTour />
     </>
   );
 }
@@ -191,7 +188,7 @@ export function SiteFooter() {
         <Link to="/seguranca" className="transition hover:text-primary">Segurança e denúncias</Link>
         <Link to="/termos" className="transition hover:text-primary">Termos e comunidade</Link>
         <Link to="/privacidade" className="transition hover:text-primary">Privacidade</Link>
-        <a href="/sobre#aprox-nfc" className="transition hover:text-primary">Tecnologia Aprox</a>
+        <a href="/inicio#aprox-nfc" className="transition hover:text-primary">Tecnologia Aprox</a>
       </nav>
       <div className="mt-4"><InlineEditor label="contatos do rodapé" fields={[
         { name: "instagram_url", label: "Link do Instagram", type: "text" },
@@ -201,10 +198,10 @@ export function SiteFooter() {
       ]} values={{ instagram_url: profile?.instagram_url ?? "", whatsapp_number: profile?.whatsapp_number ?? "", whatsapp_url: profile?.whatsapp_url ?? "", contact_email: profile?.contact_email ?? "" }} onSave={saveContacts} />
       <div className="mt-3"><InlineEditor label="TikTok do rodapé" fields={[{ name: "tiktok_url", label: "Link do TikTok", type: "text" }]} values={{ tiktok_url: tiktokUrl }} onSave={saveTikTok} /></div>
       </div>
-      <button type="button" onClick={openHiraethWelcomeTour}
+      <Link to="/sobre"
         className="mt-6 inline-flex min-h-10 items-center rounded-full border border-primary/35 px-5 py-2 text-xs font-medium text-foreground transition-colors hover:bg-primary/10">
-        Primeira vez por aqui? Conheça a Hiraeth
-      </button>
+        Conheça a história da Hiraeth
+      </Link>
       <p className="mt-5">© {new Date().getFullYear()} Hiraeth ·{" "}
         <span>Onde a Chama Acesa te Espera</span>
       </p>
