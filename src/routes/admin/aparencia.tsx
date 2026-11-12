@@ -1,5 +1,8 @@
 
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { ChevronRight, Image, LayoutDashboard, Palette, PanelsTopLeft, ScrollText } from "lucide-react";
+import { BannersAdmin } from "@/routes/admin/banners";
+import { AdminSobre } from "@/routes/admin/sobre";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -26,7 +29,73 @@ export const Route = createFileRoute("/admin/aparencia")({
   component: Aparencia,
 });
 
+type AppearanceSection = "inicio" | "banners" | "historia" | "atalhos" | "paginas";
+
+const SECTIONS = [
+  { id: "banners", label: "Banners da inicial", description: "Fotos e destaques que aparecem na página inicial", icon: Image },
+  { id: "historia", label: "Conheça a Hiraeth", description: "História da marca, fotos, textos e contatos do rodapé", icon: ScrollText },
+  { id: "atalhos", label: "Atalhos da inicial", description: "Botões e acessos rápidos da página inicial", icon: PanelsTopLeft },
+  { id: "paginas", label: "Outras páginas", description: "Editar visualmente a loja, biblioteca e cuidados", icon: Palette },
+] as const;
+
 function Aparencia() {
+  const [section, setSection] = useState<AppearanceSection>("inicio");
+  return <div className="space-y-6">
+    <div>
+      <p className="text-xs uppercase tracking-[.19em] text-primary">Personalização do aplicativo</p>
+      <h1 className="mt-2 font-display text-3xl text-foreground sm:text-4xl">Aparência e conteúdo</h1>
+      <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
+        Tudo o que você precisa para personalizar o visual e os textos do site, reunido em um só lugar.
+      </p>
+    </div>
+    <nav aria-label="Áreas de aparência" className="flex flex-wrap gap-2">
+      <button type="button" onClick={() => setSection("inicio")}
+        aria-current={section === "inicio" ? "page" : undefined}
+        className={`rounded-full border px-3 py-2 text-sm ${section === "inicio" ? "border-primary bg-primary/15 text-primary" : "border-primary/25 text-muted-foreground"}`}>
+        <LayoutDashboard size={15} className="mr-1 inline" aria-hidden="true" /> Visão geral
+      </button>
+      {SECTIONS.map(item => <button type="button" key={item.id} onClick={() => setSection(item.id)}
+        aria-current={section === item.id ? "page" : undefined}
+        className={`rounded-full border px-3 py-2 text-sm ${section === item.id ? "border-primary bg-primary/15 text-primary" : "border-primary/25 text-muted-foreground"}`}>
+        {item.label}
+      </button>)}
+    </nav>
+    {section === "inicio" && <div className="grid gap-3 sm:grid-cols-2">
+      {SECTIONS.map(item => <button type="button" key={item.id} onClick={() => setSection(item.id)}
+        className="group flex items-center gap-4 rounded-xl border border-primary/20 bg-card p-5 text-left transition-colors hover:border-primary/55 hover:bg-primary/5">
+        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+          <item.icon size={21} aria-hidden="true" />
+        </span>
+        <span className="min-w-0 flex-1">
+          <strong className="block font-display text-xl text-foreground">{item.label}</strong>
+          <span className="mt-1 block text-sm text-muted-foreground">{item.description}</span>
+        </span>
+        <ChevronRight size={18} className="shrink-0 text-primary" aria-hidden="true" />
+      </button>)}
+    </div>}
+    {section === "banners" && <BannersAdmin />}
+    {section === "historia" && <AdminSobre />}
+    {section === "atalhos" && <SiteShortcutsEditor />}
+    {section === "paginas" && <section aria-labelledby="appearance-other-pages" className="space-y-4 rounded-xl border border-primary/20 bg-card p-5">
+      <h2 id="appearance-other-pages" className="font-display text-2xl">Editar outras páginas</h2>
+      <p className="text-sm text-muted-foreground">Abra a página desejada e use o modo Editar site para alterar os elementos disponíveis. Todas continuam no mesmo endereço.</p>
+      <div className="grid gap-3 sm:grid-cols-2">
+        {([
+          { to: "/sobre", label: "Conheça a Hiraeth — página pública", detail: "Ver a página e os blocos editáveis" },
+          { to: "/loja", label: "Acervo e coleções", detail: "Bolinhas, banners e destaques da loja" },
+          { to: "/biblioteca", label: "Biblioteca e favoritos", detail: "Organização da estante e experiências" },
+          { to: "/cuidados", label: "Cuidados com a vela", detail: "Informações e orientações de uso" },
+        ] as const).map(item => <Link key={item.to} to={item.to}
+          className="flex items-center justify-between gap-3 rounded-lg border border-primary/20 p-4 text-sm text-foreground hover:border-primary hover:text-primary">
+          <span><strong className="block">{item.label}</strong><span className="mt-1 block text-xs text-muted-foreground">{item.detail}</span></span>
+          <ChevronRight size={17} aria-hidden="true" />
+        </Link>)}
+      </div>
+    </section>}
+  </div>;
+}
+
+function SiteShortcutsEditor() {
   const [items, setItems] = useState<Shortcut[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
