@@ -118,7 +118,7 @@ export function HouseCup({ variant = "community" }: { variant?: "community" | "p
             </p>
           </div>)}
         </div>}
-      {!loading && !error && total === 0 && <p className={portal ? "mt-5 text-xs text-[#ced5ef]" : "mt-5 text-xs text-muted-foreground"}>
+      {!portal && !loading && !error && total === 0 && <p className="mt-5 text-xs text-muted-foreground">
         Seja uma das primeiras pessoas a representar sua casa.
       </p>}
       {claimError && <p role="alert" className="mx-auto mt-5 max-w-lg text-sm font-semibold text-[#ffdf9c]">{claimError}</p>}
