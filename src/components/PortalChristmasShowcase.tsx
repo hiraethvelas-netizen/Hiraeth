@@ -12,6 +12,10 @@ const previewLines: Record<number, string> = {
   8: "Um presente feito à mão. Um carinho que aquece até os dias mais frios.",
   9: "Um salão iluminado, amigos reunidos e a magia de viver o Natal no castelo.",
 };
+const previousReferences: Record<number, string> = {
+  8: "A inspiração do primeiro presente de Natal",
+  9: "Um Natal no castelo, entre amigos e magia",
+};
 
 export function PortalChristmasShowcase({ fragments }: Props) {
   const [opened, setOpened] = useState<number | null>(null);
@@ -78,7 +82,10 @@ export function PortalChristmasShowcase({ fragments }: Props) {
         <div className="portal-natal-modal__intro">
           <p className="portal-natal-discovery__kicker">A história por trás da chama</p>
           <h3 id="portal-natal-modal-title" className="portal-natal-discovery__reveal-title">{selected.title}</h3>
-          <p className="portal-natal-discovery__teaser">{previewLines[selected.position ?? -1]}</p>
+          <p className="portal-natal-discovery__teaser">
+            {selected.reference && selected.reference !== previousReferences[selected.position ?? -1]
+              ? selected.reference : previewLines[selected.position ?? -1]}
+          </p>
           {selected.context && <p className="portal-natal-discovery__aroma">{selected.context}</p>}
         </div>
         <p id="portal-natal-modal-story" className="portal-natal-discovery__story">{selected.body}</p>
