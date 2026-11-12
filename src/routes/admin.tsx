@@ -87,7 +87,7 @@ function AdminLayout() {
       <header className="border-b border-primary/20 bg-background/95 px-4 py-3 sm:px-6">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3">
           <div className="flex min-w-0 items-center gap-2 sm:gap-3">
-            <Link to="/admin" className="font-display text-xl tracking-widest text-primary">HIRAETH</Link>
+            <Link to="/admin" className="font-display text-xl tracking-widest text-[#4d5b2d] dark:text-[#e1ca98]">HIRAETH</Link>
             <span className="hidden text-[10px] uppercase tracking-[.18em] text-muted-foreground sm:inline">Painel administrativo</span>
           </div>
           <div className="flex items-center gap-2">

@@ -92,7 +92,7 @@ function Sobre() {
     <div className="space-y-10 sm:space-y-16">
       {bannerSettings.enabled && bannerSettings.image_url && <a href={bannerSettings.href || "/loja"} target={/^(https?:)?\/\//i.test(bannerSettings.href) ? "_blank" : undefined} rel={/^(https?:)?\/\//i.test(bannerSettings.href) ? "noreferrer" : undefined} className="block overflow-hidden"><img src={bannerSettings.image_url} alt={bannerSettings.title || "Banner Hiraeth"} className="max-h-[28rem] w-full object-cover" /></a>}
       <section className="relative overflow-hidden rounded-3xl border border-[#b6a77f]/40 bg-[#314333] px-6 py-7 text-[#f5efdf] dark:bg-[#f7efda] dark:text-[#5b1d04] sm:px-12 sm:py-10">
-        <p className="mb-3 text-[10px] font-semibold uppercase tracking-[.24em] text-[#d5c28b] dark:text-[#927b45]">A palavra por trás da chama</p>
+        <p className="mb-3 text-[10px] font-semibold uppercase tracking-[.24em] text-[#ead4a1] dark:text-[#67451e]">A palavra por trás da chama</p>
         <h2 className="font-serif text-4xl font-medium leading-tight sm:text-5xl">O que significa <span className="font-bold italic">Hiraeth?</span></h2>
         <p className="mt-4 max-w-2xl font-serif text-base leading-7 sm:text-lg">
           De origem galesa, <em>Hiraeth</em> é a saudade de um lugar ao qual desejamos pertencer — até mesmo de um mundo que conhecemos apenas nas histórias.
@@ -108,13 +108,13 @@ function Sobre() {
         </div>}
       </section>
       <div className="space-y-4" aria-label="Capítulos da Hiraeth">
-        <p className="px-1 text-xs font-semibold uppercase tracking-[.22em] text-foreground/80">Nossa história, capítulo por capítulo</p>
+        <p className="px-1 text-xs font-semibold uppercase tracking-[.22em] text-[#465337] dark:text-[#e9d7ae]">Nossa história, capítulo por capítulo</p>
         <nav aria-label="Escolha um capítulo da nossa história" className="flex snap-x snap-mandatory gap-2 overflow-x-auto py-2">
           {shownBlocks.map((block, index) => <button key={block.id} type="button"
             aria-pressed={activeIndex === index} aria-controls="hiraeth-capitulo-ativo"
             onClick={() => setActiveChapter(block.id)}
             className={"min-w-[116px] max-w-[180px] shrink-0 snap-start rounded-full border px-4 py-3 text-center text-xs font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c6a65b] " +
-              (activeIndex === index ? "border-[#878e47] bg-[#314333] text-[#f7efda]" : "border-primary/45 bg-secondary text-foreground hover:bg-primary/15")}>
+              (activeIndex === index ? "border-[#9ca56b] bg-[#314333] text-[#f7efda] shadow-sm" : "border-[#8e9464] bg-[#ebe9d5] text-[#34402b] hover:bg-[#dddcbf] dark:border-[#b9a678] dark:bg-[#eee2c9] dark:text-[#4a3829] dark:hover:bg-[#e8d7b9]")}>
             Capítulo {String(index + 1).padStart(2, "0")}
           </button>)}
         </nav>
@@ -123,9 +123,9 @@ function Sobre() {
         const index = activeIndex;
         const isFeatureBlock = index % 2 === 0;
         const palette = isFeatureBlock
-          ? { bg: "bg-[#314333] dark:bg-[#f7efda]", ink: "text-[#f5efdf] dark:text-[#5b1d04]", accent: "text-[#d5c28b] dark:text-[#927b45]" }
-          : { bg: "bg-transparent", ink: "text-foreground", accent: "text-primary" };
-        return <section id="hiraeth-capitulo-ativo" aria-live="polite" key={block.id || index} className={`scroll-mt-8 overflow-hidden rounded-3xl border border-primary/15 ${palette.bg} ${palette.ink} ${isFeatureBlock ? "shadow-sm" : ""}`}>
+          ? { bg: "bg-[#314333] dark:bg-[#f7efda]", ink: "text-[#f5efdf] dark:text-[#5b1d04]", accent: "text-[#ead4a1] dark:text-[#67451e]" }
+          : { bg: "bg-transparent", ink: "text-foreground", accent: "text-[#4d5b30] dark:text-[#e6d09e]" };
+        return <section id="hiraeth-capitulo-ativo" aria-live="polite" key={block.id || index} className={`scroll-mt-8 overflow-hidden rounded-3xl border border-[#9ba074]/60 dark:border-[#b6a77f]/60 ${palette.bg} ${palette.ink} ${isFeatureBlock ? "shadow-sm" : ""}`}>
           <div className="grid gap-6 px-5 py-7 sm:gap-9 sm:px-10 sm:py-11 md:grid-cols-[minmax(0,1fr)_minmax(220px,.82fr)] md:items-center">
             <div className="min-w-0">
               <p className={`mb-3 text-[10px] font-semibold uppercase tracking-[.22em] ${palette.accent}`}>Capítulo {String(index + 1).padStart(2, "0")} · Hiraeth</p>

@@ -24,7 +24,7 @@ export function DiscoverMyPortal({ products, categories }: Props) {
         <button type="button" onClick={close} aria-label="Fechar Descobrir meu portal" className="absolute right-4 top-4 rounded-full border border-[#878e47]/50 p-2"><X size={19}/></button>
         <p className="text-xs font-semibold uppercase tracking-[.2em] text-[#5b1d04]">O oráculo da Guardiã</p>
         <h2 id="portal-finder-title" className="mt-3 font-display text-4xl">Qual chama combina com você hoje?</h2>
-        <p className="mt-3 text-sm leading-6 text-[#4d5543]">Escolha um sentimento. Nós buscamos uma vela publicada no Acervo para te acompanhar.</p>
+        <p className="mt-3 text-sm leading-6 text-[#4d5543]">Escolha um sentimento. A indicação considera as fragrâncias e histórias das velas publicadas, não os dados de quem está visitando.</p>
         {!reveal ? <>
           <div className="mt-6 grid grid-cols-2 gap-3">
             {PORTAL_MOODS.map(item => <button type="button" key={item.id} aria-pressed={mood === item.id}
@@ -39,7 +39,7 @@ export function DiscoverMyPortal({ products, categories }: Props) {
             Revelar meu portal <Sparkles size={17}/>
           </button>
         </> : <div className="mt-6 text-center">
-          <p className="text-xs uppercase tracking-[.18em] text-[#6c713d]">{result?.matched ? "Uma chama para o seu momento" : "Um portal para começar a explorar"}</p>
+          <p className="text-xs font-semibold uppercase tracking-[.18em] text-[#58632f]">{result ? "Uma chama para o seu momento" : "Ainda não encontramos uma combinação"}</p>
           {result ? <>
             {result.product.images?.[0] && <img src={result.product.images[0]} alt={result.product.name}
               className="mx-auto mt-4 h-44 w-full object-contain" />}
@@ -48,7 +48,7 @@ export function DiscoverMyPortal({ products, categories }: Props) {
               className="mt-5 inline-flex min-h-12 items-center gap-2 rounded-full bg-[#5b1d04] px-6 py-3 text-sm font-semibold text-[#f7efda]">
               Conhecer esta vela <ArrowRight size={17}/>
             </Link>
-          </> : <p className="mt-5 text-sm">O Acervo está sendo preparado. Novas chamas chegarão em breve.</p>}
+          </> : <div className="mt-5 space-y-4"><p className="text-sm leading-6 text-[#34402b]">Ainda não há uma vela publicada que combine claramente com {PORTAL_MOODS.find(item => item.id === mood)?.label ?? "esse clima"}. Escolha outra sensação ou explore o Acervo completo.</p><Link to="/loja" onClick={close} className="inline-flex min-h-11 items-center rounded-full border border-[#878e47] px-5 py-2 text-xs font-semibold text-[#34402b]">Explorar o Acervo completo</Link></div>}
           <button type="button" onClick={() => { setMood(null); setReveal(false); }}
             className="mx-auto mt-4 block rounded-full border border-[#878e47]/70 px-5 py-2 text-xs font-semibold">Tentar outro caminho</button>
         </div>}
