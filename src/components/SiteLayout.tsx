@@ -72,6 +72,13 @@ export function SiteHeader({ onBack }: { onBack?: (() => void) | undefined } = {
             <Link to="/configuracoes" search={{ tab: "configuracoes" }} className="block rounded px-3 py-2.5 text-sm text-foreground/85 transition-colors hover:bg-primary/10 hover:text-primary">
               Configurações
             </Link>
+            <button type="button" onClick={openHiraethWelcomeTour}
+              className="block w-full rounded px-3 py-2.5 text-left text-sm text-foreground/85 transition-colors hover:bg-primary/10">
+              Como funciona a Hiraeth?
+            </button>
+            <a href="/sobre#aprox-nfc" className="block rounded px-3 py-2.5 text-sm text-foreground/85 transition-colors hover:bg-primary/10">
+              Conhecer a tecnologia Aprox
+            </a>
             <div className="my-1 border-t border-primary/20 pt-1">
               <button
                 type="button"
