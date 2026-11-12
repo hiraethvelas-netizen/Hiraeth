@@ -38,6 +38,16 @@ export const Route = createFileRoute("/portal/$slug")({
 
 function PortalPage() {
   const { slug } = Route.useParams();
+  // NFC individual: o segredo só é transferido ao cadastro/ativação, não prova posse pelo link público.
+  useEffect(() => {
+    if (!isMagicWorld(slug)) return;
+    const url = new URL(window.location.href);
+    const token = url.searchParams.get("chave");
+    if (!token || !/^[0-9a-f]{64}$/.test(token)) return;
+    window.sessionStorage.setItem("hiraeth:nfc:pending-token", token);
+    url.searchParams.delete("chave");
+    window.history.replaceState(window.history.state, "", url.pathname + url.search + url.hash);
+  }, [slug]);
   const [returnFromInspirations] = useState(() => hasRecentPortalReturn(slug));
   const skipIntro = Route.useSearch().inicio === "1" || hasPortalReturnQuery() || returnFromInspirations;
   useEffect(() => {
