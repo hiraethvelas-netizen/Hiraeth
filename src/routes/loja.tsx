@@ -329,6 +329,14 @@ useEffect(() => {
             </Link>)}
           </div>
         </section>}
+        {!selectedCategory && !showFavorites && visibleCollections.length > 0 && filtered.length > 0 && !query.trim() &&
+          <div role="separator" aria-label="Separação entre Portais Hiraeth e Escolhas da Guardiã"
+            data-testid="hiraeth-curation-divider"
+            className="mx-auto mt-11 mb-5 flex max-w-3xl items-center justify-center gap-4 px-2 text-[#bda16f] sm:mt-14 sm:mb-6">
+            <span className="h-px min-w-0 flex-1 bg-gradient-to-r from-transparent to-[#c6a65b]/70" aria-hidden="true" />
+            <span className="text-base leading-none" aria-hidden="true">✦</span>
+            <span className="h-px min-w-0 flex-1 bg-gradient-to-l from-transparent to-[#c6a65b]/70" aria-hidden="true" />
+          </div>}
         {loading ? (
           <p className="mt-16 text-center text-muted-foreground">
             Abrindo o acervo...
