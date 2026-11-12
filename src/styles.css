@@ -3714,3 +3714,98 @@ body > div {
     transform: none;
   }
 }
+
+
+/* Portal Mundo da Magia — imagens editáveis nos atalhos, nomes FORA das bolinhas. */
+.portal-world--christmas .portal-shortcuts {
+  width: 100%;
+}
+.portal-world--christmas .portal-shortcut {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: center;
+  gap: .65rem;
+  text-align: center;
+  text-decoration: none;
+  color: #f7efda;
+}
+.portal-world--christmas .portal-shortcut__circle {
+  position: relative;
+  display: flex;
+  width: min(100%, 154px);
+  aspect-ratio: 1;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 2px solid #d4b677;
+  border-radius: 50%;
+  background: radial-gradient(circle at 42% 32%, #455c4c, #142c26 72%);
+  box-shadow: inset 0 0 0 4px rgba(13,33,27,.65), inset 0 0 0 5px rgba(224,192,126,.38),
+              0 8px 22px rgba(0,0,0,.26);
+  transition: transform .25s ease, box-shadow .25s ease;
+}
+.portal-world--christmas .portal-shortcut__circle--inspirations {
+  background: radial-gradient(circle at 37% 31%, #595449, #292b2a 72%);
+}
+.portal-world--christmas .portal-shortcut__circle--app {
+  background: radial-gradient(circle at 39% 29%, #4f4b52, #292635 72%);
+}
+.portal-world--christmas .portal-shortcut__image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.portal-world--christmas .portal-shortcut__fallback {
+  width: clamp(30px, 7vw, 48px);
+  height: clamp(30px, 7vw, 48px);
+  color: #ead3a0;
+  filter: drop-shadow(0 2px 8px rgba(250,215,145,.35));
+}
+.portal-world--christmas .portal-shortcut__label {
+  max-width: 100%;
+  font: italic 600 clamp(1.05rem,3.4vw,1.55rem)/1.13 "Cormorant Garamond",Georgia,serif;
+  color: #f7efda;
+  text-wrap: balance;
+}
+.portal-world--christmas a.portal-shortcut:hover .portal-shortcut__circle,
+.portal-world--christmas a.portal-shortcut:focus-visible .portal-shortcut__circle {
+  transform: translateY(-3px);
+  box-shadow: inset 0 0 0 4px rgba(13,33,27,.65), inset 0 0 0 5px rgba(224,192,126,.7),
+              0 12px 26px rgba(0,0,0,.3), 0 0 23px rgba(225,185,107,.28);
+}
+.portal-world--christmas .portal-shortcut:focus-visible {
+  outline: 2px solid #e7c785;
+  outline-offset: 6px;
+  border-radius: 12px;
+}
+.portal-world--christmas .portal-shortcut--disabled {
+  opacity: .55;
+}
+@media(max-width:400px) {
+  .portal-world--christmas .portal-shortcuts { gap: .55rem; }
+  .portal-world--christmas .portal-shortcut { gap: .45rem; }
+  .portal-world--christmas .portal-shortcut__label { font-size: 1.02rem; }
+}
+/* Histórias em capítulos curtos; apenas quem quiser continua lendo. */
+.portal-discovery-card__story .portal-story-continue,
+.portal-natal-modal .portal-story-continue {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  min-height: 36px;
+  margin-top: .95rem;
+  border: 1px solid rgba(218,185,127,.65);
+  border-radius: 999px;
+  padding: .45rem 1rem;
+  background: rgba(33,49,43,.23);
+  color: #f4e1bb;
+  font: 500 .78rem/1.3 "DM Sans",sans-serif;
+  cursor: pointer;
+}
+.portal-discovery-card__story .portal-story-continue:focus-visible,
+.portal-natal-modal .portal-story-continue:focus-visible {
+  outline: 2px solid #e7c785;
+  outline-offset: 3px;
+}
