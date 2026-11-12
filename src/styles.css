@@ -3928,3 +3928,18 @@ body > div {
     transform: none;
   }
 }
+
+
+/* Auditoria WCAG AA: o verde original #878e47 permanece em bordas, selos e
+   ornamentos, mas é escurecido quando usado como texto pequeno no fundo claro.
+   Textos sobre cartões verdes escuros conservam a variante dourada clara. */
+:root:not(.dark) .text-primary {
+  color: #58632f;
+}
+:root:not(.dark) .community-overview-card .text-primary,
+:root:not(.dark) .community-overview-panel .text-primary,
+:root:not(.dark) .hiraeth-aprox .text-primary,
+:root:not(.dark) .hiraeth-favorites-hero .text-primary,
+:root:not(.dark) .hiraeth-library-note .text-primary {
+  color: #e1ca98;
+}
