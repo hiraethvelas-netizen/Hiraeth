@@ -22,9 +22,12 @@ jobs:
       - name: Run tests
         run: bun run test
       - name: Build production bundle
+        if: ${{ !cancelled() }}
         run: bun run build
       - name: Check TypeScript
+        if: ${{ !cancelled() }}
         run: bunx tsc --noEmit
       - name: Run ESLint (existing project debt is non-blocking)
+        if: ${{ !cancelled() }}
         run: bun run lint
         continue-on-error: true
