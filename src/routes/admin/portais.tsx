@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { slugify } from "@/lib/format";
 import { toast } from "sonner";
 import { PortalFragmentsEditor } from "@/components/admin/PortalFragmentsEditor";
+import { PortalInspiracoesAdmin } from "@/routes/admin/portal-inspiracoes";
 import { PortalGalleryEditor } from "@/components/admin/PortalGalleryEditor";
 import { galleryDraftFromTheme, isMagicWorld, isSafePortalUrl, spotifyPlaylistUrl } from "@/lib/portal-experience";
 import type { Tables } from "@/integrations/supabase/types";
@@ -44,6 +45,7 @@ function AdminPortais() {
   const [editing, setEditing] = useState<Portal | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [showForm, setShowForm] = useState(false);
+  const [editorTab, setEditorTab] = useState<"config" | "inspirations">("config");
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [loadError, setLoadError] = useState(false);
 
@@ -103,12 +105,14 @@ function AdminPortais() {
       status: p.status,
       theme_json: JSON.stringify(p.theme ?? {}, null, 2),
     });
+    setEditorTab("config");
     setShowForm(true);
   }
 
   function startNew() {
     setEditing(null);
     setForm(emptyForm);
+    setEditorTab("config");
     setShowForm(true);
   }
 
@@ -160,6 +164,7 @@ function AdminPortais() {
     } else {
       toast.success(editing ? "Portal atualizado." : "Portal criado.");
       setShowForm(false);
+      if (editing) setEditorTab("inspirations");
       load();
     }
   }
@@ -212,12 +217,31 @@ function AdminPortais() {
 
   return (
     <div>
-      <div className="flex items-center justify-between">
-        <h1 className="text-4xl text-foreground">Meus Portais NFC</h1>
-        <button onClick={startNew} className="btn-gold">+ Novo portal</button>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="font-display text-3xl text-foreground sm:text-4xl">{editing ? `Editar: ${editing.name}` : "Meus Portais NFC"}</h1>
+        {editing || showForm
+          ? <button type="button" onClick={() => { setEditing(null); setShowForm(false); setEditorTab("config"); }}
+              className="rounded-full border border-primary/35 px-4 py-2 text-sm text-primary hover:bg-primary/10">
+              Voltar aos portais
+            </button>
+          : <button onClick={startNew} className="btn-gold">+ Novo portal</button>}
       </div>
 
-      {showForm && (
+      {editing && <nav className="mt-5 flex flex-wrap gap-2" aria-label="Editar seções do portal">
+        <button type="button" aria-pressed={editorTab === "config"}
+          onClick={() => { setEditorTab("config"); setShowForm(true); }}
+          className={`rounded-full border px-4 py-2.5 text-sm font-medium ${editorTab === "config" ? "border-primary bg-primary/15 text-primary" : "border-primary/30 text-muted-foreground"}`}>
+          Configurações do portal
+        </button>
+        <button type="button" aria-pressed={editorTab === "inspirations"}
+          onClick={() => { setEditorTab("inspirations"); setShowForm(false); }}
+          className={`rounded-full border px-4 py-2.5 text-sm font-medium ${editorTab === "inspirations" ? "border-primary bg-primary/15 text-primary" : "border-primary/30 text-muted-foreground"}`}>
+          <Pencil size={15} className="mr-2 inline" aria-hidden="true" />
+          {isMagicWorld(editing.slug) ? "Fotos e inspirações" : "Conteúdos do portal"}
+        </button>
+      </nav>}
+
+      {showForm && editorTab === "config" && (
         <form onSubmit={save} className="relative mt-6 space-y-5 overflow-hidden rounded-sm border border-amber-500/40 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-amber-900/35 via-slate-950 to-slate-950 p-5 shadow-[0_20px_70px_rgba(0,0,0,0.35)] md:p-8">
           <div className="pointer-events-none absolute inset-0 opacity-25" aria-hidden="true"><div className="absolute -right-8 -top-10 h-48 w-48 rounded-full border border-amber-300/40" /><div className="absolute -right-3 -top-5 h-36 w-36 rounded-full border border-amber-300/30" /><div className="absolute bottom-8 left-8 h-1 w-1 rounded-full bg-amber-200 shadow-[0_0_18px_5px_rgba(251,191,36,0.25)]" /></div><div className="relative z-10"><p className="font-display text-2xl tracking-wide text-amber-200">{editing ? `✦ Editar portal: ${editing.name} ✦` : "✦ Abrir novo portal ✦"}</p><p className="mt-2 max-w-2xl text-sm text-amber-100/70">Personalize esta passagem mágica: abertura, vídeo, destino e trilha sonora.</p></div>
           <div role="note" className="relative z-10 rounded-lg border border-amber-300/55 bg-emerald-950/55 p-4 text-sm leading-relaxed text-amber-50">
@@ -309,18 +333,19 @@ function AdminPortais() {
         </form>
       )}
 
-      {editing && !showForm && <>
-        {isMagicWorld(editing.slug) && (
-          <Link to="/admin/portal-inspiracoes"
-            className="mt-5 inline-flex items-center gap-2 rounded-full border border-primary/45 bg-primary/10 px-4 py-3 text-sm font-semibold text-primary hover:bg-primary/20">
-            <Pencil size={17} aria-hidden="true" />
-            Editar fotos das polaroids e inspirações
-          </Link>
-        )}
-        <PortalFragmentsEditor portalId={editing.id} />
-      </>}
+      {editing && editorTab === "inspirations" && <section className="mt-6 space-y-5">
+        {isMagicWorld(editing.slug)
+          ? <>
+              <PortalInspiracoesAdmin portalId={editing.id} />
+              <details className="rounded-xl border border-primary/25 bg-card p-4">
+                <summary className="cursor-pointer text-sm font-medium text-primary">Mais textos e fragmentos do portal</summary>
+                <PortalFragmentsEditor portalId={editing.id} />
+              </details>
+            </>
+          : <PortalFragmentsEditor portalId={editing.id} />}
+      </section>}
 
-      {loading ? (
+      {!editing && !showForm && (loading ? (
         <p className="mt-8 text-muted-foreground">Carregando...</p>
       ) : loadError ? (
         <div className="mt-8 border border-destructive/40 p-5 text-muted-foreground">
@@ -357,12 +382,6 @@ function AdminPortais() {
                   </Link>
                 )}
                 <button onClick={() => startEdit(p)} className="px-3 py-1 text-muted-foreground hover:text-primary">Editar</button>
-                {isMagicWorld(p.slug) && (
-                  <Link to="/admin/portal-inspiracoes"
-                    className="inline-flex items-center gap-1.5 rounded-full border border-primary/40 px-3 py-1.5 text-primary hover:bg-primary/10">
-                    <Pencil size={14} aria-hidden="true" /> Editar fotos das inspirações
-                  </Link>
-                )}
                 <button onClick={() => duplicate(p)} className="px-3 py-1 text-muted-foreground hover:text-primary">Duplicar</button>
                 {p.status === "draft" && (
                   <button onClick={() => archive(p)} className="px-3 py-1 text-muted-foreground hover:text-destructive">Arquivar</button>
@@ -371,7 +390,7 @@ function AdminPortais() {
             </article>
           ))}
         </div>
-      )}
+      ))}
     </div>
   );
 }
