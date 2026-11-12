@@ -1,5 +1,6 @@
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { markPortalReturn } from "@/lib/portal-navigation";
 
 const mocks = vi.hoisted(() => ({
   slug: "colecao-teste",
@@ -64,6 +65,7 @@ const fragment = {
 };
 
 beforeEach(() => {
+  window.sessionStorage.clear();
   mocks.slug = "colecao-teste";
   mocks.returning = false;
   mocks.portalQuery.mockResolvedValue({ data: portal, error: null });
@@ -71,6 +73,7 @@ beforeEach(() => {
 });
 afterEach(() => {
   cleanup();
+  window.sessionStorage.clear();
   vi.resetAllMocks();
 });
 
@@ -137,6 +140,16 @@ describe("Portal NFC: recuperação de falhas de carregamento", () => {
     expect(await screen.findByRole("heading", { name: "Portas para este universo" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Entrar na coleção" })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Lumos" })).toHaveAttribute("aria-pressed", "false");
+  });
+
+  it("volta direto à tela principal mesmo quando o navegador perde ?inicio=1", async () => {
+    mocks.slug = "o-mundo-de-magia";
+    mocks.returning = false;
+    markPortalReturn(mocks.slug);
+    render(<PortalPage />);
+    expect(await screen.findByRole("heading", { name: "Portas para este universo" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Entrar na coleção" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Lumos" })).toBeInTheDocument();
   });
 
   it("Lumos acende o cenário e o apaga ao clicar novamente", async () => {
