@@ -96,20 +96,14 @@ export function HouseCup({ variant = "community" }: { variant?: "community" | "p
   const total = Object.values(scores).reduce((sum, value) => sum + value, 0);
   return <section id={portal ? "portal-taca-casas" : undefined} aria-label="Taça das Casas"
     className={portal
-      ? "relative isolate mx-auto w-full max-w-6xl overflow-hidden rounded-t-[2.5rem] border-x border-t border-[#98a9df]/45 bg-[#0c1232] px-3 pb-12 pt-12 text-[#f8f5ee] shadow-[0_-12px_55px_rgba(3,7,33,0.35)] sm:px-10 sm:pt-16 [background:radial-gradient(ellipse_at_top,#24305f_0%,#10183e_52%,#080c22_100%)]"
+      ? "relative mx-auto w-full max-w-6xl bg-transparent px-2 pb-12 pt-10 text-[#f8f5ee] sm:px-10 sm:pt-14"
       : "mx-auto w-full max-w-5xl rounded-2xl border border-primary/30 bg-card px-4 py-8 text-foreground sm:px-8"}>
-    {portal && <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
-      {["10%","28%","51%","76%","91%"].map((left,index)=>
-        <span key={left} style={{left,top:index%2?"14%":"28%",animationDelay:index*0.5+"s"}}
-          className="motion-safe:animate-pulse absolute h-1.5 w-1.5 rounded-full bg-[#f0d79b] shadow-[0_0_14px_3px_rgba(242,217,151,0.6)]" />)}
-      <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-[#070b22]/80 to-transparent"/>
-    </div>}
     <div className="relative z-10 text-center">
-      <p className={portal ? "text-[10px] font-semibold uppercase tracking-[.3em] text-[#edda9e]" : "text-[10px] font-semibold uppercase tracking-[.3em] text-primary"}>O Mundo da Magia</p>
+      {!portal && <p className="text-[10px] font-semibold uppercase tracking-[.3em] text-primary">O Mundo da Magia</p>}
       <h2 className="mt-3 font-display text-3xl sm:text-5xl">Taça das Casas</h2>
-      <p className={portal ? "mx-auto mt-3 max-w-lg text-sm text-[#e5e8ff]" : "mx-auto mt-3 max-w-lg text-sm text-muted-foreground"}>
+      {!portal && <p className="mx-auto mt-3 max-w-lg text-sm text-muted-foreground">
         Cada chama representa uma casa. Qual delas vai iluminar o nosso salão?
-      </p>
+      </p>}
       {error ? <p role="status" className="mt-8 text-sm">Não foi possível atualizar as porcentagens agora.</p> :
         <div className="mx-auto mt-9 grid max-w-2xl grid-cols-4 items-start gap-1.5 sm:gap-6">
           {HOUSES.map(house => <div key={house.id} className="flex min-w-0 flex-col items-center">
