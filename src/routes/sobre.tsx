@@ -4,7 +4,6 @@ import { PageShell } from "@/components/SiteLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { InlineEditor } from "@/components/InlineEditor";
 import { useSiteContent, uploadSiteImage, useAdminEdit } from "@/lib/admin-edit";
-import { AproxExperience } from "@/components/AproxExperience";
 import { AboutStoryText } from "@/components/AboutStoryText";
 
 type Profile = { about_story: string; about_mari: string; about_image_url: string; story_image_url: string };
@@ -36,6 +35,8 @@ function CaptionInlineEditor({ caption, onSave }: { caption: string; onSave: (ca
 
 function Sobre() {
   const { editing } = useAdminEdit();
+  const [meaningOpen, setMeaningOpen] = useState(false);
+  const [activeChapter, setActiveChapter] = useState<string | null>(null);
   const [pageSettings, savePageSettings] = useSiteContent("about-page-appearance", { eyebrow: "Nossa história", title: "Sobre a Hiraeth", closing: "Onde a Chama Acesa te Espera" });
   const [blocks, setBlocks] = useState<AboutBlock[]>([]);
   const [bannerSettings, setBannerSettings] = useState<{ enabled: boolean; image_url: string; href: string; title: string }>({ enabled: false, image_url: "", href: "/loja", title: "" });
@@ -63,6 +64,7 @@ function Sobre() {
     })();
   }, []);
   const shownBlocks = blocks.length ? blocks : seedBlocks(defaults);
+  const activeIndex = Math.max(0, shownBlocks.findIndex(block => block.id === activeChapter));
   async function addStoryPhotos(blockIndex: number, files: FileList | null) {
     if (!files?.length) return;
     const selected = Array.from(files);
@@ -89,31 +91,41 @@ function Sobre() {
     {editing && <InlineEditor label="cabeçalho de Conheça a Hiraeth" fields={[{ name: "eyebrow", label: "Texto pequeno acima do título", type: "text" }, { name: "title", label: "Título da página", type: "text" }, { name: "closing", label: "Frase de encerramento", type: "text" }]} values={pageSettings} onSave={async (next) => savePageSettings({ ...pageSettings, ...next } as typeof pageSettings)} />}
     <div className="space-y-10 sm:space-y-16">
       {bannerSettings.enabled && bannerSettings.image_url && <a href={bannerSettings.href || "/loja"} target={/^(https?:)?\/\//i.test(bannerSettings.href) ? "_blank" : undefined} rel={/^(https?:)?\/\//i.test(bannerSettings.href) ? "noreferrer" : undefined} className="block overflow-hidden"><img src={bannerSettings.image_url} alt={bannerSettings.title || "Banner Hiraeth"} className="max-h-[28rem] w-full object-cover" /></a>}
-      <section className="px-2 py-8 text-foreground sm:px-6 sm:py-12">
-        <p className="mb-4 text-xs font-semibold uppercase tracking-[.24em] text-primary">Um pouco da nossa história</p>
-        <h2 className="max-w-3xl font-serif text-4xl font-medium leading-[1.08] tracking-tight text-foreground sm:text-6xl">Algumas histórias merecem ser <span className="font-bold italic">sentidas.</span></h2>
-        <p className="mt-5 max-w-2xl font-serif text-base leading-relaxed text-foreground/85 sm:text-xl">Cada criação guarda uma lembrança, cada aroma abre uma passagem e cada detalhe faz parte de quem somos.</p>
-      </section>
-      <AproxExperience />
-      <section className="relative overflow-hidden rounded-sm border border-[#b6a77f]/40 bg-[#314333] px-6 py-9 text-[#f5efdf] dark:bg-[#f7efda] dark:text-[#5b1d04] sm:px-12 sm:py-12">
+      <section className="relative overflow-hidden rounded-3xl border border-[#b6a77f]/40 bg-[#314333] px-6 py-7 text-[#f5efdf] dark:bg-[#f7efda] dark:text-[#5b1d04] sm:px-12 sm:py-10">
         <p className="mb-3 text-[10px] font-semibold uppercase tracking-[.24em] text-[#d5c28b] dark:text-[#927b45]">A palavra por trás da chama</p>
         <h2 className="font-serif text-4xl font-medium leading-tight sm:text-5xl">O que significa <span className="font-bold italic">Hiraeth?</span></h2>
-        <p className="mt-5 max-w-3xl font-serif text-base leading-[1.9] sm:text-lg">De origem galesa, <em>Hiraeth</em> representa a saudade de um lugar, pessoa ou época que talvez nunca tenha existido — ou ao qual já não podemos voltar.</p>
-        <p className="mt-4 max-w-3xl font-serif text-base leading-[1.9] sm:text-lg">É também a saudade que sentimos ao terminar um livro ou uma série e perceber que ainda gostaríamos de permanecer naquele universo.</p>
-        <p className="mt-4 max-w-3xl font-serif text-base leading-[1.9] sm:text-lg">Escolhi esse nome porque quero que a Hiraeth seja uma forma de reencontrar esses mundos. Por meio de aromas e experiências, queremos trazer um pouco das histórias que você ama para perto — e prolongar a magia de cada uma delas.</p>
+        <p className="mt-4 max-w-2xl font-serif text-base leading-7 sm:text-lg">
+          De origem galesa, <em>Hiraeth</em> é a saudade de um lugar ao qual desejamos pertencer — até mesmo de um mundo que conhecemos apenas nas histórias.
+        </p>
+        <button type="button" aria-expanded={meaningOpen} aria-controls="hiraeth-significado-completo"
+          onClick={() => setMeaningOpen(value => !value)}
+          className="mt-5 inline-flex min-h-11 items-center rounded-full border border-[#d5c28b] px-5 py-2 text-sm font-semibold text-[#f5efdf] transition-colors hover:bg-[#f7efda]/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d5c28b] dark:border-[#5b1d04] dark:text-[#5b1d04] dark:hover:bg-[#5b1d04]/10">
+          {meaningOpen ? "Recolher significado" : "Descobrir mais sobre Hiraeth"}
+        </button>
+        {meaningOpen && <div id="hiraeth-significado-completo" className="mt-5 max-w-3xl space-y-3 border-t border-current/25 pt-5 font-serif text-base leading-7 sm:text-lg">
+          <p>Também é a saudade que sentimos ao terminar um livro ou uma série e perceber que ainda gostaríamos de permanecer naquele universo.</p>
+          <p>Escolhi esse nome porque quero que a Hiraeth seja uma forma de reencontrar esses mundos. Por meio de aromas e experiências, queremos trazer um pouco das histórias que você ama para perto — e prolongar a magia de cada uma delas.</p>
+        </div>}
       </section>
-      <nav aria-label="Escolha um capítulo da nossa história" className="flex snap-x snap-mandatory gap-2 overflow-x-auto py-2">
-        {shownBlocks.map((block, index) => <a key={block.id} href={"#hiraeth-capitulo-" + block.id}
-          className="min-w-[130px] max-w-[180px] shrink-0 snap-start rounded-full border border-primary/45 bg-secondary px-4 py-3 text-center text-xs font-medium text-foreground transition-colors hover:bg-primary/15">
-          Capítulo {String(index + 1).padStart(2, "0")}
-        </a>)}
-      </nav>
-      {shownBlocks.map((block, index) => {
+      <div className="space-y-4" aria-label="Capítulos da Hiraeth">
+        <p className="px-1 text-xs font-semibold uppercase tracking-[.22em] text-foreground/80">Nossa história, capítulo por capítulo</p>
+        <nav aria-label="Escolha um capítulo da nossa história" className="flex snap-x snap-mandatory gap-2 overflow-x-auto py-2">
+          {shownBlocks.map((block, index) => <button key={block.id} type="button"
+            aria-pressed={activeIndex === index} aria-controls="hiraeth-capitulo-ativo"
+            onClick={() => setActiveChapter(block.id)}
+            className={"min-w-[116px] max-w-[180px] shrink-0 snap-start rounded-full border px-4 py-3 text-center text-xs font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c6a65b] " +
+              (activeIndex === index ? "border-[#878e47] bg-[#314333] text-[#f7efda]" : "border-primary/45 bg-secondary text-foreground hover:bg-primary/15")}>
+            Capítulo {String(index + 1).padStart(2, "0")}
+          </button>)}
+        </nav>
+      </div>
+      {shownBlocks.filter((_, index) => index === activeIndex).map((block) => {
+        const index = activeIndex;
         const isFeatureBlock = index % 2 === 0;
         const palette = isFeatureBlock
           ? { bg: "bg-[#314333] dark:bg-[#f7efda]", ink: "text-[#f5efdf] dark:text-[#5b1d04]", accent: "text-[#d5c28b] dark:text-[#927b45]" }
           : { bg: "bg-transparent", ink: "text-foreground", accent: "text-primary" };
-        return <section id={"hiraeth-capitulo-" + block.id} key={block.id || index} className={`scroll-mt-8 overflow-hidden rounded-3xl border border-primary/15 ${palette.bg} ${palette.ink} ${isFeatureBlock ? "shadow-sm" : ""}`}>
+        return <section id="hiraeth-capitulo-ativo" aria-live="polite" key={block.id || index} className={`scroll-mt-8 overflow-hidden rounded-3xl border border-primary/15 ${palette.bg} ${palette.ink} ${isFeatureBlock ? "shadow-sm" : ""}`}>
           <div className="grid gap-6 px-5 py-7 sm:gap-9 sm:px-10 sm:py-11 md:grid-cols-[minmax(0,1fr)_minmax(220px,.82fr)] md:items-center">
             <div className="min-w-0">
               <p className={`mb-3 text-[10px] font-semibold uppercase tracking-[.22em] ${palette.accent}`}>Capítulo {String(index + 1).padStart(2, "0")} · Hiraeth</p>
