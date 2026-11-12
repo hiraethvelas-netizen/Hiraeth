@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowUpRight, BookOpen, Flame, Nfc, Smartphone, X } from "lucide-react";
+import { ArrowUpRight, Flame, Nfc, Smartphone } from "lucide-react";
 
 type Chapter = "toque" | "portal" | "app";
 const chapters: { id: Chapter; title: string; note: string }[] = [
