@@ -51,9 +51,9 @@ describe("Inspirações: experiência de descoberta", () => {
     expect(within(card).queryByText("A sala comunal é inspiradora.")).not.toBeInTheDocument();
   });
 
-  it("mantém a carta em envelope até a pessoa tocar no selo verde", () => {
+  it("mantém a carta em envelope até a pessoa tocar no selo vermelho", () => {
     render(<PortalInspirationChapters fragments={data} magicWorld />);
-    const button = screen.getByRole("button", { name: /toque no selo verde para abrir a carta/i });
+    const button = screen.getByRole("button", { name: /toque no selo vermelho para abrir a carta/i });
     expect(button).toHaveAttribute("aria-expanded", "false");
     fireEvent.click(button);
     expect(screen.getByText("Uma carta sobre encontrar conforto e sentir-se em casa.")).toBeInTheDocument();

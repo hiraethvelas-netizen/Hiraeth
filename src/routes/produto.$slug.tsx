@@ -217,11 +217,13 @@ function ProdutoPage() {
 
         <div className="mt-4 grid gap-7 sm:mt-6 md:grid-cols-2 md:gap-10">
           <div className="min-w-0">
-            <div className="relative">
-              {(product as Product & { product_badge?: string | null }).product_badge === "limited" &&
-                <span className="hiraeth-product-badge--limited absolute left-3 top-3 z-20 rounded-full px-3 py-2 text-xs font-semibold uppercase tracking-widest sm:left-4 sm:top-4">
+            {(product as Product & { product_badge?: string | null }).product_badge === "limited" &&
+              <div className="mb-3 flex justify-start">
+                <span className="hiraeth-product-badge--limited inline-flex rounded-full px-3 py-2 text-xs font-semibold uppercase tracking-widest">
                   Edição limitada
-                </span>}
+                </span>
+              </div>}
+            <div className="relative">
               <div
                 ref={galleryRef}
                 onScroll={onGalleryScroll}

@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { Heart } from "lucide-react";
+import { GripVertical, Heart } from "lucide-react";
 import { toast } from "sonner";
 import { brl } from "@/lib/format";
 import { visiblePrice } from "@/lib/store-pricing";
@@ -33,6 +33,26 @@ type Props = {
   promotionCategories?: PromotionCategory[];
 };
 
+/** Keep product display sizes attached to products when their order changes. */
+export function reorderPublishedProducts(featured: FeaturedProduct[], orderedIds: string[]): FeaturedProduct[] {
+  const visibleIds = new Set(orderedIds);
+  const byId = new Map(featured.map(item => [item.id, item]));
+  let index = 0;
+  return featured.map(item => visibleIds.has(item.id)
+    ? (byId.get(orderedIds[index++]!) ?? item)
+    : item);
+}
+
+function moveId(ids: string[], source: string, destination: string): string[] {
+  const start = ids.indexOf(source);
+  const target = ids.indexOf(destination);
+  if (start < 0 || target < 0 || start === target) return ids;
+  const updated = [...ids];
+  updated.splice(start, 1);
+  updated.splice(target, 0, source);
+  return updated;
+}
+
 /** One instance per collection. Every category and subcategory has its own curation. */
 export function CuratedProductGrid({
   scope, products, categories, wishlistIds, onWishlist, onSaveProduct,
@@ -49,13 +69,21 @@ export function CuratedProductGrid({
   const [saving, setSaving] = useState(false);
   const [quickSaving, setQuickSaving] = useState<string | null>(null);
   const [filter, setFilter] = useState("");
+  const [dragPreview, setDragPreview] = useState<{ scope: string; ids: string[] } | null>(null);
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const dragRef = useRef<{ scope: string; pointerId: number; id: string; original: string[]; ids: string[] } | null>(null);
+  const canReorder = isAdmin && editMode && !showFavorites && !searching && !editing && !saving && quickSaving === null;
   const productMap = new Map(products.map(product => [product.id, product]));
   const edited = settings.featured.filter(item => productMap.has(item.id));
   // With no curation configured yet, keep every previously published product visible.
   // Search/favorites always show matching products even if not in the curated selection.
-  const visible = searching || showFavorites || !settings.configured
+  const baseVisible = searching || showFavorites || !settings.configured
     ? products.map(product => ({ product, size: edited.find(item => item.id === product.id)?.size ?? "normal" as DisplaySize }))
     : edited.map(item => ({ product: productMap.get(item.id)!, size: item.size }));
+  const previewIds = dragPreview?.scope === scope ? dragPreview.ids : null;
+  const visible = previewIds
+    ? [...baseVisible].sort((a, b) => previewIds.indexOf(a.product.id) - previewIds.indexOf(b.product.id))
+    : baseVisible;
   const searchResults = products.filter(p => p.name.toLocaleLowerCase("pt-BR").includes(filter.toLocaleLowerCase("pt-BR")));
   const badgeText = (badge: string | null | undefined) =>
     badge === "limited" ? "Edição limitada" : badge === "bestseller" ? "Mais vendido" : badge ? "Novidade" : "";
@@ -94,6 +122,72 @@ export function CuratedProductGrid({
       return { ...previous, featured: copy };
     });
   }
+  async function persistOrder(orderedIds: string[]) {
+    setQuickSaving("order");
+    try {
+      const featured = settings.configured
+        ? [...settings.featured]
+        : products.map(product => ({ id: product.id, size: "normal" as DisplaySize }));
+      await saveSettings({
+        ...settings, title: settings.title || fallbackTitle,
+        configured: true, featured: reorderPublishedProducts(featured, orderedIds),
+      });
+      toast.success("Nova ordem das velas salva.");
+    } catch (cause) {
+      toast.error(cause instanceof Error ? cause.message : "Não foi possível salvar a ordem das velas.");
+    } finally {
+      setDragPreview(null);
+      setQuickSaving(null);
+    }
+  }
+
+  function startDrag(event: React.PointerEvent<HTMLButtonElement>, id: string) {
+    if (!canReorder || (event.pointerType === "mouse" && event.button !== 0)) return;
+    const ids = visible.map(item => item.product.id);
+    dragRef.current = { scope, pointerId: event.pointerId, id, original: ids, ids };
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+    setDraggingId(id);
+    setDragPreview({ scope, ids });
+  }
+
+  function moveDrag(event: React.PointerEvent<HTMLButtonElement>) {
+    const drag = dragRef.current;
+    if (!drag || drag.scope !== scope || event.pointerId !== drag.pointerId) return;
+    const target = document.elementFromPoint?.(event.clientX, event.clientY)
+      ?.closest<HTMLElement>("[data-curation-product-id]");
+    const targetId = target?.dataset["curationProductId"];
+    if (!targetId || !drag.ids.includes(targetId)) return;
+    const next = moveId(drag.ids, drag.id, targetId);
+    if (next === drag.ids) return;
+    drag.ids = next;
+    setDragPreview({ scope, ids: next });
+  }
+
+  function finishDrag(event: React.PointerEvent<HTMLButtonElement>, cancelled = false) {
+    const drag = dragRef.current;
+    if (!drag || drag.scope !== scope || event.pointerId !== drag.pointerId) return;
+    dragRef.current = null;
+    if (event.currentTarget.hasPointerCapture?.(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+    setDraggingId(null);
+    if (cancelled || drag.ids.every((id, index) => id === drag.original[index])) {
+      setDragPreview(null);
+      return;
+    }
+    void persistOrder(drag.ids);
+  }
+
+  function reorderWithKeyboard(event: React.KeyboardEvent<HTMLButtonElement>, id: string) {
+    if (!canReorder || !["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(event.key)) return;
+    event.preventDefault();
+    const ids = visible.map(item => item.product.id);
+    const index = ids.indexOf(id);
+    const direction = event.key === "ArrowUp" || event.key === "ArrowLeft" ? -1 : 1;
+    const destination = ids[index + direction];
+    if (index >= 0 && destination) void persistOrder(moveId(ids, id, destination));
+  }
+
   async function changeCardSize(id: string, size: DisplaySize) {
     if (quickSaving) return;
     setQuickSaving(id);
@@ -108,7 +202,7 @@ export function CuratedProductGrid({
         configured: true, featured: updated });
       toast.success(size === "large"
         ? "Vela ampliada na vitrine."
-        : "Vela ajustada para a fileira de três.");
+        : "Vela ajustada para a fileira de duas.");
     } catch (cause) {
       toast.error(cause instanceof Error ? cause.message : "Não foi possível alterar o tamanho.");
     } finally {
@@ -174,7 +268,7 @@ export function CuratedProductGrid({
                   <select value={selected.size} onChange={e => updateSize(product.id, e.target.value as DisplaySize)}
                     aria-label={"Tamanho na vitrine: " + product.name}
                     className="max-w-32 rounded border border-primary/30 bg-background px-2 py-2 text-xs text-foreground">
-                    <option value="normal">3 por fileira</option>
+                    <option value="normal">2 por fileira</option>
                     <option value="large">Grande</option>
                   </select>
                   <button type="button" disabled={index === 0} onClick={() => move(product.id, -1)}
@@ -195,10 +289,16 @@ export function CuratedProductGrid({
           </div>
         </div>
       )}
+      {isAdmin && editMode && !showFavorites && !searching && !editing && (
+        <p className="mb-4 text-xs text-muted-foreground">
+          Segure o controle de uma vela e arraste até a posição desejada.
+          A ordem é salva ao soltar. As setas do teclado também funcionam.
+        </p>
+      )}
       {visible.length === 0 ? <p className="py-8 text-center font-display italic text-muted-foreground">
         {settings.configured ? "Nenhuma chama selecionada para esta vitrine." : "Novas chamas chegarão em breve."}
       </p> : (
-        <div className="grid min-w-0 grid-cols-3 gap-x-2 gap-y-5 sm:gap-x-4 sm:gap-y-8 md:gap-x-6" data-testid="curated-product-grid">
+        <div className="grid min-w-0 grid-cols-2 gap-x-3 gap-y-6 sm:gap-x-5 sm:gap-y-8 md:gap-x-7" data-testid="curated-product-grid">
           {visible.map(({ product: p, size }) => {
             const isLarge = size === "large" && !searching && !showFavorites;
             const badge = (p as Product & { product_badge?: string | null }).product_badge;
@@ -208,8 +308,9 @@ export function CuratedProductGrid({
             }, automaticPromotions, promotionCategories);
             const temporary = categories.some(cat => cat.id === p.category_id &&
               (cat.is_temporary || categories.some(parent => parent.id === cat.parent_id && parent.is_temporary)));
-            return <div key={p.id} data-product-size={size}
-              className={"relative min-w-0 " + (isLarge ? "col-span-3 flex flex-col items-center" : "")}>
+            return <div key={p.id} data-product-size={size} data-curation-product-id={p.id}
+              className={"relative min-w-0 " + (isLarge ? "col-span-2 flex flex-col items-center" : "") +
+                (draggingId === p.id ? " rounded-lg outline outline-2 outline-offset-2 outline-primary" : "")}>
               <Link to="/produto/$slug" params={{ slug: p.slug }}
               className={"hiraeth-product-card group relative block min-w-0 bg-transparent text-center transition-transform duration-300 " +
                 (isLarge ? "hiraeth-featured-flame mx-auto w-[88%] max-w-lg" : "")}
@@ -228,9 +329,12 @@ export function CuratedProductGrid({
                   <Heart size={isLarge ? 20 : 14} strokeWidth={1.8}
                     fill={wishlistIds.has(p.id) ? "currentColor" : "none"} />
                 </button>
-                {badge && <span className={"hiraeth-product-badge absolute left-1 top-1 z-10 rounded-full px-1.5 py-1 text-[8px] font-semibold uppercase tracking-wide sm:left-3 sm:top-3 sm:px-3 " + (badge === "limited" ? "hiraeth-product-badge--limited" : "bg-[#65744d] text-[#f7efda]")}>{badgeText(badge)}</span>}
               </div>
               <div className="px-0.5 pb-2 pt-2 sm:px-2 sm:pt-3">
+                {badge && <div className="mb-2 flex justify-center">
+                  <span className={"hiraeth-product-badge inline-flex max-w-full items-center justify-center rounded-full px-2.5 py-1 text-center text-[9px] font-semibold uppercase leading-tight tracking-wide sm:px-3 sm:text-[10px] " +
+                    (badge === "limited" ? "hiraeth-product-badge--limited" : "bg-[#65744d] text-[#f7efda]")}>{badgeText(badge)}</span>
+                </div>}
                 {temporary && <p className="mb-1 text-[9px] text-primary">Edição temporária</p>}
                 <InlineEditor label={"produto " + p.name}
                   fields={[
@@ -246,8 +350,8 @@ export function CuratedProductGrid({
                     images: p.images ?? [] }}
                   onSave={values => onSaveProduct(p, values)} />
                 <h3 className={"font-display break-words font-medium leading-snug text-foreground " +
-                  (isLarge ? "text-xl sm:text-3xl" : "text-xs sm:text-lg")}>{p.name}</h3>
-                <div className={"mt-1 flex flex-wrap items-baseline justify-center gap-1 text-primary " + (isLarge ? "text-xl" : "text-xs sm:text-base")}>
+                  (isLarge ? "text-xl sm:text-3xl" : "text-sm sm:text-lg")}>{p.name}</h3>
+                <div className={"mt-1 flex flex-wrap items-baseline justify-center gap-1 text-primary " + (isLarge ? "text-xl" : "text-sm sm:text-base")}>
                   {pricePreview.hasDiscount && <span aria-label={"Valor original " + brl(pricePreview.original)}
                     className="text-[10px] text-muted-foreground line-through sm:text-sm">{brl(pricePreview.original)}</span>}
                   <span className={pricePreview.hasDiscount ? "font-semibold text-[#68763c] dark:text-[#d9ca9e]" : ""}>
@@ -257,15 +361,15 @@ export function CuratedProductGrid({
               </div>
               </Link>
               {isAdmin && editMode && !showFavorites && !searching && (
-                <div role="group" aria-label={"Tamanho da vela " + p.name}
+                <div role="group" aria-label={"Organizar vela " + p.name}
                   className={"mt-1 flex flex-wrap items-center justify-center gap-1.5 rounded-lg border border-primary/25 bg-card/90 p-1.5 " + (isLarge ? "mx-auto w-[88%] max-w-lg" : "")}>
                   <button type="button" disabled={quickSaving !== null || saving}
                     onClick={() => void changeCardSize(p.id, "normal")}
-                    aria-label={"Exibir " + p.name + " em fileira de três"}
+                    aria-label={"Exibir " + p.name + " em fileira de duas"}
                     aria-pressed={!isLarge}
                     className={"rounded px-2 py-1.5 text-[10px] sm:text-xs " +
                       (!isLarge ? "bg-primary/20 text-primary" : "text-muted-foreground hover:text-primary")}>
-                    3 por fileira
+                    2 por fileira
                   </button>
                   <button type="button" disabled={quickSaving !== null || saving}
                     onClick={() => void changeCardSize(p.id, "large")}
@@ -275,6 +379,16 @@ export function CuratedProductGrid({
                       (isLarge ? "bg-primary/20 text-primary" : "text-muted-foreground hover:text-primary")}>
                     Grande
                   </button>
+                  <button type="button" disabled={!canReorder}
+                    aria-label={"Segure e arraste " + p.name + " para reorganizar"}
+                    title="Segure e arraste; setas do teclado também funcionam"
+                    onPointerDown={event => startDrag(event, p.id)}
+                    onPointerMove={moveDrag}
+                    onPointerUp={event => finishDrag(event)}
+                    onPointerCancel={event => finishDrag(event, true)}
+                    onKeyDown={event => reorderWithKeyboard(event, p.id)}
+                    className="inline-flex min-h-9 min-w-9 touch-none select-none items-center justify-center rounded border border-primary/30 bg-background text-primary disabled:opacity-40"
+                  ><GripVertical size={17} aria-hidden="true" /></button>
                 </div>
               )}
             </div>;
