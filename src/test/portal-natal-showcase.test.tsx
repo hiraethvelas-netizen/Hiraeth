@@ -17,6 +17,7 @@ describe("Vitrine natalina do Portal NFC", () => {
     expect(screen.getByRole("img", { name: "Vela Entre Fios e Magia" })).toHaveAttribute("src", expect.any(String));
     expect(screen.getByRole("img", { name: "Vela O Grande Salão de Natal" })).toHaveAttribute("src", expect.any(String));
     expect(screen.queryByText("Fotografia em breve")).not.toBeInTheDocument();
+    expect(screen.getByText(/Toque em uma das velas para abrir a história/i)).toBeInTheDocument();
     expect(screen.queryByText("Inspiração: primeiro presente de Natal.")).not.toBeInTheDocument();
   });
 
@@ -26,6 +27,8 @@ describe("Vitrine natalina do Portal NFC", () => {
     const salaoButton = screen.getByRole("button", { name: /O Grande Salão de Natal/ });
     fireEvent.click(entreButton);
     expect(screen.getByText("Inspiração: primeiro presente de Natal.")).toBeInTheDocument();
+    // O diálogo sai da moldura de Natal e fica acima da página inteira.
+    expect(screen.getByRole("dialog").closest(".portal-natal-overlay-root")?.parentElement).toBe(document.body);
     expect(screen.queryByText("Inspiração: amigos no grande salão.")).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: /Fechar informações da vela/ }));
     fireEvent.click(salaoButton);
