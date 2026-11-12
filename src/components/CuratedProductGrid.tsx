@@ -3,6 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { GripVertical, Heart } from "lucide-react";
 import { toast } from "sonner";
 import { brl } from "@/lib/format";
+import { productBadgeLabel, productBadgeStyle } from "@/lib/product-badges";
 import { visiblePrice } from "@/lib/store-pricing";
 import type { Promotion, PromotionCategory } from "@/lib/promotions";
 import { InlineEditor } from "@/components/InlineEditor";
@@ -60,10 +61,13 @@ export function CuratedProductGrid({
   automaticPromotions = [], promotionCategories = [],
 }: Props) {
   const { isAdmin, editMode } = useAdminEdit();
-  const fallbackTitle = scope === "home" ? "Chamas em Evidência" : "Tesouros deste Universo";
+  const fallbackTitle = scope === "home" ? "Escolhas da Guardiã" : "Tesouros deste Universo";
   const [settings, saveSettings] = useSiteContent<Curation>("store-curation-" + scope, {
     title: fallbackTitle, configured: false, featured: [],
   });
+  // Substitui apenas o título padrão antigo; títulos personalizados continuam intactos.
+  const displayedTitle = scope === "home" && settings.title === "Chamas em Evidência"
+    ? fallbackTitle : settings.title || fallbackTitle;
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<Curation>(settings);
   const [saving, setSaving] = useState(false);
@@ -85,12 +89,10 @@ export function CuratedProductGrid({
     ? [...baseVisible].sort((a, b) => previewIds.indexOf(a.product.id) - previewIds.indexOf(b.product.id))
     : baseVisible;
   const searchResults = products.filter(p => p.name.toLocaleLowerCase("pt-BR").includes(filter.toLocaleLowerCase("pt-BR")));
-  const badgeText = (badge: string | null | undefined) =>
-    badge === "limited" ? "Edição limitada" : badge === "bestseller" ? "Mais vendido" : badge ? "Novidade" : "";
 
   function begin() {
     setDraft({
-      title: settings.title || fallbackTitle,
+      title: displayedTitle,
       configured: true,
       featured: settings.configured
         ? [...settings.featured]
@@ -129,7 +131,7 @@ export function CuratedProductGrid({
         ? [...settings.featured]
         : products.map(product => ({ id: product.id, size: "normal" as DisplaySize }));
       await saveSettings({
-        ...settings, title: settings.title || fallbackTitle,
+        ...settings, title: displayedTitle,
         configured: true, featured: reorderPublishedProducts(featured, orderedIds),
       });
       toast.success("Nova ordem das velas salva.");
@@ -198,7 +200,7 @@ export function CuratedProductGrid({
       const updated = featured.some(item => item.id === id)
         ? featured.map(item => item.id === id ? { ...item, size } : item)
         : [...featured, { id, size }];
-      await saveSettings({ ...settings, title: settings.title || fallbackTitle,
+      await saveSettings({ ...settings, title: displayedTitle,
         configured: true, featured: updated });
       toast.success(size === "large"
         ? "Vela ampliada na vitrine."
@@ -224,12 +226,12 @@ export function CuratedProductGrid({
   }
 
   return (
-    <section className="mt-10 min-w-0" aria-label={settings.title || fallbackTitle}>
+    <section className="mt-10 min-w-0" aria-label={displayedTitle}>
       {!showFavorites && !searching && (
         <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p className="eyebrow">Uma seleção para você</p>
-            <h2 className="font-display text-3xl text-foreground sm:text-4xl">{settings.title || fallbackTitle}</h2>
+            <p className="eyebrow">Curadoria Hiraeth</p>
+            <h2 className="font-display text-3xl text-foreground sm:text-4xl">{displayedTitle}</h2>
           </div>
           {isAdmin && editMode && (
             <button type="button" onClick={begin}
@@ -302,6 +304,7 @@ export function CuratedProductGrid({
           {visible.map(({ product: p, size }) => {
             const isLarge = size === "large" && !searching && !showFavorites;
             const badge = (p as Product & { product_badge?: string | null }).product_badge;
+            const badgeText = productBadgeLabel(badge);
             const pricePreview = visiblePrice({
               id: p.id, category_id: p.category_id,
               price: Number(p.price), sale_price: p.sale_price === null ? null : Number(p.sale_price),
@@ -313,7 +316,7 @@ export function CuratedProductGrid({
                 (draggingId === p.id ? " rounded-lg outline outline-2 outline-offset-2 outline-primary" : "")}>
               <Link to="/produto/$slug" params={{ slug: p.slug }}
               className={"hiraeth-product-card group relative block min-w-0 bg-transparent text-center transition-transform duration-300 " +
-                (isLarge ? "hiraeth-featured-flame mx-auto w-[88%] max-w-lg" : "")}
+                (isLarge ? "hiraeth-featured-flame mx-auto w-[72%] max-w-[340px] sm:w-[68%] sm:max-w-[400px]" : "")}
               data-product-badge={badge ?? undefined}>
               <div className={"hiraeth-product-visual relative overflow-hidden bg-transparent " +
                 (isLarge ? "aspect-[4/5] sm:aspect-square" : "aspect-square")}>
@@ -331,9 +334,9 @@ export function CuratedProductGrid({
                 </button>
               </div>
               <div className="px-0.5 pb-2 pt-2 sm:px-2 sm:pt-3">
-                {badge && <div className="mb-2 flex justify-center">
+                {badgeText && <div className="mb-2 flex justify-center">
                   <span className={"hiraeth-product-badge inline-flex max-w-full items-center justify-center rounded-full px-2.5 py-1 text-center text-[9px] font-semibold uppercase leading-tight tracking-wide sm:px-3 sm:text-[10px] " +
-                    (badge === "limited" ? "hiraeth-product-badge--limited" : "bg-[#65744d] text-[#f7efda]")}>{badgeText(badge)}</span>
+                    productBadgeStyle(badge)}>{badgeText}</span>
                 </div>}
                 {temporary && <p className="mb-1 text-[9px] text-primary">Edição temporária</p>}
                 <InlineEditor label={"produto " + p.name}
@@ -362,7 +365,7 @@ export function CuratedProductGrid({
               </Link>
               {isAdmin && editMode && !showFavorites && !searching && (
                 <div role="group" aria-label={"Organizar vela " + p.name}
-                  className={"mt-1 flex flex-wrap items-center justify-center gap-1.5 rounded-lg border border-primary/25 bg-card/90 p-1.5 " + (isLarge ? "mx-auto w-[88%] max-w-lg" : "")}>
+                  className={"mt-1 flex flex-wrap items-center justify-center gap-1.5 rounded-lg border border-primary/25 bg-card/90 p-1.5 " + (isLarge ? "mx-auto w-full max-w-[400px]" : "")}>
                   <button type="button" disabled={quickSaving !== null || saving}
                     onClick={() => void changeCardSize(p.id, "normal")}
                     aria-label={"Exibir " + p.name + " em fileira de duas"}
