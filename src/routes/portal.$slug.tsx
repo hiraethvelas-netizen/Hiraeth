@@ -6,6 +6,8 @@ import { PortalFestiveAccents } from "@/components/PortalFestiveAccents";
 import { PortalIntro } from "@/components/PortalIntro";
 import { PortalChristmasDecor } from "@/components/PortalChristmasDecor";
 import { PortalFeaturedProducts } from "@/components/PortalFeaturedProducts";
+import { PortalGuardianLetter } from "@/components/PortalGuardianLetter";
+import { isReturningToPortal } from "@/lib/portal-navigation";
 import { carouselFromTheme, isMagicWorld, magicWorldTitle, portalCatalogDestination, spotifyPlaylistUrl } from "@/lib/portal-experience";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,6 +18,9 @@ type Portal = Tables<"portals">;
 type Fragment = Tables<"portal_fragments">;
 
 export const Route = createFileRoute("/portal/$slug")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    ...(isReturningToPortal(search) ? { inicio: "1" } : {}),
+  }),
   head: () => ({
     meta: [
       { title: "Portal — Hiraeth" },
@@ -28,10 +33,12 @@ export const Route = createFileRoute("/portal/$slug")({
 
 function PortalPage() {
   const { slug } = Route.useParams();
+  const skipIntro = Route.useSearch().inicio === "1";
   const [portal, setPortal] = useState<Portal | null>(null);
   const [fragments, setFragments] = useState<Fragment[]>([]);
   const [loading, setLoading] = useState(true);
-  const [intro, setIntro] = useState(true);
+  const [intro, setIntro] = useState(!skipIntro);
+  const [lumosActive, setLumosActive] = useState(false);
   const [loadError, setLoadError] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
   const [fragmentsLoading, setFragmentsLoading] = useState(true);
@@ -44,7 +51,7 @@ function PortalPage() {
     async function load() {
       setLoading(true);
       setLoadError(false);
-      setIntro(true);
+      setIntro(!skipIntro);
       setPortal(null);
       setFragments([]);
       setFragmentsLoading(true);
@@ -58,7 +65,7 @@ function PortalPage() {
         if (!active) return;
         if (error) throw error;
         setPortal(data);
-        setIntro(isMagicWorld(slug) || Boolean(data?.intro_enabled));
+        setIntro(!skipIntro && (isMagicWorld(slug) || Boolean(data?.intro_enabled)));
       } catch {
         if (active) setLoadError(true);
       } finally {
@@ -67,7 +74,7 @@ function PortalPage() {
     }
     void load();
     return () => {active = false;};
-  }, [slug, reloadKey]);
+  }, [slug, reloadKey, skipIntro]);
 
   useEffect(() => {
     if (!portal) return;
@@ -154,7 +161,7 @@ function PortalPage() {
 
 
   return (
-    <div className={`portal-world min-h-screen${magicWorld ? " portal-world--christmas" : ""}`} style={{
+    <div className={`portal-world min-h-screen${magicWorld ? " portal-world--christmas" : ""}${lumosActive && magicWorld ? " portal-world--lumos" : ""}`} style={{
       ["--portal-bg" as string]: magicWorld ? "#111923" : palette["background"] || "#17251d",
       ["--portal-surface" as string]: magicWorld ? "#202d3d" : palette["surface"] || "#26382d",
       ["--portal-text" as string]: magicWorld ? "#f7efda" : palette["text"] || "#f5edda",
@@ -176,7 +183,7 @@ function PortalPage() {
       <header data-portal-reveal className="portal-reveal portal-magic-hero relative flex min-h-[52vh] items-center justify-center overflow-hidden px-5 py-24">
         {!magicWorld && portal.cover_url && <img src={portal.cover_url} alt="" className="absolute inset-0 h-full w-full object-cover" />}
         {!magicWorld && <div className="absolute inset-0 bg-gradient-to-b from-[#10251d]/65 via-[#10251d]/80 to-[var(--portal-bg)]" />}
-        {magicWorld && <PortalChristmasDecor scene="hero" />}
+        {magicWorld && <PortalChristmasDecor scene="hero" active={lumosActive} onToggle={() => setLumosActive(value => !value)} />}
         <div className="relative mx-auto max-w-4xl text-center">
           <p className="text-xs uppercase tracking-[.37em] text-[var(--portal-accent)]">
             {magicWorld?"Entre castelos, feitiços e histórias":portal.universe||"Universo da coleção"}
@@ -201,7 +208,7 @@ function PortalPage() {
             <p className="text-xs uppercase tracking-[.28em] text-[var(--portal-accent)]">Escolha seu caminho</p>
             <h2 className={magicWorld ? "portal-script-title mt-3" : "mt-3 font-display text-3xl md:text-4xl"}>Portas para este universo</h2>
           </div>
-          <div className="portal-action-grid portal-action-grid--ornate relative z-10 grid gap-4 sm:grid-cols-2">
+          <div className={`portal-action-grid portal-action-grid--ornate relative z-10 grid gap-4 ${magicWorld ? "portal-action-grid--round" : "sm:grid-cols-2"}`}>
             {spotifyUrl && portal.spotify_visible ? <a className="portal-action-card" href={spotifyUrl}
                 target="_blank" rel="noopener noreferrer" aria-label="Ouvir playlist da coleção no Spotify">
                 <Headphones aria-hidden="true" size={26}/><span><strong>Playlist no Spotify</strong>
@@ -223,6 +230,8 @@ function PortalPage() {
               <small>Abra o Portal Digital Hiraeth no navegador</small></span><ArrowUpRight aria-hidden="true" size={19}/>
             </a>
           </div>
+          {magicWorld && !fragmentsLoading && <PortalGuardianLetter
+            fragment={fragments.find(fragment => fragment.position === 10)} />}
           {magicWorld && <PortalFeaturedProducts theme={portalTheme} />}
           <p className="relative z-10 mt-6 text-center text-xs text-[var(--portal-text)]/65">
             Para instalar no celular, abra o aplicativo no navegador e escolha “Adicionar à tela inicial”, quando disponível.
