@@ -46,8 +46,24 @@ describe("Hiraeth featured product sections", () => {
     expect(grid.querySelectorAll("[data-product-size]")).toHaveLength(2);
     expect(grid.querySelector('[data-product-size="large"]')).toHaveTextContent("Vela A");
     expect(grid.querySelector('[data-product-size="large"]')).toHaveClass("col-span-2", "items-center");
-    expect(grid.querySelector('[data-product-size="large"] .hiraeth-product-card')).toHaveClass("mx-auto", "max-w-lg");
+    expect(grid.querySelector('[data-product-size="large"] .hiraeth-product-card')).toHaveClass("mx-auto", "max-w-[340px]", "sm:max-w-[400px]");
     expect(grid).toHaveClass("grid-cols-2");
+  });
+
+  it("uses the Guardiã title and an understated featured candle", () => {
+    render(<CuratedProductGrid scope="home" products={products} categories={[]}
+      wishlistIds={new Set()} onWishlist={vi.fn()} onSaveProduct={vi.fn()} />);
+    expect(screen.getByRole("heading", { name: "Escolhas da Guardiã" })).toBeInTheDocument();
+    expect(screen.queryByText("Chamas em Evidência")).not.toBeInTheDocument();
+  });
+
+  it("shows the new Aroma Favorito badge below the picture without covering it", () => {
+    const scented = [{ ...products[0], product_badge: "favorite_scent" } as Product];
+    render(<CuratedProductGrid scope="home" products={scented} categories={[]}
+      wishlistIds={new Set()} onWishlist={vi.fn()} onSaveProduct={vi.fn()} />);
+    const badge = screen.getByText("Aroma Favorito");
+    expect(badge.closest(".hiraeth-product-visual")).toBeNull();
+    expect(badge).toHaveClass("bg-[#5b1d04]", "text-[#f7efda]");
   });
 
   it("lets the admin adjust a candle from two-per-row to large and back directly", async () => {
