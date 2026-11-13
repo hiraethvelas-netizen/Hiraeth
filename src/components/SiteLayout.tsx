@@ -1,12 +1,12 @@
 import { Link, useRouter } from "@tanstack/react-router";
 import type { ReactNode } from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useCart } from "@/lib/cart";
 import { supabase } from "@/integrations/supabase/client";
 import { InlineEditor } from "@/components/InlineEditor";
 import { useAdminEdit } from "@/lib/admin-edit";
 import { useTheme } from "@/lib/theme";
-import { Instagram, Music2, MessageCircle, Mail, Bell } from "lucide-react";
+import { Instagram, Music2, MessageCircle, Mail, Bell, UserRound } from "lucide-react";
 import { useNotificationDot } from "@/lib/use-notification-dot";
 import { toast } from "sonner";
 
@@ -34,6 +34,30 @@ export function SiteHeader({ onBack }: { onBack?: (() => void) | undefined } = {
   const { isAdmin, editMode, toggle } = useAdminEdit();
   const hasNotifications = useNotificationDot();
 
+  const accountMenuRef = useRef<HTMLDetailsElement>(null);
+
+  useEffect(() => {
+    function closeOnOutsideClick(event: PointerEvent) {
+      if (accountMenuRef.current && !accountMenuRef.current.contains(event.target as Node)) {
+        accountMenuRef.current.removeAttribute("open");
+      }
+    }
+
+    function closeOnEscape(event: KeyboardEvent) {
+      if (event.key === "Escape" && accountMenuRef.current?.open) {
+        accountMenuRef.current.removeAttribute("open");
+        accountMenuRef.current.querySelector("summary")?.focus();
+      }
+    }
+
+    document.addEventListener("pointerdown", closeOnOutsideClick);
+    document.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.removeEventListener("pointerdown", closeOnOutsideClick);
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, []);
+
   async function handleSignOut() {
     const { error } = await supabase.auth.signOut({ scope: "local" });
     if (error) {
@@ -49,39 +73,37 @@ export function SiteHeader({ onBack }: { onBack?: (() => void) | undefined } = {
       <div className="mx-auto grid max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-3">
         <div className="flex items-center gap-3">
         <button type="button" onClick={() => { if (onBack) onBack(); else if (router.history.canGoBack()) router.history.back(); else window.location.assign("/inicio"); }} className="flex h-9 w-9 items-center justify-center rounded-full border border-primary/25 text-foreground transition-colors hover:bg-primary/10" aria-label="Voltar" title="Voltar"><span aria-hidden="true" className="text-xl leading-none">←</span></button>
-        <details className="relative w-fit">
+        <details ref={accountMenuRef} className="group relative shrink-0">
           <summary
-            className="flex cursor-pointer list-none items-center gap-2 text-sm text-foreground/85 transition-colors hover:text-primary [&::-webkit-details-marker]:hidden"
-            aria-label="Abrir menu da conta"
-            title="Conta"
+            className="inline-flex min-h-11 min-w-11 cursor-pointer list-none items-center justify-center gap-2 rounded-full border border-primary/30 bg-background px-2.5 text-sm text-foreground transition-colors hover:border-primary/60 hover:bg-primary/10 hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary group-open:border-primary/60 group-open:bg-primary/10 [&::-webkit-details-marker]:hidden sm:px-3"
+            aria-label="Menu da conta"
+            title="Minha conta"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <circle cx="12" cy="8" r="4" />
-              <path d="M5 21v-2a7 7 0 0 1 14 0v2" />
-            </svg>
+            <UserRound size={22} strokeWidth={1.7} aria-hidden="true" />
             <span className="hidden sm:inline">Minha conta</span>
           </summary>
-          <div className="absolute left-0 top-full z-[90] mt-3 w-56 overflow-hidden rounded-md border border-primary/30 bg-background p-1.5 shadow-[0_12px_32px_rgba(0,0,0,0.22)] ring-1 ring-background">
-            <Link to="/configuracoes" search={{ tab: "perfil" }} className="block rounded px-3 py-2.5 text-sm text-foreground/85 transition-colors hover:bg-primary/10 hover:text-primary">
+          <div
+            className="absolute left-0 top-full z-[100] mt-2 w-[min(16rem,calc(100vw-2rem))] overflow-hidden rounded-xl border border-primary/30 bg-background p-1.5 shadow-[0_12px_32px_rgba(0,0,0,0.22)] ring-1 ring-background"
+            onClick={(event) => {
+              if ((event.target as Element).closest("a, button")) {
+                accountMenuRef.current?.removeAttribute("open");
+              }
+            }}
+          >
+            <Link to="/configuracoes" search={{ tab: "perfil" }} className="block rounded px-3 py-3 text-sm text-foreground/85 transition-colors hover:bg-primary/10 hover:text-primary focus-visible:outline-primary">
               Minha conta
             </Link>
-            <Link to="/pedidos" className="block rounded px-3 py-2.5 text-sm text-foreground/85 transition-colors hover:bg-primary/10 hover:text-primary">
+            <Link to="/pedidos" className="block rounded px-3 py-3 text-sm text-foreground/85 transition-colors hover:bg-primary/10 hover:text-primary focus-visible:outline-primary">
               Meus pedidos
             </Link>
-            <Link to="/configuracoes" search={{ tab: "configuracoes" }} className="block rounded px-3 py-2.5 text-sm text-foreground/85 transition-colors hover:bg-primary/10 hover:text-primary">
+            <Link to="/configuracoes" search={{ tab: "configuracoes" }} className="block rounded px-3 py-3 text-sm text-foreground/85 transition-colors hover:bg-primary/10 hover:text-primary focus-visible:outline-primary">
               Configurações
             </Link>
-            <Link to="/sobre" className="block rounded px-3 py-2.5 text-sm text-foreground/85 transition-colors hover:bg-primary/10">
-              Como funciona a Hiraeth?
-            </Link>
-            <a href="/inicio#aprox-nfc" className="block rounded px-3 py-2.5 text-sm text-foreground/85 transition-colors hover:bg-primary/10">
-              Conhecer a tecnologia Aprox
-            </a>
             <div className="my-1 border-t border-primary/20 pt-1">
               <button
                 type="button"
                 onClick={() => void handleSignOut()}
-                className="block w-full rounded px-3 py-2.5 text-left text-sm text-foreground/85 transition-colors hover:bg-primary/10 hover:text-primary"
+                className="block w-full rounded px-3 py-3 text-left text-sm text-foreground/85 transition-colors hover:bg-primary/10 hover:text-primary focus-visible:outline-primary"
               >
                 Sair da conta
               </button>
