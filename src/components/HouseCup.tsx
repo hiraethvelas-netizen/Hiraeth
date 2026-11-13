@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { isAuthSessionMissingError } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { HOUSES, HOUSE_CHANGED_EVENT, type HouseId, percentage } from "@/lib/house-cup";
 import { HouseChoiceCards } from "@/components/HouseChoiceCards";
@@ -27,6 +28,8 @@ export function HouseCup({ variant = "community" }: { variant?: "community" | "p
   const [canChoose, setCanChoose] = useState(false);
   const [showChoice, setShowChoice] = useState(false);
   const [choosing, setChoosing] = useState(false);
+  const [checking, setChecking] = useState(false);
+  const checkingAccess = useRef(false);
   const [claimError, setClaimError] = useState("");
 
   const refresh = useCallback(async () => {
@@ -65,46 +68,68 @@ export function HouseCup({ variant = "community" }: { variant?: "community" | "p
   }, [refresh]);
 
   async function discoverHouse() {
+    if (checkingAccess.current || choosing) return;
+    checkingAccess.current = true;
+    setChecking(true);
     setClaimError("");
-    const { data } = await supabase.auth.getUser();
-    if (!data.user) {
-      const token = window.sessionStorage.getItem("hiraeth:nfc:pending-token");
-      if (!token || !/^[0-9a-f]{64}$/.test(token)) {
-        setClaimError("Para desbloquear o selinho, acesse o portal pelo NFC individual de uma vela Hiraeth.");
+    setCanChoose(false);
+    setShowChoice(false);
+    try {
+      const { data, error: sessionError } = await supabase.auth.getUser();
+      if (sessionError && !isAuthSessionMissingError(sessionError)) throw sessionError;
+      if (!data.user) {
+        const token = window.sessionStorage.getItem("hiraeth:nfc:pending-token");
+        if (!token || !/^[0-9a-f]{64}$/.test(token)) {
+          setClaimError("Para desbloquear o selinho, acesse o portal pelo NFC individual de uma vela Hiraeth.");
+          return;
+        }
+        window.location.assign("/auth?mode=signup&source=portal-nfc&redirect=" + encodeURIComponent(window.location.pathname));
         return;
       }
-      window.location.assign("/auth?mode=signup&source=portal-nfc&redirect=" + encodeURIComponent(window.location.pathname));
-      return;
-    }
-    const { data: eligible, error: accessError } = await (supabase as any).rpc("has_verified_house_nfc_access", { p_user: data.user.id });
-    if (accessError) {
-      setClaimError("Não foi possível verificar seu acesso NFC agora. Tente novamente em instantes.");
-      return;
-    }
-    if (eligible === true) {
+      const { data: eligible, error: accessError } = await (supabase as any).rpc("has_verified_house_nfc_access", { p_user: data.user.id });
+      if (accessError || typeof eligible !== "boolean") {
+        setClaimError("Não foi possível verificar seu acesso NFC agora. Tente novamente em instantes.");
+        return;
+      }
+      if (eligible) {
+        setCanChoose(true); setShowChoice(true);
+        return;
+      }
+      const token = window.sessionStorage.getItem("hiraeth:nfc:pending-token");
+      if (!token || !/^[0-9a-f]{64}$/.test(token)) {
+        setClaimError("O selinho é exclusivo de quem ativa um código NFC individual de uma vela Hiraeth.");
+        return;
+      }
+      const { data: claimed, error: failed } = await (supabase as any).rpc("claim_house_nfc_access_code", { p_token: token });
+      if (failed) {
+        setClaimError("Não foi possível validar seu NFC agora. Tente novamente.");
+        return;
+      }
+      if (claimed !== true) {
+        setClaimError("Este NFC não pôde ser ativado. Confira se o código pertence a uma vela sua e se já foi vinculado.");
+        return;
+      }
+      try {
+        if (window.sessionStorage.getItem("hiraeth:nfc:pending-token") === token) {
+          window.sessionStorage.removeItem("hiraeth:nfc:pending-token");
+        }
+      } catch { /* A limpeza local não desfaz a validação já concluída no servidor. */ }
       setCanChoose(true); setShowChoice(true);
-      return;
+      toast.success("Portal NFC vinculado à sua conta!");
+    } catch {
+      setClaimError("Não foi possível verificar seu acesso agora. Tente novamente.");
+    } finally {
+      checkingAccess.current = false;
+      setChecking(false);
     }
-    const token = window.sessionStorage.getItem("hiraeth:nfc:pending-token");
-    if (!token || !/^[0-9a-f]{64}$/.test(token)) {
-      setClaimError("O selinho é exclusivo de quem ativa um código NFC individual de uma vela Hiraeth.");
-      return;
-    }
-    const { data: claimed, error: failed } = await (supabase as any).rpc("claim_house_nfc_access_code", { p_token: token });
-    if (failed || claimed !== true) {
-      setClaimError("Este NFC não pôde ser ativado. Confira se o código pertence a uma vela sua e se já foi vinculado.");
-      return;
-    }
-    window.sessionStorage.removeItem("hiraeth:nfc:pending-token");
-    setCanChoose(true); setShowChoice(true);
-    toast.success("Portal NFC vinculado à sua conta!");
   }
 
   async function chooseHouse(house: HouseId | null) {
-    const { data } = await supabase.auth.getUser();
-    if (!data.user || !canChoose) return;
+    if (!canChoose || choosing || checkingAccess.current) return;
     setChoosing(true);
     try {
+      const { data, error: sessionError } = await supabase.auth.getUser();
+      if (sessionError || !data.user) throw sessionError || new Error("Sessão indisponível");
       const { error } = await (supabase as any).from("member_houses").upsert({
         user_id: data.user.id, house, updated_at: new Date().toISOString(),
       }, { onConflict: "user_id" });
@@ -155,17 +180,17 @@ export function HouseCup({ variant = "community" }: { variant?: "community" | "p
       {!portal && !loading && !errorMessage && total === 0 && <p className="mt-5 text-xs text-muted-foreground">
         Seja uma das primeiras pessoas a representar sua casa.
       </p>}
-      {claimError && <p role="alert" className="mx-auto mt-5 max-w-lg text-sm font-semibold text-[#ffdf9c]">{claimError}</p>}
+      {claimError && <p role="alert" className={`mx-auto mt-5 max-w-lg text-sm font-semibold ${portal ? "text-[#ffdf9c]" : "text-foreground"}`}>{claimError}</p>}
       {showChoice && <div className="mx-auto mt-7 max-w-lg rounded-2xl border border-[#b1bee9]/70 bg-[#f7efda] p-5 text-[#223047]">
         <h3 className="mb-2 font-display text-2xl">Escolha sua casa</h3>
         <p className="mb-4 text-sm">Agora que seu NFC foi validado, escolha a casa do seu selinho.</p>
         <HouseChoiceCards selected={null} onSelect={chooseHouse} busy={choosing} />
       </div>}
-      <button type="button" onClick={() => void discoverHouse()}
+      <button type="button" onClick={() => void discoverHouse()} disabled={checking || choosing} aria-busy={checking}
         className={portal
           ? "mt-9 min-h-12 rounded-full border border-[#f0dba2] bg-[#e8d7a4] px-8 py-3 text-sm font-bold text-[#152045] shadow-[0_0_25px_rgba(233,211,151,0.18)] transition hover:bg-[#fff0ba] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
           : "btn-gold mt-9 min-h-12 rounded-full px-8 py-3 text-sm"}>
-        Descubra a sua casa
+        {checking ? "Verificando acesso..." : "Descubra a sua casa"}
       </button>
     </div>
   </section>;
