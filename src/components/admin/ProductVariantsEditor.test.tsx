@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 import { ProductVariantsEditor } from "./ProductVariantsEditor";
 import { variantCombinations, type VariantSetup, type VariantGroup } from "@/lib/product-variants";
 
-vi.mock("sonner", () => ({ toast: { error: vi.fn(), success: vi.fn() } }));
+vi.mock("sonner", () => ({ toast: { error: vi.fn(), success: vi.fn() }, Toaster: () => null }));
 vi.mock("@/components/ImageCropEditor", () => ({
   ImageCropEditor: ({ onApply, onCancel }: {
     onApply: (file: File) => Promise<void>;

@@ -1,15 +1,17 @@
 import { type StockEssence, type CandleIngredient } from "@/components/admin/CandleEssenceEditor";
 import { essenceNotesPayload, type NotesDraft } from "@/lib/fragrance";
 import { createFileRoute } from "@tanstack/react-router";
-import { useCallback, useEffect, useState, type SetStateAction } from "react";
+import { useCallback, useEffect, useRef, useState, type SetStateAction } from "react";
 import { CandleRecipesEditor } from "@/components/admin/CandleRecipesEditor";
 import { recipePayload, withRecipeIds, type StockUnit, type VariantRecipes } from "@/lib/candle-recipes";
 import { supabase } from "@/integrations/supabase/client";
-import { brl, slugify } from "@/lib/format";
+import { slugify } from "@/lib/format";
 import { PRODUCT_BADGE_OPTIONS } from "@/lib/product-badges";
 import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
 import { ProductVariantsEditor } from "@/components/admin/ProductVariantsEditor";
+import { AdminEditorDialog } from "@/components/admin/AdminEditorDialog";
+import { AdminProductList } from "@/components/admin/AdminProductList";
 import { ImageCropEditor } from "@/components/ImageCropEditor";
 import type { CropAspect } from "@/lib/image-crop";
 import { validateVariantSetup, variantSetupFrom, variantTotalStock, type VariantSetup } from "@/lib/product-variants";
@@ -42,6 +44,10 @@ function AdminProdutos() {
   }, []);
   const [variantRecipes, setVariantRecipes] = useState<VariantRecipes>({});
   const [showForm, setShowForm] = useState(false);
+  const [loadingProduct, setLoadingProduct] = useState(false);
+  const [productLoadError, setProductLoadError] = useState(false);
+  const editRequest = useRef(0);
+  const newProductButton = useRef<HTMLButtonElement>(null);
   const [search, setSearch] = useState("");
   const [uploading, setUploading] = useState(false);
   const [photoCrop, setPhotoCrop] = useState<{
@@ -51,6 +57,7 @@ function AdminProdutos() {
   const db = supabase as any;
   const [essences, setEssences] = useState<Essence[]>([]);
   const [saving, setSaving] = useState(false);
+  const [creatingAroma, setCreatingAroma] = useState(false);
   const [stockError, setStockError] = useState<string | null>(null);
   const [refreshingEssences, setRefreshingEssences] = useState(false);
   const [productAromas, setProductAromas] = useState<CandleIngredient[]>([]);
@@ -97,10 +104,24 @@ function AdminProdutos() {
   }
 
   useEffect(() => { load(); }, [load]);
+  useEffect(() => () => { editRequest.current++; }, []);
+
+  function closeEditor() {
+    if (saving || uploading || creatingAroma) return;
+    editRequest.current++;
+    setShowForm(false);
+    setPhotoCrop(null);
+    setLoadingProduct(false);
+    setProductLoadError(false);
+  }
 
   async function startEdit(p: Product) {
+    const request = ++editRequest.current;
     setPhotoCrop(null);
     setEditing(p);
+    setLoadingProduct(true);
+    setProductLoadError(false);
+    setShowForm(true);
     setForm({
       name: p.name, description: p.description ?? "", category_id: p.category_id ?? "",
       price: String(p.price), sale_price: p.sale_price != null ? String(p.sale_price) : "",
@@ -109,23 +130,30 @@ function AdminProdutos() {
       images: p.images ?? [], status: p.status,
       product_type: (p as Product & { product_type?: string }).product_type ?? (/camiseta|t-shirt|roupa|vestuário/i.test(p.name) ? "artifact" : "candle"), product_badge: (p as any).product_badge ?? "",
     });
-    setShowForm(false);
-    const [standard, specific] = await Promise.all([
-      db.from("product_essences").select("essence_id,quantity_ml,essences(name,stock_unit)").eq("product_id", p.id),
-      db.from("product_variant_essences").select("recipe_id,essence_id,quantity,essences(name,stock_unit)").eq("product_id", p.id),
-    ]);
-    if (standard.error || specific.error) { toast.error("Não foi possível carregar as receitas. Confira a atualização do banco e tente novamente antes de editar."); return; }
-    setVariants(variantSetupFrom(p.variants));
-    setProductAromas((standard.data ?? []).map((r:any) => ({essence_id:r.essence_id,quantity_ml:Number(r.quantity_ml),name:r.essences?.name ?? "Aroma",stock_unit:r.essences?.stock_unit ?? "ml"})));
-    const recipes: VariantRecipes = {};
-    for (const row of specific.data ?? []) {
-      (recipes[row.recipe_id] ??= []).push({ essence_id: row.essence_id, quantity_ml: Number(row.quantity), name: row.essences?.name ?? "Aroma", stock_unit: row.essences?.stock_unit ?? "ml" });
+    try {
+      const [standard, specific] = await Promise.all([
+        db.from("product_essences").select("essence_id,quantity_ml,essences(name,stock_unit)").eq("product_id", p.id),
+        db.from("product_variant_essences").select("recipe_id,essence_id,quantity,essences(name,stock_unit)").eq("product_id", p.id),
+      ]);
+      if (request !== editRequest.current) return;
+      if (standard.error || specific.error) throw new Error("Recipe loading failed");
+      setVariants(variantSetupFrom(p.variants));
+      setProductAromas((standard.data ?? []).map((r:any) => ({essence_id:r.essence_id,quantity_ml:Number(r.quantity_ml),name:r.essences?.name ?? "Aroma",stock_unit:r.essences?.stock_unit ?? "ml"})));
+      const recipes: VariantRecipes = {};
+      for (const row of specific.data ?? []) {
+        (recipes[row.recipe_id] ??= []).push({ essence_id: row.essence_id, quantity_ml: Number(row.quantity), name: row.essences?.name ?? "Aroma", stock_unit: row.essences?.stock_unit ?? "ml" });
+      }
+      setVariantRecipes(recipes);
+    } catch {
+      if (request !== editRequest.current) return;
+      setProductLoadError(true);
+      toast.error("Não foi possível carregar as receitas. Tente novamente antes de editar.");
+    } finally {
+      if (request === editRequest.current) setLoadingProduct(false);
     }
-    setVariantRecipes(recipes);
-    setShowForm(true);
   }
 
-  function startNew() { setEditing(null); setForm({ ...emptyForm }); setVariants(variantSetupFrom([])); setProductAromas([]); setVariantRecipes({}); setPhotoCrop(null); setShowForm(true); }
+  function startNew() { editRequest.current++; setEditing(null); setForm({ ...emptyForm }); setVariants(variantSetupFrom([])); setProductAromas([]); setVariantRecipes({}); setPhotoCrop(null); setLoadingProduct(false); setProductLoadError(false); setShowForm(true); }
 
   function chooseProductPhotos(files: FileList | null) {
     if (!files?.length) return;
@@ -210,6 +238,8 @@ function AdminProdutos() {
     if (file.size > 10 * 1024 * 1024) throw new Error("A foto deve ter até 10 MB.");
     const safeName = file.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9._-]/g, "-");
     const path = `${crypto.randomUUID()}-variacao-${safeName}`;
+    setUploading(true);
+    try {
     const { error } = await supabase.storage.from("product-images").upload(path, file, { upsert: false });
     if (error) throw new Error("Falha ao enviar foto da variação: " + error.message);
     const { data } = supabase.storage.from("product-images").getPublicUrl(path);
@@ -222,11 +252,12 @@ function AdminProdutos() {
         ? current.images : [...current.images, data.publicUrl],
     }));
     return data.publicUrl;
+    } finally { setUploading(false); }
   }
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
-    if (photoCrop || uploading) { toast.error("Finalize ou cancele o recorte das fotos antes de salvar."); return; }
+    if (photoCrop || uploading || creatingAroma) { toast.error("Aguarde o envio ou cadastro em andamento e finalize o recorte antes de salvar."); return; }
     const variantError = validateVariantSetup(variants);
     if (variantError) { toast.error(variantError); return; }
     const variantRows = variants.legacy ?? variants.rows;
@@ -284,6 +315,7 @@ function AdminProdutos() {
       ...essenceNotesPayload(input.name, input.notes),
       active: true,
     };
+    setCreatingAroma(true);
     try {
       const { data, error } = await db.from("essences").insert(payload).select("*").single();
       if (error || !data) throw error ?? new Error("O banco não confirmou a nova essência.");
@@ -298,7 +330,7 @@ function AdminProdutos() {
         throw new Error("Essa essência já está cadastrada. Pesquise pelo nome na aba Estoque.");
       }
       throw new Error("Não foi possível cadastrar a essência: " + message);
-    }
+    } finally { setCreatingAroma(false); }
   }
 
   async function remove(id: string, name: string) {
@@ -317,18 +349,21 @@ function AdminProdutos() {
     return parent ? `${parent.name} / ${cat.name}` : cat.name;
   };
 
-  const filteredProducts = products.filter(p => `${p.name} ${p.sku ?? ""} ${categoryLabel(p.category_id)}`.toLocaleLowerCase("pt-BR").includes(search.trim().toLocaleLowerCase("pt-BR")));
 
   return <div className="text-foreground">
-    {!showForm && <div className="flex items-center justify-between gap-4">
+    <div className="flex flex-wrap items-center justify-between gap-4">
       <div><h1 className="text-4xl text-foreground">Produtos</h1><p className="mt-2 text-sm text-muted-foreground">Catálogo, imagens, estoque e informações de cada peça.</p></div>
-      <button onClick={startNew} className="btn-gold">+ Novo produto</button>
-    </div>}
-    {showForm && <div className="mb-5 flex flex-wrap items-center justify-between gap-3"><button type="button" onClick={() => { setShowForm(false); setPhotoCrop(null); }} className="rounded border border-[#8b825f] bg-[#f7efda] px-4 py-2 font-medium text-[#34402b]">← Voltar aos produtos</button><h1 className="text-2xl font-semibold">{editing ? `Editar: ${editing.name}` : "Cadastrar produto"}</h1></div>}
-    {!showForm && <label className="mt-6 block rounded-lg border border-[#8b825f] bg-[#f7efda] p-3 text-sm font-semibold text-[#34402b]">Pesquisar velas e produtos<input type="search" value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar por nome, SKU ou categoria..." className="mt-2 w-full rounded border border-[#8b825f] bg-white px-4 py-3 text-base text-[#25311e] placeholder:text-[#686858] focus:outline-2 focus:outline-[#878e47]" /></label>}
+      <button ref={newProductButton} onClick={startNew} className="inline-flex items-center rounded border border-[#525c2a] bg-[#525c2a] px-5 py-3 text-sm font-semibold text-[#fff9eb] hover:bg-[#34402b]">+ Novo produto</button>
+    </div>
     {loadError && <div className="mt-6 border bg-card p-4 text-foreground"><p>{loadError}</p><button onClick={load} className="btn-gold mt-3">Tentar novamente</button></div>}
-    {showForm && <form onSubmit={save} className="mt-6 space-y-5 rounded-lg border border-[#a49b78] bg-[#f7efda] p-4 text-[#34402b] shadow-sm sm:p-6 [&_label]:text-[#34402b] [&_legend]:text-[#34402b]">
-      <p className="font-display text-xl text-primary">{editing ? `Editar: ${editing.name}` : "Novo produto"}</p>
+    {showForm && <AdminEditorDialog title={editing ? `Editar: ${editing.name}` : "Novo produto"} wide
+      busy={saving || uploading || creatingAroma} onClose={closeEditor} fallbackFocus={() => document.getElementById("admin-product-search") ?? newProductButton.current}>
+      {loadingProduct ? <p role="status" className="text-foreground">Carregando receitas do produto...</p>
+        : productLoadError ? <div role="alert" className="space-y-3 text-foreground">
+          <p>Não foi possível carregar as receitas. Tente novamente antes de editar.</p>
+          <button type="button" onClick={() => { if (editing) void startEdit(editing); }} className="rounded border border-primary/50 px-4 py-2">Tentar novamente</button>
+        </div>
+          : <form onSubmit={save} className="space-y-5 text-[#34402b] [&_label]:text-[#34402b] [&_legend]:text-[#34402b]">
       <fieldset className="flex flex-wrap gap-4"><legend className="mb-2 text-sm text-foreground">Este produto é</legend><label className="flex items-center gap-2 text-sm"><input type="radio" name="product-type" checked={form.product_type === "candle"} onChange={() => setForm({ ...form, product_type: "candle" })} />Uma vela</label><label className="flex items-center gap-2 text-sm"><input type="radio" name="product-type" checked={form.product_type === "artifact"} onChange={() => setForm({ ...form, product_type: "artifact" })} />Um artefato</label></fieldset>
       <div className="grid gap-4 md:grid-cols-2">
         <label className="text-sm text-muted-foreground">Nome<input required placeholder="Nome do produto" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className={`mt-1 ${inputCls}`} /></label>
@@ -367,11 +402,9 @@ function AdminProdutos() {
         <label className="inline-flex cursor-pointer items-center border px-4 py-2 text-sm text-foreground hover:border-primary"><span>{uploading ? "Enviando imagens..." : "+ Escolher imagens"}</span><input type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple disabled={uploading || !!photoCrop} onChange={(e) => { chooseProductPhotos(e.currentTarget.files); e.currentTarget.value = ""; }} className="sr-only" /></label>
         {form.images.length > 0 && <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">{form.images.map((url, i) => <div key={i + ":" + url} className="relative border p-2"><img src={url} alt={`Foto ${i + 1} de ${form.name || "produto"}`} className="h-32 w-full object-cover" /><p className="mt-1 text-xs text-muted-foreground">{i === 0 ? "Imagem principal" : `Imagem ${i + 1}`}</p><div className="mt-2 flex flex-wrap gap-2"><button type="button" disabled={i === 0} onClick={() => setForm(prev => ({ ...prev, images: [url, ...prev.images.filter((_, idx) => idx !== i)] }))} className="text-xs text-primary disabled:opacity-30">Tornar capa</button><button type="button" onClick={() => { setPhotoAspect("portrait"); setPhotoCrop({ source: url, pending: [], replaceIndex: i }); }} className="text-xs text-primary">Ajustar foto</button><button type="button" onClick={() => setForm(prev => ({ ...prev, images: prev.images.filter((_, idx) => idx !== i) }))} className="text-xs text-destructive">Remover</button></div></div>)}</div>}
       </div>
-      <div className="flex gap-3"><button type="submit" disabled={uploading || saving} className="btn-gold disabled:opacity-50">{saving ? "Salvando..." : "Salvar produto"}</button><button type="button" onClick={() => setShowForm(false)} className="border px-4 py-2 text-sm text-muted-foreground hover:text-primary">Cancelar</button></div>
+      <div className="flex gap-3"><button type="submit" disabled={uploading || saving || creatingAroma} className="btn-gold disabled:opacity-50">{saving ? "Salvando..." : "Salvar produto"}</button><button type="button" disabled={uploading || saving || creatingAroma} onClick={closeEditor} className="border px-4 py-2 text-sm text-foreground hover:bg-primary/10">Cancelar</button></div>
     </form>}
-    {photoCrop && <div className="fixed inset-0 z-[90] flex items-center justify-center overflow-y-auto bg-black/75 p-3 sm:p-5"
-      role="dialog" aria-modal="true" aria-label="Editar foto do produto">
-      <div className="my-auto max-h-[95dvh] w-full max-w-xl overflow-y-auto rounded border border-primary/35 bg-background p-5 shadow-2xl">
+    {photoCrop && <AdminEditorDialog title="Editar foto do produto" showTitle={false} busy={uploading} onClose={skipProductPhotoCrop}>
         <div className="mb-3 flex flex-wrap gap-2" aria-label="Proporção do recorte">
           {([
             ["portrait", "Vertical 4:5"],
@@ -391,8 +424,9 @@ function AdminProdutos() {
         {photoCrop.pending.length > 0 && <p className="mt-3 text-xs text-muted-foreground">
           Próximas fotos: {photoCrop.pending.length}. Ao aplicar ou cancelar, você passa para a próxima.
         </p>}
-      </div>
-    </div>}
-    {!showForm && (loading ? <p className="mt-8 text-muted-foreground">Carregando...</p> : products.length === 0 ? <p className="mt-8 text-muted-foreground">Nenhum produto cadastrado ainda.</p> : filteredProducts.length === 0 ? <p className="mt-8 text-foreground">Nenhum produto encontrado para essa pesquisa.</p> : <div className="mt-8 overflow-x-auto rounded-lg border border-[#a49b78] bg-[#f7efda] p-3 text-[#34402b]"><table className="w-full text-left text-sm"><thead><tr className="border-b text-xs uppercase tracking-widest text-muted-foreground"><th className="py-2 pr-4">Produto</th><th className="py-2 pr-4">Categoria</th><th className="py-2 pr-4">Preço</th><th className="py-2 pr-4">Estoque</th><th className="py-2 pr-4">Status</th><th className="py-2"></th></tr></thead><tbody className="divide-y">{filteredProducts.map((p) => <tr key={p.id}><td className="py-3 pr-4 text-foreground"><div className="flex items-center gap-3">{p.images?.[0] && <img src={p.images[0]} alt="" className="h-12 w-10 object-cover" />}<span>{p.name}</span></div></td><td className="py-3 pr-4 text-muted-foreground">{categoryLabel(p.category_id)}</td><td className="py-3 pr-4">{brl(Number(p.sale_price ?? p.price))}</td><td className={`py-3 pr-4 ${p.stock <= 5 ? "text-destructive font-semibold" : ""}`}>{p.stock}{p.stock <= 5 ? " · Baixo" : ""}</td><td className="py-3 pr-4 text-muted-foreground">{p.status === "published" ? "Publicado" : p.status === "draft" ? "Rascunho" : "Arquivado"}</td><td className="py-3 text-right whitespace-nowrap"><button onClick={() => startEdit(p)} className="mr-3 rounded border border-[#878e47] bg-white px-3 py-2 font-semibold text-[#34402b] hover:bg-[#e9ead8]">Editar</button><button onClick={() => remove(p.id, p.name)} className="text-muted-foreground hover:text-destructive">Remover</button></td></tr>)}</tbody></table></div>)}
+    </AdminEditorDialog>}
+    </AdminEditorDialog>}
+    {(!loadError || products.length > 0) && <AdminProductList products={products} search={search} onSearchChange={setSearch}
+      categoryLabel={categoryLabel} loading={loading} onEdit={startEdit} onRemove={remove} />}
   </div>;
 }
