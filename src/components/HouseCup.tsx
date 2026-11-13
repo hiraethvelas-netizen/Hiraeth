@@ -7,10 +7,22 @@ import { toast } from "sonner";
 type Score = Record<string, number>;
 const EMPTY: Score = { leao: 0, texugo: 0, aguia: 0, serpente: 0 };
 
+function scoreErrorMessage(code?: string): string {
+  if (code === "PGRST202" || code === "42883") {
+    return "A contagem das casas ainda não está disponível no servidor.";
+  }
+  if (code === "42501" || code === "PGRST301") {
+    return "A contagem está temporariamente indisponível por uma configuração de acesso.";
+  }
+  return "Não foi possível carregar a contagem das casas. Confira sua conexão e tente novamente.";
+}
+
 export function HouseCup({ variant = "community" }: { variant?: "community" | "portal" }) {
   const [scores, setScores] = useState<Score>(EMPTY);
-  const [error, setError] = useState(false);
+  const [hasLoadedScores, setHasLoadedScores] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const portal = variant === "portal";
   const [canChoose, setCanChoose] = useState(false);
   const [showChoice, setShowChoice] = useState(false);
@@ -18,18 +30,25 @@ export function HouseCup({ variant = "community" }: { variant?: "community" | "p
   const [claimError, setClaimError] = useState("");
 
   const refresh = useCallback(async () => {
+    setRefreshing(true);
     try {
       const { data, error: resultError } = await (supabase as any).rpc("house_totals");
       if (resultError || !Array.isArray(data)) throw resultError || new Error("Placares indisponíveis");
       const next: Score = { ...EMPTY };
       for (const entry of data as { house: string; participant_count: number }[]) {
-        if (entry.house in next) next[entry.house] = Number(entry.participant_count) || 0;
+        if (entry.house in next) next[entry.house] = Math.max(0, Number(entry.participant_count) || 0);
       }
-      setScores(next); setError(false);
-    } catch {
-      setError(true);
+      setScores(next);
+      setHasLoadedScores(true);
+      setErrorMessage("");
+    } catch (caught) {
+      const code = typeof caught === "object" && caught !== null && "code" in caught
+        ? String(caught.code) : undefined;
+      setErrorMessage(scoreErrorMessage(code));
+      console.warn("[HouseCup] Falha ao buscar placar da Taça das Casas", { code });
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   }, []);
 
@@ -37,7 +56,12 @@ export function HouseCup({ variant = "community" }: { variant?: "community" | "p
     void refresh();
     const interval = window.setInterval(() => void refresh(), 45000);
     window.addEventListener(HOUSE_CHANGED_EVENT, refresh);
-    return () => { window.clearInterval(interval); window.removeEventListener(HOUSE_CHANGED_EVENT, refresh); };
+    window.addEventListener("online", refresh);
+    return () => {
+      window.clearInterval(interval);
+      window.removeEventListener(HOUSE_CHANGED_EVENT, refresh);
+      window.removeEventListener("online", refresh);
+    };
   }, [refresh]);
 
   async function discoverHouse() {
@@ -52,7 +76,11 @@ export function HouseCup({ variant = "community" }: { variant?: "community" | "p
       window.location.assign("/auth?mode=signup&source=portal-nfc&redirect=" + encodeURIComponent(window.location.pathname));
       return;
     }
-    const { data: eligible } = await (supabase as any).rpc("has_verified_house_nfc_access", { p_user: data.user.id });
+    const { data: eligible, error: accessError } = await (supabase as any).rpc("has_verified_house_nfc_access", { p_user: data.user.id });
+    if (accessError) {
+      setClaimError("Não foi possível verificar seu acesso NFC agora. Tente novamente em instantes.");
+      return;
+    }
     if (eligible === true) {
       setCanChoose(true); setShowChoice(true);
       return;
@@ -104,8 +132,14 @@ export function HouseCup({ variant = "community" }: { variant?: "community" | "p
       {!portal && <p className="mx-auto mt-3 max-w-lg text-sm text-muted-foreground">
         Cada chama representa uma casa. Qual delas vai iluminar o nosso salão?
       </p>}
-      {error ? <p role="status" className="mt-8 text-sm">Não foi possível atualizar as porcentagens agora.</p> :
-        <div className="mx-auto mt-9 grid max-w-2xl grid-cols-4 items-start gap-1.5 sm:gap-6">
+      {errorMessage && <div role="status" className="mx-auto mt-6 max-w-lg rounded-xl border border-current/25 px-4 py-4 text-sm">
+        <p>{errorMessage}{hasLoadedScores ? " Exibindo a última contagem disponível." : ""}</p>
+        <button type="button" onClick={() => void refresh()} disabled={refreshing}
+          className="mt-3 min-h-11 rounded-full border border-current/50 px-5 py-2 font-semibold transition hover:bg-white/10 disabled:opacity-60">
+          {refreshing ? "Atualizando..." : "Tentar novamente"}
+        </button>
+      </div>}
+      <div className="mx-auto mt-9 grid max-w-2xl grid-cols-4 items-start gap-1.5 sm:gap-6">
           {HOUSES.map(house => <div key={house.id} className="flex min-w-0 flex-col items-center">
             <div className="flex h-14 w-14 items-center justify-center rounded-full border-[3px] text-2xl shadow-[0_0_20px_rgba(0,0,0,0.25)] sm:h-[84px] sm:w-[84px] sm:text-4xl"
               style={{backgroundColor:house.background,borderColor:house.border}}
@@ -114,11 +148,11 @@ export function HouseCup({ variant = "community" }: { variant?: "community" | "p
             </div>
             <h3 className="mt-4 min-h-8 text-center text-[11px] font-semibold leading-4 sm:min-h-0 sm:text-sm">{house.label}</h3>
             <p className={portal ? "mt-1 font-display text-2xl tabular-nums text-[#f6dfa8] sm:text-4xl" : "mt-1 font-display text-2xl tabular-nums sm:text-4xl"}>
-              {loading ? "—" : percentage(scores[house.id] ?? 0, total) + "%"}
+              {loading || !hasLoadedScores ? "—" : percentage(scores[house.id] ?? 0, total) + "%"}
             </p>
           </div>)}
-        </div>}
-      {!portal && !loading && !error && total === 0 && <p className="mt-5 text-xs text-muted-foreground">
+      </div>
+      {!portal && !loading && !errorMessage && total === 0 && <p className="mt-5 text-xs text-muted-foreground">
         Seja uma das primeiras pessoas a representar sua casa.
       </p>}
       {claimError && <p role="alert" className="mx-auto mt-5 max-w-lg text-sm font-semibold text-[#ffdf9c]">{claimError}</p>}
