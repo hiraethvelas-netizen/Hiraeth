@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
   mutation: vi.fn(),
@@ -6,13 +6,15 @@ const mocks = vi.hoisted(() => ({
   success: vi.fn(),
   error: vi.fn(),
   storageUpload: vi.fn(),
+  recipeRead: vi.fn(),
   recipeError: false,
+  catalogError: false,
   content: { enabled: false, title: "Bem-vinda", message: "Olá", buttonText: "Entrar" },
 }));
 vi.mock("@tanstack/react-router", () => ({
   createFileRoute: () => (options: object) => ({ options }),
 }));
-vi.mock("sonner", () => ({ toast: { success: mocks.success, error: mocks.error } }));
+vi.mock("sonner", () => ({ toast: { success: mocks.success, error: mocks.error }, Toaster: () => null }));
 vi.mock("@/lib/admin-edit", () => ({ useSiteContent: () => [mocks.content, vi.fn()] }));
 vi.mock("@/components/ImageCropEditor", () => ({
   ImageCropEditor: ({ onApply, onCancel }: {
@@ -43,10 +45,14 @@ vi.mock("@/integrations/supabase/client", () => ({
       let action = "read";
       let payload: Record<string, unknown> = {};
       let single = false;
+      let productId: string | undefined;
       const query = {
         select: () => query,
         limit: () => query,
-        eq: () => query,
+        eq: (column: string, value: string) => {
+          if (column === "product_id") productId = value;
+          return query;
+        },
         order: () => query,
         maybeSingle: () => {
           single = true;
@@ -75,6 +81,12 @@ vi.mock("@/integrations/supabase/client", () => ({
           return query;
         },
         then: (resolve: (value: object) => unknown) => {
+          if (action === "read" && table === "products" && mocks.catalogError) {
+            return Promise.resolve({ data: null, error: { message: "Catalog unavailable" } }).then(resolve);
+          }
+          if (action === "read" && (table === "product_essences" || table === "product_variant_essences")) {
+            return Promise.resolve(mocks.recipeRead(table, productId)).then(resolve);
+          }
           const rows: Record<string, unknown[]> = {
             products: [
               {
@@ -126,6 +138,8 @@ const Products = ProductsRoute.options.component!,
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.recipeError = false;
+  mocks.catalogError = false;
+  mocks.recipeRead.mockResolvedValue({ data: [], error: null });
 });
 afterEach(cleanup);
 async function newProduct() {
@@ -148,6 +162,70 @@ async function addIngredient(name: string, quantity: string) {
   fireEvent.click(screen.getByRole("button", { name: "Adicionar aroma" }));
 }
 describe("Product and essence forms", () => {
+  it("does not report an empty catalog when loading fails and can retry", async () => {
+    mocks.catalogError = true;
+    render(<Products />);
+    await screen.findByText("Não foi possível carregar produtos e categorias. Verifique a conexão e suas permissões.");
+    expect(screen.queryByText("Nenhum produto cadastrado ainda.")).not.toBeInTheDocument();
+    expect(screen.queryByText(/0 de 0 produto/)).not.toBeInTheDocument();
+    mocks.catalogError = false;
+    fireEvent.click(screen.getByRole("button", { name: "Tentar novamente" }));
+    expect(await screen.findByText("Vela")).toBeInTheDocument();
+    expect(screen.getByRole("searchbox", { name: "Pesquisar velas e produtos" })).toBeInTheDocument();
+  });
+
+  it("keeps search and saved product data when cancelling the overlay", async () => {
+    render(<Products />);
+    await screen.findByText("Vela");
+    fireEvent.change(screen.getByRole("searchbox", { name: "Pesquisar velas e produtos" }), { target: { value: "  VELA " } });
+    fireEvent.click(screen.getByRole("button", { name: "Editar Vela" }));
+    const dialog = await screen.findByRole("dialog", { name: "Editar: Vela" });
+    await within(dialog).findByLabelText("Nome", { exact: true });
+    fireEvent.change(within(dialog).getByLabelText("Nome", { exact: true }), { target: { value: "Rascunho" } });
+    fireEvent.click(within(dialog).getByRole("button", { name: "Cancelar" }));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(screen.getByRole("searchbox")).toHaveValue("  VELA ");
+    expect(screen.getByText("Vela")).toBeInTheDocument();
+    expect(mocks.rpc).not.toHaveBeenCalled();
+    expect(mocks.mutation).not.toHaveBeenCalled();
+  });
+
+  it("does not reopen or populate a new product after a cancelled recipe request finishes", async () => {
+    const pending: Array<(value: object) => void> = [];
+    mocks.recipeRead.mockImplementation(() => new Promise(resolve => pending.push(resolve)));
+    render(<Products />);
+    await screen.findByText("Vela");
+    fireEvent.click(screen.getByRole("button", { name: "Editar Vela" }));
+    expect(within(screen.getByRole("dialog", { name: "Editar: Vela" })).getByRole("status")).toHaveTextContent("Carregando receitas");
+    fireEvent.click(screen.getByRole("button", { name: "Fechar Editar: Vela" }));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "+ Novo produto" }));
+    const fresh = screen.getByRole("dialog", { name: "Novo produto" });
+    fireEvent.change(within(fresh).getByLabelText("Nome", { exact: true }), { target: { value: "Nova vela" } });
+    await act(async () => {
+      pending.forEach(resolve => resolve({ data: [{ essence_id: "e1", quantity_ml: 9, essences: { name: "Baunilha", stock_unit: "g" } }], error: null }));
+    });
+    expect(screen.getByRole("dialog", { name: "Novo produto" })).toBeInTheDocument();
+    expect(within(fresh).getByLabelText("Nome", { exact: true })).toHaveValue("Nova vela");
+    expect(within(fresh).queryByText(/9 g por vela/)).not.toBeInTheDocument();
+    expect(mocks.rpc).not.toHaveBeenCalled();
+  });
+
+  it("blocks editing and saving when recipes fail, then permits a successful retry", async () => {
+    mocks.recipeRead.mockResolvedValue({ data: null, error: { message: "Recipe failed" } });
+    render(<Products />);
+    await screen.findByText("Vela");
+    fireEvent.click(screen.getByRole("button", { name: "Editar Vela" }));
+    const dialog = await screen.findByRole("dialog", { name: "Editar: Vela" });
+    await within(dialog).findByRole("alert");
+    expect(within(dialog).queryByRole("button", { name: "Salvar produto" })).not.toBeInTheDocument();
+    mocks.recipeRead.mockResolvedValue({ data: [], error: null });
+    fireEvent.click(within(dialog).getByRole("button", { name: "Tentar novamente" }));
+    expect(await within(dialog).findByLabelText("Nome", { exact: true })).toHaveValue("Vela");
+    expect(within(dialog).getByRole("button", { name: "Salvar produto" })).toBeInTheDocument();
+    expect(mocks.rpc).not.toHaveBeenCalled();
+  });
+
   it("shows visual variations instead of an isolated candle-weight selector", async () => {
     await newProduct();
     expect(screen.queryByLabelText("Peso da vela")).not.toBeInTheDocument();

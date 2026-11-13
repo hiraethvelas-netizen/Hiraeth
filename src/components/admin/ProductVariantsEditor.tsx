@@ -1,5 +1,6 @@
 import { useState, type Dispatch, type SetStateAction } from "react";
 import { ImageCropEditor } from "@/components/ImageCropEditor";
+import { AdminEditorDialog } from "@/components/admin/AdminEditorDialog";
 import { toast } from "sonner";
 import {
   legacyToManaged, validateVariantSetup, reconcileVariantCombinations,
@@ -205,7 +206,7 @@ export function ProductVariantsEditor({ value, onChange, basePrice, onUpload, ga
         </>
       ) : (
         <>
-          {value.groups.map(group => <div className="space-y-3 rounded border border-primary/20 bg-background/30 p-4" key={group.id}>
+          {value.groups.map(group => <div className="space-y-3 rounded border border-primary/20 bg-card p-4" key={group.id}>
             <div className="flex items-start gap-3">
               <label className="flex-1 text-sm text-muted-foreground">Nome da variação
                 <input type="text" className={fieldStyle} list="variant-name-suggestions"
@@ -292,13 +293,11 @@ export function ProductVariantsEditor({ value, onChange, basePrice, onUpload, ga
           </div>}
         </>
       )}
-      {photoCrop && <div className="fixed inset-0 z-[80] flex items-center justify-center overflow-y-auto bg-black/75 p-4"
-        role="dialog" aria-modal="true" aria-label="Recortar foto da variação">
-        <div className="my-auto max-h-[95dvh] w-full max-w-xl overflow-y-auto rounded border border-primary/35 bg-background p-5 shadow-2xl">
+      {photoCrop && <AdminEditorDialog title="Recortar foto da variação" showTitle={false}
+        busy={!!uploadingRow} onClose={() => setPhotoCrop(null)}>
           <ImageCropEditor source={photoCrop.source} aspect="portrait"
             onApply={applyVariantCrop} onCancel={() => setPhotoCrop(null)} />
-        </div>
-      </div>}
+      </AdminEditorDialog>}
     </section>
   );
 }
