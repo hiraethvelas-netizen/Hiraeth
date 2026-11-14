@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { getPostLoginDestination, getSafeInternalRedirect } from "@/lib/auth-routing";
 import { supabase } from "@/integrations/supabase/client";
 import { SiteFooter, SiteHeader } from "@/components/SiteLayout";
@@ -33,7 +33,11 @@ function AuthPage() {
   const [rememberSession, setRememberSession] = useState(true);
   const [name, setName] = useState("");
   const [houseChoice, setHouseChoice] = useState<HouseId | "unknown">("unknown");
-  const [nfcToken] = useState(() => typeof window === "undefined" ? "" : window.sessionStorage.getItem("hiraeth:nfc:pending-token") ?? "");
+  const [nfcToken, setNfcToken] = useState("");
+  useEffect(() => {
+    // O primeiro HTML deve ser igual no servidor e no navegador.
+    setNfcToken(window.sessionStorage.getItem("hiraeth:nfc:pending-token") ?? "");
+  }, []);
   const verifiedPortalFlow = source === "portal-nfc" && /^[0-9a-f]{64}$/.test(nfcToken);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
