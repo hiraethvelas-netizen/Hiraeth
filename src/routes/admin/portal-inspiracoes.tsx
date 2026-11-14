@@ -184,19 +184,11 @@ export function PortalInspiracoesAdmin({ portalId }: { portalId?: string } = {})
               </div>
               <button type="button" disabled={uploading !== null}
                 aria-label={"Editar foto da polaroid " + fragment.title}
-                onClick={() => photoInputs.current[fragment.position]?.click()}
+                onClick={() => openPhotoEditor(fragment)}
                 className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full border border-primary/50 bg-primary/10 px-3 py-2.5 text-sm font-medium text-primary transition-colors hover:bg-primary/20 disabled:opacity-50">
                 <Pencil size={16} aria-hidden="true" />
                 {uploading === fragment.position ? "Enviando foto..." : "Editar foto da polaroid"}
               </button>
-              <input ref={element => { photoInputs.current[fragment.position] = element; }}
-                type="file" accept="image/png,image/jpeg,image/webp" disabled={uploading !== null}
-                aria-label={"Trocar foto de " + fragment.title} className="sr-only"
-                onChange={event => {
-                  const file = event.currentTarget.files?.[0];
-                  event.currentTarget.value = "";
-                  if (file) void sendPhoto(fragment.position, file);
-                }} />
               <p className="mt-2 text-xs text-muted-foreground">{fragment.image_url ? "Foto personalizada em uso" : "Foto padrão ou aguardando envio"}</p>
             </article>
           ))}
@@ -227,19 +219,11 @@ export function PortalInspiracoesAdmin({ portalId }: { portalId?: string } = {})
               <h3 className="mt-3 text-center font-display text-xl">{fragment.title}</h3>
               <button type="button" disabled={uploading !== null}
                 aria-label={"Editar foto da vela " + fragment.title}
-                onClick={() => photoInputs.current[fragment.position]?.click()}
+                onClick={() => openPhotoEditor(fragment)}
                 className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full border border-primary/50 bg-primary/10 px-3 py-2.5 text-sm font-medium text-primary transition-colors hover:bg-primary/20 disabled:opacity-50">
                 <Pencil size={16} aria-hidden="true" />
                 {uploading === fragment.position ? "Enviando foto..." : "Editar foto da vela"}
               </button>
-              <input ref={element => { photoInputs.current[fragment.position] = element; }}
-                type="file" accept="image/png,image/jpeg,image/webp" disabled={uploading !== null}
-                aria-label={"Trocar foto de " + fragment.title} className="sr-only"
-                onChange={event => {
-                  const file = event.currentTarget.files?.[0];
-                  event.currentTarget.value = "";
-                  if (file) void sendPhoto(fragment.position, file);
-                }} />
               <p className="mt-4 line-clamp-3 whitespace-pre-line text-sm text-muted-foreground">{fragment.body}</p>
               <button type="button" onClick={() => openText(fragment)}
                 className="mt-3 text-sm font-medium text-primary underline underline-offset-4">
@@ -252,6 +236,40 @@ export function PortalInspiracoesAdmin({ portalId }: { portalId?: string } = {})
         </div>
       </section>
     </>}
+    {cropping && <div role="dialog" aria-modal="true"
+      aria-label={"Editar e recortar foto da " + (cropping.position >= 8 ? "vela" : "polaroid")}
+      className="fixed inset-0 z-[250] flex items-center justify-center overflow-y-auto bg-[#101a13]/90 p-2 backdrop-blur-sm sm:p-5">
+      <section className="my-auto max-h-[96dvh] w-full max-w-xl overflow-y-auto overscroll-contain rounded-xl border border-[#b69b70] bg-[#f7efda] p-4 text-[#253729] shadow-2xl sm:p-6">
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <p className="font-display text-lg">Fotografia {cropping.position >= 8 ? "da vela" : "da polaroid"}</p>
+          <button type="button" aria-label="Fechar editor de foto" disabled={uploading !== null}
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#878e47]/50 disabled:opacity-50"
+            onClick={() => setCropping(null)}><X size={20} /></button>
+        </div>
+        <label className="mb-4 grid gap-2 text-sm font-medium">
+          <span>Usar outra fotografia (PNG, JPG ou WebP)</span>
+          <input type="file" accept="image/png,image/jpeg,image/webp" disabled={uploading !== null}
+            aria-label="Escolher foto para recortar"
+            className="block w-full min-w-0 rounded border border-[#878e47]/50 bg-white p-2 text-xs file:mr-3 file:rounded file:border-0 file:bg-[#878e47] file:px-3 file:py-2 file:text-white"
+            onChange={event => {
+              const file = event.currentTarget.files?.[0];
+              event.currentTarget.value = "";
+              if (file) chooseCropFile(file);
+            }} />
+        </label>
+        {cropping.source ? <ImageCropEditor
+          key={cropping.position + "-" + (typeof cropping.source === "string" ? cropping.source : cropping.source.name)}
+          source={cropping.source} aspect={cropping.position >= 8 ? "portrait" : "square"}
+          squarePreview="square"
+          onApply={saveCroppedPhoto} onCancel={() => setCropping(null)} /> :
+          <p className="rounded-lg border border-dashed border-[#878e47]/40 px-4 py-8 text-center text-sm">
+            Selecione uma fotografia acima para arrastar, dar zoom e recortar.
+          </p>}
+        <p className="mt-4 text-xs text-[#5b6550]">
+          O recorte é salvo como uma nova foto somente quando você tocar em “Aplicar recorte”. A imagem original no celular não é alterada.
+        </p>
+      </section>
+    </div>}
   </div>;
 }
 
