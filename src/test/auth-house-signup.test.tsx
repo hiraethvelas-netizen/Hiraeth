@@ -40,7 +40,7 @@ vi.mock("@/integrations/supabase/client", () => ({
 vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 import { Route } from "@/routes/auth";
 
-const AuthPage = Route.component as React.ComponentType;
+const AuthPage = (Route as unknown as { component: React.ComponentType }).component;
 const CUSTOMER = "new-customer-id";
 function fillFields() {
   fireEvent.change(screen.getByPlaceholderText("Seu nome"), { target: { value: "Ana" } });
