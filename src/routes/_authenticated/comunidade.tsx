@@ -339,7 +339,7 @@ function Comunidade() {
       for (const file of postFiles) {
         if (!file.type.startsWith("image/") || file.size > 8 * 1024 * 1024) throw new Error("Escolha imagens de até 8 MB cada.");
         const extension = file.name.split(".").pop()?.replace(/[^a-zA-Z0-9]/g, "") || "jpg";
-        const path = `public/community-${crypto.randomUUID()}.${extension}`;
+        const path = `${userId}/community-${crypto.randomUUID()}.${extension}`;
         const { error: uploadError } = await supabase.storage.from("review-media").upload(path, file, { contentType: file.type, upsert: false });
         if (uploadError) throw uploadError;
         imageUrls.push(supabase.storage.from("review-media").getPublicUrl(path).data.publicUrl);
@@ -506,7 +506,7 @@ function Comunidade() {
     if (!file) return null;
     if (!file.type.startsWith("image/") || file.size > 8 * 1024 * 1024) throw new Error("Escolha uma foto de até 8 MB.");
     const ext = file.name.split(".").pop()?.replace(/[^a-zA-Z0-9]/g, "") || "jpg";
-    const path = "public/library-" + userId + "-" + crypto.randomUUID() + "." + ext;
+    const path = userId + "/library-" + crypto.randomUUID() + "." + ext;
     const { error: uploadError } = await supabase.storage.from("review-media").upload(path, file, { contentType: file.type, upsert: false });
     if (uploadError) throw uploadError;
     return supabase.storage.from("review-media").getPublicUrl(path).data.publicUrl;
@@ -647,7 +647,7 @@ function Comunidade() {
       const [interestsResult, libraryResult] = await Promise.all([
         (supabase as any).from("community_interests").select("id,interest_type,title,image_url").eq("user_id", memberId).order("created_at", { ascending: true }),
         canViewLibrary
-          ? (supabase as any).from("community_library").select("*").eq("user_id", memberId).order("created_at", { ascending: false })
+          ? (supabase as any).rpc("get_public_candle_library", { p_user_id: memberId })
           : Promise.resolve({ data: [], error: null }),
       ]);
       if (interestsResult.error) console.warn("Interesses do perfil não puderam ser carregados.", interestsResult.error);
