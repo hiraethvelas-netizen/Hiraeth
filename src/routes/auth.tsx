@@ -3,7 +3,7 @@ import { useState } from "react";
 import { getPostLoginDestination, getSafeInternalRedirect } from "@/lib/auth-routing";
 import { supabase } from "@/integrations/supabase/client";
 import { SiteFooter, SiteHeader } from "@/components/SiteLayout";
-import { HOUSES, type HouseId } from "@/lib/house-cup";
+import { HOUSES, HOUSE_CHANGED_EVENT, type HouseId } from "@/lib/house-cup";
 import { toast } from "sonner";
 
 type Search = { redirect?: string | undefined; mode?: string | undefined; source?: string | undefined };
@@ -34,7 +34,7 @@ function AuthPage() {
   const [name, setName] = useState("");
   const [houseChoice, setHouseChoice] = useState<HouseId | "unknown">("unknown");
   const [nfcToken] = useState(() => typeof window === "undefined" ? "" : window.sessionStorage.getItem("hiraeth:nfc:pending-token") ?? "");
-  const verifiedPortalFlow = source === "portal-nfc" && /^[0-9a-f]{64}$/.test(nfcToken);
+  const fromNfcPortal = source === "portal-nfc";
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -60,32 +60,47 @@ function AuthPage() {
     }
   }
 
-  // O cadastro no portal registra uma intenção; a permissão só é concedida pelo
-  // código NFC único validado na RPC, nunca pelo query string ou user_metadata.
-  async function activateNfcIfPresent(user: { id: string; user_metadata?: Record<string, unknown> }) {
+  // NFC continua opcional e independente do selo da casa.
+  async function activateNfcIfPresent(user: { user_metadata?: Record<string, unknown> }) {
     const pending = user.user_metadata?.["hiraeth_nfc_pending_token"];
     const token = typeof pending === "string" && /^[0-9a-f]{64}$/.test(pending)
       ? pending : /^[0-9a-f]{64}$/.test(nfcToken) ? nfcToken : "";
-    if (!token) return { activated: false, unsure: false };
+    if (!token) return;
     const { data: success, error: claimError } = await (supabase as any)
       .rpc("claim_house_nfc_access_code", { p_token: token });
     if (claimError || success !== true) {
-      toast.error("Não foi possível validar este NFC. Confira se o código já foi usado.");
-      return { activated: false, unsure: false };
+      console.warn("O código NFC não pôde ser validado.", claimError);
+      toast.error("Não foi possível validar este código NFC. O cadastro continua disponível normalmente.");
+      return;
     }
-    const choice = user.user_metadata?.["hiraeth_nfc_house_pending"];
-    const chosen = HOUSES.some(h => h.id === choice) ? choice as HouseId
-      : choice === "unknown" ? null : verifiedPortalFlow ? houseChoice === "unknown" ? null : houseChoice : null;
-    const { error: houseError } = await (supabase as any).from("member_houses")
-      .upsert({ user_id: user.id, house: chosen, updated_at: new Date().toISOString() }, { onConflict: "user_id" });
-    if (houseError) toast.error("NFC ativado, mas não foi possível salvar sua casa.");
-    else toast.success("Seu acesso NFC exclusivo foi ativado!");
     window.sessionStorage.removeItem("hiraeth:nfc:pending-token");
-    // Não deixar a credencial do NFC perpetuamente na sessão de autenticação.
     await supabase.auth.updateUser({ data: {
       hiraeth_nfc_pending_token: null, hiraeth_nfc_house_pending: null,
     } });
-    return { activated: true, unsure: chosen === null };
+  }
+
+  // Com confirmação de e-mail, a escolha fica pendente até a primeira sessão.
+  async function persistSignupHouse(
+    user: { id: string; user_metadata?: Record<string, unknown> },
+    immediateChoice?: HouseId | "unknown",
+  ): Promise<{ pending: boolean; unsure: boolean; error: boolean }> {
+    const metadata = user.user_metadata ?? {};
+    const pending = immediateChoice !== undefined || metadata["hiraeth_house_setup_pending"] === true;
+    if (!pending) return { pending: false, unsure: false, error: false };
+    const requestedChoice = immediateChoice ?? metadata["hiraeth_house_pending"];
+    const house = HOUSES.find(item => item.id === requestedChoice)?.id ?? null;
+    const { error: saveError } = await (supabase as any).from("member_houses")
+      .upsert({ user_id: user.id, house, updated_at: new Date().toISOString() }, { onConflict: "user_id" });
+    if (saveError) {
+      console.warn("Não foi possível salvar a escolha de casa.", saveError);
+      return { pending: true, unsure: house === null, error: true };
+    }
+    const { error: metadataError } = await supabase.auth.updateUser({ data: {
+      hiraeth_house_setup_pending: null, hiraeth_house_pending: null,
+    } });
+    if (metadataError) console.warn("Não foi possível encerrar a escolha de casa.", metadataError);
+    window.dispatchEvent(new Event(HOUSE_CHANGED_EVENT));
+    return { pending: true, unsure: house === null, error: false };
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -111,10 +126,17 @@ function AuthPage() {
           return;
         }
 
-        const nfcResult = !isAdmin ? await activateNfcIfPresent(data.user) : { activated: false, unsure: false };
-        if (nfcResult.activated) {
-          await navigate({ to: (nfcResult.unsure ? "/produto/a-seletora" : requested) as never });
-          return;
+        if (!isAdmin) {
+          const houseResult = await persistSignupHouse(data.user);
+          if (houseResult.error) {
+            setError("Sua conta foi criada, mas não conseguimos salvar sua casa. Tente entrar novamente.");
+            return;
+          }
+          await activateNfcIfPresent(data.user);
+          if (houseResult.pending && houseResult.unsure) {
+            await navigate({ to: "/produto/a-seletora" as never });
+            return;
+          }
         }
         const firstWelcome = data.user.user_metadata?.["hiraeth_welcome_pending"] === true;
         if (firstWelcome) {
@@ -150,17 +172,24 @@ function AuthPage() {
           options: {
             data: {
               display_name: name, hiraeth_welcome_pending: true,
-              ...(verifiedPortalFlow ? { hiraeth_nfc_pending_token: nfcToken, hiraeth_nfc_house_pending: houseChoice } : {}),
+              hiraeth_house_setup_pending: true, hiraeth_house_pending: houseChoice,
+              ...(fromNfcPortal && /^[0-9a-f]{64}$/.test(nfcToken)
+                ? { hiraeth_nfc_pending_token: nfcToken } : {}),
             },
             emailRedirectTo: `${window.location.origin}/auth?redirect=${encodeURIComponent(requested === "/admin" ? "/inicio" : requested)}`,
           },
         });
         if (error) throw error;
         if (data.session) {
-          if (verifiedPortalFlow && data.user) {
-            const nfcResult = await activateNfcIfPresent(data.user);
-            if (nfcResult.activated) {
-              await navigate({ to: (nfcResult.unsure ? "/produto/a-seletora" : requested) as never });
+          if (data.user) {
+            const houseResult = await persistSignupHouse(data.user, houseChoice);
+            if (houseResult.error) {
+              setError("A conta foi criada, mas não conseguimos salvar sua casa. Tente entrar novamente.");
+              return;
+            }
+            await activateNfcIfPresent(data.user);
+            if (houseResult.unsure) {
+              await navigate({ to: "/produto/a-seletora" as never });
               return;
             }
           }
@@ -205,7 +234,7 @@ function AuthPage() {
             <div className="my-6 text-4xl text-[#d7bd83]">✧</div>
             <h1 className="mx-auto max-w-3xl font-display text-4xl leading-tight sm:text-6xl">{welcomePresentation.title}</h1>
             <p className="mx-auto mt-7 max-w-2xl whitespace-pre-wrap text-sm leading-8 text-[#eee4ce] sm:text-lg sm:leading-9">{welcomePresentation.message}</p>
-            <button type="button" onClick={() => {setWelcomePresentation(null);void navigate({to:"/inicio" as never});}} className="mt-10 min-h-14 rounded-full border border-[#e3c987] bg-[#d7bd83] px-10 py-4 text-xs font-semibold uppercase tracking-[.18em] text-[#1e2a20] shadow-[0_8px_24px_rgba(0,0,0,0.25)] transition hover:scale-[1.02] hover:bg-[#ead6a5]">{welcomePresentation.buttonText}</button>
+            <button type="button" onClick={() => {setWelcomePresentation(null);void navigate({to:getPostLoginDestination(requested, false) as never});}} className="mt-10 min-h-14 rounded-full border border-[#e3c987] bg-[#d7bd83] px-10 py-4 text-xs font-semibold uppercase tracking-[.18em] text-[#1e2a20] shadow-[0_8px_24px_rgba(0,0,0,0.25)] transition hover:scale-[1.02] hover:bg-[#ead6a5]">{welcomePresentation.buttonText}</button>
           </div>
         </section>
       </div>}
@@ -227,17 +256,17 @@ function AuthPage() {
               className="w-full border bg-transparent px-4 py-3 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
             />
           )}
-          {mode === "signup" && verifiedPortalFlow && <fieldset className="rounded-xl border border-[#a7afd5]/70 bg-[#101b43] p-4 text-[#faf8ff]">
+          {mode === "signup" && <fieldset className="rounded-xl border border-[#a7afd5]/70 bg-[#101b43] p-4 text-[#faf8ff]">
             <legend className="px-2 font-display text-xl text-[#f4e4bd]">Escolha sua casa</legend>
-            <p className="mb-3 text-xs leading-5 text-[#e3e7ff]">Seu selinho será ativado depois da validação do NFC e da confirmação da conta.</p>
+            <p className="mb-3 text-xs leading-5 text-[#e3e7ff]">Escolha sua casa para receber um selo ao lado do nome na comunidade. Não é necessário ter um NFC.</p>
             <div className="grid grid-cols-2 gap-2">
               {HOUSES.map(house => <label key={house.id} className={`flex cursor-pointer items-center gap-2 rounded-lg border p-2.5 text-xs ${houseChoice === house.id ? "border-[#f5e1a6] bg-[#2e4177]" : "border-[#8996c4]"}`}>
-                <input type="radio" name="nfc-house" checked={houseChoice === house.id} onChange={() => setHouseChoice(house.id)} />
+                <input type="radio" name="house" checked={houseChoice === house.id} onChange={() => setHouseChoice(house.id)} />
                 <span>{house.animal} {house.label}</span>
               </label>)}
             </div>
             <label className="mt-3 flex cursor-pointer items-center gap-2 rounded-lg border border-[#8996c4] p-3 text-xs">
-              <input type="radio" name="nfc-house" checked={houseChoice === "unknown"} onChange={() => setHouseChoice("unknown")} />
+              <input type="radio" name="house" checked={houseChoice === "unknown"} onChange={() => setHouseChoice("unknown")} />
               Não sei minha casa — descobrir com a Vela Seletora
             </label>
           </fieldset>}
