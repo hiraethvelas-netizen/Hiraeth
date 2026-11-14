@@ -61,6 +61,11 @@ drop policy if exists "owners read their own full candle library" on public.comm
 create policy "owners read their own full candle library" on public.community_library
   for select to authenticated using (user_id = auth.uid());
 
+-- Compatibilidade com instalações antigas: a preferência de privacidade ainda pode
+-- não existir no banco apesar de constar em uma migration antiga do repositório.
+alter table public.community_profiles
+  add column if not exists library_visible boolean not null default true;
+
 -- API de leitura limitada à estante que o titular optou por tornar pública.
 -- Retorna somente campos de apresentação; não inclui IDs de compras, notas pessoais,
 -- datas de compra, estado do pedido, quantidades, dados de variação ou vínculos financeiros.
