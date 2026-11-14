@@ -20,9 +20,9 @@ export function christmasCandleFrame(
     const i = index * 4;
     return [data[i] ?? 0, data[i + 1] ?? 0, data[i + 2] ?? 0, data[i + 3] ?? 0];
   });
-  const transparent = cornerPixels.filter(pixel => pixel[3] < 120).length >= 2;
+  const transparent = cornerPixels.filter(pixel => (pixel[3] ?? 255) < 120).length >= 2;
   const background = [0, 1, 2].map(channel =>
-    cornerPixels.reduce((sum, pixel) => sum + pixel[channel], 0) / cornerPixels.length,
+    cornerPixels.reduce((sum, pixel) => sum + (pixel[channel] ?? 0), 0) / cornerPixels.length,
   );
   let minX = width; let maxX = -1; let minY = height; let maxY = -1;
   const column = new Uint32Array(width);
@@ -34,9 +34,9 @@ export function christmasCandleFrame(
       const foreground = transparent
         ? alpha >= 65
         : alpha >= 65 && Math.hypot(
-          (data[i] ?? 0) - background[0] ?? 0,
-          (data[i + 1] ?? 0) - background[1] ?? 0,
-          (data[i + 2] ?? 0) - background[2] ?? 0,
+          (data[i] ?? 0) - (background[0] ?? 0),
+          (data[i + 1] ?? 0) - (background[1] ?? 0),
+          (data[i + 2] ?? 0) - (background[2] ?? 0),
         ) > 90;
       if (!foreground) continue;
       column[x]++;
