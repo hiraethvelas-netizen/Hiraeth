@@ -8,9 +8,9 @@ function pixels(rect: [number, number, number, number], transparent: boolean) {
     const index = (y * W + x) * 4;
     const candle = x >= rect[0] && x <= rect[2] && y >= rect[1] && y <= rect[3];
     const color = candle ? [155, 15, 12] : [247, 239, 218];
-    rgba[index] = color[0];
-    rgba[index + 1] = color[1];
-    rgba[index + 2] = color[2];
+    rgba[index] = color[0] ?? 0;
+    rgba[index + 1] = color[1] ?? 0;
+    rgba[index + 2] = color[2] ?? 0;
     rgba[index + 3] = transparent && !candle ? 0 : 255;
   }
   return rgba;
