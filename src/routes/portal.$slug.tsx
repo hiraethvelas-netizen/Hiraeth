@@ -260,7 +260,7 @@ function PortalPage() {
             fragment={fragments.find(fragment => fragment.position === 10)} />}
         </section>
 
-      {portal.spotify_visible && embed && <section data-portal-reveal
+      {!magicWorld && portal.spotify_visible && embed && <section data-portal-reveal
         className="portal-reveal mx-auto max-w-2xl px-5 pb-16">
         <p className="text-center text-xs uppercase tracking-[.28em] text-[var(--portal-accent)]">Trilha sonora</p>
         <h2 className={magicWorld ? "portal-script-title mt-3 text-center" : "mt-3 text-center font-display text-3xl"}>{portal.spotify_title||"Músicas para atravessar o portal"}</h2>
