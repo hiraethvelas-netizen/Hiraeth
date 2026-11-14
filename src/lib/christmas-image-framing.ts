@@ -39,8 +39,8 @@ export function christmasCandleFrame(
           (data[i + 2] ?? 0) - (background[2] ?? 0),
         ) > 90;
       if (!foreground) continue;
-      column[x]++;
-      row[y]++;
+      column[x] = (column[x] ?? 0) + 1;
+      row[y] = (row[y] ?? 0) + 1;
     }
   }
 
@@ -48,13 +48,13 @@ export function christmasCandleFrame(
   const minPixelsPerColumn = Math.max(1, Math.ceil(height * .015));
   const minPixelsPerRow = Math.max(1, Math.ceil(width * .015));
   for (let x = 0; x < width; x++) {
-    if (column[x] >= minPixelsPerColumn) {
+    if ((column[x] ?? 0) >= minPixelsPerColumn) {
       minX = Math.min(minX, x);
       maxX = Math.max(maxX, x);
     }
   }
   for (let y = 0; y < height; y++) {
-    if (row[y] >= minPixelsPerRow) {
+    if ((row[y] ?? 0) >= minPixelsPerRow) {
       minY = Math.min(minY, y);
       maxY = Math.max(maxY, y);
     }
