@@ -7,6 +7,7 @@ import { useCallback, useEffect, useRef, useState, type CSSProperties } from "re
 import { Pencil } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { slugify } from "@/lib/format";
+import { permanentPortalUrl } from "@/lib/portal-public-url";
 import { toast } from "sonner";
 import { PortalFragmentsEditor } from "@/components/admin/PortalFragmentsEditor";
 import { PortalInspiracoesAdmin } from "@/routes/admin/portal-inspiracoes";
@@ -78,18 +79,15 @@ function AdminPortais() {
     load();
   }, [load]);
 
-  function publicUrl(p: Portal) {
-    return `${window.location.origin}/portal/${p.slug}`;
-  }
 
   async function copyLink(p: Portal) {
     try {
-      await navigator.clipboard.writeText(publicUrl(p));
+      await navigator.clipboard.writeText(permanentPortalUrl(p.slug));
       setCopiedId(p.id);
       toast.success("Link NFC copiado! Cole no aplicativo de gravação da tag.");
       setTimeout(() => setCopiedId(null), 2500);
     } catch {
-      toast.error("Não foi possível copiar automaticamente. Abra o portal e copie o link manualmente.");
+      toast.error("Não foi possível copiar automaticamente. Selecione o endereço permanente exibido no painel.");
     }
   }
 
@@ -262,8 +260,25 @@ function AdminPortais() {
           <div className="pointer-events-none absolute inset-0 opacity-25" aria-hidden="true"><div className="absolute -right-8 -top-10 h-48 w-48 rounded-full border border-primary/40" /><div className="absolute -right-3 -top-5 h-36 w-36 rounded-full border border-primary/30" /><div className="absolute bottom-8 left-8 h-1 w-1 rounded-full bg-primary" /></div>
           <div role="note" className="relative z-10 rounded-lg border border-primary/35 bg-[#e9e7d2] p-4 text-sm leading-relaxed text-[#34402b]">
             <strong className="block">Endereço NFC permanente</strong>
-            {editing ? <p className="mt-1">O link <span className="break-all font-semibold">/portal/{editing.slug}</span> não muda ao editar este portal.</p>
-              : <p className="mt-1">Publique o portal definitivo antes de gravar o link nas velas.</p>}
+            {editing ? <>
+              <p className="mt-1">O link <span className="break-all font-semibold">/portal/{editing.slug}</span> não muda ao editar este portal.</p>
+              <label htmlFor="portal-permanent-url" className="mt-3 block font-medium">URL pública permanente para a etiqueta NFC</label>
+              <input id="portal-permanent-url" readOnly value={permanentPortalUrl(editing.slug)}
+                onFocus={event => event.currentTarget.select()}
+                className="mt-1 w-full rounded border border-[#878e47]/45 bg-white px-3 py-2 text-xs text-[#34402b]" />
+              <button type="button" onClick={() => void copyLink(editing)}
+                className="mt-2 rounded-full border border-[#59612f] px-4 py-2 font-medium text-[#34402b] hover:bg-[#d9dfbf]">
+                {copiedId === editing.id ? "✓ Link copiado" : "Copiar link NFC permanente"}
+              </button>
+              {editing.status !== "published" && <p className="mt-2 text-xs">Este endereço só estará acessível às clientes depois que o portal for publicado. Ele já está reservado para este portal.</p>}
+            </> : <p className="mt-1">
+              Ao criar o portal, o endereço será gerado automaticamente com o domínio público
+              <strong> hiraeth-oficial.lovable.app</strong>. O link ficará disponível para copiar
+              na lista e na área de edição, e não mudará ao editar nome, fotos, vídeo ou textos.
+              {form.name.trim() && <span className="mt-2 block break-all font-mono text-xs">
+                Previsão: {permanentPortalUrl(slugify(form.name))}
+              </span>}
+            </p>}
             <details className="mt-2">
               <summary className="cursor-pointer font-medium underline underline-offset-4">Sobre o endereço permanente</summary>
               <p className="mt-2">Você pode mudar nome, vídeo, fotos, textos e playlist sem alterar o endereço gravado nas tags NFC. Portais publicados continuam protegidos contra despublicação e arquivamento. Preserve o domínio da loja e o portal original.</p>
@@ -434,7 +449,8 @@ function AdminPortais() {
                   </p>
                 </div>
               </div>
-              <p className="mt-3 break-all text-sm text-muted-foreground">/portal/{p.slug}</p>
+              <p className="mt-3 break-all text-sm font-medium text-foreground">{permanentPortalUrl(p.slug)}</p>
+              {p.status !== "published" && <p className="mt-1 text-xs text-muted-foreground">O link é permanente, mas só funcionará após a publicação do portal.</p>}
               {p.status === "published" && <p className="mt-1 text-xs text-emerald-700 dark:text-emerald-300">Link NFC protegido: edições da página não mudam este endereço.</p>}
               <div className="mt-4 flex flex-wrap gap-3 text-sm">
                 <button onClick={() => copyLink(p)} className="border border-primary px-3 py-1 text-primary hover:bg-primary hover:text-primary-foreground">
