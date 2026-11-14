@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { ArrowLeft, ChevronDown, X } from "lucide-react";
 import { portalShortTeaser, splitPortalStory } from "@/lib/portal-story-preview";
+import { NormalizedChristmasCandlePhoto } from "@/components/NormalizedChristmasCandlePhoto";
 import type { Tables } from "@/integrations/supabase/types";
 import entreFiosPhoto from "@/assets/natal-entre-fios-recorte.webp";
 import grandeSalaoPhoto from "@/assets/natal-grande-salao-recorte.webp";
@@ -69,7 +70,7 @@ export function PortalChristmasShowcase({ fragments }: Props) {
           aria-haspopup="dialog"
           onClick={() => { setAromaOpen(false); setContinued(false); setOpened(position); }}>
           <span className="portal-natal-discovery__picture">
-            {photoUrl ? <img className="portal-natal-discovery__photo" src={photoUrl}
+            {photoUrl ? <NormalizedChristmasCandlePhoto className="portal-natal-discovery__photo" src={photoUrl}
               alt={`Vela ${fragment.title}`} loading="lazy" /> : <span className="portal-natal-discovery__placeholder" aria-hidden="true">
               <span className="portal-natal-discovery__illustration"><span className="portal-natal-discovery__wick"/><span className="portal-natal-discovery__jar"/></span>
               <span className="portal-natal-discovery__photo-pending">Fotografia em breve</span>

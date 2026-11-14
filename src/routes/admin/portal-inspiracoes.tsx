@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { Pencil, X } from "lucide-react";
 import { ImageCropEditor } from "@/components/ImageCropEditor";
+import { NormalizedChristmasCandlePhoto } from "@/components/NormalizedChristmasCandlePhoto";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
@@ -212,8 +213,8 @@ export function PortalInspiracoesAdmin({ portalId }: { portalId?: string } = {})
         <div className="mt-5 grid gap-5 sm:grid-cols-2">
           {candleFragments.filter(item => item.position >= 8).map(fragment => (
             <article key={fragment.id} className="border bg-card p-4 sm:p-6">
-              <div className="mx-auto grid h-56 max-w-xs place-items-center">
-                <img src={fragment.image_url || fallbackPhotos[fragment.position]} alt={fragment.title}
+              <div className="mx-auto grid h-56 w-full max-w-xs place-items-center overflow-hidden">
+                <NormalizedChristmasCandlePhoto src={fragment.image_url || fallbackPhotos[fragment.position] || ""} alt={fragment.title}
                   className="h-full max-w-full object-contain" />
               </div>
               <h3 className="mt-3 text-center font-display text-xl">{fragment.title}</h3>
