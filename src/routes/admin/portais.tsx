@@ -124,6 +124,11 @@ function AdminPortais() {
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
+    const newSlug = editing?.slug ?? slugify(form.name);
+    if (!newSlug) {
+      toast.error("Informe um nome válido, com letras ou números, para gerar o link NFC permanente.");
+      return;
+    }
     const payload = {
       name: form.name,
       universe: form.universe || null,
@@ -169,7 +174,7 @@ function AdminPortais() {
     const safePayload = { ...payload, theme: parsedTheme };
     const { error } = editing
       ? await supabase.from("portals").update(safePayload).eq("id", editing.id)
-      : await supabase.from("portals").insert({ ...safePayload, slug: slugify(form.name) });
+      : await supabase.from("portals").insert({ ...safePayload, slug: newSlug });
     if (error) {
       toast.error(error.message.includes("unique") ? "Já existe um portal com esse nome." : "Erro ao salvar.");
     } else {
@@ -276,7 +281,7 @@ function AdminPortais() {
               <strong> hiraeth-oficial.lovable.app</strong>. O link ficará disponível para copiar
               na lista e na área de edição, e não mudará ao editar nome, fotos, vídeo ou textos.
               {form.name.trim() && <span className="mt-2 block break-all font-mono text-xs">
-                Previsão: {permanentPortalUrl(slugify(form.name))}
+                {slugify(form.name) ? <>Previsão: {permanentPortalUrl(slugify(form.name))}</> : "Digite letras ou números para gerar o endereço."}
               </span>}
             </p>}
             <details className="mt-2">
