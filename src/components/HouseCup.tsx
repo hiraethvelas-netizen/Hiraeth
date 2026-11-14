@@ -72,7 +72,7 @@ export function HouseCup({ variant = "community" }: { variant?: "community" | "p
       return;
     }
     if (!data.user) {
-      window.location.assign("/auth?mode=signup&redirect=" + encodeURIComponent(window.location.pathname));
+      window.location.assign("/auth?mode=signup" + (portal ? "&source=portal-nfc" : "") + "&redirect=" + encodeURIComponent(window.location.pathname));
       return;
     }
     // NFC individual ainda pode ser vinculado para a experiência do portal,
