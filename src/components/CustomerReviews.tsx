@@ -36,13 +36,14 @@ export function CustomerReviews() {
     setSending(true);
     setNotice("");
     try {
+      if (photos.length && !userId) throw new Error("Entre na sua conta para enviar fotos ou vídeos. Avaliações apenas em texto continuam disponíveis.");
       const mediaUrls: string[] = [];
       for (const file of photos.slice(0, MAX_FILES)) {
         if (!(file.type.startsWith("image/") || file.type.startsWith("video/")) || file.size > MAX_FILE_SIZE) {
           throw new Error("Envie imagens ou vídeos de até 25 MB cada.");
         }
         const extension = file.name.split(".").pop()?.replace(/[^a-zA-Z0-9]/g, "") || (file.type.startsWith("video/") ? "mp4" : "jpg");
-        const path = `public/${crypto.randomUUID()}.${extension}`;
+        const path = `${userId}/review-${crypto.randomUUID()}.${extension}`;
         const { error: uploadError } = await supabase.storage.from("review-media").upload(path, file, { contentType: file.type, upsert: false });
         if (uploadError) throw uploadError;
         mediaUrls.push(supabase.storage.from("review-media").getPublicUrl(path).data.publicUrl);

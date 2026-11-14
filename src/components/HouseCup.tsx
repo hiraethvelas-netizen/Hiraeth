@@ -66,38 +66,31 @@ export function HouseCup({ variant = "community" }: { variant?: "community" | "p
 
   async function discoverHouse() {
     setClaimError("");
-    const { data } = await supabase.auth.getUser();
+    const { data, error } = await supabase.auth.getUser();
+    if (error) {
+      setClaimError("Não foi possível verificar a sua conta. Tente novamente.");
+      return;
+    }
     if (!data.user) {
-      const token = window.sessionStorage.getItem("hiraeth:nfc:pending-token");
-      if (!token || !/^[0-9a-f]{64}$/.test(token)) {
-        setClaimError("Para desbloquear o selinho, acesse o portal pelo NFC individual de uma vela Hiraeth.");
-        return;
-      }
-      window.location.assign("/auth?mode=signup&source=portal-nfc&redirect=" + encodeURIComponent(window.location.pathname));
+      window.location.assign("/auth?mode=signup" + (portal ? "&source=portal-nfc" : "") + "&redirect=" + encodeURIComponent(window.location.pathname));
       return;
     }
-    const { data: eligible, error: accessError } = await (supabase as any).rpc("has_verified_house_nfc_access", { p_user: data.user.id });
-    if (accessError) {
-      setClaimError("Não foi possível verificar seu acesso NFC agora. Tente novamente em instantes.");
-      return;
-    }
-    if (eligible === true) {
-      setCanChoose(true); setShowChoice(true);
-      return;
-    }
+    // NFC individual ainda pode ser vinculado para a experiência do portal,
+    // mas nunca impede que alguém escolha sua casa e receba o selo.
     const token = window.sessionStorage.getItem("hiraeth:nfc:pending-token");
-    if (!token || !/^[0-9a-f]{64}$/.test(token)) {
-      setClaimError("O selinho é exclusivo de quem ativa um código NFC individual de uma vela Hiraeth.");
-      return;
+    if (token && /^[0-9a-f]{64}$/.test(token)) {
+      const { data: claimed, error: claimError } = await (supabase as any)
+        .rpc("claim_house_nfc_access_code", { p_token: token });
+      if (!claimError && claimed === true) {
+        window.sessionStorage.removeItem("hiraeth:nfc:pending-token");
+        toast.success("Seu portal NFC foi vinculado à sua conta!");
+      } else {
+        console.warn("O código NFC não pôde ser vinculado.", claimError);
+      }
     }
-    const { data: claimed, error: failed } = await (supabase as any).rpc("claim_house_nfc_access_code", { p_token: token });
-    if (failed || claimed !== true) {
-      setClaimError("Este NFC não pôde ser ativado. Confira se o código pertence a uma vela sua e se já foi vinculado.");
-      return;
-    }
-    window.sessionStorage.removeItem("hiraeth:nfc:pending-token");
-    setCanChoose(true); setShowChoice(true);
-    toast.success("Portal NFC vinculado à sua conta!");
+    // A RLS permite gerenciar somente a casa da própria conta.
+    setCanChoose(true);
+    setShowChoice(true);
   }
 
   async function chooseHouse(house: HouseId | null) {
@@ -158,7 +151,7 @@ export function HouseCup({ variant = "community" }: { variant?: "community" | "p
       {claimError && <p role="alert" className="mx-auto mt-5 max-w-lg text-sm font-semibold text-[#ffdf9c]">{claimError}</p>}
       {showChoice && <div className="mx-auto mt-7 max-w-lg rounded-2xl border border-[#b1bee9]/70 bg-[#f7efda] p-5 text-[#223047]">
         <h3 className="mb-2 font-display text-2xl">Escolha sua casa</h3>
-        <p className="mb-4 text-sm">Agora que seu NFC foi validado, escolha a casa do seu selinho.</p>
+        <p className="mb-4 text-sm">Escolha sua casa para receber seu selinho no Círculo do Fogo.</p>
         <HouseChoiceCards selected={null} onSelect={chooseHouse} busy={choosing} />
       </div>}
       <button type="button" onClick={() => void discoverHouse()}

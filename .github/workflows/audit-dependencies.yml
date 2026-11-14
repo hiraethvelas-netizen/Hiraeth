@@ -1,0 +1,33 @@
+name: Audit Hiraeth dependencies
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - package.json
+      - bun.lock
+      - .github/workflows/audit-dependencies.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Install dependencies from lockfile
+        run: bun install --frozen-lockfile
+      - name: Report current vulnerable packages (audit is informational until reviewed)
+        run: |
+          bun audit --json > bun-audit.json || true
+          bun -e 'const fs=require("node:fs");const txt=fs.readFileSync("bun-audit.json","utf8");console.log(txt.slice(0,100000));'
+      - name: Upload audit report
+        uses: actions/upload-artifact@v4
+        with:
+          name: hiraeth-dependency-audit
+          path: bun-audit.json
