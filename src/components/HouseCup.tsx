@@ -75,7 +75,20 @@ export function HouseCup({ variant = "community" }: { variant?: "community" | "p
       window.location.assign("/auth?mode=signup&redirect=" + encodeURIComponent(window.location.pathname));
       return;
     }
-    // O selo pertence à conta, não ao acesso NFC. A RLS limita a própria casa.
+    // NFC individual ainda pode ser vinculado para a experiência do portal,
+    // mas nunca impede que alguém escolha sua casa e receba o selo.
+    const token = window.sessionStorage.getItem("hiraeth:nfc:pending-token");
+    if (token && /^[0-9a-f]{64}$/.test(token)) {
+      const { data: claimed, error: claimError } = await (supabase as any)
+        .rpc("claim_house_nfc_access_code", { p_token: token });
+      if (!claimError && claimed === true) {
+        window.sessionStorage.removeItem("hiraeth:nfc:pending-token");
+        toast.success("Seu portal NFC foi vinculado à sua conta!");
+      } else {
+        console.warn("O código NFC não pôde ser vinculado.", claimError);
+      }
+    }
+    // A RLS permite gerenciar somente a casa da própria conta.
     setCanChoose(true);
     setShowChoice(true);
   }
