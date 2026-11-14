@@ -1,11 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Pencil } from "lucide-react";
+import { Pencil, ScanSearch } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
 import entreFiosPhoto from "@/assets/natal-entre-fios-recorte.webp";
 import grandeSalaoPhoto from "@/assets/natal-grande-salao-recorte.webp";
+import { PortalPhotoCropDialog } from "@/components/admin/PortalPhotoCropDialog";
 
 type Fragment = Tables<"portal_fragments">;
 type Portal = Tables<"portals">;
@@ -29,6 +30,11 @@ export function PortalInspiracoesAdmin({ portalId }: { portalId?: string } = {})
   const [fragments, setFragments] = useState<Fragment[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState<number | null>(null);
+  const [cropping, setCropping] = useState<{
+    position: number;
+    title: string;
+    source: string;
+  } | null>(null);
   const photoInputs = useRef<Record<number, HTMLInputElement | null>>({});
   const [editing, setEditing] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
@@ -58,14 +64,19 @@ export function PortalInspiracoesAdmin({ portalId }: { portalId?: string } = {})
 
   useEffect(() => { void load(); }, [load]);
 
-  async function sendPhoto(position: number, file: File) {
+  async function sendPhoto(position: number, file: File, inlineError = false) {
     const fragment = fragments.find(item => item.position === position);
-    if (!portal || !fragment) return;
+    if (!portal || !fragment) {
+      if (inlineError) throw new Error("Não foi possível localizar a foto desta vela.");
+      return;
+    }
     if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      if (inlineError) throw new Error("Escolha um arquivo PNG, JPG ou WebP.");
       toast.error("Escolha um arquivo PNG, JPG ou WebP.");
       return;
     }
     if (file.size > 10 * 1024 * 1024) {
+      if (inlineError) throw new Error("A imagem deve ter no máximo 10 MB.");
       toast.error("A imagem deve ter no máximo 10 MB.");
       return;
     }
@@ -86,6 +97,7 @@ export function PortalInspiracoesAdmin({ portalId }: { portalId?: string } = {})
         ? { ...item, image_url: data.publicUrl, caption: fragment.title } : item));
       toast.success("Fotografia atualizada no Portal NFC.");
     } catch (error) {
+      if (inlineError) throw error instanceof Error ? error : new Error("Erro ao enviar a foto.");
       toast.error(error instanceof Error ? error.message : "Erro ao enviar a foto.");
     } finally {
       setUploading(null);
@@ -182,7 +194,8 @@ export function PortalInspiracoesAdmin({ portalId }: { portalId?: string } = {})
         <h2 id="photos-christmas-title" className="font-display text-2xl">Edição de Natal</h2>
         <p className="mt-2 text-sm text-muted-foreground">
           As velas natalinas são exibidas sem polaroid, com fundo transparente e os textos editáveis.
-          Para preservar a transparência, prefira PNG ou WebP com canal alfa.
+          Ajuste o zoom e o enquadramento de cada foto para equilibrar o tamanho das velas.
+          Para preservar a transparência ao trocar o arquivo, prefira PNG ou WebP com canal alfa.
         </p>
         {intro && <article className="mt-5 border bg-card p-4">
           <h3 className="font-display text-xl">Texto de abertura do Natal</h3>
@@ -195,17 +208,34 @@ export function PortalInspiracoesAdmin({ portalId }: { portalId?: string } = {})
         <div className="mt-5 grid gap-5 sm:grid-cols-2">
           {candleFragments.filter(item => item.position >= 8).map(fragment => (
             <article key={fragment.id} className="border bg-card p-4 sm:p-6">
-              <div className="mx-auto grid h-56 max-w-xs place-items-center">
+              <div className="mx-auto grid h-56 min-h-0 min-w-0 max-w-xs grid-rows-1 place-items-center overflow-hidden">
                 <img src={fragment.image_url || fallbackPhotos[fragment.position]} alt={fragment.title}
-                  className="h-full max-w-full object-contain" />
+                  className="block h-full w-full min-h-0 min-w-0 max-h-full max-w-full object-contain" />
               </div>
               <h3 className="mt-3 text-center font-display text-xl">{fragment.title}</h3>
+                    <button
+                      type="button"
+                      disabled={uploading !== null}
+                      aria-label={"Ajustar zoom e enquadramento de " + fragment.title}
+                      onClick={() => {
+                        const source = fragment.image_url || fallbackPhotos[fragment.position];
+                        if (source)
+                          setCropping({
+                            position: fragment.position,
+                            title: fragment.title,
+                            source,
+                          });
+                      }}
+                      className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full border border-primary/50 bg-primary/10 px-3 py-2.5 text-sm font-medium text-primary transition-colors hover:bg-primary/20 disabled:opacity-50"
+                    >
+                      <ScanSearch size={16} aria-hidden="true" /> Ajustar zoom e enquadramento
+                    </button>
               <button type="button" disabled={uploading !== null}
                 aria-label={"Editar foto da vela " + fragment.title}
                 onClick={() => photoInputs.current[fragment.position]?.click()}
                 className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full border border-primary/50 bg-primary/10 px-3 py-2.5 text-sm font-medium text-primary transition-colors hover:bg-primary/20 disabled:opacity-50">
                 <Pencil size={16} aria-hidden="true" />
-                {uploading === fragment.position ? "Enviando foto..." : "Editar foto da vela"}
+                {uploading === fragment.position ? "Enviando foto..." : "Trocar foto da vela"}
               </button>
               <input ref={element => { photoInputs.current[fragment.position] = element; }}
                 type="file" accept="image/png,image/jpeg,image/webp" disabled={uploading !== null}
@@ -227,6 +257,17 @@ export function PortalInspiracoesAdmin({ portalId }: { portalId?: string } = {})
         </div>
       </section>
     </>}
+      {cropping && (
+        <PortalPhotoCropDialog
+          title={cropping.title}
+          source={cropping.source}
+          onCancel={() => setCropping(null)}
+          onApply={async (file) => {
+            await sendPhoto(cropping.position, file, true);
+            setCropping(null);
+          }}
+        />
+      )}
   </div>;
 }
 

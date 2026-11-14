@@ -1,17 +1,18 @@
 import { useEffect, useRef, useState } from "react";
 import { RotateCcw, RotateCw, ZoomIn } from "lucide-react";
-import { CROP_ASPECTS, getCropGeometry, type CropAspect } from "@/lib/image-crop";
+import { CROP_ASPECTS, getCropGeometry, type CropAspect, type CropFit } from "@/lib/image-crop";
 
 type Props = {
   source: File | string;
   aspect: CropAspect;
   squarePreview?: "circle" | "square";
+  fit?: CropFit;
   onApply: (file: File) => Promise<void>;
   onCancel: () => void;
 };
 
 /** Crops in the browser before upload: drag to reposition, zoom or turn the photo. */
-export function ImageCropEditor({ source, aspect, squarePreview = "circle", onApply, onCancel }: Props) {
+export function ImageCropEditor({ source, aspect, squarePreview = "circle", fit = "cover", onApply, onCancel }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const dragRef = useRef<{ pointerId: number; x: number; y: number; offsetX: number; offsetY: number } | null>(null);
   const [image, setImage] = useState<HTMLImageElement | null>(null);
@@ -59,7 +60,7 @@ export function ImageCropEditor({ source, aspect, squarePreview = "circle", onAp
     const frame = getCropGeometry(
       image.naturalWidth, image.naturalHeight,
       frameWidth, frameHeight,
-      zoom, rotation, offset.x, offset.y,
+      zoom, rotation, offset.x, offset.y, fit,
     );
     context.clearRect(0, 0, frameWidth, frameHeight);
     context.save();
@@ -73,7 +74,7 @@ export function ImageCropEditor({ source, aspect, squarePreview = "circle", onAp
       image.naturalHeight * frame.scale,
     );
     context.restore();
-  }, [frameHeight, frameWidth, image, offset.x, offset.y, rotation, zoom]);
+  }, [fit, frameHeight, frameWidth, image, offset.x, offset.y, rotation, zoom]);
 
   function pointerDown(event: React.PointerEvent<HTMLCanvasElement>) {
     if (!image || saving) return;
@@ -98,6 +99,7 @@ export function ImageCropEditor({ source, aspect, squarePreview = "circle", onAp
       zoom, rotation,
       drag.offsetX + (event.clientX - drag.x) * frameWidth / rect.width,
       drag.offsetY + (event.clientY - drag.y) * frameHeight / rect.height,
+      fit,
     );
     setOffset({ x: frame.x, y: frame.y });
   }
