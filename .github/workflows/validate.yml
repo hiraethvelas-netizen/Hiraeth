@@ -31,3 +31,25 @@ jobs:
         if: ${{ !cancelled() }}
         run: bun run lint
         continue-on-error: true
+
+      - name: Diagnose published storefront and NFC route (public URLs only)
+        if: ${{ !cancelled() }}
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import socket, urllib.request, urllib.error
+          for url in ["https://hiraeth-oficial.lovable.app/", "https://hiraeth-oficial.lovable.app/portal/o-mundo-de-magia", "https://id-preview--486adfc4-5da8-41d9-8d0f-7893dfde1510.lovable.app/"]:
+            host = urllib.request.urlparse(url).hostname
+            print("TEST:",url)
+            try: print("DNS:",sorted(set(a[4][0] for a in socket.getaddrinfo(host,443))))
+            except Exception as e: print("DNS ERROR",str(e)[:300])
+            try:
+              req = urllib.request.Request(url,headers={"User-Agent":"Mozilla/5.0"})
+              with urllib.request.urlopen(req,timeout=14) as response:
+                body = response.read(6000).decode("utf8","replace")
+                print("STATUS:",response.status,"FINAL URL:",response.url)
+                print("TITLE:",body.partition("<title>")[2].partition("</title>")[0][:200])
+                print("NOT_PUBLISHED:","not published" in body.lower())
+            except urllib.error.HTTPError as e: print("HTTP ERROR:",e.code,"URL:",e.url)
+            except Exception as e: print("HTTP ERROR:",type(e).__name__,str(e)[:400])
+          PY
