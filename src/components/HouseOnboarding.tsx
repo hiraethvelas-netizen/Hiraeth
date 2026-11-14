@@ -13,7 +13,7 @@ export function HouseOnboarding() {
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [undecided, setUndecided] = useState(false);
-  const [productHref, setProductHref] = useState("/loja");
+  const productHref = "/produto/a-seletora";
 
   useEffect(() => {
     if (!eligible.has(pathname)) { setOpen(false); return; }
@@ -30,9 +30,7 @@ export function HouseOnboarding() {
         .select("user_id,house").eq("user_id", user.id).maybeSingle();
       // Do not interrupt the app when the pending database migration has not been applied.
       if (!active || error || answer) return;
-      const { data: candle } = await supabase.from("products").select("slug").ilike("name", "%seletor%").limit(1).maybeSingle();
       if (active) {
-        setProductHref(candle?.slug ? "/produto/" + encodeURIComponent(candle.slug) : "/loja");
         setUndecided(false); setOpen(true);
       }
     })();
