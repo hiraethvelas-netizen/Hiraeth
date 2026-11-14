@@ -173,7 +173,7 @@ function AuthPage() {
             data: {
               display_name: name, hiraeth_welcome_pending: true,
               hiraeth_house_setup_pending: true, hiraeth_house_pending: houseChoice,
-              ...(fromNfcPortal && /^[0-9a-f]{64}$/.test(nfcToken)
+              ...(/^[0-9a-f]{64}$/.test(nfcToken)
                 ? { hiraeth_nfc_pending_token: nfcToken } : {}),
             },
             emailRedirectTo: `${window.location.origin}/auth?redirect=${encodeURIComponent(requested === "/admin" ? "/inicio" : requested)}`,
@@ -258,7 +258,7 @@ function AuthPage() {
           )}
           {mode === "signup" && <fieldset className="rounded-xl border border-[#a7afd5]/70 bg-[#101b43] p-4 text-[#faf8ff]">
             <legend className="px-2 font-display text-xl text-[#f4e4bd]">Escolha sua casa</legend>
-            <p className="mb-3 text-xs leading-5 text-[#e3e7ff]">Escolha sua casa para receber um selo ao lado do nome na comunidade. Não é necessário ter um NFC.</p>
+            <p className="mb-3 text-xs leading-5 text-[#e3e7ff]">{fromNfcPortal ? "Bem-vinda pelo portal! " : ""}Escolha sua casa para receber um selo ao lado do nome na comunidade. Não é necessário ter um NFC.</p>
             <div className="grid grid-cols-2 gap-2">
               {HOUSES.map(house => <label key={house.id} className={`flex cursor-pointer items-center gap-2 rounded-lg border p-2.5 text-xs ${houseChoice === house.id ? "border-[#f5e1a6] bg-[#2e4177]" : "border-[#8996c4]"}`}>
                 <input type="radio" name="house" checked={houseChoice === house.id} onChange={() => setHouseChoice(house.id)} />
