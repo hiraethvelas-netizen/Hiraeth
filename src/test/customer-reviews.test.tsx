@@ -142,17 +142,17 @@ describe("Customer reviews after copy simplification", () => {
         rating: 3,
         message: "Gostei muito do aroma.",
         media_urls: [
-          "https://example.test/review-media/public/review-file-1.jpg",
-          "https://example.test/review-media/public/review-file-2.mp4",
+          "https://example.test/review-media/customer-test/review-review-file-1.jpg",
+          "https://example.test/review-media/customer-test/review-review-file-2.mp4",
         ],
         approved: false,
       }),
     );
-    expect(mock.upload).toHaveBeenNthCalledWith(1, "public/review-file-1.jpg", photo, {
+    expect(mock.upload).toHaveBeenNthCalledWith(1, "customer-test/review-review-file-1.jpg", photo, {
       contentType: "image/jpeg",
       upsert: false,
     });
-    expect(mock.upload).toHaveBeenNthCalledWith(2, "public/review-file-2.mp4", video, {
+    expect(mock.upload).toHaveBeenNthCalledWith(2, "customer-test/review-review-file-2.mp4", video, {
       contentType: "video/mp4",
       upsert: false,
     });
@@ -178,6 +178,20 @@ describe("Customer reviews after copy simplification", () => {
       ),
     );
     expect(mock.upload).not.toHaveBeenCalled();
+  });
+
+  it("blocks guest media uploads without preventing anonymous text reviews", async () => {
+    mock.userId = null;
+    await openForm();
+    fillReview();
+    const photo = new File(["photo"], "vela-visitante.jpg", { type: "image/jpeg" });
+    fireEvent.change(screen.getByLabelText(/^Fotos e vídeos/), { target: { files: [photo] } });
+    fireEvent.click(screen.getByRole("button", { name: "Enviar avaliação" }));
+    expect(await screen.findByRole("status")).toHaveTextContent(
+      "Entre na sua conta para enviar fotos ou vídeos",
+    );
+    expect(mock.upload).not.toHaveBeenCalled();
+    expect(mock.insert).not.toHaveBeenCalled();
   });
 
   it("keeps the form, selected rating and entered text when saving fails", async () => {
