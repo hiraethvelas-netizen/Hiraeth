@@ -1,0 +1,46 @@
+name: Diagnose published NFC URL
+
+on:
+  push:
+    branches: [diagnostics/nfc-publication-20261114]
+
+permissions:
+  contents: read
+
+jobs:
+  public-url:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - name: Validate DNS and public HTTP paths
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import socket, urllib.request, urllib.error
+          urls = [
+            "https://hiraeth-oficial.lovable.app/",
+            "https://hiraeth-oficial.lovable.app/portal/o-mundo-de-magia",
+            "https://id-preview--486adfc4-5da8-41d9-8d0f-7893dfde1510.lovable.app/",
+          ]
+          for url in urls:
+            print("\n=== TEST:",url, "===")
+            host = urllib.request.urlparse(url).hostname
+            try:
+              print("DNS:",sorted(set(entry[4][0] for entry in socket.getaddrinfo(host,443))))
+            except Exception as e:
+              print("DNS FAILED:",str(e)[:500])
+            try:
+              req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (Hiraeth NFC availability check)"})
+              with urllib.request.urlopen(req, timeout=18) as res:
+                body = res.read(40000).decode("utf-8",errors="replace")
+                print("HTTP:",res.status,"FINAL URL:",res.url,"CONTENT-TYPE:",res.headers.get("Content-Type"))
+                for keyword in ["not published","isn't published","site is not","build failed","application error","Lovable"]:
+                  print("HAS",repr(keyword),keyword.lower() in body.lower())
+                print("TITLE:", body.split("<title>")[1].split("</title>")[0][:180] if "<title>" in body else "(no title)")
+            except urllib.error.HTTPError as e:
+              body = e.read(3000).decode("utf-8",errors="replace")
+              print("HTTP ERROR:",e.code,"FINAL URL:",e.url,"TITLE:",body.split("<title>")[1].split("</title>")[0][:180] if "<title>" in body else "(no title)")
+              print("BODY SNIPPET:",repr(body[:300]))
+            except Exception as e:
+              print("HTTP FAILED:",type(e).__name__,str(e)[:600])
+          PY
