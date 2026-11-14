@@ -34,9 +34,9 @@ export function christmasCandleFrame(
       const foreground = transparent
         ? alpha >= 65
         : alpha >= 65 && Math.hypot(
-          (data[i] ?? 0) - background[0],
-          (data[i + 1] ?? 0) - background[1],
-          (data[i + 2] ?? 0) - background[2],
+          (data[i] ?? 0) - background[0] ?? 0,
+          (data[i + 1] ?? 0) - background[1] ?? 0,
+          (data[i + 2] ?? 0) - background[2] ?? 0,
         ) > 90;
       if (!foreground) continue;
       column[x]++;
@@ -66,5 +66,5 @@ export function christmasCandleFrame(
 
   const fitWidth = .92 / widthFraction;
   const fitHeight = .89 / heightFraction;
-  return { scale: Math.max(.82, Math.min(1.36, fitWidth, fitHeight)) };
+  return { scale: Math.max(.82, Math.min(1.75, fitWidth, fitHeight)) };
 }
