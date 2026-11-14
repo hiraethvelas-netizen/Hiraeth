@@ -1,0 +1,49 @@
+name: Resolve remaining two advisories on staging branch
+
+on:
+  push:
+    branches: [fix/security-signup-house-nfc-20261113]
+    paths: [.github/workflows/fix-two-remaining-dependencies.yml]
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    if: github.repository == 'hiraethvelas-netizen/Hiraeth' && github.ref == 'refs/heads/fix/security-signup-house-nfc-20261113'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/security-signup-house-nfc-20261113
+          persist-credentials: true
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Apply surgical Bun overrides to vulnerable transitive packages
+        run: |
+          bun -e 'const fs=require("node:fs"); const p=JSON.parse(fs.readFileSync("package.json","utf8"));p.overrides={...p.overrides,"@esbuild-kit/core-utils>esbuild":"^0.25.12","@typescript-eslint/typescript-estree>minimatch":"^11.0.1"};fs.writeFileSync("package.json",JSON.stringify(p,null,2)+"\n")'
+          bun install
+      - name: Verify tests
+        run: bun run test
+      - name: Verify production build
+        run: bun run build
+      - name: Verify TypeScript
+        run: bunx tsc --noEmit
+      - name: Verify no known advisories remain
+        run: |
+          bun audit --json > final-audit.json || true
+          bun -e 'const fs=require("node:fs");const j=JSON.parse(fs.readFileSync("final-audit.json","utf8"));const count=Object.values(j).reduce((n,v)=>n+v.length,0);console.log("Remaining vulnerability count: "+count);if(count) {console.log(JSON.stringify(j).slice(0,20000));process.exit(1)}'
+      - name: Upload evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: final-hiraeth-security-audit
+          path: final-audit.json
+      - name: Commit only if all security and application checks pass
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json bun.lock
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "fix(deps): remediate old esbuild and minimatch vulnerabilities"
+          git push origin HEAD:fix/security-signup-house-nfc-20261113
