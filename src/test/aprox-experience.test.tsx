@@ -20,6 +20,17 @@ describe("Carta da Aprox na página inicial", () => {
     expect(screen.queryByRole("article", { name: /Carta sobre a tecnologia Aprox/ })).not.toBeInTheDocument();
   });
 
+  it("mostra o Instagram oficial da Aprox como link externo clicável dentro da carta", () => {
+    render(<AproxExperience />);
+    fireEvent.click(screen.getByRole("button", { name: "Abrir carta da Aprox" }));
+    expect(screen.getByRole("link", { name: "Abrir o Instagram da Aprox (@aprox.oficiall)" }))
+      .toHaveAttribute("href", "https://www.instagram.com/aprox.oficiall?xtok=MWhyenExZGY2anZlOQ==");
+    expect(screen.getByRole("link", { name: "Abrir o Instagram da Aprox (@aprox.oficiall)" }))
+      .toHaveAttribute("target", "_blank");
+    expect(screen.getByRole("link", { name: "Abrir o Instagram da Aprox (@aprox.oficiall)" }))
+      .toHaveAttribute("rel", "noopener noreferrer");
+  });
+
   it("explica a relação entre vela, NFC e aplicativo em termos acessíveis", () => {
     render(<AproxExperience />);
     fireEvent.click(screen.getByRole("button", { name: "Abrir carta da Aprox" }));
