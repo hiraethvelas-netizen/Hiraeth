@@ -177,6 +177,45 @@ describe("Portal NFC: recuperação de falhas de carregamento", () => {
     expect(container.querySelector(".portal-lumos-ambient")).toHaveAttribute("data-active", "false");
   });
 
+  it("exibe Spotify apenas na bolinha do Mundo da Magia, sem player grande", async () => {
+    mocks.slug = "o-mundo-de-magia";
+    mocks.returning = true;
+    mocks.portalQuery.mockResolvedValueOnce({
+      data: {
+        ...portal,
+        slug: "o-mundo-de-magia",
+        spotify_playlist_url: "https://open.spotify.com/playlist/abc123",
+        spotify_visible: true,
+        spotify_title: "Músicas para atravessar o portal",
+      },
+      error: null,
+    });
+    render(<PortalPage />);
+    const spotify = await screen.findByRole("link", { name: "Ouvir playlist da coleção no Spotify" });
+    expect(spotify).toHaveAttribute("href", "https://open.spotify.com/playlist/abc123");
+    expect(spotify).toHaveAttribute("target", "_blank");
+    expect(screen.queryByTitle("Playlist da coleção no Spotify")).not.toBeInTheDocument();
+    expect(screen.queryByText("Músicas para atravessar o portal")).not.toBeInTheDocument();
+    expect(screen.queryByText("Trilha sonora")).not.toBeInTheDocument();
+  });
+
+  it("preserva o player embutido em portais que não usam as bolinhas do Mundo da Magia", async () => {
+    mocks.slug = "colecao-teste";
+    mocks.returning = true;
+    mocks.portalQuery.mockResolvedValueOnce({
+      data: {
+        ...portal,
+        spotify_playlist_url: "https://open.spotify.com/playlist/abc123",
+        spotify_visible: true,
+        spotify_title: "Playlist de teste",
+      },
+      error: null,
+    });
+    render(<PortalPage />);
+    expect(await screen.findByTitle("Playlist da coleção no Spotify"))
+      .toHaveAttribute("src", "https://open.spotify.com/embed/playlist/abc123");
+  });
+
   it("mostra o quiz após o Natal e deixa a Taça das Casas como última seção", async () => {
     mocks.slug = "o-mundo-de-magia";
     mocks.returning = true;
