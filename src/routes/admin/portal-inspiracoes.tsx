@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { Pencil } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { Pencil, X } from "lucide-react";
+import { ImageCropEditor } from "@/components/ImageCropEditor";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
@@ -29,7 +30,7 @@ export function PortalInspiracoesAdmin({ portalId }: { portalId?: string } = {})
   const [fragments, setFragments] = useState<Fragment[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState<number | null>(null);
-  const photoInputs = useRef<Record<number, HTMLInputElement | null>>({});
+  const [cropping, setCropping] = useState<{ position: number; source: File | string | null } | null>(null);
   const [editing, setEditing] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
   const [draft, setDraft] = useState<StoryDraft>({ title: "", reference: "", body: "", context: "" });
@@ -60,14 +61,12 @@ export function PortalInspiracoesAdmin({ portalId }: { portalId?: string } = {})
 
   async function sendPhoto(position: number, file: File) {
     const fragment = fragments.find(item => item.position === position);
-    if (!portal || !fragment) return;
+    if (!portal || !fragment) throw new Error("Não foi possível localizar a fotografia desta inspiração.");
     if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
-      toast.error("Escolha um arquivo PNG, JPG ou WebP.");
-      return;
+      throw new Error("Escolha um arquivo PNG, JPG ou WebP.");
     }
     if (file.size > 10 * 1024 * 1024) {
-      toast.error("A imagem deve ter no máximo 10 MB.");
-      return;
+      throw new Error("A imagem deve ter no máximo 10 MB.");
     }
     setUploading(position);
     try {
@@ -87,9 +86,35 @@ export function PortalInspiracoesAdmin({ portalId }: { portalId?: string } = {})
       toast.success("Fotografia atualizada no Portal NFC.");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Erro ao enviar a foto.");
+      throw error;
     } finally {
       setUploading(null);
     }
+  }
+
+  function openPhotoEditor(fragment: Fragment) {
+    setCropping({
+      position: fragment.position,
+      source: fragment.image_url || fallbackPhotos[fragment.position] || null,
+    });
+  }
+
+  function chooseCropFile(file: File) {
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      toast.error("Escolha um arquivo PNG, JPG ou WebP.");
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("A imagem deve ter no máximo 10 MB.");
+      return;
+    }
+    setCropping(current => current ? { ...current, source: file } : null);
+  }
+
+  async function saveCroppedPhoto(file: File) {
+    if (!cropping) throw new Error("Escolha uma fotografia antes de salvar.");
+    await sendPhoto(cropping.position, file);
+    setCropping(null);
   }
 
   function openText(fragment: Fragment) {
