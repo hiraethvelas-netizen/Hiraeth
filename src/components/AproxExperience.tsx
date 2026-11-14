@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Flame, Nfc } from "lucide-react";
+import { Flame, Instagram, Nfc } from "lucide-react";
 
 /**
  * Carta editorial da tecnologia Aprox.
@@ -36,6 +36,13 @@ export function AproxExperience() {
       <p className="mt-3 text-sm leading-7">
         A Aprox também participou do desenvolvimento do aplicativo Hiraeth, onde você encontra nosso Acervo, a comunidade Círculo do Fogo e a sua Biblioteca de velas.
       </p>
+      <a href="https://www.instagram.com/aprox.oficiall?xtok=MWhyenExZGY2anZlOQ=="
+        target="_blank" rel="noopener noreferrer"
+        aria-label="Abrir o Instagram da Aprox (@aprox.oficiall)"
+        className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-full border border-[#878e47]/65 bg-[#e9e7d2] px-4 py-2.5 text-sm font-semibold text-[#34402b] underline-offset-4 transition-colors hover:bg-[#dedcbd] hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#59612f]">
+        <Instagram size={18} aria-hidden="true" />
+        Conheça a Aprox no Instagram · @aprox.oficiall
+      </a>
       <div className="mt-5 flex items-start gap-3 rounded-xl border border-[#b7aa83]/55 bg-[#ede7d7] p-4 text-sm leading-6 text-[#34402b]">
         <Nfc size={22} className="mt-0.5 shrink-0 text-[#5b1d04]" aria-hidden="true"/>
         <p>O celular precisa ser compatível com NFC, com a função ativada quando necessário e acesso à internet. <strong>Não é preciso instalar o aplicativo</strong> para abrir a página do portal pelo NFC.</p>
