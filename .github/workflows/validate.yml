@@ -53,3 +53,17 @@ jobs:
             except urllib.error.HTTPError as e: print("HTTP ERROR:",e.code,"URL:",e.url)
             except Exception as e: print("HTTP ERROR:",type(e).__name__,str(e)[:400])
           PY
+
+  publication-diagnostic:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Check live storefront and NFC portal over public Internet
+        shell: bash
+        run: |
+          for u in 'https://hiraeth-oficial.lovable.app/' 'https://hiraeth-oficial.lovable.app/portal/o-mundo-de-magia' 'https://id-preview--486adfc4-5da8-41d9-8d0f-7893dfde1510.lovable.app/'; do
+            echo "CHECK $u"
+            curl --location --max-time 18 --silent --show-error -o /tmp/hiraeth-pub-body -w 'HTTP_CODE %{http_code} FINAL_URL %{url_effective} REMOTE_IP %{remote_ip} CONTENT_TYPE %{content_type}\n' "$u" || echo "CURL_FAILED"
+            grep -oEi '<title>[^<]{0,140}</title>|this site is not published|not published' /tmp/hiraeth-pub-body 2>/dev/null | head -c 500 || true
+            echo ""
+          done
