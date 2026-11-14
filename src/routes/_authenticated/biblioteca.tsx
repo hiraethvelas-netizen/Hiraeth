@@ -49,7 +49,7 @@ function Biblioteca() {
       throw new Error("Escolha uma foto JPG, PNG, WebP ou GIF de até 8 MB.");
     }
     const extension = file.name.split(".").pop()?.replace(/[^a-zA-Z0-9]/g, "") || "jpg";
-    const path = `public/library-${userId}-${crypto.randomUUID()}.${extension}`;
+    const path = `${userId}/library-${crypto.randomUUID()}.${extension}`;
     const { error } = await supabase.storage.from("review-media").upload(path, file, { contentType: file.type, upsert: false });
     if (error) throw error;
     return supabase.storage.from("review-media").getPublicUrl(path).data.publicUrl;
