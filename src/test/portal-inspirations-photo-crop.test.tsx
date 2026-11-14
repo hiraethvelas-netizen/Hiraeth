@@ -36,7 +36,7 @@ vi.mock("@/components/ImageCropEditor", () => ({
     <div aria-label="Editor de recorte da imagem">
       <p>Zoom e recorte: {aspect}</p>
       <p>{typeof source === "string" ? source : source.name}</p>
-      <button type="button" onClick={() => void onApply(new File(["recorte"], "hiraeth-recorte.webp", { type: "image/webp" }))}>Aplicar recorte</button>
+      <button type="button" onClick={() => void onApply(new File(["recorte"], "hiraeth-recorte.webp", { type: "image/webp" })).catch(() => {})}>Aplicar recorte</button>
       <button type="button" onClick={onCancel}>Voltar sem alterar</button>
     </div>
   ),
