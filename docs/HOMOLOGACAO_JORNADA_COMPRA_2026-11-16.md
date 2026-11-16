@@ -33,6 +33,14 @@
 ## Teste administrativo seguro (somente leitura)
 Em `/admin/expedicao`, usar **Verificar integrações de teste** com conta administrativa. Verificar o retorno de Mercado Pago, Melhor Envio, peso de embalagem medido e presença de configurações fiscais. Esse diagnóstico não substitui pagamento ou nota de teste.
 
+## Diagnóstico da versão do backend (sem alterar pagamentos)
+Na Administração → Correio da Fênix → **Verificar integrações de teste**, a interface consulta a ação pública e **somente de leitura** `config` da função `commerce-checkout`. A resposta agora inclui o campo não sensível `shippingWeightRevision = hiraeth-frete-300-500-20261116`.
+
+- **Atualizada**: o servidor devolve essa revisão; a alteração de cálculo já foi implantada, mas **isso não confirma integração com transportadoras nem liberação de vendas reais**.
+- **Desatualizada**: resposta recebida sem a revisão esperada. A versão no GitHub/site chegou, porém falta o deploy da Edge Function `commerce-checkout` do projeto **Hiraeth Oficial**.
+- **Indisponível**: houve erro de rede/acesso e não é possível determinar a versão. Não assumir atualização ou liberação.
+- Essa verificação é diferente do diagnóstico administrativo das credenciais, que é permitido apenas no ambiente Sandbox. Não executa cotação, compra de etiqueta, Pix, cartão, pagamento ou emissão fiscal.
+
 ## Publicação
 - Validar GitHub Actions `Validate Hiraeth` (testes/build/TypeScript) e `Hiraeth - Verificar Edge Functions` (Deno).
 - Integrar a PR somente após ambos passarem.
