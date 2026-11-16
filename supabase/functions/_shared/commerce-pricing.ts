@@ -104,10 +104,14 @@ export function snapshotProducts(
     const shippingSize = product.product_type === "candle" ? candleSize(variant) : undefined;
     const explicitVariantWeight = variant?.weight_grams == null || variant.weight_grams === ""
       ? 0 : Number(variant.weight_grams);
-    // Known pot + lid + wax weights, confirmed for Hiraeth's 100 g and 250 g
-    // candle sizes. Protective shipping packaging is weighed separately.
-    const candleWeight = shippingSize === "small" ? 180 : shippingSize === "large" ? 616 : 0;
-    const grams = explicitVariantWeight || candleWeight ||
+    // Weight of the complete candle (pot, lid and wax), BEFORE shipping
+    // packaging: 100 g candle = 200 g; 250 g candle = 400 g.
+    // The confirmed provisional parcel weights are 300 g and 500 g.
+    // Older 180 g / 616 g estimates must not override these updated values.
+    const candleWeight = shippingSize === "small" ? 200 : shippingSize === "large" ? 400 : 0;
+    const obsoleteEstimate = (shippingSize === "small" && explicitVariantWeight === 180) ||
+      (shippingSize === "large" && explicitVariantWeight === 616);
+    const grams = (obsoleteEstimate ? 0 : explicitVariantWeight) || candleWeight ||
       Number(product.weight_grams) || defaultWeightGrams;
     if (!Number.isFinite(grams) || grams <= 0 || grams > 30000)
       throw new Error("Configure o peso de envio dos produtos antes de calcular o frete.");

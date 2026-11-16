@@ -337,8 +337,8 @@ function AdminProdutos() {
         <label className="text-sm text-muted-foreground">Preço promocional (R$)<input type="number" step="0.01" min="0" placeholder="Opcional" value={form.sale_price} onChange={(e) => setForm({ ...form, sale_price: e.target.value })} className={`mt-1 ${inputCls}`} /></label>
         {variants.groups.length === 0 && variants.legacy === null && <label className="text-sm text-muted-foreground">Quantidade em estoque<input required type="number" min="0" step="1" value={form.stock} onChange={(e) => setForm({ ...form, stock: e.target.value })} className={`mt-1 ${inputCls}`} /></label>}
         
-        <label className="text-sm text-muted-foreground">Peso de envio do produto (g)
-          <input type="number" min="1" step="1" placeholder="Ex.: 180" value={form.weight_grams}
+        <label className="text-sm text-muted-foreground">Peso do produto sem caixa de transporte (g)
+          <input type="number" min="1" step="1" placeholder="Ex.: 200" value={form.weight_grams}
             onChange={(e) => setForm({ ...form, weight_grams: e.target.value })} className={`mt-1 ${inputCls}`} />
         </label>
         <label className="text-sm text-muted-foreground">SKU<input placeholder="Código interno (opcional)" value={form.sku} onChange={(e) => setForm({ ...form, sku: e.target.value })} className={`mt-1 ${inputCls}`} /></label>

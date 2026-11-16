@@ -106,11 +106,25 @@ describe("Hiraeth — candle size and protected parcel calculations", () => {
     ],
   };
 
-  it("uses 180 g for the 100 g candle and 616 g for the 250 g candle", () => {
+  it("uses 200 g for the 100 g candle and 400 g for the 250 g candle before packaging", () => {
     const small = snapshotProducts([{ productId: id, quantity: 1, variantKey: "vela-p" }], [candle]);
     const large = snapshotProducts([{ productId: id, quantity: 1, variantKey: "vela-g" }], [candle]);
-    expect(small[0]).toMatchObject({ weightGrams: 180, shippingSize: "small" });
-    expect(large[0]).toMatchObject({ weightGrams: 616, shippingSize: "large" });
+    expect(small[0]).toMatchObject({ weightGrams: 200, shippingSize: "small" });
+    expect(large[0]).toMatchObject({ weightGrams: 400, shippingSize: "large" });
+    const main = { width: 13, height: 13, length: 16 };
+    const smallBox = { width: 8, height: 11, length: 16 };
+    expect(calculateShippingPackage(small, main, smallBox, 1, 100).weight).toBe(0.3);
+    expect(calculateShippingPackage(large, main, smallBox, 1, 100).weight).toBe(0.5);
+  });
+
+  it("replaces superseded 180/616 g variant estimates but preserves other measured weights", () => {
+    const oldVariants = candle.variants.map(v => ({
+      ...v, weight_grams: v.key === "vela-p" ? 180 : 616,
+    }));
+    expect(snapshotProducts([{ productId:id, quantity:1, variantKey:"vela-p" }],
+      [{...candle, variants:oldVariants}])[0]?.weightGrams).toBe(200);
+    expect(snapshotProducts([{ productId:id, quantity:1, variantKey:"vela-g" }],
+      [{...candle, variants:oldVariants}])[0]?.weightGrams).toBe(400);
   });
 
   it("prioritizes the measured weight configured on each variant", () => {
@@ -130,7 +144,7 @@ describe("Hiraeth — candle size and protected parcel calculations", () => {
   it("adds measured packaging weight without inventing weights for other goods", () => {
     const items = snapshotProducts([{ productId: id, quantity: 1, variantKey: "vela-p" }], [candle]);
     const parcel = calculateShippingPackage(items, { width: 13, height: 13, length: 16 }, null, 1, 75);
-    expect(parcel).toEqual({ width: 13, height: 13, length: 16, weight: 0.255, insurance_value: 50 });
+    expect(parcel).toEqual({ width: 13, height: 13, length: 16, weight: 0.275, insurance_value: 50 });
   });
 
   it("uses the small box only when explicitly provided for known small candles", () => {
