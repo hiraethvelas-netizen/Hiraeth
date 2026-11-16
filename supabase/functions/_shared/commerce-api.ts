@@ -205,6 +205,17 @@ export function melhorEnvioHeaders() {
   };
 }
 
+/**
+ * Allow multi-candle packing only after a separate, explicit physical box test.
+ * In the absence of measurements, safely restrict checkout to one unit.
+ */
+export function configuredMaxItemsPerPackage(): number {
+  const limit = Number(Deno.env.get("HIRAETH_MAX_ITEMS_PER_PACKAGE") || "1");
+  if (!Number.isSafeInteger(limit) || limit < 1 || limit > 12) return 1;
+  if (limit > 1 && Deno.env.get("HIRAETH_MULTI_CANDLE_PACKING_CONFIRMED") !== "true") return 1;
+  return limit;
+}
+
 /** The quote is obtained again during checkout creation. Browser prices are ignored. */
 export async function freightQuotes(
   destination: string,
@@ -229,7 +240,7 @@ export async function freightQuotes(
   }
   const parcel = calculateShippingPackage(
     items, mainBox, smallBox,
-    Number(env("HIRAETH_MAX_ITEMS_PER_PACKAGE")), tare,
+    configuredMaxItemsPerPackage(), tare,
   );
   const payload = {
     from: { postal_code: postalCode(env("MELHOR_ENVIO_ORIGIN_POSTAL_CODE")) },

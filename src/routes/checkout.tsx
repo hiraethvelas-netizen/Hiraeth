@@ -120,7 +120,7 @@ function CheckoutHiraeth() {
   const activeCustomerId=useRef<string|null>(null);
   const [recoveryError,setRecoveryError]=useState("");
   const [coupon,setCoupon]=useState("");
-  const [config,setConfig]=useState<{enabled:boolean;publicKey:string|null;sandbox:boolean}|null>(null);
+  const [config,setConfig]=useState<{enabled:boolean;publicKey:string|null;sandbox:boolean;maxItemsPerPackage:number}|null>(null);
   const [quotes,setQuotes]=useState<FreightQuote[]>([]);
   const [selectedFreight,setSelectedFreight]=useState<number|null>(null);
   const [checkout,setCheckout]=useState<CheckoutSummary|null>(null);
@@ -133,6 +133,8 @@ function CheckoutHiraeth() {
   const [configIssue,setConfigIssue]=useState("");
   const [configAttempt,setConfigAttempt]=useState(0);
 
+  const cartUnitCount=cart.items.reduce((sum,item)=>sum+item.quantity,0);
+  const shippingLimitExceeded=!!config&&cartUnitCount>config.maxItemsPerPackage;
   const itemInputs=cart.items.map(item=>({
     productId:item.productId,quantity:item.quantity,variantKey:item.variantKey??"",
   }));
@@ -159,7 +161,8 @@ function CheckoutHiraeth() {
         }
         const data = await commerceCall({action:"config"});
         if (!active) return;
-        setConfig({enabled:!!data['enabled'],publicKey:data['publicKey']??null,sandbox:data['sandbox']!==false});
+        setConfig({enabled:!!data['enabled'],publicKey:data['publicKey']??null,sandbox:data['sandbox']!==false,
+          maxItemsPerPackage:Number.isSafeInteger(data["maxItemsPerPackage"])&&data["maxItemsPerPackage"]>0?Number(data["maxItemsPerPackage"]):1});
         setPayerEmail(auth.user.email??"");
         try{setCoupon(sessionStorage.getItem("hiraeth-checkout-coupon")??"");}catch{/* optional */}
         if (data["enabled"]) {
@@ -200,7 +203,7 @@ function CheckoutHiraeth() {
         }
       } catch(cause) {
         if (!active) return;
-        setConfig({enabled:false,publicKey:null,sandbox:true});
+        setConfig({enabled:false,publicKey:null,sandbox:true,maxItemsPerPackage:1});
         setConfigIssue(cause instanceof Error?cause.message:"Não foi possível verificar o checkout.");
       } finally {
         if(active)setLoading(false);
@@ -391,7 +394,8 @@ function CheckoutHiraeth() {
       {config?.enabled&&recoveryError&&<section role="alert" className="mt-6 rounded-lg border border-primary/40 bg-card p-5 text-sm text-foreground">
         <p>{recoveryError}</p><button type="button" onClick={()=>setConfigAttempt(n=>n+1)} className="mt-3 underline text-primary">Consultar novamente</button>
       </section>}
-      {config?.enabled&&!recoveryError&&cart.items.length>0&&!checkout&&(
+      {config?.enabled&&!checkout&&shippingLimitExceeded&&<p role="alert" className="mt-6 rounded-lg border border-primary/40 bg-card p-4 text-sm text-foreground">Esta embalagem ainda está habilitada para até {config.maxItemsPerPackage} {config.maxItemsPerPackage===1?"vela":"unidades"} por pedido. Ajuste a sacola ou fale com a Hiraeth para combinar o envio de várias velas sem risco de frete incorreto.</p>}
+      {config?.enabled&&!recoveryError&&!shippingLimitExceeded&&cart.items.length>0&&!checkout&&(
         <form onSubmit={beginPayment} className="mt-8 space-y-6">
           <section className="rounded-xl border border-primary/25 bg-card p-4 sm:p-6">
             <div className="flex items-center gap-2"><Package size={19} className="text-primary"/>

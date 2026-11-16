@@ -2,7 +2,7 @@ import {
   corsHeaders, json, errorResponse, env, isCommerceEnabled, canAccessCommerce,
   signedInUser, userIsAdmin, requireAdmin, commerceSetupIssues, serviceClient, postalCode, validateRecipient,
   melhorEnvioHeaders, betterShippingUrl,
-  freightQuotes, mercadoPagoRequest,
+  freightQuotes, mercadoPagoRequest, configuredMaxItemsPerPackage,
 } from "../_shared/commerce-api.ts";
 import { validateItems, snapshotProducts, calculateCheckoutPrice } from "../_shared/commerce-pricing.ts";
 import { isSandboxCheckout, providerModeMatchesCheckout, paymentAmountMatchesCheckout, mayCreateRealOrder } from "../_shared/commerce-sandbox.ts";
@@ -81,6 +81,7 @@ Deno.serve(async (req: Request) => {
       publicKey: enabled ? env("MERCADO_PAGO_PUBLIC_KEY") : null,
       sandbox: mode !== "production",
       shippingProvider: "Melhor Envio",
+      maxItemsPerPackage: configuredMaxItemsPerPackage(),
       fiscalProvider: "Focus NFe",
       ...(setupIssues ? { setupIssues } : {}),
     });
