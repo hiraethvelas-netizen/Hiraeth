@@ -33,7 +33,6 @@ function AuthPage() {
   const [rememberSession, setRememberSession] = useState(true);
   const [name, setName] = useState("");
   const [houseChoice, setHouseChoice] = useState<HouseId | "unknown">("unknown");
-  const [nfcToken] = useState(() => typeof window === "undefined" ? "" : window.sessionStorage.getItem("hiraeth:nfc:pending-token") ?? "");
   const fromNfcPortal = source === "portal-nfc";
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -58,25 +57,6 @@ function AuthPage() {
       console.warn("Não foi possível carregar a mensagem de boas-vindas:",error);
       return false;
     }
-  }
-
-  // NFC continua opcional e independente do selo da casa.
-  async function activateNfcIfPresent(user: { user_metadata?: Record<string, unknown> }) {
-    const pending = user.user_metadata?.["hiraeth_nfc_pending_token"];
-    const token = typeof pending === "string" && /^[0-9a-f]{64}$/.test(pending)
-      ? pending : /^[0-9a-f]{64}$/.test(nfcToken) ? nfcToken : "";
-    if (!token) return;
-    const { data: success, error: claimError } = await (supabase as any)
-      .rpc("claim_house_nfc_access_code", { p_token: token });
-    if (claimError || success !== true) {
-      console.warn("O código NFC não pôde ser validado.", claimError);
-      toast.error("Não foi possível validar este código NFC. O cadastro continua disponível normalmente.");
-      return;
-    }
-    window.sessionStorage.removeItem("hiraeth:nfc:pending-token");
-    await supabase.auth.updateUser({ data: {
-      hiraeth_nfc_pending_token: null, hiraeth_nfc_house_pending: null,
-    } });
   }
 
   // Com confirmação de e-mail, a escolha fica pendente até a primeira sessão.
@@ -132,7 +112,6 @@ function AuthPage() {
             setError("Sua conta foi criada, mas não conseguimos salvar sua casa. Tente entrar novamente.");
             return;
           }
-          await activateNfcIfPresent(data.user);
           if (houseResult.pending && houseResult.unsure) {
             await navigate({ to: "/produto/a-seletora" as never });
             return;
@@ -173,8 +152,6 @@ function AuthPage() {
             data: {
               display_name: name, hiraeth_welcome_pending: true,
               hiraeth_house_setup_pending: true, hiraeth_house_pending: houseChoice,
-              ...(/^[0-9a-f]{64}$/.test(nfcToken)
-                ? { hiraeth_nfc_pending_token: nfcToken } : {}),
             },
             emailRedirectTo: `${window.location.origin}/auth?redirect=${encodeURIComponent(requested === "/admin" ? "/inicio" : requested)}`,
           },
@@ -187,7 +164,6 @@ function AuthPage() {
               setError("A conta foi criada, mas não conseguimos salvar sua casa. Tente entrar novamente.");
               return;
             }
-            await activateNfcIfPresent(data.user);
             if (houseResult.unsure) {
               await navigate({ to: "/produto/a-seletora" as never });
               return;

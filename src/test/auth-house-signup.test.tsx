@@ -55,8 +55,7 @@ beforeEach(() => {
   mocks.login.mockReset();
   mocks.updateUser.mockClear();
   mocks.upsert.mockClear();
-  mocks.rpc.mockReset().mockImplementation(async (name: string) =>
-    ({ data: name === "claim_house_nfc_access_code" ? true : false, error: null }));
+  mocks.rpc.mockReset().mockResolvedValue({ data: false, error: null });
   window.sessionStorage.clear();
 });
 afterEach(() => cleanup());
@@ -96,6 +95,22 @@ describe("Cadastro Hiraeth: casa independente de NFC", () => {
       );
       expect(mocks.navigate).toHaveBeenCalledWith({ to: "/produto/a-seletora" });
     });
+  });
+
+  it("ignora tokens NFC antigos e salva a casa diretamente na conta", async () => {
+    window.sessionStorage.setItem("hiraeth:nfc:pending-token", "a".repeat(64));
+    mocks.signup.mockImplementation(async (input: any) => ({
+      data: { user: { id: CUSTOMER, user_metadata: input.options.data }, session: { access_token: "mock" } },
+      error: null,
+    }));
+    render(<AuthPage />);
+    fireEvent.click(screen.getByLabelText(/Casa do Texugo/));
+    fillFields();
+    fireEvent.click(screen.getByRole("button", { name: "Criar conta" }));
+    await waitFor(() => expect(mocks.navigate).toHaveBeenCalledWith({ to: "/portal/o-mundo-de-magia" }));
+    expect(mocks.signup.mock.calls[0][0].options.data).not.toHaveProperty("hiraeth_nfc_pending_token");
+    expect(mocks.upsert).toHaveBeenCalledWith(expect.objectContaining({ user_id: CUSTOMER, house: "texugo" }), { onConflict: "user_id" });
+    expect(mocks.rpc).not.toHaveBeenCalledWith("claim_house_nfc_access_code", expect.anything());
   });
 
   it("preserves the pending house through email confirmation and first login", async () => {
