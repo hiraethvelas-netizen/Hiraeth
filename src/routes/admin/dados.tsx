@@ -3,6 +3,8 @@ import { useCallback, useEffect, useState } from "react";
 import { BarChart3, Search, Mail, MessageCircle, Users, RefreshCw, ShoppingBag, Flame, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { brl } from "@/lib/format";
+import { orderItemVariantLabel } from "@/lib/order-operations";
+import type { Json } from "@/integrations/supabase/types";
 
 export const Route = createFileRoute("/admin/dados")({
   ssr: false,
@@ -148,7 +150,11 @@ function CustomerDetail({ customer, onClose }: {customer:Customer;onClose:()=>vo
               {formatDate(order.created_at)} · {order.status} · {brl(Number(order.total))}
             </summary>
             <div className="mt-3 text-sm">
-              {order.items.map((item,i)=><p key={i} className="mt-1">{item.quantity}× {item.product_name} — {brl(Number(item.unit_price)*item.quantity)}</p>)}
+              {order.items.map((item,i)=><div key={i} className="mt-2">
+                <p>{item.quantity}× {item.product_name} — {brl(Number(item.unit_price)*item.quantity)}</p>
+                {orderItemVariantLabel(item.variant_details as Json)&&
+                  <p className="text-xs text-muted-foreground">{orderItemVariantLabel(item.variant_details as Json)}</p>}
+              </div>)}
               <p className="mt-2 text-xs text-muted-foreground">Pagamento: {order.payment_status || "Não informado"} · Frete: {brl(Number(order.shipping))}</p>
               {addressLines(order.shipping_address).length>0 && <div className="mt-2 border-t border-primary/10 pt-2">
                 <p className="font-medium">Endereço deste pedido</p>
@@ -163,7 +169,13 @@ function CustomerDetail({ customer, onClose }: {customer:Customer;onClose:()=>vo
         {detail.posts.length ? <div className="mt-3 space-y-3">
           {detail.posts.map(post=><article key={post.id} className="border-b border-primary/15 pb-3">
             <p className="whitespace-pre-wrap break-words text-sm text-foreground">{post.body}</p>
-            {post.image_urls?.length>0 && <p className="mt-1 text-xs text-muted-foreground">{post.image_urls.length} imagem(ns) anexada(s)</p>}
+            {post.image_urls?.length>0 && <div className="mt-2 flex flex-wrap gap-2">
+              {post.image_urls.filter(url=>url.startsWith("https://")).slice(0,6).map((url,i)=>
+                <a key={i} href={url} target="_blank" rel="noopener noreferrer" title="Abrir imagem da publicação">
+                  <img src={url} alt="Imagem publicada no Círculo do Fogo" loading="lazy"
+                    className="h-20 w-20 rounded-lg border border-primary/20 object-cover"/>
+                </a>)}
+            </div>}
             <p className="mt-1 text-xs text-muted-foreground">{formatDate(post.created_at)}</p>
           </article>)}
         </div> : <p className="mt-2 text-sm text-muted-foreground">Nenhuma publicação na comunidade.</p>}
