@@ -96,8 +96,10 @@ begin
     raise exception 'Acesso restrito à administração' using errcode = '42501';
   end if;
   return jsonb_build_object(
-    'registered_total', (select count(*) from auth.users),
-    'registered_period', (select count(*) from auth.users where created_at >= v_from),
+    'registered_total', (select count(*) from auth.users u
+      where not exists (select 1 from public.user_roles r where r.user_id = u.id and r.role = 'admin')),
+    'registered_period', (select count(*) from auth.users u where u.created_at >= v_from
+      and not exists (select 1 from public.user_roles r where r.user_id = u.id and r.role = 'admin')),
     'community_total', (select count(*) from public.community_memberships),
     'known_app_accounts_period', (select count(*) from public.hiraeth_customer_activity
       where last_app_seen_at >= v_from),
@@ -151,9 +153,9 @@ begin
 
   with customers as (
     select u.id, u.email, u.created_at,
-      coalesce(nullif(p.display_name, ''),
-        nullif(u.raw_user_meta_data->>'display_name', ''),
-        nullif(u.raw_user_meta_data->>'full_name', ''), 'Cliente') as display_name,
+      coalesce(nullif(u.raw_user_meta_data->>'display_name', ''),
+        nullif(u.raw_user_meta_data->>'full_name', ''),
+        nullif(p.display_name, ''), 'Cliente') as display_name,
       coalesce(nullif(u.raw_user_meta_data->>'phone', ''), nullif(u.phone, '')) as phone,
       cp.username, (cm.user_id is not null) as community_member,
       ca.last_app_seen_at, ca.last_portal_seen_at, ca.last_portal_slug,
@@ -164,9 +166,11 @@ begin
     left join public.community_profiles cp on cp.user_id = u.id
     left join public.community_memberships cm on cm.user_id = u.id
     left join public.hiraeth_customer_activity ca on ca.user_id = u.id
-    where (v_filter = 'all'
-      or (v_filter = 'app' and ca.last_app_seen_at is not null)
-      or (v_filter = 'community' and cm.user_id is not null))
+    where not exists (select 1 from public.user_roles r
+        where r.user_id = u.id and r.role = 'admin')
+      and (v_filter = 'all'
+        or (v_filter = 'app' and ca.last_app_seen_at is not null)
+        or (v_filter = 'community' and cm.user_id is not null))
       and (v_search = ''
         or position(v_search in lower(coalesce(u.email, ''))) > 0
         or position(v_search in lower(coalesce(p.display_name, ''))) > 0
@@ -182,9 +186,9 @@ begin
     into v_rows
   from (
     select u.id, u.email, u.created_at,
-      coalesce(nullif(p.display_name, ''),
-        nullif(u.raw_user_meta_data->>'display_name', ''),
-        nullif(u.raw_user_meta_data->>'full_name', ''), 'Cliente') as display_name,
+      coalesce(nullif(u.raw_user_meta_data->>'display_name', ''),
+        nullif(u.raw_user_meta_data->>'full_name', ''),
+        nullif(p.display_name, ''), 'Cliente') as display_name,
       coalesce(nullif(u.raw_user_meta_data->>'phone', ''), nullif(u.phone, '')) as phone,
       cp.username, (cm.user_id is not null) as community_member,
       ca.last_app_seen_at, ca.last_portal_seen_at, ca.last_portal_slug,
@@ -195,9 +199,11 @@ begin
     left join public.community_profiles cp on cp.user_id = u.id
     left join public.community_memberships cm on cm.user_id = u.id
     left join public.hiraeth_customer_activity ca on ca.user_id = u.id
-    where (v_filter = 'all'
-      or (v_filter = 'app' and ca.last_app_seen_at is not null)
-      or (v_filter = 'community' and cm.user_id is not null))
+    where not exists (select 1 from public.user_roles r
+        where r.user_id = u.id and r.role = 'admin')
+      and (v_filter = 'all'
+        or (v_filter = 'app' and ca.last_app_seen_at is not null)
+        or (v_filter = 'community' and cm.user_id is not null))
       and (v_search = ''
         or position(v_search in lower(coalesce(u.email, ''))) > 0
         or position(v_search in lower(coalesce(p.display_name, ''))) > 0
@@ -228,9 +234,9 @@ begin
   end if;
   select jsonb_build_object(
     'id', u.id, 'email', u.email, 'created_at', u.created_at,
-    'display_name', coalesce(nullif(p.display_name, ''),
-      nullif(u.raw_user_meta_data->>'display_name', ''),
-      nullif(u.raw_user_meta_data->>'full_name', ''), 'Cliente'),
+    'display_name', coalesce(nullif(u.raw_user_meta_data->>'display_name', ''),
+      nullif(u.raw_user_meta_data->>'full_name', ''),
+      nullif(p.display_name, ''), 'Cliente'),
     'phone', coalesce(nullif(u.raw_user_meta_data->>'phone', ''), nullif(u.phone, '')),
     'address', coalesce(u.raw_user_meta_data->'address', 'null'::jsonb),
     'marketing_opt_in', (u.raw_user_meta_data->>'hiraeth_marketing_opt_in' = 'true'),
@@ -277,7 +283,9 @@ begin
     ), '[]'::jsonb)
   ) into v_customer
   from auth.users u left join public.profiles p on p.id = u.id
-  where u.id = p_user_id;
+  where u.id = p_user_id
+    and not exists (select 1 from public.user_roles r
+      where r.user_id = u.id and r.role = 'admin');
   return v_customer;
 end;
 $$;
