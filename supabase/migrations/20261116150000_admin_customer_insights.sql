@@ -141,7 +141,7 @@ as $$
 declare
   v_search text := lower(left(trim(coalesce(p_search, '')), 100));
   v_digits text := regexp_replace(coalesce(p_search, ''), '[^0-9]', '', 'g');
-  v_filter text := case when p_filter in ('all','app','community') then p_filter else 'all' end;
+  v_filter text := case when p_filter in ('all','app','portal','community') then p_filter else 'all' end;
   v_limit integer := least(30, greatest(1, coalesce(p_limit, 20)));
   v_offset integer := least(10000, greatest(0, coalesce(p_offset, 0)));
   v_total integer;
@@ -170,6 +170,7 @@ begin
         where r.user_id = u.id and r.role = 'admin')
       and (v_filter = 'all'
         or (v_filter = 'app' and ca.last_app_seen_at is not null)
+        or (v_filter = 'portal' and ca.last_portal_seen_at is not null)
         or (v_filter = 'community' and cm.user_id is not null))
       and (v_search = ''
         or position(v_search in lower(coalesce(u.email, ''))) > 0
@@ -203,6 +204,7 @@ begin
         where r.user_id = u.id and r.role = 'admin')
       and (v_filter = 'all'
         or (v_filter = 'app' and ca.last_app_seen_at is not null)
+        or (v_filter = 'portal' and ca.last_portal_seen_at is not null)
         or (v_filter = 'community' and cm.user_id is not null))
       and (v_search = ''
         or position(v_search in lower(coalesce(u.email, ''))) > 0
