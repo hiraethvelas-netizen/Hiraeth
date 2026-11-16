@@ -244,7 +244,10 @@ export async function freightQuotes(
   const defaultTare = Deno.env.get("MELHOR_ENVIO_ENV") !== "production" && isSingleKnownCandle
     ? 100 : 0;
   const configuredTare = Deno.env.get("HIRAETH_PACKAGE_TARE_GRAMS")?.trim();
-  const tare = Number(configuredTare || String(defaultTare));
+  const parsedTare = Number(configuredTare);
+  // Treat a configured zero like a missing estimate in Sandbox; never
+  // accept zero as a production measurement.
+  const tare = !configuredTare || parsedTare === 0 ? defaultTare : parsedTare;
   if (Deno.env.get("MELHOR_ENVIO_ENV") === "production" &&
       (!configuredTare || !Number.isFinite(tare) || tare <= 0)) {
     throw new Error("Meça o peso da caixa e dos materiais de proteção antes de ativar fretes reais.");
