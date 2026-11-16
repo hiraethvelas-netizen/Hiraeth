@@ -1,5 +1,5 @@
 import {beforeEach,describe,expect,it} from "vitest";
-import {checkoutRecoveryKey,saveCheckoutReference,clearCheckoutReference,readCheckoutReference,restoreCheckout} from "@/lib/checkout-recovery";
+import {checkoutRecoveryKey,saveCheckoutReference,clearCheckoutReference,readCheckoutReference,restoreCheckout,checkoutPaymentView} from "@/lib/checkout-recovery";
 const user="e3c182d1-6a9d-45bc-b3e7-89a1180f9772";
 const id="6c3efc18-cdbc-4cc1-918a-1fc53087d522";
 beforeEach(()=>localStorage.clear());
@@ -23,5 +23,21 @@ describe("Recuperação de pagamento sem segunda cobrança",()=>{
     expect(restoreCheckout({id,status:"processing",total:50,discount:0,shipping:0,mp_payment_id:null})?.needsReview).toBe(true);
     expect(restoreCheckout({id,status:"paid",total:50,discount:0,shipping:0})?.outcome?.status).toBe("paid");
     expect(restoreCheckout({id:"invalid",status:"paid",total:50,discount:0,shipping:0})).toBeNull();
+  });
+});
+describe("Pagamento: apenas situações sem cobrança oferecem Pix e cartão",()=>{
+  it("não oferece novo pagamento se houver tentativa em processamento",()=>{
+    expect(checkoutPaymentView({status:"pending"},false)).toBe("waiting");
+    expect(checkoutPaymentView({status:"processing"},false)).toBe("waiting");
+    expect(checkoutPaymentView({status:"pending",qrCode:"PIX"},false)).toBe("pix");
+    expect(checkoutPaymentView({status:"processing",qrCode:null},true)).toBe("verify");
+    expect(checkoutPaymentView({status:"pending",qrCode:"PIX"},true)).toBe("verify");
+  });
+  it("mantém os estados pagos e em revisão sem nova cobrança",()=>{
+    expect(checkoutPaymentView({status:"paid"},false)).toBe("paid");
+    expect(checkoutPaymentView({status:"paid_attention"},false)).toBe("attention");
+    expect(checkoutPaymentView({status:"rejected"},false)).toBe("rejected");
+    expect(checkoutPaymentView(null,true)).toBe("verify");
+    expect(checkoutPaymentView(null,false)).toBe("methods");
   });
 });

@@ -10,7 +10,7 @@ import { requireAuthenticatedUser } from "@/lib/require-auth";
 import { checkoutRecipientFromMetadata, checkoutMetadataFromRecipient, emptyCheckoutRecipient } from "@/lib/checkout-recipient";
 import { commerceFailureMessage, isResolvedCheckoutStatus } from "@/lib/commerce-errors";
 import { isValidBrazilianDocument, isValidBrazilianPhone } from "../../supabase/functions/_shared/commerce-document";
-import { saveCheckoutReference, readCheckoutReference, clearCheckoutReference, restoreCheckout } from "@/lib/checkout-recovery";
+import { saveCheckoutReference, readCheckoutReference, clearCheckoutReference, restoreCheckout, checkoutPaymentView } from "@/lib/checkout-recovery";
 
 export const Route = createFileRoute("/checkout")({
   ssr: false,
@@ -136,6 +136,7 @@ function CheckoutHiraeth() {
 
   const cartUnitCount=cart.items.reduce((sum,item)=>sum+item.quantity,0);
   const shippingLimitExceeded=!!config&&cartUnitCount>config.maxItemsPerPackage;
+  const paymentView=checkoutPaymentView(outcome,paymentNeedsReview);
   const itemInputs=cart.items.map(item=>({
     productId:item.productId,quantity:item.quantity,variantKey:item.variantKey??"",
   }));
@@ -178,6 +179,10 @@ function CheckoutHiraeth() {
                 setCheckout(previous.checkout);
                 setOutcome(previous.outcome);
                 setPaymentNeedsReview(previous.needsReview);
+                // A server-confirmed paid checkout also needs to clear a cart
+                // if the browser was closed before the original page received approval.
+                if(previous.outcome?.status==="paid") cart.clear();
+                if(previous.outcome?.status==="rejected") clearCheckoutReference(auth.user.id);
                 if(previous.needsReview)
                   setError("Existe uma tentativa anterior sem confirmação. Confira o status antes de pagar novamente.");
               }else{
@@ -557,18 +562,24 @@ function CheckoutHiraeth() {
           <p className="flex justify-between text-muted-foreground"><span>Frete</span><span>{brl(checkout.shipping)}</span></p>
           <p className="mt-3 flex justify-between font-display text-2xl text-foreground"><span>Total</span><span className="text-primary">{brl(checkout.total)}</span></p>
         </div>
-        {outcome?.status==="paid" ? <div role="status" className="mt-6 rounded-lg border border-primary/40 p-5 text-center">
+        {paymentView==="paid" ? <div role="status" className="mt-6 rounded-lg border border-primary/40 p-5 text-center">
           <h3 className="font-display text-2xl text-primary">{config.sandbox?"Pagamento de teste aprovado!":"Pagamento confirmado!"}</h3>
           <p className="mt-2 text-sm text-foreground">{config.sandbox
             ?"Simulação concluída. Nenhuma venda real foi criada e o estoque não foi alterado."
             :"Sua compra está registrada. Acompanhe tudo em Meus pedidos."}</p>
           {!config.sandbox&&<Link to="/pedidos" onClick={()=>clearCheckoutReference(activeCustomerId.current)} className="btn-gold mt-4">Ver meus pedidos</Link>}
           <Link to="/loja" onClick={()=>clearCheckoutReference(activeCustomerId.current)} className="mt-4 inline-block text-sm text-primary underline">Fazer outra compra</Link>
-        </div> : outcome?.status==="paid_attention" ? (
+        </div> : paymentView==="attention" ? (
           <p role="alert" className="mt-5 text-sm text-foreground">{config.sandbox
             ?"O pagamento simulado precisa de conferência. Nenhuma venda real foi registrada."
             :"Seu pagamento foi recebido e precisa de conferência pela equipe Hiraeth. Não faça outro pagamento."}</p>
-        ) : outcome?.qrCode ? <div className="mt-6 text-center">
+        ) : paymentView==="verify" ? <div className="mt-6 space-y-3" role="status">
+          <p className="text-sm text-foreground">Não conseguimos confirmar a última tentativa. Para evitar cobranças duplicadas, o pagamento ficou bloqueado até a consulta de status.</p>
+          <button type="button" disabled={busy} onClick={()=>void verifyPaymentStatus()}
+            className="rounded-lg border border-primary/50 px-4 py-3 text-sm font-semibold text-primary disabled:opacity-50">
+            {busy?"Conferindo...":"Conferir status do pagamento"}
+          </button>
+        </div> : paymentView==="pix" && outcome?.qrCode ? <div className="mt-6 text-center">
           <h3 className="font-display text-xl text-foreground">Seu Pix está aguardando pagamento</h3>
           {outcome.qrCodeBase64&&<img alt="Código QR para pagamento Pix"
             src={"data:image/png;base64,"+outcome.qrCodeBase64}
@@ -579,20 +590,11 @@ function CheckoutHiraeth() {
           <button type="button" onClick={()=>void copyPixCode()}
             className="mt-3 rounded-lg border border-primary/45 px-4 py-2 text-sm text-primary">Copiar código Pix</button>
           <p className="mt-4 text-xs text-muted-foreground">O pedido será confirmado quando o Mercado Pago aprovar o pagamento. Nenhuma nova cobrança será feita ao atualizar esta tela.</p>
-        </div> : outcome?.status==="pending" ? (
-          <p role="status" className="mt-5 text-sm text-foreground">Pagamento em análise pelo Mercado Pago. Aguarde a confirmação.</p>
-        ) : outcome?.status==="rejected" ? (
+        </div> : paymentView==="waiting" ? (
+          <p role="status" className="mt-5 text-sm text-foreground">Pagamento em processamento pelo Mercado Pago. Não repita a cobrança. Acompanhe a confirmação nesta página.</p>
+        ) : paymentView==="rejected" ? (
           <p role="alert" className="mt-5 text-sm text-foreground">Pagamento recusado. Revise seus dados e inicie uma nova tentativa sem cobranças duplicadas.</p>
-        ) : paymentNeedsReview ? <div className="mt-6 space-y-3" role="status">
-          <p className="text-sm text-foreground">
-            Não conseguimos confirmar a última tentativa. Para evitar cobranças duplicadas,
-            o pagamento ficou bloqueado até a consulta de status.
-          </p>
-          <button type="button" disabled={busy} onClick={()=>void verifyPaymentStatus()}
-            className="rounded-lg border border-primary/50 px-4 py-3 text-sm font-semibold text-primary disabled:opacity-50">
-            {busy?"Conferindo...":"Conferir status do pagamento"}
-          </button>
-        </div> : <div className="mt-6 space-y-4">
+        ) : <div className="mt-6 space-y-4">
           <button type="button" disabled={busy} onClick={()=>void pay("pix").catch(()=>{})}
             className="flex w-full items-center justify-center gap-2 rounded-xl border border-primary/50 bg-primary/10 px-5 py-4 text-sm font-semibold text-foreground disabled:opacity-40">
             <QrCode size={19}/> {busy?"Aguarde...":"Pagamento Pix"}

@@ -5,6 +5,20 @@ on:
   push:
     branches: [main]
     paths:
+      - "src/routes/checkout.tsx"
+      - "src/lib/checkout-recovery.ts"
+      - "supabase/functions/commerce-checkout/**"
+      - "supabase/functions/commerce-webhook/**"
+      - "supabase/functions/commerce-fulfillment/**"
+      - "supabase/functions/_shared/**"
+      - "scripts/commerce-public-smoke.mjs"
+      - ".github/workflows/commerce-public-smoke.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "src/routes/checkout.tsx"
+      - "src/lib/checkout-recovery.ts"
+      - "supabase/functions/**"
       - "scripts/commerce-public-smoke.mjs"
       - ".github/workflows/commerce-public-smoke.yml"
 

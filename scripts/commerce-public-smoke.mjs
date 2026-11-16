@@ -29,6 +29,9 @@ async function probe(title, url, config, acceptedStatuses) {
 }
 
 await probe("Site inicial publicado",site+"/",{method:"GET"},[200]);
+await probe("Site vitrine de velas",site+"/loja",{method:"GET"},[200]);
+await probe("Site sacola",site+"/carrinho",{method:"GET"},[200]);
+await probe("Site checkout protegido (carregamento HTML)",site+"/checkout",{method:"GET"},[200]);
 await probe("Site rota pública de pedidos",site+"/admin/pedidos",{method:"GET"},[200]);
 await probe("Site rota de expedição",site+"/admin/expedicao",{method:"GET"},[200]);
 
@@ -43,5 +46,5 @@ await probe("Expedição bloqueia leitura sem conta administrativa",
     method:"POST",headers,
     body:JSON.stringify({action:"status",orderId:"00000000-0000-4000-8000-000000000000"}),
   },[400,401,403]);
-console.log(`Resultado: ${5-failures}/5 verificações passaram. Este teste NÃO valida checkout pago, etiqueta ou NF-e reais.`);
+console.log(`Resultado: ${8-failures}/8 verificações passaram. Este teste NÃO valida login, checkout pago, etiqueta, NFC ou NF-e reais.`);
 if(failures)process.exitCode=1;
