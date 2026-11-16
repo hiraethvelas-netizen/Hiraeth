@@ -13,6 +13,14 @@
 - Webhook assinado, idempotência, proteção contra baixa duplicada de estoque e pedidos simulados.
 - Administração: pedidos, etapas, NF-e, etiquetas, rastreio e revisão de reembolso com consulta ao provedor.
 
+## Estimativa de peso confirmada pela titular em 16/11/2026
+
+- Vela pequena, rótulo comercial **100 g**: 200 g de vela pronta (pote e tampa), mais aproximadamente 100 g de embalagem/proteção, total previsto **300 g (0,300 kg)** por caixa individual.
+- Vela grande, rótulo comercial **250 g**: 400 g de vela pronta, mais aproximadamente 100 g de embalagem/proteção, total previsto **500 g (0,500 kg)** por caixa individual.
+- Sem misturar peso do produto com tara da caixa, evitando dupla contagem. No checkout Sandbox, a tara provisória de 100 g é utilizada apenas quando não houver tara de servidor configurada e se tratar de **uma única vela com tamanho conhecido**.
+- A titular confirmou o planejamento das caixas, mas estas quantidades continuam **estimativas**, não substituem a pesagem da caixa pronta nem a validação da transportadora. Em produção, é obrigatória tara explícita de valor positivo medido; o sistema conserva as travas de habilitação comercial.
+- Caixas de referência: principal 13×13×16 cm; pequena 8×16×11 cm, usada apenas com confirmação específica no servidor (`HIRAETH_SMALL_BOX_FIT_CONFIRMED=true`). O cálculo para pedidos com múltiplas velas não é liberado por esses pesos unitários.
+
 ## Bloqueios operacionais atuais
 1. **Edge Functions:** verificar logs/deploy efetivo de `commerce-checkout`, `commerce-webhook`, `commerce-fulfillment` e `_shared` na infraestrutura do projeto atual. GitHub e site publicados não provam deploy da função. Não usar referências de projeto Supabase diferente.
 2. **Mercado Pago:** conferir no painel do próprio provedor as credenciais de TESTE, chave Pix, webhook e segredo HMAC, sem compartilhar valores. Homologar Pix aprovado/pendente, cartão aprovado/recusado, idempotência, duplicações de webhook e pagamento em revisão.
