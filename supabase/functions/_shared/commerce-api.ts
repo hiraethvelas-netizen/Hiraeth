@@ -4,6 +4,7 @@ import { hasAllowedMercadoPagoCredential } from "./mercado-pago-credentials.ts";
 import { normalizeCustomerRequests } from "./checkout-requests.ts";
 import { isValidBrazilianDocument, isValidBrazilianPhone } from "./commerce-document.ts";
 import { safeMercadoPagoError } from "./mercado-pago-safe-errors.ts";
+import { freightSetupIssues } from "./commerce-config-readiness.ts";
 export { canAccessCommerce } from "./commerce-access.ts";
 
 export const corsHeaders = {
@@ -50,10 +51,11 @@ export function isCommerceEnabled() {
     (mode === "production" && freightMode === "production");
   return Deno.env.get("HIRAETH_COMMERCE_ENABLED") === "true" &&
     safePaymentMode && safeFreightMode &&
-    Boolean(Deno.env.get("MERCADO_PAGO_PUBLIC_KEY")) &&
-    Boolean(Deno.env.get("MERCADO_PAGO_WEBHOOK_SECRET")) &&
-    Boolean(Deno.env.get("MELHOR_ENVIO_TOKEN")) &&
-    Boolean(Deno.env.get("MELHOR_ENVIO_ORIGIN_POSTAL_CODE"));
+    Boolean(Deno.env.get("MERCADO_PAGO_PUBLIC_KEY")?.trim()) &&
+    Boolean(Deno.env.get("MERCADO_PAGO_WEBHOOK_SECRET")?.trim()) &&
+    // Don't advertise checkout as available if quoting will inevitably fail
+    // due to missing carrier identity, origin or package dimensions.
+    freightSetupIssues(key => Deno.env.get(key), mode).length === 0;
 }
 
 /**
@@ -79,12 +81,10 @@ export function commerceSetupIssues(): string[] {
     failures.push("HIRAETH_ALLOW_LIVE_CHARGES");
   if (Deno.env.get("MELHOR_ENVIO_ENV") !== mode)
     failures.push("MELHOR_ENVIO_ENV");
-  for (const key of [
-    "MERCADO_PAGO_PUBLIC_KEY", "MERCADO_PAGO_WEBHOOK_SECRET",
-    "MELHOR_ENVIO_TOKEN", "MELHOR_ENVIO_ORIGIN_POSTAL_CODE",
-  ]) {
+  for (const key of ["MERCADO_PAGO_PUBLIC_KEY", "MERCADO_PAGO_WEBHOOK_SECRET"]) {
     if (!Deno.env.get(key)?.trim()) failures.push(key);
   }
+  failures.push(...freightSetupIssues(key => Deno.env.get(key), mode));
   return failures;
 }
 
