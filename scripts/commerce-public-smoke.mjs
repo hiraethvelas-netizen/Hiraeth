@@ -7,8 +7,10 @@
 const site = "https://hiraeth-oficial.lovable.app";
 const functions = "https://c--486adfc4-5da8-41d9-8d0f-7893dfde1510-prod.lovable.cloud/functions/v1";
 let failures = 0;
+let checks = 0;
 
 async function probe(title, url, config, acceptedStatuses) {
+  checks++;
   try {
     const result=await fetch(url,{
       redirect:"follow",
@@ -30,6 +32,7 @@ async function probe(title, url, config, acceptedStatuses) {
 
 await probe("Site inicial publicado",site+"/",{method:"GET"},[200]);
 await probe("Site vitrine de velas",site+"/loja",{method:"GET"},[200]);
+await probe("Site portal NFC Mundo da Magia",site+"/portal/o-mundo-de-magia",{method:"GET"},[200]);
 await probe("Site sacola",site+"/carrinho",{method:"GET"},[200]);
 await probe("Site checkout protegido (carregamento HTML)",site+"/checkout",{method:"GET"},[200]);
 await probe("Site rota pública de pedidos",site+"/admin/pedidos",{method:"GET"},[200]);
@@ -47,28 +50,5 @@ await probe("Expedição bloqueia leitura sem conta administrativa",
     body:JSON.stringify({action:"status",orderId:"00000000-0000-4000-8000-000000000000"}),
   },[400,401,403]);
 
-/**
- * Non-blocking backend release check. The hosted function can lag behind
- * Github + published frontend; never confuse public smoke success with deploy.
- * Only the public config action is read, without tokens or personal data.
- */
-try {
-  const response=await fetch(functions+"/commerce-checkout",{
-    method:"POST",headers,
-    body:JSON.stringify({action:"config"}),
-    signal:AbortSignal.timeout(15000),
-  });
-  if(!response.ok) {
-    console.log("AVISO: não foi possível determinar a revisão do checkout implantado.");
-  } else {
-    const body=await response.json();
-    console.log(body?.shippingWeightRevision==="hiraeth-frete-300-500-20261116"
-      ? "INFO: checkout implantado inclui a revisão de pesos 300/500 g (ainda exige homologação)."
-      : "AVISO: checkout implantado ainda não confirmou a revisão 300/500 g; fazer deploy da Edge Function.");
-  }
-} catch {
-  console.log("AVISO: versão do checkout indisponível; sem confirmação do deploy.");
-}
-
-console.log(`Resultado: ${8-failures}/8 verificações passaram. Este teste NÃO valida login, checkout pago, etiqueta, NFC ou NF-e reais.`);
+console.log(`Resultado: ${checks-failures}/${checks} verificações passaram. Este teste NÃO valida login, checkout pago, etiqueta, NFC ou NF-e reais.`);
 if(failures)process.exitCode=1;
