@@ -12,6 +12,11 @@ describe("Permanent portal NFC links", () => {
     const edited = { ...original, name: "Novo título", intro_video_url: "/outro.mp4" };
     expect(permanentPortalUrl(edited.slug)).toBe(permanentPortalUrl(original.slug));
   });
+  it("uses separate collection destinations without an individual key", () => {
+    expect(permanentPortalUrl("gilmore-girls")).toBe("https://hiraeth-oficial.lovable.app/portal/gilmore-girls");
+    expect(permanentPortalUrl("gilmore-girls")).not.toBe(permanentPortalUrl("o-mundo-de-magia"));
+    expect(permanentPortalUrl("gilmore-girls")).not.toContain("?chave=");
+  });
   it("refuses invalid or missing slugs instead of producing broken NFC tags", () => {
     expect(() => permanentPortalUrl("")).toThrow();
     expect(() => permanentPortalUrl("https://preview.example")).toThrow();

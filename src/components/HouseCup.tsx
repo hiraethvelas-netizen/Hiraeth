@@ -27,7 +27,6 @@ export function HouseCup({ variant = "community" }: { variant?: "community" | "p
   const [canChoose, setCanChoose] = useState(false);
   const [showChoice, setShowChoice] = useState(false);
   const [choosing, setChoosing] = useState(false);
-  const [claimError, setClaimError] = useState("");
 
   const refresh = useCallback(async () => {
     setRefreshing(true);
@@ -65,28 +64,14 @@ export function HouseCup({ variant = "community" }: { variant?: "community" | "p
   }, [refresh]);
 
   async function discoverHouse() {
-    setClaimError("");
     const { data, error } = await supabase.auth.getUser();
     if (error) {
-      setClaimError("Não foi possível verificar a sua conta. Tente novamente.");
+      toast.error("Não foi possível verificar a sua conta. Tente novamente.");
       return;
     }
     if (!data.user) {
       window.location.assign("/auth?mode=signup" + (portal ? "&source=portal-nfc" : "") + "&redirect=" + encodeURIComponent(window.location.pathname));
       return;
-    }
-    // NFC individual ainda pode ser vinculado para a experiência do portal,
-    // mas nunca impede que alguém escolha sua casa e receba o selo.
-    const token = window.sessionStorage.getItem("hiraeth:nfc:pending-token");
-    if (token && /^[0-9a-f]{64}$/.test(token)) {
-      const { data: claimed, error: claimError } = await (supabase as any)
-        .rpc("claim_house_nfc_access_code", { p_token: token });
-      if (!claimError && claimed === true) {
-        window.sessionStorage.removeItem("hiraeth:nfc:pending-token");
-        toast.success("Seu portal NFC foi vinculado à sua conta!");
-      } else {
-        console.warn("O código NFC não pôde ser vinculado.", claimError);
-      }
     }
     // A RLS permite gerenciar somente a casa da própria conta.
     setCanChoose(true);
@@ -148,7 +133,6 @@ export function HouseCup({ variant = "community" }: { variant?: "community" | "p
       {!portal && !loading && !errorMessage && total === 0 && <p className="mt-5 text-xs text-muted-foreground">
         Seja uma das primeiras pessoas a representar sua casa.
       </p>}
-      {claimError && <p role="alert" className="mx-auto mt-5 max-w-lg text-sm font-semibold text-[#ffdf9c]">{claimError}</p>}
       {showChoice && <div className="mx-auto mt-7 max-w-lg rounded-2xl border border-[#b1bee9]/70 bg-[#f7efda] p-5 text-[#223047]">
         <h3 className="mb-2 font-display text-2xl">Escolha sua casa</h3>
         <p className="mb-4 text-sm">Escolha sua casa para receber seu selinho no Círculo do Fogo.</p>
