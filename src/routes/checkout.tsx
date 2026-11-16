@@ -579,7 +579,7 @@ function CheckoutHiraeth() {
             className="rounded-lg border border-primary/50 px-4 py-3 text-sm font-semibold text-primary disabled:opacity-50">
             {busy?"Conferindo...":"Conferir status do pagamento"}
           </button>
-        </div> : paymentView==="pix" ? <div className="mt-6 text-center">
+        </div> : paymentView==="pix" && outcome?.qrCode ? <div className="mt-6 text-center">
           <h3 className="font-display text-xl text-foreground">Seu Pix está aguardando pagamento</h3>
           {outcome.qrCodeBase64&&<img alt="Código QR para pagamento Pix"
             src={"data:image/png;base64,"+outcome.qrCodeBase64}
