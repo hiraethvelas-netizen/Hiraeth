@@ -293,25 +293,28 @@ function CorreioDaFenix() {
     setHealth(null);
     setHealthError("");
     setBackendShippingVersion(null);
-    // Config is read-only and safe to check before authentication/provider health:
-    // even when integrations are disabled, it distinguishes an old deployed
-    // function from the updated freight rules in the GitHub/frontend code.
     try {
-      const {data:versionData,error:versionError}=await supabase.functions.invoke("commerce-checkout", {
-        body:{action:"config"},
-      });
-      setBackendShippingVersion(versionError ? "unavailable" :
-        versionData?.shippingWeightRevision===SHIPPING_WEIGHT_REVISION?"current":"old");
-    } catch {
-      setBackendShippingVersion("unavailable");
-    }
-    try {
-      // Request the diagnostic using the signed-in admin session explicitly.
-      // It is a read-only endpoint; no payment or shipment operation is retried.
+      // The hosted gateway requires a valid customer JWT even for the
+      // read-only config route. Use the authenticated admin session for both
+      // checks without weakening authentication on the Edge Function.
       const {data:auth,error:authError}=await supabase.auth.getSession();
       const accessToken=auth.session?.access_token;
-      if(authError || !accessToken)
+      if(authError || !accessToken) {
+        setBackendShippingVersion("unavailable");
         throw new Error("Sua sessão expirou. Entre novamente na administração da Hiraeth.");
+      }
+      try {
+        const {data:versionData,error:versionError}=await supabase.functions.invoke("commerce-checkout", {
+          body:{action:"config"},
+          headers:{Authorization:`Bearer ${accessToken}`},
+        });
+        setBackendShippingVersion(versionError || versionData?.error ? "unavailable" :
+          versionData?.shippingWeightRevision===SHIPPING_WEIGHT_REVISION?"current":"old");
+      } catch {
+        setBackendShippingVersion("unavailable");
+      }
+      // Provider health remains a separate admin-only, sandbox-only query.
+      // No payment or shipment operation is retried by this diagnostic.
       for(let attempt=0;attempt<2;attempt++){
         try {
           const {data,error:checkError}=await supabase.functions.invoke("commerce-checkout", {
