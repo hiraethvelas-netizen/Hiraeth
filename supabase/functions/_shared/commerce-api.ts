@@ -234,8 +234,19 @@ export async function freightQuotes(
     length: Number(env("HIRAETH_SMALL_PACKAGE_LENGTH_CM")),
     height: Number(env("HIRAETH_SMALL_PACKAGE_HEIGHT_CM")),
   } : null;
-  const tare = Number(Deno.env.get("HIRAETH_PACKAGE_TARE_GRAMS") || "0");
-  if (Deno.env.get("MELHOR_ENVIO_ENV") === "production" && tare <= 0) {
+  // For ONE 100 g or 250 g candle, the owner's provisional estimates are
+  // 200/400 g without the parcel plus approximately 100 g of protection,
+  // giving 300/500 g total. Use this fallback only for sandbox quotes.
+  // A configured tare always wins; live shipping still requires a separately
+  // verified positive tare and explicit freight-provider configuration.
+  const isSingleKnownCandle = items.length === 1 && items[0]?.quantity === 1 &&
+    (items[0].shippingSize === "small" || items[0].shippingSize === "large");
+  const defaultTare = Deno.env.get("MELHOR_ENVIO_ENV") !== "production" && isSingleKnownCandle
+    ? 100 : 0;
+  const configuredTare = Deno.env.get("HIRAETH_PACKAGE_TARE_GRAMS")?.trim();
+  const tare = Number(configuredTare || String(defaultTare));
+  if (Deno.env.get("MELHOR_ENVIO_ENV") === "production" &&
+      (!configuredTare || !Number.isFinite(tare) || tare <= 0)) {
     throw new Error("Meça o peso da caixa e dos materiais de proteção antes de ativar fretes reais.");
   }
   const parcel = calculateShippingPackage(
