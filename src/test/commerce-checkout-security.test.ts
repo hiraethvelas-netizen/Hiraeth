@@ -3,7 +3,7 @@ import {
   calculateCheckoutPrice, snapshotProducts, validateItems, money,
 } from "../../supabase/functions/_shared/commerce-pricing";
 import { validMercadoPagoSignature } from "../../supabase/functions/_shared/mercado-pago-signature";
-import { calculateShippingPackage } from "../../supabase/functions/_shared/commerce-shipping";
+import { calculateShippingPackage, SHIPPING_WEIGHT_REVISION } from "../../supabase/functions/_shared/commerce-shipping";
 import { canAccessCommerce } from "../../supabase/functions/_shared/commerce-access";
 import { isSandboxCheckout, providerModeMatchesCheckout, mayCreateRealOrder, paymentAmountMatchesCheckout } from "../../supabase/functions/_shared/commerce-sandbox";
 import { hasAllowedMercadoPagoCredential } from "../../supabase/functions/_shared/mercado-pago-credentials";
@@ -96,6 +96,10 @@ describe("Checkout Hiraeth — precificação sempre no servidor", () => {
 
 
 describe("Hiraeth — candle size and protected parcel calculations", () => {
+  it("identifies the freight revision that the admin should verify after backend deployment", () => {
+    expect(SHIPPING_WEIGHT_REVISION).toBe("hiraeth-frete-300-500-20261116");
+  });
+
   const candle = {
     ...goods[0], product_type: "candle",
     variants: [
