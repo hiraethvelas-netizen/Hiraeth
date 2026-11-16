@@ -9,6 +9,7 @@ import { requireAuthenticatedUser } from "@/lib/require-auth";
 import { checkoutRecipientFromMetadata, checkoutMetadataFromRecipient, emptyCheckoutRecipient } from "@/lib/checkout-recipient";
 import { commerceFailureMessage, isResolvedCheckoutStatus } from "@/lib/commerce-errors";
 import { isValidBrazilianDocument, isValidBrazilianPhone } from "../../supabase/functions/_shared/commerce-document";
+import { saveCheckoutReference, readCheckoutReference, clearCheckoutReference, restoreCheckout } from "@/lib/checkout-recovery";
 
 export const Route = createFileRoute("/checkout")({
   ssr: false,
@@ -116,6 +117,8 @@ function CheckoutHiraeth() {
   const [customerNote,setCustomerNote]=useState("");
   const [packingVideoRequested,setPackingVideoRequested]=useState(false);
   const profileInitialized=useRef(false);
+  const activeCustomerId=useRef<string|null>(null);
+  const [recoveryError,setRecoveryError]=useState("");
   const [coupon,setCoupon]=useState("");
   const [config,setConfig]=useState<{enabled:boolean;publicKey:string|null;sandbox:boolean}|null>(null);
   const [quotes,setQuotes]=useState<FreightQuote[]>([]);
@@ -138,12 +141,14 @@ function CheckoutHiraeth() {
     let active=true;
     setLoading(true);
     setConfigIssue("");
+    setRecoveryError("");
     const loadConfig=async()=>{
       try {
         // Wait for authentication to finish before requesting the same
         // signed-in checkout configuration used by ordinary shoppers.
         const { data: auth, error: authError } = await supabase.auth.getUser();
         if (authError || !auth.user) throw new Error("Sua sessão expirou. Entre novamente para testar o checkout.");
+        activeCustomerId.current=auth.user.id;
         const fromAccount=checkoutRecipientFromMetadata(auth.user.user_metadata);
         if (!active) return;
         setSavedRecipient(fromAccount);
@@ -157,6 +162,27 @@ function CheckoutHiraeth() {
         setConfig({enabled:!!data['enabled'],publicKey:data['publicKey']??null,sandbox:data['sandbox']!==false});
         setPayerEmail(auth.user.email??"");
         try{setCoupon(sessionStorage.getItem("hiraeth-checkout-coupon")??"");}catch{/* optional */}
+        if (data["enabled"]) {
+          // Read-only recovery: never repeat a request to charge after refresh.
+          const previousId=readCheckoutReference(auth.user.id);
+          if(previousId){
+            try{
+              const response=await commerceCall({action:"status",checkoutId:previousId});
+              if(!active)return;
+              const previous=restoreCheckout(response["checkout"]);
+              if(previous){
+                setCheckout(previous.checkout);
+                setOutcome(previous.outcome);
+                setPaymentNeedsReview(previous.needsReview);
+                if(previous.needsReview)
+                  setError("Existe uma tentativa anterior sem confirmação. Confira o status antes de pagar novamente.");
+              }else clearCheckoutReference(auth.user.id);
+            }catch{
+              if(!active)return;
+              setRecoveryError("Não conseguimos consultar a tentativa anterior. Confira o pagamento antes de criar outra cobrança.");
+            }
+          }
+        }
         if (!data['enabled']) {
           // The API returns only failing setup field names, and only after
           // verifying this user is an administrator. Never show secret values.
@@ -211,6 +237,7 @@ function CheckoutHiraeth() {
           packing_video_requested:packingVideoRequested},
         freightServiceId:selectedFreight,couponCode:coupon.trim()});
       setCheckout(data['checkout'] as CheckoutSummary);
+      saveCheckoutReference(activeCustomerId.current??"",String(data["checkout"]?.id??""));
       // Save corrected own-profile data automatically; for other addresses,
       // save only when explicitly requested. Never replace account details
       // with information about a gift recipient.
@@ -238,6 +265,7 @@ function CheckoutHiraeth() {
       setOutcome(payment);
       setPaymentNeedsReview(false);
       if(payment.status==="paid") cart.clear();
+      if(payment.status==="rejected") clearCheckoutReference(activeCustomerId.current);
       else if(payment.status==="paid_attention")
         setError("Pagamento recebido, mas o pedido precisa de revisão da Hiraeth. Não pague novamente.");
       else if(payment.status==="rejected") setError("Pagamento recusado. Para tentar novamente, revise a compra.");
@@ -268,6 +296,7 @@ function CheckoutHiraeth() {
         });
         setPaymentNeedsReview(false);
         if(status==="paid") cart.clear();
+        if(status==="rejected") clearCheckoutReference(activeCustomerId.current);
         if(status==="paid_attention")
           setError("Pagamento recebido, mas precisa de conferência. Não pague novamente.");
       } else {
@@ -296,6 +325,7 @@ function CheckoutHiraeth() {
           setError("Pagamento recebido e encaminhado para revisão. Não pague novamente.");
         }else if(status==="rejected"){
           setOutcome(old=>old?{...old,status}:old);
+          clearCheckoutReference(activeCustomerId.current);
         }
       }catch{/* status will retry; payment is never retried automatically */}
     };
@@ -333,7 +363,7 @@ function CheckoutHiraeth() {
   return <div className="hiraeth-checkout-page min-h-screen min-w-0">
     <SiteHeader/>
     <main className="hiraeth-checkout mx-auto w-full max-w-3xl px-4 pb-20 pt-8 sm:px-6 sm:pt-12">
-      <Link to="/carrinho" className="inline-flex items-center gap-2 text-sm text-primary"><ArrowLeft size={16}/> Voltar à sacola</Link>
+      <Link to="/carrinho" onClick={()=>{if(outcome?.status==="paid"||outcome?.status==="rejected")clearCheckoutReference(activeCustomerId.current);}} className="inline-flex items-center gap-2 text-sm text-primary"><ArrowLeft size={16}/> Voltar à sacola</Link>
       <p className="eyebrow mt-8">O Correio da Fênix</p>
       <h1 className="mt-2 font-display text-4xl text-foreground sm:text-5xl">Finalizar Compra</h1>
       <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
@@ -355,7 +385,10 @@ function CheckoutHiraeth() {
       {config?.enabled&&cart.items.length===0&&!outcome&&<p className="mt-8 text-muted-foreground">Sua sacola está vazia. Escolha suas velas antes de continuar.</p>}
       {error&&<p role="alert" className="mt-5 rounded-lg border border-[#c89b82] bg-[#3a211d] px-4 py-3 text-sm text-[#fff1e7]">{error}</p>}
 
-      {config?.enabled&&cart.items.length>0&&!checkout&&(
+      {config?.enabled&&recoveryError&&<section role="alert" className="mt-6 rounded-lg border border-primary/40 bg-card p-5 text-sm text-foreground">
+        <p>{recoveryError}</p><button type="button" onClick={()=>setConfigAttempt(n=>n+1)} className="mt-3 underline text-primary">Consultar novamente</button>
+      </section>}
+      {config?.enabled&&!recoveryError&&cart.items.length>0&&!checkout&&(
         <form onSubmit={beginPayment} className="mt-8 space-y-6">
           <section className="rounded-xl border border-primary/25 bg-card p-4 sm:p-6">
             <div className="flex items-center gap-2"><Package size={19} className="text-primary"/>
@@ -509,7 +542,8 @@ function CheckoutHiraeth() {
           <p className="mt-2 text-sm text-foreground">{config.sandbox
             ?"Simulação concluída. Nenhuma venda real foi criada e o estoque não foi alterado."
             :"Sua compra está registrada. Acompanhe tudo em Meus pedidos."}</p>
-          {!config.sandbox&&<Link to="/pedidos" className="btn-gold mt-4">Ver meus pedidos</Link>}
+          {!config.sandbox&&<Link to="/pedidos" onClick={()=>clearCheckoutReference(activeCustomerId.current)} className="btn-gold mt-4">Ver meus pedidos</Link>}
+          <Link to="/loja" onClick={()=>clearCheckoutReference(activeCustomerId.current)} className="mt-4 inline-block text-sm text-primary underline">Fazer outra compra</Link>
         </div> : outcome?.status==="paid_attention" ? (
           <p role="alert" className="mt-5 text-sm text-foreground">{config.sandbox
             ?"O pagamento simulado precisa de conferência. Nenhuma venda real foi registrada."

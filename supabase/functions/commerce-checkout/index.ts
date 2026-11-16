@@ -103,7 +103,7 @@ Deno.serve(async (req: Request) => {
     if (body.action === "status") {
       const id = String(body.checkoutId ?? "");
       const { data, error } = await db.from("commerce_checkouts")
-        .select("id,status,total,shipping,discount,order_id,mp_payment_id,pix_qr_code,pix_qr_code_base64,expires_at,last_error")
+        .select("id,status,total,subtotal,shipping,discount,order_id,mp_payment_id,pix_qr_code,pix_qr_code_base64,expires_at,last_error")
         .eq("id", id).eq("user_id", user.id).maybeSingle();
       if (error || !data) return json({ error: "Pagamento não encontrado." }, 404);
       return json({ checkout: data });
