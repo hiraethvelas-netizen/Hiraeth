@@ -272,10 +272,12 @@ function CheckoutHiraeth() {
       setOutcome(payment);
       setPaymentNeedsReview(false);
       if(payment.status==="paid") cart.clear();
-      if(payment.status==="rejected") clearCheckoutReference(activeCustomerId.current);
       else if(payment.status==="paid_attention")
         setError("Pagamento recebido, mas o pedido precisa de revisão da Hiraeth. Não pague novamente.");
-      else if(payment.status==="rejected") setError("Pagamento recusado. Para tentar novamente, revise a compra.");
+      else if(payment.status==="rejected"){
+        clearCheckoutReference(activeCustomerId.current);
+        setError("Pagamento recusado. Para tentar novamente, revise a compra.");
+      }
       return;
     }catch(cause){
       setPaymentNeedsReview(true);
