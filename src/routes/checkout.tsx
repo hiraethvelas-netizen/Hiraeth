@@ -176,7 +176,10 @@ function CheckoutHiraeth() {
                 setPaymentNeedsReview(previous.needsReview);
                 if(previous.needsReview)
                   setError("Existe uma tentativa anterior sem confirmação. Confira o status antes de pagar novamente.");
-              }else clearCheckoutReference(auth.user.id);
+              }else{
+                // Never discard an uncertain checkout without verifying provider state.
+                setRecoveryError("Não conseguimos reconhecer o status anterior. Consulte o pagamento antes de tentar novamente.");
+              }
             }catch{
               if(!active)return;
               setRecoveryError("Não conseguimos consultar a tentativa anterior. Confira o pagamento antes de criar outra cobrança.");
