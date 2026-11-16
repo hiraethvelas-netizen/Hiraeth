@@ -108,7 +108,7 @@ describe("Cadastro Hiraeth: casa independente de NFC", () => {
     fillFields();
     fireEvent.click(screen.getByRole("button", { name: "Criar conta" }));
     await waitFor(() => expect(mocks.navigate).toHaveBeenCalledWith({ to: "/portal/o-mundo-de-magia" }));
-    expect(mocks.signup.mock.calls[0][0].options.data).not.toHaveProperty("hiraeth_nfc_pending_token");
+    expect(mocks.signup.mock.calls[0]?.[0]?.options?.data).not.toHaveProperty("hiraeth_nfc_pending_token");
     expect(mocks.upsert).toHaveBeenCalledWith(expect.objectContaining({ user_id: CUSTOMER, house: "texugo" }), { onConflict: "user_id" });
     expect(mocks.rpc).not.toHaveBeenCalledWith("claim_house_nfc_access_code", expect.anything());
   });
