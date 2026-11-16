@@ -66,7 +66,7 @@ export function HouseCup({ variant = "community" }: { variant?: "community" | "p
   async function discoverHouse() {
     const { data, error } = await supabase.auth.getUser();
     if (error) {
-      setClaimError("Não foi possível verificar a sua conta. Tente novamente.");
+      toast.error("Não foi possível verificar a sua conta. Tente novamente.");
       return;
     }
     if (!data.user) {
