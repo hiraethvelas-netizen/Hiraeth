@@ -4,6 +4,7 @@ import { FileCheck2, FileText, PackageCheck, Printer, RefreshCw, Truck } from "l
 import { supabase } from "@/integrations/supabase/client";
 import { brl } from "@/lib/format";
 import { isCancelledHealthCheck } from "@/lib/integration-health-errors";
+import { SHIPPING_WEIGHT_REVISION } from "../../../supabase/functions/_shared/commerce-shipping";
 import { orderDeliveryInfo } from "@/lib/order-details";
 import { orderItemVariantLabel } from "@/lib/order-operations";
 import type { Json } from "@/integrations/supabase/types";
@@ -258,6 +259,7 @@ function CorreioDaFenix() {
   const [health,setHealth]=useState<IntegrationHealth|null>(null);
   const [healthError,setHealthError]=useState("");
   const [checkingHealth,setCheckingHealth]=useState(false);
+  const [backendShippingVersion,setBackendShippingVersion]=useState<"current"|"old"|"unavailable"|null>(null);
 
   const load=useCallback(async()=>{
     setLoading(true);
@@ -290,6 +292,19 @@ function CorreioDaFenix() {
     setCheckingHealth(true);
     setHealth(null);
     setHealthError("");
+    setBackendShippingVersion(null);
+    // Config is read-only and safe to check before authentication/provider health:
+    // even when integrations are disabled, it distinguishes an old deployed
+    // function from the updated freight rules in the GitHub/frontend code.
+    try {
+      const {data:versionData,error:versionError}=await supabase.functions.invoke("commerce-checkout", {
+        body:{action:"config"},
+      });
+      setBackendShippingVersion(versionError ? "unavailable" :
+        versionData?.shippingWeightRevision===SHIPPING_WEIGHT_REVISION?"current":"old");
+    } catch {
+      setBackendShippingVersion("unavailable");
+    }
     try {
       // Request the diagnostic using the signed-in admin session explicitly.
       // It is a read-only endpoint; no payment or shipment operation is retried.
@@ -347,6 +362,14 @@ function CorreioDaFenix() {
         className="mt-3 rounded-lg border border-primary/50 px-4 py-2 text-sm font-semibold text-primary disabled:opacity-50">
         {checkingHealth?"Conferindo...":"Verificar integrações de teste"}
       </button>
+      {backendShippingVersion&&<p role="status" className="mt-3 text-sm text-foreground">
+        <strong>Versão do cálculo de frete no servidor: </strong>
+        {backendShippingVersion==="current"
+          ? "Atualizada para os pesos estimados de 300 g/500 g (a cotação real ainda precisa ser testada)."
+          : backendShippingVersion==="old"
+            ? "Desatualizada. O código novo já está na loja, mas falta implantar a função commerce-checkout no backend da Lovable."
+            : "Não foi possível consultar a versão. Confira a conexão e a função commerce-checkout."}
+      </p>}
       {healthError&&<p role="alert" className="mt-3 text-sm text-destructive">{healthError}</p>}
       {health&&<div role="status" className="mt-4 space-y-2 text-sm text-foreground">
         <p><strong>Mercado Pago:</strong> {PROVIDER_STATUS[health.mercadoPago]??"Não verificado"}</p>
