@@ -1,3 +1,5 @@
+import { isValidBrazilianDocument } from "./commerce-document.ts";
+
 /**
  * Keep the payer's identity separate from the delivery recipient in a gift.
  * Source documents are validated before storage by validateRecipient().
@@ -10,7 +12,7 @@ export function payerDocumentForPayment(recipient: {
   const document=recipient.gift===true
     ? digits(recipient.payer_document)
     : digits(recipient.document);
-  if (![11,14].includes(document.length))
+  if (!isValidBrazilianDocument(document))
     throw new Error("Informe um CPF ou CNPJ válido para o pagamento.");
   return document;
 }

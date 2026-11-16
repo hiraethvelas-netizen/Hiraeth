@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { requireAuthenticatedUser } from "@/lib/require-auth";
 import { checkoutRecipientFromMetadata, checkoutMetadataFromRecipient, emptyCheckoutRecipient } from "@/lib/checkout-recipient";
 import { commerceFailureMessage, isResolvedCheckoutStatus } from "@/lib/commerce-errors";
+import { isValidBrazilianDocument, isValidBrazilianPhone } from "../../supabase/functions/_shared/commerce-document";
 
 export const Route = createFileRoute("/checkout")({
   ssr: false,
@@ -197,8 +198,12 @@ function CheckoutHiraeth() {
     if(busy||selectedFreight==null)return;
     setBusy(true);setError("");
     try{
-      if (isGift && ![11,14].includes(buyerDocument.replace(/\D/g,"").length))
-        throw new Error("Para enviar um presente, informe o CPF/CNPJ de quem está comprando.");
+      if (!isValidBrazilianDocument(recipient.document))
+        throw new Error("Confira o CPF/CNPJ do destinatário antes de continuar.");
+      if (!isValidBrazilianPhone(recipient.phone))
+        throw new Error("Confira o telefone com DDD antes de continuar.");
+      if (isGift && !isValidBrazilianDocument(buyerDocument))
+        throw new Error("Para enviar um presente, informe um CPF/CNPJ válido de quem está comprando.");
       const data=await commerceCall({action:"init",items:itemInputs,
         recipient:{...recipient,gift:isGift,
           payer_document:isGift?buyerDocument.replace(/\D/g,""):recipient.document.replace(/\D/g,""),

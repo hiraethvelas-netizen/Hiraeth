@@ -2,6 +2,7 @@ import { createClient, type SupabaseClient } from "https://esm.sh/@supabase/supa
 import { calculateShippingPackage, type ShippingPackage, type ShippingItem } from "./commerce-shipping.ts";
 import { hasAllowedMercadoPagoCredential } from "./mercado-pago-credentials.ts";
 import { normalizeCustomerRequests } from "./checkout-requests.ts";
+import { isValidBrazilianDocument, isValidBrazilianPhone } from "./commerce-document.ts";
 import { safeMercadoPagoError } from "./mercado-pago-safe-errors.ts";
 export { canAccessCommerce } from "./commerce-access.ts";
 
@@ -168,13 +169,15 @@ export function validateRecipient(input: any, email: string): Recipient {
   const number = str("number"), street = str("street"), district = str("district"), city = str("city");
   if (name.length < 3 || street.length < 3 || !number || !district || !city || !/^[A-Z]{2}$/.test(state))
     throw new Error("Confira nome, rua, número, bairro, cidade e UF da entrega.");
-  if (![11,14].includes(document.length)) throw new Error("Informe um CPF ou CNPJ válido.");
+  if (!isValidBrazilianDocument(document)) throw new Error("Informe um CPF ou CNPJ válido.");
   const gift = input.gift === true;
   const payerDocument = gift ? str("payer_document").replace(/\D/g,"") : document;
-  if (![11,14].includes(payerDocument.length))
+  if (!isValidBrazilianDocument(payerDocument))
     throw new Error("Informe o CPF ou CNPJ de quem está comprando o presente.");
+  const phone = str("phone").replace(/\D/g,"");
+  if (!isValidBrazilianPhone(phone)) throw new Error("Informe um telefone válido com DDD.");
   return {
-    name, document, email, phone: str("phone").replace(/\D/g,""),
+    name, document, email, phone,
     gift, payer_document:payerDocument,
     ...normalizeCustomerRequests(input.customer_note, input.packing_video_requested),
     postal_code: postalCode(input.postal_code), street, number,
