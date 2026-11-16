@@ -35,6 +35,7 @@ function AccountSettings() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [marketingOptIn, setMarketingOptIn] = useState(false);
   const [documentNumber, setDocumentNumber] = useState("");
   const [address, setAddress] = useState<DeliveryAddress>(emptyAddress);
   const [loading, setLoading] = useState(true);
@@ -55,6 +56,7 @@ function AccountSettings() {
       setName(user.user_metadata?.["display_name"] ?? user.user_metadata?.["full_name"] ?? "");
       setEmail(user.email ?? "");
       setPhone(user.user_metadata?.["phone"] ?? "");
+      setMarketingOptIn(user.user_metadata?.["hiraeth_marketing_opt_in"] === true);
       setDocumentNumber(String(user.user_metadata?.["document"] ?? user.user_metadata?.["cpf_cnpj"] ?? ""));
       const savedAddress = user.user_metadata?.["address"];
       if (savedAddress && typeof savedAddress === "object") {
@@ -115,6 +117,7 @@ function AccountSettings() {
         data: {
           display_name: name.trim(),
           phone: phone.trim(),
+          hiraeth_marketing_opt_in: marketingOptIn,
           document: digits,
           address: Object.fromEntries(Object.entries(address).map(([key, value]) => [key, value.trim()])),
         },
@@ -201,6 +204,19 @@ function AccountSettings() {
               <span className="mt-1 block text-xs text-muted-foreground">Dado privado usado somente para preencher suas próximas compras. Nunca aparece na comunidade.</span>
             </label>
           </div>
+        </section>
+
+        <section className={panelClass}>
+          <h2 className="text-2xl text-foreground">Comunicações da Hiraeth</h2>
+          <label className="mt-4 flex cursor-pointer items-start gap-3 text-sm text-foreground">
+            <input type="checkbox" checked={marketingOptIn} onChange={e=>setMarketingOptIn(e.target.checked)}
+              className="mt-1 h-4 w-4 shrink-0 accent-[#878e47]"/>
+            <span>Quero receber novidades, lançamentos e ofertas da Hiraeth por e-mail ou WhatsApp, usando os contatos que eu cadastrar.</span>
+          </label>
+          <p className="mt-3 text-xs leading-5 text-muted-foreground">
+            Esta autorização é opcional, começa desmarcada e pode ser retirada aqui a qualquer momento.
+            Mensagens necessárias sobre pedidos e atendimento não dependem desta escolha.
+          </p>
         </section>
 
         <section className={panelClass}>
