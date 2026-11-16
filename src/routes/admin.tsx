@@ -12,6 +12,7 @@ export const Route = createFileRoute("/admin")({
 
 const PRIMARY_NAV = [
   { to: "/admin", label: "Início" },
+  { to: "/admin/dados", label: "Dados e Clientes" },
   { to: "/admin/portais", label: "Portais NFC" },
   { to: "/admin/aparencia", label: "Aparência" },
 ] as const;
