@@ -50,3 +50,19 @@ export function restoreCheckout(raw:unknown):RestoredCheckout|null{
     },
   };
 }
+
+/** Single source of truth for displaying payment actions after a server check. */
+export type CheckoutPaymentView = "paid"|"attention"|"verify"|"pix"|"waiting"|"rejected"|"methods";
+export function checkoutPaymentView(
+  outcome: {status?:string;qrCode?:string|null}|null,
+  needsReview: boolean,
+): CheckoutPaymentView {
+  if(outcome?.status==="paid") return "paid";
+  if(outcome?.status==="paid_attention") return "attention";
+  // Network errors and unresolved prior attempts must not expose payment buttons.
+  if(needsReview) return "verify";
+  if(outcome?.qrCode) return "pix";
+  if(outcome?.status==="pending"||outcome?.status==="processing") return "waiting";
+  if(outcome?.status==="rejected") return "rejected";
+  return "methods";
+}
