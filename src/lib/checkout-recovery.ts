@@ -19,8 +19,8 @@ export function readCheckoutReference(userId:string):string|null{
     const saved:unknown=JSON.parse(raw);
     if(!saved||typeof saved!=="object"||Array.isArray(saved))return null;
     const data=saved as Record<string,unknown>;
-    if(typeof data.id==="string"&&UUID.test(data.id)&&typeof data.time==="number"&&
-      Date.now()-data.time>=0&&Date.now()-data.time<=AGE_MS)return data.id;
+    if(typeof data['id']==="string"&&UUID.test(data['id'])&&typeof data['time']==="number"&&
+      Date.now()-data['time']>=0&&Date.now()-data['time']<=AGE_MS)return data['id'];
     clearCheckoutReference(userId);
   }catch{clearCheckoutReference(userId);}
   return null;
