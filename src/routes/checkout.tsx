@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, CreditCard, Package, QrCode, ShieldCheck, Truck } from "lucide-react";
 import { SiteHeader, SiteFooter } from "@/components/SiteLayout";
+import { toast } from "sonner";
 import { useCart } from "@/lib/cart";
 import { brl } from "@/lib/format";
 import { supabase } from "@/integrations/supabase/client";
@@ -281,6 +282,16 @@ function CheckoutHiraeth() {
       setError(cause instanceof Error?cause.message:"Não foi possível confirmar a tentativa. Confira o status antes de repetir.");
       throw cause;
     }finally{setBusy(false);}
+  }
+
+  async function copyPixCode() {
+    if(!outcome?.qrCode)return;
+    try{
+      await navigator.clipboard.writeText(outcome.qrCode);
+      toast.success("Código Pix copiado!");
+    }catch{
+      toast.error("Não foi possível copiar automaticamente. Selecione o código no campo.");
+    }
   }
 
   async function verifyPaymentStatus() {
@@ -563,7 +574,7 @@ function CheckoutHiraeth() {
           <label className="mt-5 block text-left text-sm text-foreground">Código Pix copia e cola
             <textarea readOnly value={outcome.qrCode} rows={3} className={inputClass}/>
           </label>
-          <button type="button" onClick={()=>void navigator.clipboard.writeText(outcome.qrCode!)}
+          <button type="button" onClick={()=>void copyPixCode()}
             className="mt-3 rounded-lg border border-primary/45 px-4 py-2 text-sm text-primary">Copiar código Pix</button>
           <p className="mt-4 text-xs text-muted-foreground">O pedido será confirmado quando o Mercado Pago aprovar o pagamento. Nenhuma nova cobrança será feita ao atualizar esta tela.</p>
         </div> : outcome?.status==="pending" ? (
