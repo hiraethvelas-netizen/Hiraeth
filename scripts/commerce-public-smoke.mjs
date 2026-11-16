@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Public, safe Hiraeth smoke test.
- * Read-only site GETs + unauthenticated requests that MUST be rejected.
+ * Read-only site GETs + unauthenticated and unsigned requests that MUST be rejected.
  * No API keys, personal data, payments, refunds, invoices or label purchases.
  */
 const site = "https://hiraeth-oficial.lovable.app";
@@ -49,6 +49,20 @@ await probe("Expedição bloqueia leitura sem conta administrativa",
     method:"POST",headers,
     body:JSON.stringify({action:"status",orderId:"00000000-0000-4000-8000-000000000000"}),
   },[400,401,403]);
+await probe("Cotação de frete sem login é bloqueada",
+  functions+"/commerce-checkout",{
+    method:"POST",headers,
+    body:JSON.stringify({action:"quote",items:[],postalCode:"00000000"}),
+  },[401,403]);
+await probe("Webhook de pagamento rejeita assinatura inválida",
+  functions+"/commerce-webhook",{
+    method:"POST",
+    headers:{...headers,"x-request-id":"hiraeth-public-smoke",
+      "x-signature":"ts=1700000000,v1=invalid-signature"},
+    // Fake ID, impossible to authenticate; expected to stop before provider
+    // query or any read/write of orders, payments and customer data.
+    body:JSON.stringify({type:"payment",data:{id:"999999999999999999"}}),
+  },[401]);
 
 console.log(`Resultado: ${checks-failures}/${checks} verificações passaram. Este teste NÃO valida login, checkout pago, etiqueta, NFC ou NF-e reais.`);
 if(failures)process.exitCode=1;
