@@ -3,6 +3,9 @@
  * Never infer how many fragile glass candles fit: only a measured merchant
  * limit can authorize that quantity.
  */
+/** Read-only marker for checking that the deployed checkout has the confirmed 300/500 g freight rules. */
+export const SHIPPING_WEIGHT_REVISION = "hiraeth-frete-300-500-20261116";
+
 export type ShippingSize = "small" | "large";
 export type ShippingItem = {
   quantity: number;

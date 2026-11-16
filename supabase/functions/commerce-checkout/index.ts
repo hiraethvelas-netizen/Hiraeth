@@ -8,6 +8,7 @@ import { validateItems, snapshotProducts, calculateCheckoutPrice } from "../_sha
 import { isSandboxCheckout, providerModeMatchesCheckout, paymentAmountMatchesCheckout, mayCreateRealOrder } from "../_shared/commerce-sandbox.ts";
 import { payerDocumentForPayment } from "../_shared/checkout-identification.ts";
 import { checkProviderReadOnly, type ProviderCheck } from "../_shared/commerce-readiness.ts";
+import { SHIPPING_WEIGHT_REVISION } from "../_shared/commerce-shipping.ts";
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -82,6 +83,8 @@ Deno.serve(async (req: Request) => {
       sandbox: mode !== "production",
       shippingProvider: "Melhor Envio",
       maxItemsPerPackage: configuredMaxItemsPerPackage(),
+      // Read-only release marker; no credentials, financial status or user data.
+      shippingWeightRevision: SHIPPING_WEIGHT_REVISION,
       fiscalProvider: "Focus NFe",
       ...(setupIssues ? { setupIssues } : {}),
     });
