@@ -46,5 +46,29 @@ await probe("Expedição bloqueia leitura sem conta administrativa",
     method:"POST",headers,
     body:JSON.stringify({action:"status",orderId:"00000000-0000-4000-8000-000000000000"}),
   },[400,401,403]);
+
+/**
+ * Non-blocking backend release check. The hosted function can lag behind
+ * Github + published frontend; never confuse public smoke success with deploy.
+ * Only the public config action is read, without tokens or personal data.
+ */
+try {
+  const response=await fetch(functions+"/commerce-checkout",{
+    method:"POST",headers,
+    body:JSON.stringify({action:"config"}),
+    signal:AbortSignal.timeout(15000),
+  });
+  if(!response.ok) {
+    console.log("AVISO: não foi possível determinar a revisão do checkout implantado.");
+  } else {
+    const body=await response.json();
+    console.log(body?.shippingWeightRevision==="hiraeth-frete-300-500-20261116"
+      ? "INFO: checkout implantado inclui a revisão de pesos 300/500 g (ainda exige homologação)."
+      : "AVISO: checkout implantado ainda não confirmou a revisão 300/500 g; fazer deploy da Edge Function.");
+  }
+} catch {
+  console.log("AVISO: versão do checkout indisponível; sem confirmação do deploy.");
+}
+
 console.log(`Resultado: ${8-failures}/8 verificações passaram. Este teste NÃO valida login, checkout pago, etiqueta, NFC ou NF-e reais.`);
 if(failures)process.exitCode=1;
