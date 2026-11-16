@@ -177,7 +177,7 @@ function DadosEClientes() {
   const [insights,setInsights] = useState<Insights|null>(null);
   const [insightsError,setInsightsError] = useState("");
   const [search,setSearch] = useState("");
-  const [filter,setFilter] = useState<"all"|"app"|"community">("all");
+  const [filter,setFilter] = useState<"all"|"app"|"portal"|"community">("all");
   const [page,setPage] = useState(0);
   const [customers,setCustomers] = useState<CustomerPage|null>(null);
   const [customersError,setCustomersError] = useState("");
@@ -279,6 +279,7 @@ function DadosEClientes() {
           className="min-h-12 rounded-xl border border-primary/40 bg-background px-3 text-sm text-foreground">
           <option value="all">Todos os cadastrados</option>
           <option value="app">Acessaram o app</option>
+          <option value="portal">Acessaram um portal NFC</option>
           <option value="community">Entraram na comunidade</option>
         </select>
       </div>
