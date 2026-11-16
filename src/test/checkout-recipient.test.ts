@@ -60,14 +60,14 @@ describe("checkout: dados de cadastro e entrega para presente", () => {
 
   it("usa documento da compradora no pagamento de um presente", () => {
     expect(payerDocumentForPayment({
-      gift:true,document:"11111111111", payer_document:"22222222222",
-    })).toBe("22222222222");
+      gift:true,document:"52998224725", payer_document:"11444777000161",
+    })).toBe("11444777000161");
   });
 
   it("mantém o mesmo documento de pagadora e destinatária na compra comum", () => {
     expect(payerDocumentForPayment({
-      gift:false, document:"12345678901", payer_document:"22222222222",
-    })).toBe("12345678901");
+      gift:false, document:"52998224725", payer_document:"11444777000161",
+    })).toBe("52998224725");
   });
 
   it("não deixa o presente usar silenciosamente o CPF da pessoa que recebe", () => {

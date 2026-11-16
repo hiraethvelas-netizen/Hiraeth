@@ -2,12 +2,15 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, CreditCard, Package, QrCode, ShieldCheck, Truck } from "lucide-react";
 import { SiteHeader, SiteFooter } from "@/components/SiteLayout";
+import { toast } from "sonner";
 import { useCart } from "@/lib/cart";
 import { brl } from "@/lib/format";
 import { supabase } from "@/integrations/supabase/client";
 import { requireAuthenticatedUser } from "@/lib/require-auth";
 import { checkoutRecipientFromMetadata, checkoutMetadataFromRecipient, emptyCheckoutRecipient } from "@/lib/checkout-recipient";
 import { commerceFailureMessage, isResolvedCheckoutStatus } from "@/lib/commerce-errors";
+import { isValidBrazilianDocument, isValidBrazilianPhone } from "../../supabase/functions/_shared/commerce-document";
+import { saveCheckoutReference, readCheckoutReference, clearCheckoutReference, restoreCheckout } from "@/lib/checkout-recovery";
 
 export const Route = createFileRoute("/checkout")({
   ssr: false,
@@ -115,8 +118,10 @@ function CheckoutHiraeth() {
   const [customerNote,setCustomerNote]=useState("");
   const [packingVideoRequested,setPackingVideoRequested]=useState(false);
   const profileInitialized=useRef(false);
+  const activeCustomerId=useRef<string|null>(null);
+  const [recoveryError,setRecoveryError]=useState("");
   const [coupon,setCoupon]=useState("");
-  const [config,setConfig]=useState<{enabled:boolean;publicKey:string|null;sandbox:boolean}|null>(null);
+  const [config,setConfig]=useState<{enabled:boolean;publicKey:string|null;sandbox:boolean;maxItemsPerPackage:number}|null>(null);
   const [quotes,setQuotes]=useState<FreightQuote[]>([]);
   const [selectedFreight,setSelectedFreight]=useState<number|null>(null);
   const [checkout,setCheckout]=useState<CheckoutSummary|null>(null);
@@ -129,6 +134,8 @@ function CheckoutHiraeth() {
   const [configIssue,setConfigIssue]=useState("");
   const [configAttempt,setConfigAttempt]=useState(0);
 
+  const cartUnitCount=cart.items.reduce((sum,item)=>sum+item.quantity,0);
+  const shippingLimitExceeded=!!config&&cartUnitCount>config.maxItemsPerPackage;
   const itemInputs=cart.items.map(item=>({
     productId:item.productId,quantity:item.quantity,variantKey:item.variantKey??"",
   }));
@@ -137,12 +144,14 @@ function CheckoutHiraeth() {
     let active=true;
     setLoading(true);
     setConfigIssue("");
+    setRecoveryError("");
     const loadConfig=async()=>{
       try {
         // Wait for authentication to finish before requesting the same
         // signed-in checkout configuration used by ordinary shoppers.
         const { data: auth, error: authError } = await supabase.auth.getUser();
         if (authError || !auth.user) throw new Error("Sua sessão expirou. Entre novamente para testar o checkout.");
+        activeCustomerId.current=auth.user.id;
         const fromAccount=checkoutRecipientFromMetadata(auth.user.user_metadata);
         if (!active) return;
         setSavedRecipient(fromAccount);
@@ -153,9 +162,34 @@ function CheckoutHiraeth() {
         }
         const data = await commerceCall({action:"config"});
         if (!active) return;
-        setConfig({enabled:!!data['enabled'],publicKey:data['publicKey']??null,sandbox:data['sandbox']!==false});
+        setConfig({enabled:!!data['enabled'],publicKey:data['publicKey']??null,sandbox:data['sandbox']!==false,
+          maxItemsPerPackage:Number.isSafeInteger(data["maxItemsPerPackage"])&&data["maxItemsPerPackage"]>0?Number(data["maxItemsPerPackage"]):1});
         setPayerEmail(auth.user.email??"");
         try{setCoupon(sessionStorage.getItem("hiraeth-checkout-coupon")??"");}catch{/* optional */}
+        if (data["enabled"]) {
+          // Read-only recovery: never repeat a request to charge after refresh.
+          const previousId=readCheckoutReference(auth.user.id);
+          if(previousId){
+            try{
+              const response=await commerceCall({action:"status",checkoutId:previousId});
+              if(!active)return;
+              const previous=restoreCheckout(response["checkout"]);
+              if(previous){
+                setCheckout(previous.checkout);
+                setOutcome(previous.outcome);
+                setPaymentNeedsReview(previous.needsReview);
+                if(previous.needsReview)
+                  setError("Existe uma tentativa anterior sem confirmação. Confira o status antes de pagar novamente.");
+              }else{
+                // Never discard an uncertain checkout without verifying provider state.
+                setRecoveryError("Não conseguimos reconhecer o status anterior. Consulte o pagamento antes de tentar novamente.");
+              }
+            }catch{
+              if(!active)return;
+              setRecoveryError("Não conseguimos consultar a tentativa anterior. Confira o pagamento antes de criar outra cobrança.");
+            }
+          }
+        }
         if (!data['enabled']) {
           // The API returns only failing setup field names, and only after
           // verifying this user is an administrator. Never show secret values.
@@ -170,7 +204,7 @@ function CheckoutHiraeth() {
         }
       } catch(cause) {
         if (!active) return;
-        setConfig({enabled:false,publicKey:null,sandbox:true});
+        setConfig({enabled:false,publicKey:null,sandbox:true,maxItemsPerPackage:1});
         setConfigIssue(cause instanceof Error?cause.message:"Não foi possível verificar o checkout.");
       } finally {
         if(active)setLoading(false);
@@ -197,8 +231,12 @@ function CheckoutHiraeth() {
     if(busy||selectedFreight==null)return;
     setBusy(true);setError("");
     try{
-      if (isGift && ![11,14].includes(buyerDocument.replace(/\D/g,"").length))
-        throw new Error("Para enviar um presente, informe o CPF/CNPJ de quem está comprando.");
+      if (!isValidBrazilianDocument(recipient.document))
+        throw new Error("Confira o CPF/CNPJ do destinatário antes de continuar.");
+      if (!isValidBrazilianPhone(recipient.phone))
+        throw new Error("Confira o telefone com DDD antes de continuar.");
+      if (isGift && !isValidBrazilianDocument(buyerDocument))
+        throw new Error("Para enviar um presente, informe um CPF/CNPJ válido de quem está comprando.");
       const data=await commerceCall({action:"init",items:itemInputs,
         recipient:{...recipient,gift:isGift,
           payer_document:isGift?buyerDocument.replace(/\D/g,""):recipient.document.replace(/\D/g,""),
@@ -206,6 +244,7 @@ function CheckoutHiraeth() {
           packing_video_requested:packingVideoRequested},
         freightServiceId:selectedFreight,couponCode:coupon.trim()});
       setCheckout(data['checkout'] as CheckoutSummary);
+      saveCheckoutReference(activeCustomerId.current??"",String(data["checkout"]?.id??""));
       // Save corrected own-profile data automatically; for other addresses,
       // save only when explicitly requested. Never replace account details
       // with information about a gift recipient.
@@ -235,13 +274,26 @@ function CheckoutHiraeth() {
       if(payment.status==="paid") cart.clear();
       else if(payment.status==="paid_attention")
         setError("Pagamento recebido, mas o pedido precisa de revisão da Hiraeth. Não pague novamente.");
-      else if(payment.status==="rejected") setError("Pagamento recusado. Para tentar novamente, revise a compra.");
+      else if(payment.status==="rejected"){
+        clearCheckoutReference(activeCustomerId.current);
+        setError("Pagamento recusado. Para tentar novamente, revise a compra.");
+      }
       return;
     }catch(cause){
       setPaymentNeedsReview(true);
       setError(cause instanceof Error?cause.message:"Não foi possível confirmar a tentativa. Confira o status antes de repetir.");
       throw cause;
     }finally{setBusy(false);}
+  }
+
+  async function copyPixCode() {
+    if(!outcome?.qrCode)return;
+    try{
+      await navigator.clipboard.writeText(outcome.qrCode);
+      toast.success("Código Pix copiado!");
+    }catch{
+      toast.error("Não foi possível copiar automaticamente. Selecione o código no campo.");
+    }
   }
 
   async function verifyPaymentStatus() {
@@ -263,6 +315,7 @@ function CheckoutHiraeth() {
         });
         setPaymentNeedsReview(false);
         if(status==="paid") cart.clear();
+        if(status==="rejected") clearCheckoutReference(activeCustomerId.current);
         if(status==="paid_attention")
           setError("Pagamento recebido, mas precisa de conferência. Não pague novamente.");
       } else {
@@ -291,6 +344,7 @@ function CheckoutHiraeth() {
           setError("Pagamento recebido e encaminhado para revisão. Não pague novamente.");
         }else if(status==="rejected"){
           setOutcome(old=>old?{...old,status}:old);
+          clearCheckoutReference(activeCustomerId.current);
         }
       }catch{/* status will retry; payment is never retried automatically */}
     };
@@ -328,7 +382,7 @@ function CheckoutHiraeth() {
   return <div className="hiraeth-checkout-page min-h-screen min-w-0">
     <SiteHeader/>
     <main className="hiraeth-checkout mx-auto w-full max-w-3xl px-4 pb-20 pt-8 sm:px-6 sm:pt-12">
-      <Link to="/carrinho" className="inline-flex items-center gap-2 text-sm text-primary"><ArrowLeft size={16}/> Voltar à sacola</Link>
+      <Link to="/carrinho" onClick={()=>{if(outcome?.status==="paid"||outcome?.status==="rejected")clearCheckoutReference(activeCustomerId.current);}} className="inline-flex items-center gap-2 text-sm text-primary"><ArrowLeft size={16}/> Voltar à sacola</Link>
       <p className="eyebrow mt-8">O Correio da Fênix</p>
       <h1 className="mt-2 font-display text-4xl text-foreground sm:text-5xl">Finalizar Compra</h1>
       <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
@@ -350,7 +404,11 @@ function CheckoutHiraeth() {
       {config?.enabled&&cart.items.length===0&&!outcome&&<p className="mt-8 text-muted-foreground">Sua sacola está vazia. Escolha suas velas antes de continuar.</p>}
       {error&&<p role="alert" className="mt-5 rounded-lg border border-[#c89b82] bg-[#3a211d] px-4 py-3 text-sm text-[#fff1e7]">{error}</p>}
 
-      {config?.enabled&&cart.items.length>0&&!checkout&&(
+      {config?.enabled&&recoveryError&&<section role="alert" className="mt-6 rounded-lg border border-primary/40 bg-card p-5 text-sm text-foreground">
+        <p>{recoveryError}</p><button type="button" onClick={()=>setConfigAttempt(n=>n+1)} className="mt-3 underline text-primary">Consultar novamente</button>
+      </section>}
+      {config?.enabled&&!checkout&&shippingLimitExceeded&&<p role="alert" className="mt-6 rounded-lg border border-primary/40 bg-card p-4 text-sm text-foreground">Esta embalagem ainda está habilitada para até {config.maxItemsPerPackage} {config.maxItemsPerPackage===1?"vela":"unidades"} por pedido. Ajuste a sacola ou fale com a Hiraeth para combinar o envio de várias velas sem risco de frete incorreto.</p>}
+      {config?.enabled&&!recoveryError&&!shippingLimitExceeded&&cart.items.length>0&&!checkout&&(
         <form onSubmit={beginPayment} className="mt-8 space-y-6">
           <section className="rounded-xl border border-primary/25 bg-card p-4 sm:p-6">
             <div className="flex items-center gap-2"><Package size={19} className="text-primary"/>
@@ -504,7 +562,8 @@ function CheckoutHiraeth() {
           <p className="mt-2 text-sm text-foreground">{config.sandbox
             ?"Simulação concluída. Nenhuma venda real foi criada e o estoque não foi alterado."
             :"Sua compra está registrada. Acompanhe tudo em Meus pedidos."}</p>
-          {!config.sandbox&&<Link to="/pedidos" className="btn-gold mt-4">Ver meus pedidos</Link>}
+          {!config.sandbox&&<Link to="/pedidos" onClick={()=>clearCheckoutReference(activeCustomerId.current)} className="btn-gold mt-4">Ver meus pedidos</Link>}
+          <Link to="/loja" onClick={()=>clearCheckoutReference(activeCustomerId.current)} className="mt-4 inline-block text-sm text-primary underline">Fazer outra compra</Link>
         </div> : outcome?.status==="paid_attention" ? (
           <p role="alert" className="mt-5 text-sm text-foreground">{config.sandbox
             ?"O pagamento simulado precisa de conferência. Nenhuma venda real foi registrada."
@@ -517,7 +576,7 @@ function CheckoutHiraeth() {
           <label className="mt-5 block text-left text-sm text-foreground">Código Pix copia e cola
             <textarea readOnly value={outcome.qrCode} rows={3} className={inputClass}/>
           </label>
-          <button type="button" onClick={()=>void navigator.clipboard.writeText(outcome.qrCode!)}
+          <button type="button" onClick={()=>void copyPixCode()}
             className="mt-3 rounded-lg border border-primary/45 px-4 py-2 text-sm text-primary">Copiar código Pix</button>
           <p className="mt-4 text-xs text-muted-foreground">O pedido será confirmado quando o Mercado Pago aprovar o pagamento. Nenhuma nova cobrança será feita ao atualizar esta tela.</p>
         </div> : outcome?.status==="pending" ? (

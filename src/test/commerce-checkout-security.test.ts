@@ -142,6 +142,15 @@ describe("Hiraeth — candle size and protected parcel calculations", () => {
     expect(calculateShippingPackage(large, mainBox, optInSmall, 1, 0).width).toBe(13);
   });
 
+  it("keeps big or mixed candles outside small-candle multi-packing limits", () => {
+    const big = snapshotProducts([{ productId:id,quantity:2,variantKey:"vela-g" }],[candle]);
+    const small = snapshotProducts([{ productId:id,quantity:2,variantKey:"vela-p" }],[candle]);
+    const box = { width:13,height:13,length:16 };
+    expect(() => calculateShippingPackage(big,box,null,3,75)).toThrow(/embalagem múltipla/);
+    expect(calculateShippingPackage(small,box,{width:8,height:11,length:16},3,75))
+      .toMatchObject({width:13,height:13,length:16});
+  });
+
   it("blocks unverified multi-candle shipments and invalid package weights", () => {
     const items = snapshotProducts([{ productId: id, quantity: 2, variantKey: "vela-p" }], [candle]);
     const box = { width: 13, height: 13, length: 16 };

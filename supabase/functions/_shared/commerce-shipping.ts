@@ -41,7 +41,14 @@ export function calculateShippingPackage(
   }
   // Small box is opt-in only after a physical packing test with protection.
   // Any unrecognised size or mixed order safely falls back to the main box.
-  const box = validDimensions(smallBox) &&
+  const totalUnits=items.reduce((sum,item)=>sum+item.quantity,0);
+  // A multi-unit box must have been measured for small candles. A mix of
+  // large candles or different goods cannot inherit the small-candle limit.
+  if (totalUnits > 1 && items.some(item => item.shippingSize !== "small")) {
+    throw new Error("A embalagem múltipla ainda não foi validada para estes tamanhos. Consulte a Hiraeth.");
+  }
+  // The optional small box is for one protected candle only until measured otherwise.
+  const box = totalUnits === 1 && validDimensions(smallBox) &&
     items.every(item => item.shippingSize === "small") ? smallBox : mainBox;
   const productWeight = items.reduce((sum, item) => sum + item.quantity * item.weightGrams, 0);
   const insurance = items.reduce((sum, item) => sum + item.quantity * item.price, 0);
