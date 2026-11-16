@@ -71,6 +71,7 @@ function AdminDashboard() {
     { label: "Pedidos pagos", value: String(stats.paid), detail: "Inclui pedidos em preparação e entregues", to: "/admin/pedidos" },
     { label: "Receita dos pedidos pagos", value: brl(stats.revenue), detail: "No período selecionado", to: "/admin/pedidos" },
     { label: "Portais NFC", value: String(stats.portals), detail: "Universos cadastrados", to: "/admin/portais" },
+    { label: "Dados e Clientes", value: "Ver base", detail: "Acessos ao app, portais e histórico dos clientes", to: "/admin/dados" },
   ] as const;
 
   return <div>

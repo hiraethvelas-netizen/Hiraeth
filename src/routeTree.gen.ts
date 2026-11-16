@@ -37,6 +37,7 @@ import { Route as AdminAparenciaRouteImport } from './routes/admin/aparencia'
 import { Route as AdminAvaliacoesRouteImport } from './routes/admin/avaliacoes'
 import { Route as AdminBannersRouteImport } from './routes/admin/banners'
 import { Route as AdminCategoriasRouteImport } from './routes/admin/categorias'
+import { Route as AdminDadosRouteImport } from './routes/admin/dados'
 import { Route as AdminEssenciasRouteImport } from './routes/admin/essencias'
 import { Route as AdminExpedicaoRouteImport } from './routes/admin/expedicao'
 import { Route as AdminFinanceiroRouteImport } from './routes/admin/financeiro'
@@ -192,6 +193,11 @@ const AdminCategoriasRoute = AdminCategoriasRouteImport.update({
   path: '/categorias',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminDadosRoute = AdminDadosRouteImport.update({
+  id: '/dados',
+  path: '/dados',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminEssenciasRoute = AdminEssenciasRouteImport.update({
   id: '/essencias',
   path: '/essencias',
@@ -285,6 +291,7 @@ export interface FileRoutesByFullPath {
   '/admin/avaliacoes': typeof AdminAvaliacoesRoute
   '/admin/banners': typeof AdminBannersRoute
   '/admin/categorias': typeof AdminCategoriasRoute
+  '/admin/dados': typeof AdminDadosRoute
   '/admin/essencias': typeof AdminEssenciasRoute
   '/admin/expedicao': typeof AdminExpedicaoRoute
   '/admin/financeiro': typeof AdminFinanceiroRoute
@@ -326,6 +333,7 @@ export interface FileRoutesByTo {
   '/admin/avaliacoes': typeof AdminAvaliacoesRoute
   '/admin/banners': typeof AdminBannersRoute
   '/admin/categorias': typeof AdminCategoriasRoute
+  '/admin/dados': typeof AdminDadosRoute
   '/admin/essencias': typeof AdminEssenciasRoute
   '/admin/expedicao': typeof AdminExpedicaoRoute
   '/admin/financeiro': typeof AdminFinanceiroRoute
@@ -370,6 +378,7 @@ export interface FileRoutesById {
   '/admin/avaliacoes': typeof AdminAvaliacoesRoute
   '/admin/banners': typeof AdminBannersRoute
   '/admin/categorias': typeof AdminCategoriasRoute
+  '/admin/dados': typeof AdminDadosRoute
   '/admin/essencias': typeof AdminEssenciasRoute
   '/admin/expedicao': typeof AdminExpedicaoRoute
   '/admin/financeiro': typeof AdminFinanceiroRoute
@@ -414,6 +423,7 @@ export interface FileRouteTypes {
     | '/admin/avaliacoes'
     | '/admin/banners'
     | '/admin/categorias'
+    | '/admin/dados'
     | '/admin/essencias'
     | '/admin/expedicao'
     | '/admin/financeiro'
@@ -455,6 +465,7 @@ export interface FileRouteTypes {
     | '/admin/avaliacoes'
     | '/admin/banners'
     | '/admin/categorias'
+    | '/admin/dados'
     | '/admin/essencias'
     | '/admin/expedicao'
     | '/admin/financeiro'
@@ -498,6 +509,7 @@ export interface FileRouteTypes {
     | '/admin/avaliacoes'
     | '/admin/banners'
     | '/admin/categorias'
+    | '/admin/dados'
     | '/admin/essencias'
     | '/admin/expedicao'
     | '/admin/financeiro'
@@ -736,6 +748,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminCategoriasRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/dados': {
+      id: '/admin/dados'
+      path: '/dados'
+      fullPath: '/admin/dados'
+      preLoaderRoute: typeof AdminDadosRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/essencias': {
       id: '/admin/essencias'
       path: '/essencias'
@@ -854,6 +873,7 @@ interface AdminRouteChildren {
   AdminAvaliacoesRoute: typeof AdminAvaliacoesRoute
   AdminBannersRoute: typeof AdminBannersRoute
   AdminCategoriasRoute: typeof AdminCategoriasRoute
+  AdminDadosRoute: typeof AdminDadosRoute
   AdminEssenciasRoute: typeof AdminEssenciasRoute
   AdminExpedicaoRoute: typeof AdminExpedicaoRoute
   AdminFinanceiroRoute: typeof AdminFinanceiroRoute
@@ -872,6 +892,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminAvaliacoesRoute: AdminAvaliacoesRoute,
   AdminBannersRoute: AdminBannersRoute,
   AdminCategoriasRoute: AdminCategoriasRoute,
+  AdminDadosRoute: AdminDadosRoute,
   AdminEssenciasRoute: AdminEssenciasRoute,
   AdminExpedicaoRoute: AdminExpedicaoRoute,
   AdminFinanceiroRoute: AdminFinanceiroRoute,
