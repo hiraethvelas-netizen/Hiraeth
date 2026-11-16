@@ -97,7 +97,7 @@ function CustomerDetail({ customer, onClose }: {customer:Customer;onClose:()=>vo
         if(error || !data) setError("Não foi possível consultar a ficha desta pessoa.");
         else setDetail(data);
       }).catch(()=>{
-        if(active)setError("A consulta não está disponível no banco. Verifique a migração.");
+        if(active)setError("Não foi possível carregar a ficha agora. A integração com os dados administrativos ainda pode estar em implantação.");
       }).finally(()=>{if(active)setLoading(false);});
     return()=>{active=false;};
   },[customer.id]);
@@ -199,7 +199,7 @@ function DadosEClientes() {
   const loadInsights = useCallback(async()=>{
     setInsightsError("");
     const { data,error } = await (supabase as any).rpc("hiraeth_admin_insights",{p_days:period});
-    if(error) {setInsights(null);setInsightsError("Painel indisponível. Verifique se a migração de Dados e Clientes foi aplicada ao banco.");}
+    if(error) {setInsights(null);setInsightsError("A área de Dados e Clientes está aguardando ativação técnica no banco da Hiraeth. Seus cadastros e pedidos existentes não foram apagados.");}
     else setInsights(data as Insights);
   },[period]);
 
@@ -208,7 +208,7 @@ function DadosEClientes() {
     const { data,error } = await (supabase as any).rpc("hiraeth_admin_customers",{
       p_search:search.trim(),p_filter:filter,p_limit:20,p_offset:page*20,
     });
-    if(error) {setCustomers(null);setCustomersError("Não foi possível consultar a base de clientes. Confira as permissões do banco.");}
+    if(error) {setCustomers(null);setCustomersError("A pesquisa de clientes ainda não está disponível. A atualização de segurança e consultas do banco precisa ser ativada pela administração técnica.");}
     else setCustomers(data as CustomerPage);
     setLoading(false);
   },[search,filter,page]);
