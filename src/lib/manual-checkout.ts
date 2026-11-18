@@ -92,8 +92,10 @@ export function buildManualInquiryLink(
         ({ pix: "Pix (aguardo confirmação e QR Code)", credit: "Cartão de crédito (solicito link seguro)", debit: "Débito (consultar disponibilidade)" }[details.paymentPreference]),
     ] : []),
     "",
-    "Este é um pedido de atendimento, NÃO uma compra confirmada.",
-    "Por favor, confirmem estoque, valores, descontos, frete e condições de pagamento.",
+    details ? "Este é um pedido de atendimento, NÃO uma compra confirmada." :
+      "Este contato é apenas uma consulta, não um pedido confirmado.",
+    details ? "Por favor, confirmem estoque, valores, descontos, frete e condições de pagamento." :
+      "Por favor, confirme disponibilidade, valores, descontos e frete antes de qualquer pagamento.",
     "Não enviarei dados de cartão por mensagem. A nota fiscal e o envio serão realizados pela Hiraeth após confirmação.",
   ].join("\n");
   return "https://wa.me/" + digits + "?text=" + encodeURIComponent(message);
