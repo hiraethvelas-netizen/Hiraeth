@@ -412,7 +412,7 @@ function CorreioDaFenix() {
         {!health.fiscalSecretsPresent&&<p className="rounded-lg border border-primary/30 p-3 text-foreground">
           <strong>Nota fiscal:</strong> solicite à contabilidade os dados do emitente e as regras tributárias por produto para configurar a Focus NFe em homologação. Não habilite emissão real antes da validação fiscal.
         </p>}
-        <p><strong>Embalagem pesada:</strong> {health.packageWeightMeasured?"Peso de embalagem configurado":"Falta confirmar peso físico da caixa e proteções"}</p>
+        <p><strong>Tara da embalagem:</strong> {health.packageWeightMeasured?"Valor cadastrado no servidor. Ainda precisa conferir a pesagem física da caixa pronta.":"Sem tara de embalagem configurada. Pese a caixa com todas as proteções."}</p>
         <p><strong>Documentação fiscal:</strong> {health.fiscalSecretsPresent?"Configurações fiscais presentes (não homologadas)":"Configurações fiscais incompletas"}</p>
         <p className="text-xs text-muted-foreground">
           Uma credencial aceita não comprova que pertence ao ambiente Teste nem que Pix,
