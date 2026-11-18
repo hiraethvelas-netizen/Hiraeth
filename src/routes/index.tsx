@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { CinematicOpening } from "@/components/CinematicOpening";
 import { ShortcutIcon } from "@/components/ShortcutIcon";
 import { AproxExperience } from "@/components/AproxExperience";
+import { CustomerWelcomeDialog } from "@/components/CustomerWelcomeDialog";
 import { InlineEditor } from "@/components/InlineEditor";
 import { useAdminEdit, useSiteContent } from "@/lib/admin-edit";
 
@@ -208,6 +209,7 @@ export function ExistingHomepage() {
   return (
     <div className="hiraeth-home-arrival min-h-screen bg-background">
       <SiteHeader />
+      <CustomerWelcomeDialog />
       <main>
         {isAdmin && <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-5 pt-3">
           <Link to="/admin" className="inline-flex items-center gap-2 border border-primary/50 px-4 py-2 text-sm text-primary transition-colors hover:bg-primary/10">
