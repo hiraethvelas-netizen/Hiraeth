@@ -22,31 +22,15 @@ export const Route = createFileRoute("/checkout")({
 });
 
 /**
- * The public store uses assisted WhatsApp checkout during the live.
- * Only accounts verified as admin by the database enter the original
- * Mercado Pago test screens. UI hiding does not replace server authorization.
+ * All shoppers, including an administrator buying as a customer, use the
+ * assisted checkout from the public shopping cart. Sandbox diagnostics must
+ * not appear after clicking "Finalizar pedido" in the storefront.
+ *
+ * The Mercado Pago implementation below is retained for a future, separately
+ * authorized integration/homologation; this route does not invoke it.
  */
 function CheckoutEntry() {
-  const [role, setRole] = useState<"loading" | "admin" | "customer">("loading");
-  useEffect(() => {
-    let active = true;
-    void (async () => {
-      try {
-        const { data, error } = await supabase.auth.getUser();
-        if (error || !data.user) { if (active) setRole("customer"); return; }
-        const { data: allowed, error: roleError } = await supabase.rpc("has_role", {
-          _user_id: data.user.id, _role: "admin",
-        });
-        if (active) setRole(!roleError && allowed === true ? "admin" : "customer");
-      } catch {
-        if (active) setRole("customer");
-      }
-    })();
-    return () => { active = false; };
-  }, []);
-  if (role === "loading")
-    return <div className="min-h-screen bg-background p-8 text-foreground" role="status">Preparando atendimento da Hiraeth...</div>;
-  return role === "admin" ? <CheckoutHiraeth /> : <ManualOrderCheckout />;
+  return <ManualOrderCheckout />;
 }
 
 type FreightQuote = { id: number; company: string; name: string; price: number; delivery_time: number | null };
