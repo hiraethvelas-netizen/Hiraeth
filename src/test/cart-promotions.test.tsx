@@ -7,6 +7,7 @@ const mocks = vi.hoisted(() => ({
   navigate: vi.fn(),
   failed: false,
   stock: 10,
+  isAdmin: false,
   promotions: [
     {
       id: "discount",
@@ -47,6 +48,7 @@ vi.mock("@/components/SiteLayout", () => ({ SiteHeader: () => null, SiteFooter: 
 vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: {
+    rpc: async () => ({ data: mocks.isAdmin, error: null }),
     auth: {
       getUser: async () => ({ data: { user: { id: "test-user", email: "user@example.test" } } }),
       onAuthStateChange: () => ({ data: { subscription: { unsubscribe: vi.fn() } } }),
@@ -85,6 +87,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   mocks.failed = false;
   mocks.stock = 10;
+  mocks.isAdmin = false;
   localStorage.clear();
   localStorage.setItem(
     "hiraeth-cart:v2:test-user",
@@ -94,16 +97,26 @@ beforeEach(() => {
   );
 });
 afterEach(cleanup);
-it("shows automatic benefits and opens secure checkout without creating an unpaid order", async () => {
+it("shows automatic benefits and opens the manual WhatsApp order without creating an unpaid order", async () => {
   render(<CartProvider><Cart /></CartProvider>);
   expect(await screen.findByText("Brinde: Marcador")).toBeInTheDocument();
   expect(screen.getByText("Frete grátis aplicado.")).toBeInTheDocument();
   const checkout = screen.getByRole("button", { name: "Finalizar pedido" });
   await waitFor(() => expect(checkout).toBeEnabled());
   fireEvent.click(checkout);
-  await waitFor(() => expect(mocks.navigate).toHaveBeenCalledWith({ to: "/checkout" }));
+  await waitFor(() => expect(mocks.navigate).toHaveBeenCalledWith({ to: "/pedido-whatsapp" }));
   expect(mocks.insert).not.toHaveBeenCalled();
   expect(screen.getByText("Vela teste")).toBeInTheDocument();
+});
+
+it("keeps the automated checkout route available only for verified administrators", async () => {
+  mocks.isAdmin = true;
+  render(<CartProvider><Cart /></CartProvider>);
+  const checkout = screen.getByRole("button", { name: "Finalizar pedido" });
+  await waitFor(() => expect(checkout).toBeEnabled());
+  fireEvent.click(checkout);
+  await waitFor(() => expect(mocks.navigate).toHaveBeenCalledWith({ to: "/checkout" }));
+  expect(mocks.insert).not.toHaveBeenCalled();
 });
 
 it("blocks finalization and offers retry if promotions cannot be checked", async () => {
