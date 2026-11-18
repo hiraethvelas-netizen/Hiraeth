@@ -98,17 +98,10 @@ export function ManualOrderCheckout() {
       <SiteHeader />
       <main className="mx-auto max-w-3xl px-4 pb-20 pt-24 sm:px-6 sm:pt-32">
         <p className="eyebrow">O Correio da Fênix</p>
-        <h1 className="mt-2 font-display text-4xl text-foreground sm:text-5xl">Seu pedido, com carinho</h1>
-        <p className="mt-4 text-sm leading-relaxed text-foreground">
-          Por enquanto, a Hiraeth recebe solicitações pelo WhatsApp. Escolha suas velas,
-          preencha o endereço de entrega e envie sua solicitação. Confirmaremos disponibilidade,
-          valor final, frete e pagamento antes de fechar sua compra.
+        <h1 className="mt-2 font-display text-4xl text-foreground sm:text-5xl">Finalizar pedido</h1>
+        <p role="status" className="mt-5 rounded-xl border border-primary/30 bg-card px-4 py-4 text-sm leading-7 text-foreground">
+          A área de checkout ainda está em desenvolvimento. Preencha seus dados e prossiga pelo WhatsApp.
         </p>
-        <div className="mt-5 rounded-xl border border-primary/35 bg-card p-4 text-sm text-foreground">
-          <strong>Importante:</strong> esta etapa não reserva unidades, não registra um pedido pago,
-          não emite etiqueta e não faz cobranças. O pagamento será combinado diretamente com a Hiraeth.
-          Nunca envie números de cartão ou senhas pelo WhatsApp.
-        </div>
 
         {cart.items.length === 0 ? (
           <div className="mt-8 space-y-4">
@@ -205,7 +198,7 @@ export function ManualOrderCheckout() {
               </label>
               {problem && <p role="alert" className="rounded-lg border border-destructive/50 px-4 py-3 text-sm text-destructive">{problem}</p>}
               <button type="submit" disabled={loading} className="btn-gold w-full justify-center disabled:opacity-50">
-                {loading ? "Preparando atendimento..." : "Enviar solicitação pelo WhatsApp"}
+                {loading ? "Preparando atendimento..." : "Seguir pelo WhatsApp"}
               </button>
               <p className="text-center text-xs text-muted-foreground">
                 Você poderá revisar a mensagem antes de enviá-la. Sua sacola permanecerá salva.
