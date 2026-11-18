@@ -98,9 +98,9 @@ export function ManualOrderCheckout() {
       <SiteHeader />
       <main className="mx-auto max-w-3xl px-4 pb-20 pt-24 sm:px-6 sm:pt-32">
         <p className="eyebrow">O Correio da Fênix</p>
-        <h1 className="mt-2 font-display text-4xl text-foreground sm:text-5xl">Finalizar pedido</h1>
+        <h1 className="mt-2 font-display text-4xl text-foreground sm:text-5xl">Suas próximas chamas estão quase a caminho</h1>
         <p role="status" className="mt-5 rounded-xl border border-primary/30 bg-card px-4 py-4 text-sm leading-7 text-foreground">
-          A área de checkout ainda está em desenvolvimento. Preencha seus dados e prossiga pelo WhatsApp.
+          ✨ Estamos preparando os últimos encantos do checkout. Enquanto isso, preencha seus dados e siga pelo WhatsApp. A Guardiã da Chama vai conferir cada detalhe do seu pedido com você.
         </p>
 
         {cart.items.length === 0 ? (
@@ -111,7 +111,7 @@ export function ManualOrderCheckout() {
         ) : (
           <>
             <section className="mt-8 rounded-xl border border-primary/25 bg-card p-4 sm:p-6">
-              <h2 className="font-display text-2xl text-foreground">Velas escolhidas</h2>
+              <h2 className="font-display text-2xl text-foreground">As chamas que você escolheu</h2>
               <ul className="mt-4 divide-y divide-primary/15">
                 {cart.items.map((item, index) => (
                   <li key={item.productId + ":" + (item.variantKey ?? index)} className="flex items-start justify-between gap-4 py-3 text-sm">
@@ -130,8 +130,8 @@ export function ManualOrderCheckout() {
             </section>
             <form className="mt-8 space-y-6" onSubmit={submit}>
               <section className="rounded-xl border border-primary/25 p-4 sm:p-6">
-                <h2 className="font-display text-2xl text-foreground">Seus dados de entrega</h2>
-                <p className="mt-2 text-sm text-muted-foreground">Confira seus dados. Não é necessário informar CPF nesta etapa.</p>
+                <h2 className="font-display text-2xl text-foreground">Para onde vai o Correio da Fênix?</h2>
+                <p className="mt-2 text-sm text-muted-foreground">Conte para onde sua encomenda deve seguir. Confira tudo com carinho — ainda não precisamos de CPF nesta etapa.</p>
                 <div className="mt-5 grid gap-4 sm:grid-cols-2">
                   {fields.map(field => (
                     <label key={field.key} className={"block text-sm text-foreground " + (["street", "complement"].includes(field.key) ? "sm:col-span-2" : "")}>
@@ -151,7 +151,7 @@ export function ManualOrderCheckout() {
                 </div>
                 <label className="mt-5 flex items-start gap-3 text-sm text-foreground">
                   <input type="checkbox" checked={details.isGift} onChange={event => setField("isGift", event.target.checked)} className="mt-1 accent-[#878e47]" />
-                  É para presente
+                  É um presente para alguém especial 🎁
                 </label>
                 <label className="mt-4 flex items-start gap-3 text-sm text-foreground">
                   <input type="checkbox" checked={details.packingVideoRequested === true}
@@ -160,8 +160,8 @@ export function ManualOrderCheckout() {
                   Gostaria de receber um vídeo da preparação da encomenda (conforme disponibilidade).
                 </label>
                 <label className="mt-4 block text-sm text-foreground">
-                  Recado para a Guardiã da Chama (opcional)
-                  <textarea maxLength={350} rows={3} value={details.note} onChange={event => setField("note", event.target.value)}
+                  Um recadinho para a Guardiã da Chama (opcional)
+                  <textarea maxLength={350} rows={3} value={details.note} onChange={event => setField("note", event.target.value)} placeholder="Uma cartinha, um desejo especial ou algo que você queira nos contar..."
                     className="mt-2 w-full rounded-lg border border-primary/30 bg-background px-3 py-3 text-foreground" />
                 </label>
               </section>
@@ -175,8 +175,8 @@ export function ManualOrderCheckout() {
                 <p className="mt-2 text-xs text-muted-foreground">Cupons e descontos serão conferidos no atendimento. O valor no site não é uma cobrança.</p>
               </section>
               <fieldset className="rounded-xl border border-primary/25 p-4 sm:p-6">
-                <legend className="px-2 font-display text-2xl text-foreground">Como prefere pagar?</legend>
-                <p className="mb-4 text-sm text-muted-foreground">Você não pagará nada nesta página. Combinaremos a forma de pagamento após confirmar o frete.</p>
+                <legend className="px-2 font-display text-2xl text-foreground">Como prefere finalizar sua compra?</legend>
+                <p className="mb-4 text-sm text-muted-foreground">Ainda não há pagamento nesta página. Vamos combinar tudo pelo WhatsApp depois de confirmar o frete.</p>
                 {([
                   ["pix", "Pix — receber o QR Code ou a chave no atendimento"],
                   ["credit", "Crédito — solicitar um link de pagamento seguro"],
@@ -198,10 +198,10 @@ export function ManualOrderCheckout() {
               </label>
               {problem && <p role="alert" className="rounded-lg border border-destructive/50 px-4 py-3 text-sm text-destructive">{problem}</p>}
               <button type="submit" disabled={loading} className="btn-gold w-full justify-center disabled:opacity-50">
-                {loading ? "Preparando atendimento..." : "Seguir pelo WhatsApp"}
+                {loading ? "Preparando seu recadinho..." : "Seguir pelo WhatsApp"}
               </button>
               <p className="text-center text-xs text-muted-foreground">
-                Você poderá revisar a mensagem antes de enviá-la. Sua sacola permanecerá salva.
+                Sua mensagem estará prontinha para revisar antes de enviar. Suas velas continuarão na sacola.
               </p>
             </form>
           </>
