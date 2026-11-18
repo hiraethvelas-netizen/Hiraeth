@@ -381,6 +381,23 @@ function CorreioDaFenix() {
         <RefreshCw size={16}/> Atualizar pedidos
       </button>
     </header>
+    <section className="rounded-xl border border-primary/30 bg-card p-4 sm:p-5">
+      <h2 className="font-display text-2xl text-foreground">Atendimento manual — live Hiraeth</h2>
+      <p className="mt-2 text-sm text-foreground">
+        Clientes podem preencher a sacola e os dados de entrega para enviar uma solicitação pelo WhatsApp.
+        <strong> Essas solicitações não entram automaticamente na lista de pedidos.</strong>
+      </p>
+      <p className="mt-2 text-sm text-muted-foreground">
+        Antes de confirmar: confira a mensagem enviada, o estoque físico, o valor final, eventuais cupons e o frete.
+        Para Pix, envie as instruções somente pelo contato oficial e confirme o recebimento em sua conta antes de separar ou postar.
+        Para cartão, utilize apenas um link seguro de um provedor autorizado; nunca solicite dados do cartão por WhatsApp.
+        Prepare a etiqueta e o documento fiscal manualmente, com os dados fiscais validados pela contabilidade.
+      </p>
+      <p className="mt-2 text-xs text-muted-foreground">
+        O sistema de pagamento automatizado permanece reservado à administração e não foi homologado para vendas reais.
+        Pedidos manuais não têm baixa automática de estoque, rastreamento nem registro financeiro nesta tela.
+      </p>
+    </section>
     <section className="rounded-xl border border-primary/25 bg-card p-4 sm:p-5">
       <h2 className="font-display text-2xl text-foreground">Conferência das integrações</h2>
       <p className="mt-1 text-sm text-muted-foreground">
