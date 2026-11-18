@@ -142,7 +142,13 @@ function Carrinho() {
         sessionStorage.setItem("hiraeth-checkout-coupon", couponIsCurrent
           ? (appliedCoupon?.code ?? "") : "");
       } catch { /* Optional local preference only. */ }
-      await navigate({ to: "/checkout" });
+      // Public checkout stays in assisted WhatsApp mode for the live.
+      // Only a verified admin can access the automatic payment screen.
+      const { data: canManage, error: roleError } = await supabase.rpc("has_role", {
+        _user_id: data.user.id,
+        _role: "admin",
+      });
+      await navigate({ to: !roleError && canManage === true ? "/checkout" : "/pedido-whatsapp" });
     } catch {
       toast.error("Não foi possível abrir o checkout. Tente novamente.");
     } finally {
