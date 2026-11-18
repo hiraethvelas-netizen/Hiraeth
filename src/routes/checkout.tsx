@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, CreditCard, Package, QrCode, ShieldCheck, Truck } from "lucide-react";
 import { SiteHeader, SiteFooter } from "@/components/SiteLayout";
+import { ManualOrderCheckout } from "@/components/checkout/ManualOrderCheckout";
 import { toast } from "sonner";
 import { useCart } from "@/lib/cart";
 import { buildManualInquiryLink } from "@/lib/manual-checkout";
@@ -135,6 +136,22 @@ function CheckoutHiraeth() {
   const [configIssue,setConfigIssue]=useState("");
   const [configAttempt,setConfigAttempt]=useState(0);
   const [supportPhone,setSupportPhone]=useState("");
+  const [checkoutRole,setCheckoutRole]=useState<"checking"|"admin"|"customer">("checking");
+
+  useEffect(()=>{
+    let active=true;
+    void (async()=>{
+      try{
+        const {data:auth,error:authError}=await supabase.auth.getUser();
+        if(authError||!auth.user){if(active)setCheckoutRole("customer");return;}
+        const {data:isAdmin,error:roleError}=await supabase.rpc("has_role",{
+          _user_id:auth.user.id,_role:"admin",
+        });
+        if(active)setCheckoutRole(!roleError&&isAdmin===true?"admin":"customer");
+      }catch{if(active)setCheckoutRole("customer");}
+    })();
+    return ()=>{active=false;};
+  },[]);
 
   const manualInquiryUrl=buildManualInquiryLink(supportPhone,cart.items);
   const cartUnitCount=cart.items.reduce((sum,item)=>sum+item.quantity,0);
@@ -156,6 +173,7 @@ function CheckoutHiraeth() {
     return ()=>{active=false;};
   },[]);
   useEffect(()=>{
+    if(checkoutRole!=="admin")return;
     let active=true;
     setLoading(true);
     setConfigIssue("");
@@ -231,7 +249,7 @@ function CheckoutHiraeth() {
     };
     void loadConfig();
     return ()=>{active=false;};
-  },[configAttempt]);
+  },[configAttempt,checkoutRole]);
 
   async function quote() {
     if(busy)return;
@@ -397,6 +415,11 @@ function CheckoutHiraeth() {
     setError("");
     if (checked) setBuyerDocument(savedRecipient.document);
   }
+
+  if(checkoutRole==="checking")return <div className="min-h-screen"><SiteHeader/>
+    <main className="mx-auto max-w-3xl px-4 py-16" role="status">Preparando atendimento da Hiraeth...</main>
+    <SiteFooter/></div>;
+  if(checkoutRole==="customer")return <ManualOrderCheckout/>;
 
   return <div className="hiraeth-checkout-page min-h-screen min-w-0">
     <SiteHeader/>
