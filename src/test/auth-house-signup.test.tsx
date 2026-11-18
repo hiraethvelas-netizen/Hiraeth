@@ -138,3 +138,20 @@ describe("Cadastro Hiraeth: casa independente de NFC", () => {
     });
   });
 });
+
+describe("Login após cadastro e boas-vindas", () => {
+  it("nunca retorna ao formulário de cadastro por um redirect antigo, nem consome a saudação antes da home", async () => {
+    mocks.search = { mode: undefined, redirect: "/auth?mode=signup", source: undefined };
+    mocks.login.mockResolvedValue({
+      data: { user: { id: CUSTOMER, user_metadata: { hiraeth_welcome_pending: true } }, session: { access_token: "mock" } },
+      error: null,
+    });
+    render(<AuthPage />);
+    fireEvent.change(screen.getByPlaceholderText("seu@email.com"), { target: { value: "ana@example.test" } });
+    fireEvent.change(screen.getByPlaceholderText("Senha (mín. 6 caracteres)"), { target: { value: "example-password" } });
+    fireEvent.click(screen.getByRole("button", { name: "Entrar" }));
+    await waitFor(() => expect(mocks.navigate).toHaveBeenCalledWith({ to: "/inicio" }));
+    expect(screen.queryByRole("dialog", { name: /boas-vindas/i })).not.toBeInTheDocument();
+    expect(mocks.updateUser).not.toHaveBeenCalledWith({ data: { hiraeth_welcome_pending: false } });
+  });
+});
