@@ -13,6 +13,8 @@ const initial: ManualRequestDetails = {
   isGift: false,
   note: "",
   paymentPreference: "pix",
+  coupon: "",
+  packingVideoRequested: false,
 };
 
 const fields: Array<{
@@ -158,11 +160,26 @@ export function ManualOrderCheckout() {
                   <input type="checkbox" checked={details.isGift} onChange={event => setField("isGift", event.target.checked)} className="mt-1 accent-[#878e47]" />
                   É para presente
                 </label>
+                <label className="mt-4 flex items-start gap-3 text-sm text-foreground">
+                  <input type="checkbox" checked={details.packingVideoRequested === true}
+                    onChange={event => setDetails(previous => ({ ...previous, packingVideoRequested: event.target.checked }))}
+                    className="mt-1 accent-[#878e47]" />
+                  Gostaria de receber um vídeo da preparação da encomenda (conforme disponibilidade).
+                </label>
                 <label className="mt-4 block text-sm text-foreground">
                   Recado para a Guardiã da Chama (opcional)
                   <textarea maxLength={350} rows={3} value={details.note} onChange={event => setField("note", event.target.value)}
                     className="mt-2 w-full rounded-lg border border-primary/30 bg-background px-3 py-3 text-foreground" />
                 </label>
+              </section>
+              <section className="rounded-xl border border-primary/25 p-4 sm:p-6">
+                <label className="block text-sm text-foreground">Cupom para conferência (opcional)
+                  <input maxLength={30} value={details.coupon ?? ""}
+                    onChange={event => setDetails(previous => ({ ...previous, coupon: event.target.value.toUpperCase() }))}
+                    className="mt-2 w-full rounded-lg border border-primary/30 bg-background px-3 py-3 text-foreground"
+                    placeholder="Código do cupom" />
+                </label>
+                <p className="mt-2 text-xs text-muted-foreground">Cupons e descontos serão conferidos no atendimento. O valor no site não é uma cobrança.</p>
               </section>
               <fieldset className="rounded-xl border border-primary/25 p-4 sm:p-6">
                 <legend className="px-2 font-display text-2xl text-foreground">Como prefere pagar?</legend>
@@ -184,7 +201,7 @@ export function ManualOrderCheckout() {
               <label className="flex items-start gap-3 rounded-lg border border-primary/25 bg-card p-4 text-sm text-foreground">
                 <input required type="checkbox" checked={consent} onChange={event => setConsent(event.target.checked)}
                   className="mt-1 accent-[#878e47]" />
-                Autorizo o envio das informações que preenchi (nome, contato, endereço e itens) ao WhatsApp da Hiraeth para atendimento. Entendo que os dados serão incluídos na mensagem e que a compra somente será confirmada depois.
+                Autorizo o envio das informações que preenchi (nome, e-mail, telefone, endereço, produtos e observações) para o WhatsApp da Hiraeth. Entendo que a mensagem será aberta no WhatsApp e que a compra só será confirmada após a conferência manual. Não preciso informar CPF ou dados de cartão aqui.
               </label>
               {problem && <p role="alert" className="rounded-lg border border-destructive/50 px-4 py-3 text-sm text-destructive">{problem}</p>}
               <button type="submit" disabled={loading} className="btn-gold w-full justify-center disabled:opacity-50">
