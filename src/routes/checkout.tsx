@@ -4,7 +4,7 @@ import { ArrowLeft, CreditCard, Package, QrCode, ShieldCheck, Truck } from "luci
 import { SiteHeader, SiteFooter } from "@/components/SiteLayout";
 import { toast } from "sonner";
 import { useCart } from "@/lib/cart";
-import { buildManualInquiryLink } from "@/lib/manual-checkout";
+import { ManualOrderCheckout } from "@/components/ManualOrderCheckout";
 import { brl } from "@/lib/format";
 import { supabase } from "@/integrations/supabase/client";
 import { requireAuthenticatedUser } from "@/lib/require-auth";
@@ -17,8 +17,35 @@ export const Route = createFileRoute("/checkout")({
   ssr: false,
   beforeLoad: requireAuthenticatedUser,
   head: () => ({ meta: [{ title: "Finalizar compra — Hiraeth" }] }),
-  component: CheckoutHiraeth,
+  component: CheckoutEntry,
 });
+
+/**
+ * During manual fulfillment, only verified administrators can see the existing
+ * payment integration screens. The server still owns all payment authorization.
+ * A future customer rollout requires separate server-side approval and homologation.
+ */
+function CheckoutEntry() {
+  const [role, setRole] = useState<"loading" | "admin" | "customer">("loading");
+  useEffect(() => {
+    let active = true;
+    void (async () => {
+      try {
+        const { data, error } = await supabase.auth.getUser();
+        if (error || !data.user) { if (active) setRole("customer"); return; }
+        const { data: allowed, error: roleError } = await supabase.rpc("has_role", {
+          _user_id: data.user.id, _role: "admin",
+        });
+        if (active) setRole(!roleError && allowed === true ? "admin" : "customer");
+      } catch {
+        if (active) setRole("customer");
+      }
+    })();
+    return () => { active = false; };
+  }, []);
+  if (role === "loading") return <div className="min-h-screen bg-background p-8 text-foreground" role="status">Preparando o atendimento seguro...</div>;
+  return role === "admin" ? <CheckoutHiraeth /> : <ManualOrderCheckout />;
+}
 
 type FreightQuote = { id: number; company: string; name: string; price: number; delivery_time: number | null };
 type CheckoutSummary = {
@@ -134,9 +161,7 @@ function CheckoutHiraeth() {
   const [loading,setLoading]=useState(true);
   const [configIssue,setConfigIssue]=useState("");
   const [configAttempt,setConfigAttempt]=useState(0);
-  const [supportPhone,setSupportPhone]=useState("");
 
-  const manualInquiryUrl=buildManualInquiryLink(supportPhone,cart.items);
   const cartUnitCount=cart.items.reduce((sum,item)=>sum+item.quantity,0);
   const shippingLimitExceeded=!!config&&cartUnitCount>config.maxItemsPerPackage;
   const paymentView=checkoutPaymentView(outcome,paymentNeedsReview);
@@ -144,17 +169,6 @@ function CheckoutHiraeth() {
     productId:item.productId,quantity:item.quantity,variantKey:item.variantKey??"",
   }));
   const inputClass="mt-1 w-full min-w-0 rounded border border-primary/35 bg-card px-3 py-2.5 text-foreground placeholder:text-muted-foreground";
-  useEffect(()=>{
-    let active=true;
-    void (async()=>{
-      try {
-        const {data,error}=await supabase.from("site_profile")
-          .select("whatsapp_number").eq("id",true).maybeSingle();
-        if(active&&!error)setSupportPhone(data?.whatsapp_number??"");
-      } catch { /* Contato externo é opcional e não bloqueia o checkout. */ }
-    })();
-    return ()=>{active=false;};
-  },[]);
   useEffect(()=>{
     let active=true;
     setLoading(true);
@@ -416,15 +430,7 @@ function CheckoutHiraeth() {
         <h2 className="font-display text-2xl text-foreground">Pagamento em preparação</h2>
         <p className="mt-2 text-sm text-muted-foreground">O checkout ainda está em homologação. Nenhum valor será cobrado até a integração do Mercado Pago e do frete ser ativada com segurança.</p>
         {configIssue&&<p role="status" className="mt-3 text-sm text-foreground">{configIssue}</p>}
-        {manualInquiryUrl&&<div className="mt-5 rounded-lg border border-primary/35 bg-primary/5 p-4">
-          <h3 className="font-display text-xl text-foreground">Converse com a Guardiã da Chama</h3>
-          <p className="mt-2 text-sm text-foreground">Você pode enviar as velas e variações da sua sacola para consultar disponibilidade e frete pelo WhatsApp. Este contato não confirma a compra, não reserva estoque e não realiza cobranças.</p>
-          <a href={manualInquiryUrl} target="_blank" rel="noopener noreferrer"
-            className="btn-gold mt-4 inline-flex w-full justify-center text-center sm:w-auto">
-            Consultar disponibilidade pelo WhatsApp
-          </a>
-          <p className="mt-2 text-xs text-muted-foreground">Os valores, descontos e o envio serão confirmados no atendimento antes de qualquer pagamento. Sua sacola continuará salva.</p>
-        </div>}
+
         <button type="button" onClick={()=>setConfigAttempt(n=>n+1)}
           className="mt-4 mr-3 border border-primary/50 px-4 py-2 text-sm text-primary">Verificar novamente</button>
         <Link to="/carrinho" className="btn-gold mt-5">Voltar à sacola</Link>
