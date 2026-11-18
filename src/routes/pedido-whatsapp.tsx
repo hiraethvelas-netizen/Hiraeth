@@ -129,7 +129,7 @@ function ManualOrderPage() {
                   <p className="font-semibold text-foreground">{item.quantity}× {item.name}</p>
                   {typeof item.variantDetails?.["size"] === "string" && <p className="text-muted-foreground">Tamanho: {item.variantDetails["size"]}</p>}
                   {typeof item.variantDetails?.["house"] === "string" && <p className="text-muted-foreground">Casa: {item.variantDetails["house"]}</p>}
-                  {item.variantDetails?.["options"] && typeof item.variantDetails["options"] === "object" &&
+                  {!!item.variantDetails?.["options"] && typeof item.variantDetails["options"] === "object" &&
                     !Array.isArray(item.variantDetails["options"]) &&
                     Object.entries(item.variantDetails["options"] as Record<string,unknown>)
                       .map(([key,value])=><p key={key} className="text-muted-foreground">{key}: {String(value)}</p>)}
