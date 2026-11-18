@@ -68,6 +68,7 @@ function AdminDashboard() {
   const cards = [
     { label: "Produtos cadastrados", value: String(stats.products), detail: `${stats.published} publicados`, to: "/admin/produtos" },
     { label: "Pedidos recebidos", value: String(stats.orders), detail: `${stats.pending} aguardando pagamento`, to: "/admin/pedidos" },
+    { label: "Vendas pelo WhatsApp", value: "Registrar", detail: "Controle das velas prontas vendidas, sem descontar essências", to: "/admin/vendas-manuais" },
     { label: "Pedidos pagos", value: String(stats.paid), detail: "Inclui pedidos em preparação e entregues", to: "/admin/pedidos" },
     { label: "Receita dos pedidos pagos", value: brl(stats.revenue), detail: "No período selecionado", to: "/admin/pedidos" },
     { label: "Portais NFC", value: String(stats.portals), detail: "Universos cadastrados", to: "/admin/portais" },
