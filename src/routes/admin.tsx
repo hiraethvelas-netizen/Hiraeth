@@ -27,6 +27,7 @@ const ADMIN_GROUPS = [
   ] },
   { label: "Vendas", links: [
     { to: "/admin/pedidos", label: "Pedidos" },
+    { to: "/admin/vendas-manuais", label: "Vendas pelo WhatsApp" },
     { to: "/admin/expedicao", label: "Correio da Fênix · Expedição" },
     { to: "/admin/financeiro", label: "Financeiro" },
   ] },

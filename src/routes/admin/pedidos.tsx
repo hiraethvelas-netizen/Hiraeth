@@ -181,6 +181,7 @@ function AdminPedidos() {
   return (
     <div>
       <h1 className="text-4xl text-foreground">Pedidos</h1>
+      <Link to="/admin/vendas-manuais" className="mt-4 inline-flex rounded-lg border border-primary/40 px-4 py-3 text-sm font-semibold text-primary">Registrar venda feita pelo WhatsApp</Link>
 
       <div className="mt-6 flex flex-col gap-3 sm:flex-row">
         <input placeholder="Buscar por nº, e-mail ou nome" value={query} onChange={(e) => setQuery(e.target.value)} className={`flex-1 ${inputCls}`} />

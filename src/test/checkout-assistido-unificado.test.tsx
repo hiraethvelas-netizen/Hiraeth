@@ -41,13 +41,13 @@ afterEach(cleanup);
 describe("Checkout assistido da Hiraeth", () => {
   it("apresenta a mensagem curta, os campos do pedido e somente o botão WhatsApp", async () => {
     render(<ManualOrderCheckout />);
-    expect(screen.getByText("A área de checkout ainda está em desenvolvimento. Preencha seus dados e prossiga pelo WhatsApp.")).toBeInTheDocument();
+    expect(screen.getByText(/Estamos preparando os últimos encantos do checkout/)).toBeInTheDocument();
     expect(screen.getByText("Surpresa de Natal", { exact: false })).toBeInTheDocument();
-    expect(screen.getByText("Seus dados de entrega")).toBeInTheDocument();
-    expect(screen.getByText("É para presente")).toBeInTheDocument();
-    expect(screen.getByText(/Recado para a Guardiã da Chama/)).toBeInTheDocument();
+    expect(screen.getByText("Para onde vai o Correio da Fênix?")).toBeInTheDocument();
+    expect(screen.getByText(/É um presente para alguém especial/)).toBeInTheDocument();
+    expect(screen.getByText(/Um recadinho para a Guardiã da Chama/)).toBeInTheDocument();
     expect(screen.getByText(/Cupom para conferência/)).toBeInTheDocument();
-    expect(screen.getByText(/Como prefere pagar/)).toBeInTheDocument();
+    expect(screen.getByText(/Como prefere finalizar sua compra/)).toBeInTheDocument();
     expect(await screen.findByRole("button", { name: "Seguir pelo WhatsApp" })).toBeInTheDocument();
     expect(screen.queryByText(/Ambiente de testes: você pode simular frete/)).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /Conferir e escolher o pagamento/ })).not.toBeInTheDocument();

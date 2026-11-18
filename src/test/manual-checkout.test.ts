@@ -12,8 +12,8 @@ describe("consulta manual pelo WhatsApp (sem checkout)", () => {
     expect(message).toContain("Tamanho: 100 g");
     expect(message).toContain("Casa: Águia");
     expect(message).toContain("Tampa: Fênix");
-    expect(message).toContain("não um pedido confirmado");
-    expect(message).toContain("antes de qualquer pagamento");
+    expect(message).toContain("ainda não confirma a compra");
+    expect(message).toContain("Aguardo sua confirmação de disponibilidade");
   });
 
   it("não gera link para contato inválido ou sacola vazia", () => {
@@ -58,7 +58,7 @@ describe("solicitação de atendimento com entrega por WhatsApp", () => {
     expect(text).toContain("Balneário Camboriú/SC");
     expect(text).toContain("Preferência de pagamento: Pix");
     expect(text).not.toMatch(/CPF|12345678900/);
-    expect(text).toContain("NÃO uma compra confirmada");
+    expect(text).toContain("ainda não confirma a compra");
   });
   it("permite crédito apenas via link seguro, nunca solicita o número do cartão", () => {
     const link=buildManualInquiryLink("5547999991234",[{name:"Vela",quantity:1}],{...sample,paymentPreference:"credit"});
@@ -72,8 +72,8 @@ describe("solicitação de atendimento com entrega por WhatsApp", () => {
     })!;
     const message = decodeURIComponent(link.split("text=")[1]!);
     expect(message).toContain("Cupom para conferir: TESTE10");
-    expect(message).toContain("Solicita vídeo da embalagem: sim");
-    expect(message).toContain("não um pedido confirmado");
+    expect(message).toContain("Gostaria de um vídeo da embalagem: sim");
+    expect(message).toContain("ainda não confirma a compra");
     expect(message).not.toMatch(/CPF|Número do cartão:/);
   });
 

@@ -71,11 +71,14 @@ export function buildManualInquiryLink(
   if (items.length > 20) lines.push("- Outros itens na sacola: consultar no atendimento.");
 
   const message = [
-    "Olá, Hiraeth! Gostaria de solicitar atendimento para estas velas:",
+    "Olá, Hiraeth! 🔥✨",
+    "Escolhi minhas próximas chamas e gostaria de fazer meu pedido pelo Correio da Fênix!",
+    "",
+    "MINHAS CHAMAS ESCOLHIDAS:",
     ...lines,
     ...(details ? [
       "",
-      "DADOS INFORMADOS PARA ENTREGA:",
+      "DESTINO DO CORREIO DA FÊNIX:",
       "Nome: " + clean(details.name, 120),
       "E-mail: " + clean(details.email, 160),
       "Telefone: " + clean(details.phone, 30),
@@ -84,17 +87,17 @@ export function buildManualInquiryLink(
         (details.complement.trim() ? " — " + clean(details.complement, 80) : ""),
       "Bairro: " + clean(details.district, 100),
       "Cidade/UF: " + clean(details.city, 100) + "/" + clean(details.state, 2).toUpperCase(),
-      "É presente: " + (details.isGift ? "Sim" : "Não"),
-      ...(details.note.trim() ? ["Observações: " + clean(details.note, 350)] : []),
-      ...(details.packingVideoRequested ? ["Solicita vídeo da embalagem: sim (sujeito à disponibilidade)"] : []),
+      "É um presente? " + (details.isGift ? "Sim 🎁" : "Não"),
+      ...(details.note.trim() ? ["Recadinho para a Guardiã: " + clean(details.note, 350)] : []),
+      ...(details.packingVideoRequested ? ["Gostaria de um vídeo da embalagem: sim (conforme disponibilidade)"] : []),
       ...(details.coupon?.trim() ? ["Cupom para conferir: " + clean(details.coupon, 30)] : []),
       "Preferência de pagamento: " +
         ({ pix: "Pix (aguardo confirmação e QR Code)", credit: "Cartão de crédito (solicito link seguro)", debit: "Débito (consultar disponibilidade)" }[details.paymentPreference]),
     ] : []),
     "",
-    "Esta é uma solicitação, não um pedido confirmado — NÃO uma compra confirmada.",
-    "Por favor, confirmem estoque, valores, descontos, frete e condições antes de qualquer pagamento.",
-    "Não enviarei dados de cartão por mensagem.",
+    "Agora é com você, Guardiã da Chama! ✨",
+    "Aguardo sua confirmação de disponibilidade, valores, descontos e frete para concluir meu pedido.",
+    "Sei que esta mensagem ainda não confirma a compra e que não devo enviar dados de cartão por aqui.",
   ].join("\n");
   return "https://wa.me/" + digits + "?text=" + encodeURIComponent(message);
 }
