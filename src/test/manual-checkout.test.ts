@@ -66,6 +66,17 @@ describe("solicitação de atendimento com entrega por WhatsApp", () => {
     expect(text).toContain("Cartão de crédito (solicito link seguro)");
     expect(text).not.toContain("Número do cartão:");
   });
+  it("encaminha cupom e pedido opcional de vídeo somente para conferência", () => {
+    const link = buildManualInquiryLink("5547999991234",[{name:"Vela",quantity:1}],{
+      ...sample,coupon:"TESTE10",packingVideoRequested:true,
+    })!;
+    const message = decodeURIComponent(link.split("text=")[1]!);
+    expect(message).toContain("Cupom para conferir: TESTE10");
+    expect(message).toContain("Solicita vídeo da embalagem: sim");
+    expect(message).toContain("não um pedido confirmado");
+    expect(message).not.toMatch(/CPF|Número do cartão:/);
+  });
+
   it("recusa form inválido antes de construir WhatsApp", () => {
     expect(buildManualInquiryLink("5547999991234",[{name:"Vela",quantity:1}],{...sample,phone:""})).toBeNull();
   });
