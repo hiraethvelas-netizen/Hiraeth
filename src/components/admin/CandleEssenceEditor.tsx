@@ -200,7 +200,7 @@ export function CandleEssenceEditor({
           </p>}
           {refreshing && <p role="status" className="text-xs text-muted-foreground">Consultando estoque...</p>}
           {suggestionsOpen && <div id={suggestionsId} role="listbox" aria-label="Essências do estoque"
-            className="max-h-48 space-y-1 overflow-y-auto rounded border border-primary/20 bg-background p-2">
+            className="max-h-48 space-y-1 overflow-y-auto rounded border border-primary/20 bg-popover p-2 text-popover-foreground">
             {available.length > 0 ? available.map((item, index) => (
               <button key={item.id} id={`${suggestionsId}-${index}`} type="button" role="option"
                 aria-selected={highlightedIndex === index || (highlightedIndex < 0 && selectedId === item.id)} tabIndex={-1}
