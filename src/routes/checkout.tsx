@@ -2,9 +2,9 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, CreditCard, Package, QrCode, ShieldCheck, Truck } from "lucide-react";
 import { SiteHeader, SiteFooter } from "@/components/SiteLayout";
-import { ManualOrderCheckout } from "@/components/checkout/ManualOrderCheckout";
 import { toast } from "sonner";
 import { useCart } from "@/lib/cart";
+import { ManualOrderCheckout } from "@/components/ManualOrderCheckout";
 import { buildManualInquiryLink } from "@/lib/manual-checkout";
 import { brl } from "@/lib/format";
 import { supabase } from "@/integrations/supabase/client";
@@ -18,8 +18,36 @@ export const Route = createFileRoute("/checkout")({
   ssr: false,
   beforeLoad: requireAdminForCheckout,
   head: () => ({ meta: [{ title: "Finalizar compra — Hiraeth" }] }),
-  component: CheckoutHiraeth,
+  component: CheckoutEntry,
 });
+
+/**
+ * The public store uses assisted WhatsApp checkout during the live.
+ * Only accounts verified as admin by the database enter the original
+ * Mercado Pago test screens. UI hiding does not replace server authorization.
+ */
+function CheckoutEntry() {
+  const [role, setRole] = useState<"loading" | "admin" | "customer">("loading");
+  useEffect(() => {
+    let active = true;
+    void (async () => {
+      try {
+        const { data, error } = await supabase.auth.getUser();
+        if (error || !data.user) { if (active) setRole("customer"); return; }
+        const { data: allowed, error: roleError } = await supabase.rpc("has_role", {
+          _user_id: data.user.id, _role: "admin",
+        });
+        if (active) setRole(!roleError && allowed === true ? "admin" : "customer");
+      } catch {
+        if (active) setRole("customer");
+      }
+    })();
+    return () => { active = false; };
+  }, []);
+  if (role === "loading")
+    return <div className="min-h-screen bg-background p-8 text-foreground" role="status">Preparando atendimento da Hiraeth...</div>;
+  return role === "admin" ? <CheckoutHiraeth /> : <ManualOrderCheckout />;
+}
 
 type FreightQuote = { id: number; company: string; name: string; price: number; delivery_time: number | null };
 type CheckoutSummary = {
@@ -136,22 +164,6 @@ function CheckoutHiraeth() {
   const [configIssue,setConfigIssue]=useState("");
   const [configAttempt,setConfigAttempt]=useState(0);
   const [supportPhone,setSupportPhone]=useState("");
-  const [checkoutRole,setCheckoutRole]=useState<"checking"|"admin"|"customer">("checking");
-
-  useEffect(()=>{
-    let active=true;
-    void (async()=>{
-      try{
-        const {data:auth,error:authError}=await supabase.auth.getUser();
-        if(authError||!auth.user){if(active)setCheckoutRole("customer");return;}
-        const {data:isAdmin,error:roleError}=await supabase.rpc("has_role",{
-          _user_id:auth.user.id,_role:"admin",
-        });
-        if(active)setCheckoutRole(!roleError&&isAdmin===true?"admin":"customer");
-      }catch{if(active)setCheckoutRole("customer");}
-    })();
-    return ()=>{active=false;};
-  },[]);
 
   const manualInquiryUrl=buildManualInquiryLink(supportPhone,cart.items);
   const cartUnitCount=cart.items.reduce((sum,item)=>sum+item.quantity,0);
@@ -173,7 +185,6 @@ function CheckoutHiraeth() {
     return ()=>{active=false;};
   },[]);
   useEffect(()=>{
-    if(checkoutRole!=="admin")return;
     let active=true;
     setLoading(true);
     setConfigIssue("");
@@ -249,7 +260,7 @@ function CheckoutHiraeth() {
     };
     void loadConfig();
     return ()=>{active=false;};
-  },[configAttempt,checkoutRole]);
+  },[configAttempt]);
 
   async function quote() {
     if(busy)return;
@@ -416,11 +427,6 @@ function CheckoutHiraeth() {
     if (checked) setBuyerDocument(savedRecipient.document);
   }
 
-  if(checkoutRole==="checking")return <div className="min-h-screen"><SiteHeader/>
-    <main className="mx-auto max-w-3xl px-4 py-16" role="status">Preparando atendimento da Hiraeth...</main>
-    <SiteFooter/></div>;
-  if(checkoutRole==="customer")return <ManualOrderCheckout/>;
-
   return <div className="hiraeth-checkout-page min-h-screen min-w-0">
     <SiteHeader/>
     <main className="hiraeth-checkout mx-auto w-full max-w-3xl px-4 pb-20 pt-8 sm:px-6 sm:pt-12">
@@ -439,7 +445,11 @@ function CheckoutHiraeth() {
         <h2 className="font-display text-2xl text-foreground">Pagamento em preparação</h2>
         <p className="mt-2 text-sm text-muted-foreground">O checkout ainda está em homologação. Nenhum valor será cobrado até a integração do Mercado Pago e do frete ser ativada com segurança.</p>
         {configIssue&&<p role="status" className="mt-3 text-sm text-foreground">{configIssue}</p>}
-        {manualInquiryUrl&&<div className="mt-5 rounded-lg border border-primary/35 bg-primary/5 p-4">
+        <button type="button" onClick={()=>setConfigAttempt(n=>n+1)}
+          className="mt-4 mr-3 border border-primary/50 px-4 py-2 text-sm text-primary">Verificar novamente</button>
+        <Link to="/carrinho" className="btn-gold mt-5">Voltar à sacola</Link>
+      </section>}
+        {!loading&&(config?.enabled===false||config?.sandbox===true)&&manualInquiryUrl&&<div className="mt-5 rounded-lg border border-primary/35 bg-primary/5 p-4">
           <h3 className="font-display text-xl text-foreground">Converse com a Guardiã da Chama</h3>
           <p className="mt-2 text-sm text-foreground">Você pode enviar as velas e variações da sua sacola para consultar disponibilidade e frete pelo WhatsApp. Este contato não confirma a compra, não reserva estoque e não realiza cobranças.</p>
           <a href={manualInquiryUrl} target="_blank" rel="noopener noreferrer"
@@ -448,10 +458,6 @@ function CheckoutHiraeth() {
           </a>
           <p className="mt-2 text-xs text-muted-foreground">Os valores, descontos e o envio serão confirmados no atendimento antes de qualquer pagamento. Sua sacola continuará salva.</p>
         </div>}
-        <button type="button" onClick={()=>setConfigAttempt(n=>n+1)}
-          className="mt-4 mr-3 border border-primary/50 px-4 py-2 text-sm text-primary">Verificar novamente</button>
-        <Link to="/carrinho" className="btn-gold mt-5">Voltar à sacola</Link>
-      </section>}
       {config?.enabled&&cart.items.length===0&&!outcome&&<p className="mt-8 text-muted-foreground">Sua sacola está vazia. Escolha suas velas antes de continuar.</p>}
       {error&&<p role="alert" className="mt-5 rounded-lg border border-[#c89b82] bg-[#3a211d] px-4 py-3 text-sm text-[#fff1e7]">{error}</p>}
 
