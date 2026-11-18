@@ -11,3 +11,14 @@
 export function canAccessCommerce(enabled: boolean, mode: string | undefined): boolean {
   return enabled && (mode === "sandbox" || mode === "production");
 }
+
+/**
+ * Temporary assisted-sales mode. Automated checkout is enabled only for
+ * administrators unless the owner explicitly releases customer checkout in
+ * the backend AFTER payment/freight/fiscal homologation.
+ *
+ * Absence of the flag defaults to admin-only, even in Sandbox.
+ */
+export function canUseAutomatedCheckout(isAdmin: boolean, customerReleaseFlag: string | undefined): boolean {
+  return isAdmin || customerReleaseFlag === "true";
+}
