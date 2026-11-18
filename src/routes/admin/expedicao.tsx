@@ -377,6 +377,15 @@ function CorreioDaFenix() {
       {health&&<div role="status" className="mt-4 space-y-2 text-sm text-foreground">
         <p><strong>Mercado Pago:</strong> {PROVIDER_STATUS[health.mercadoPago]??"Não verificado"}</p>
         <p><strong>Melhor Envio:</strong> {PROVIDER_STATUS[health.melhorEnvio]??"Não verificado"}</p>
+        {health.melhorEnvio==="rejected"&&<div className="rounded-lg border border-[#a66a51]/40 bg-card p-3 text-foreground">
+          <p className="font-semibold">Acesso ao Melhor Envio recusado no ambiente de testes.</p>
+          <p className="mt-1">Acesse sua conta separada do <a href="https://sandbox.melhorenvio.com.br/" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">Melhor Envio Sandbox</a>. Confira se o aplicativo está autorizado, se o token ainda é válido e se tem permissão para consultar envios. Em seguida, atualize a credencial somente nos Secrets privados do backend correto e verifique novamente.</p>
+          <p className="mt-1 text-xs">O teste apenas consultou a API; não identifica sozinho qual destas configurações falhou. Não compartilhe tokens no chat.</p>
+          <a href="https://docs.melhorenvio.com.br/docs/autenticacao-1" target="_blank" rel="noopener noreferrer" className="mt-2 inline-block font-semibold underline underline-offset-2">Ver orientações oficiais de autenticação</a>
+        </div>}
+        {!health.fiscalSecretsPresent&&<p className="rounded-lg border border-primary/30 p-3 text-foreground">
+          <strong>Nota fiscal:</strong> solicite à contabilidade os dados do emitente e as regras tributárias por produto para configurar a Focus NFe em homologação. Não habilite emissão real antes da validação fiscal.
+        </p>}
         <p><strong>Embalagem pesada:</strong> {health.packageWeightMeasured?"Peso de embalagem configurado":"Falta confirmar peso físico da caixa e proteções"}</p>
         <p><strong>Documentação fiscal:</strong> {health.fiscalSecretsPresent?"Configurações fiscais presentes (não homologadas)":"Configurações fiscais incompletas"}</p>
         <p className="text-xs text-muted-foreground">
