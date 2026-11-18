@@ -91,6 +91,7 @@ export function buildManualInquiryLink(
     "Esta mensagem é uma consulta, não um pedido confirmado.",
     "NÃO uma compra confirmada: a Hiraeth ainda precisa validar a solicitação.",
     "Por favor, confirmem estoque, valores, descontos, frete e condições de pagamento.",
+    "Aguarde a confirmação da Hiraeth antes de qualquer pagamento.",
     "Não enviarei dados de cartão por mensagem.",
   ].join("\n");
   return "https://wa.me/" + digits + "?text=" + encodeURIComponent(message);
