@@ -65,18 +65,15 @@ Deno.serve(async (req: Request) => {
     // The public config only advertises whether the server-side provider
     // gates are met. Sensitive tokens never leave the server. Actual quote,
     // checkout and payment actions still require a valid user session.
-    const enabled = canAccessCommerce(commerceReady, mode);
-    let setupIssues: string[] | undefined;
-    if (!enabled) {
-      // Only a verified administrator can see names of failing setup checks.
-      // Never return credentials, token fragments or environment values.
-      try {
-        const user = await signedInUser(req);
-        if (await userIsAdmin(user.id)) setupIssues = commerceSetupIssues();
-      } catch {
-        // Ordinary visitors still receive only generic checkout availability.
-      }
-    }
+    // Temporary assisted-sales mode: public checkout remains blocked at the API,
+    // not merely hidden in the frontend, until manual orders are retired.
+    let callerIsAdmin = false;
+    try {
+      const user = await signedInUser(req);
+      callerIsAdmin = await userIsAdmin(user.id);
+    } catch { /* Anonymous and expired sessions are not administrators. */ }
+    const enabled = callerIsAdmin && canAccessCommerce(commerceReady, mode);
+    const setupIssues = callerIsAdmin && !enabled ? commerceSetupIssues() : undefined;
     return json({
       enabled,
       publicKey: enabled ? env("MERCADO_PAGO_PUBLIC_KEY") : null,
@@ -92,6 +89,15 @@ Deno.serve(async (req: Request) => {
 
   try {
     const user = await signedInUser(req);
+    // Existing status lookups remain available to their owners, but a customer
+    // cannot request quotes, create a payment session or start a charge.
+    if (["quote", "init", "pay"].includes(String(body?.action ?? "")) &&
+        !(await userIsAdmin(user.id))) {
+      return json({
+        error: "Nesta edição, os pedidos são confirmados diretamente com a Hiraeth pelo WhatsApp.",
+        code: "MANUAL_ORDERS_ONLY",
+      }, 403);
+    }
     const ready = isCommerceEnabled();
     if (!ready) return json({
       error: "O checkout está em configuração. Nenhuma cobrança foi iniciada.",
