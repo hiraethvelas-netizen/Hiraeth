@@ -416,7 +416,11 @@ function CheckoutHiraeth() {
         <h2 className="font-display text-2xl text-foreground">Pagamento em preparação</h2>
         <p className="mt-2 text-sm text-muted-foreground">O checkout ainda está em homologação. Nenhum valor será cobrado até a integração do Mercado Pago e do frete ser ativada com segurança.</p>
         {configIssue&&<p role="status" className="mt-3 text-sm text-foreground">{configIssue}</p>}
-        {manualInquiryUrl&&<div className="mt-5 rounded-lg border border-primary/35 bg-primary/5 p-4">
+        <button type="button" onClick={()=>setConfigAttempt(n=>n+1)}
+          className="mt-4 mr-3 border border-primary/50 px-4 py-2 text-sm text-primary">Verificar novamente</button>
+        <Link to="/carrinho" className="btn-gold mt-5">Voltar à sacola</Link>
+      </section>}
+        {!loading&&(config?.enabled===false||config?.sandbox===true)&&manualInquiryUrl&&<div className="mt-5 rounded-lg border border-primary/35 bg-primary/5 p-4">
           <h3 className="font-display text-xl text-foreground">Converse com a Guardiã da Chama</h3>
           <p className="mt-2 text-sm text-foreground">Você pode enviar as velas e variações da sua sacola para consultar disponibilidade e frete pelo WhatsApp. Este contato não confirma a compra, não reserva estoque e não realiza cobranças.</p>
           <a href={manualInquiryUrl} target="_blank" rel="noopener noreferrer"
@@ -425,10 +429,6 @@ function CheckoutHiraeth() {
           </a>
           <p className="mt-2 text-xs text-muted-foreground">Os valores, descontos e o envio serão confirmados no atendimento antes de qualquer pagamento. Sua sacola continuará salva.</p>
         </div>}
-        <button type="button" onClick={()=>setConfigAttempt(n=>n+1)}
-          className="mt-4 mr-3 border border-primary/50 px-4 py-2 text-sm text-primary">Verificar novamente</button>
-        <Link to="/carrinho" className="btn-gold mt-5">Voltar à sacola</Link>
-      </section>}
       {config?.enabled&&cart.items.length===0&&!outcome&&<p className="mt-8 text-muted-foreground">Sua sacola está vazia. Escolha suas velas antes de continuar.</p>}
       {error&&<p role="alert" className="mt-5 rounded-lg border border-[#c89b82] bg-[#3a211d] px-4 py-3 text-sm text-[#fff1e7]">{error}</p>}
 
