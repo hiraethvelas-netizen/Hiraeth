@@ -18,6 +18,8 @@ export type ManualRequestDetails = {
   isGift: boolean;
   note: string;
   paymentPreference: "pix" | "credit" | "debit";
+  coupon?: string;
+  packingVideoRequested?: boolean;
 };
 
 const digitsOnly = (value: string) => value.replace(/\D/g, "");
@@ -84,6 +86,8 @@ export function buildManualInquiryLink(
       "Cidade/UF: " + clean(details.city, 100) + "/" + clean(details.state, 2).toUpperCase(),
       "É presente: " + (details.isGift ? "Sim" : "Não"),
       ...(details.note.trim() ? ["Observações: " + clean(details.note, 350)] : []),
+      ...(details.packingVideoRequested ? ["Solicita vídeo da embalagem: sim (sujeito à disponibilidade)"] : []),
+      ...(details.coupon?.trim() ? ["Cupom para conferir: " + clean(details.coupon, 30)] : []),
       "Preferência de pagamento: " +
         ({ pix: "Pix (aguardo confirmação e QR Code)", credit: "Cartão de crédito (solicito link seguro)", debit: "Débito (consultar disponibilidade)" }[details.paymentPreference]),
     ] : []),
