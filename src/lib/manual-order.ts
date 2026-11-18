@@ -35,7 +35,8 @@ export function validateManualOrder(form: ManualOrderForm, items: OrderSelection
   if (removeControls(r.name).length < 3) return "Informe o nome completo de quem vai receber.";
   if (!isValidBrazilianPhone(r.phone)) return "Informe um telefone válido com DDD.";
   if (!/^\d{8}$/.test(digits(r.postal_code))) return "Informe um CEP válido de oito números.";
-  if ([r.street, r.number, r.district, r.city].some(x => removeControls(x).length < 2))
+  if ([r.street, r.district, r.city].some(x => removeControls(x).length < 2) ||
+      removeControls(r.number).length < 1)
     return "Preencha rua, número, bairro e cidade do endereço de entrega.";
   if (!/^[A-Z]{2}$/.test(r.state.trim().toUpperCase()))
     return "Informe a UF do estado com duas letras.";
@@ -98,6 +99,6 @@ export function manualOrderWhatsAppLink(
     "Não enviarei dados de cartão por mensagem.",
   ].filter(Boolean).join("\n");
   // All selected items must fit; never silently drop products from a request.
-  if (message.length > 3600) return null;
+  if (message.length > 2400) return null;
   return "https://wa.me/" + phone + "?text=" + encodeURIComponent(message);
 }
