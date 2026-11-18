@@ -9,6 +9,7 @@ import { isSandboxCheckout, providerModeMatchesCheckout, paymentAmountMatchesChe
 import { payerDocumentForPayment } from "../_shared/checkout-identification.ts";
 import { checkProviderReadOnly, type ProviderCheck } from "../_shared/commerce-readiness.ts";
 import { SHIPPING_WEIGHT_REVISION } from "../_shared/commerce-shipping.ts";
+import { canUseAutomatedCheckout } from "../_shared/commerce-access.ts";
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -65,7 +66,15 @@ Deno.serve(async (req: Request) => {
     // The public config only advertises whether the server-side provider
     // gates are met. Sensitive tokens never leave the server. Actual quote,
     // checkout and payment actions still require a valid user session.
-    const enabled = canAccessCommerce(commerceReady, mode);
+    // Even a fully configured provider must not allow customer payments during
+    // the temporary WhatsApp-assisted sales operation.
+    let isAdmin = false;
+    try {
+      const user = await signedInUser(req);
+      isAdmin = await userIsAdmin(user.id);
+    } catch { /* ordinary/anonymous visitors receive generic availability */ }
+    const enabled = canAccessCommerce(commerceReady, mode) &&
+      canUseAutomatedCheckout(isAdmin, Deno.env.get("HIRAETH_CUSTOMER_AUTOMATED_CHECKOUT_ENABLED"));
     let setupIssues: string[] | undefined;
     if (!enabled) {
       // Only a verified administrator can see names of failing setup checks.
@@ -115,6 +124,14 @@ Deno.serve(async (req: Request) => {
 
     if (!["quote","init","pay"].includes(body.action)) {
       return json({ error: "Ação desconhecida." }, 400);
+    }
+    if (!canUseAutomatedCheckout(
+      await userIsAdmin(user.id), Deno.env.get("HIRAETH_CUSTOMER_AUTOMATED_CHECKOUT_ENABLED"),
+    )) {
+      return json({
+        error:"A compra automática está reservada à homologação. Envie sua solicitação pelo WhatsApp da Hiraeth.",
+        code:"MANUAL_SALES_ONLY",
+      },403);
     }
 
     if (body.action === "pay") {
