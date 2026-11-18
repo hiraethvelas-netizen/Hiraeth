@@ -381,6 +381,23 @@ function CorreioDaFenix() {
         <RefreshCw size={16}/> Atualizar pedidos
       </button>
     </header>
+    <section className="rounded-xl border border-primary/30 bg-card p-4 sm:p-5">
+      <h2 className="font-display text-2xl text-foreground">Pedidos assistidos da live · WhatsApp</h2>
+      <p className="mt-2 text-sm text-foreground">
+        Clientes preenchem os dados de entrega no aplicativo e enviam uma solicitação pelo WhatsApp.
+        <strong> Esse atendimento ainda não gera pedido automático nem baixa estoque.</strong>
+      </p>
+      <p className="mt-2 text-sm text-muted-foreground">
+        Confirme manualmente a disponibilidade, as variações, os descontos, o frete, o valor final e o prazo.
+        Para Pix, envie os dados somente após conferir o total e confirme o dinheiro recebido na conta.
+        Para crédito, utilize link de pagamento seguro quando disponível, sem solicitar dados do cartão.
+        Prepare a etiqueta no Melhor Envio e o documento fiscal conforme as orientações da contabilidade.
+      </p>
+      <p className="mt-2 text-xs text-muted-foreground">
+        Os pedidos assistidos não aparecem automaticamente na lista abaixo. Registre e acompanhe seu
+        atendimento manualmente e envie o rastreio à cliente após a postagem.
+      </p>
+    </section>
     <section className="rounded-xl border border-primary/25 bg-card p-4 sm:p-5">
       <h2 className="font-display text-2xl text-foreground">Conferência das integrações</h2>
       <p className="mt-1 text-sm text-muted-foreground">
