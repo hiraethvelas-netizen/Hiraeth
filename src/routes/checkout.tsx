@@ -4,6 +4,7 @@ import { ArrowLeft, CreditCard, Package, QrCode, ShieldCheck, Truck } from "luci
 import { SiteHeader, SiteFooter } from "@/components/SiteLayout";
 import { toast } from "sonner";
 import { useCart } from "@/lib/cart";
+import { ManualOrderCheckout } from "@/components/ManualOrderCheckout";
 import { buildManualInquiryLink } from "@/lib/manual-checkout";
 import { brl } from "@/lib/format";
 import { supabase } from "@/integrations/supabase/client";
@@ -17,8 +18,44 @@ export const Route = createFileRoute("/checkout")({
   ssr: false,
   beforeLoad: requireAuthenticatedUser,
   head: () => ({ meta: [{ title: "Finalizar compra — Hiraeth" }] }),
-  component: CheckoutHiraeth,
+  component: CheckoutEntry,
 });
+
+/**
+ * Temporary assisted-order rollout. Customers see only the WhatsApp handoff.
+ * The pre-existing automated checkout stays visible in the admin session for
+ * technical checks; actual payments still require server-side authorization.
+ * Never interpret this client-side split as a backend authorization boundary.
+ */
+function CheckoutEntry() {
+  const [role, setRole] = useState<"loading" | "admin" | "customer">("loading");
+  useEffect(() => {
+    let active = true;
+    void (async () => {
+      try {
+        const { data, error } = await supabase.auth.getUser();
+        if (error || !data.user) {
+          if (active) setRole("customer");
+          return;
+        }
+        const { data: allowed, error: roleError } = await supabase.rpc("has_role", {
+          _user_id: data.user.id,
+          _role: "admin",
+        });
+        if (active) setRole(!roleError && allowed === true ? "admin" : "customer");
+      } catch {
+        if (active) setRole("customer");
+      }
+    })();
+    return () => { active = false; };
+  }, []);
+  if (role === "loading") return (
+    <div className="min-h-screen bg-background p-8 text-foreground" role="status">
+      Preparando atendimento Hiraeth...
+    </div>
+  );
+  return role === "admin" ? <CheckoutHiraeth /> : <ManualOrderCheckout />;
+}
 
 type FreightQuote = { id: number; company: string; name: string; price: number; delivery_time: number | null };
 type CheckoutSummary = {
