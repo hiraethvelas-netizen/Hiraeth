@@ -94,3 +94,93 @@ export function buildManualInquiryLink(
   ].join("\n");
   return "https://wa.me/" + digits + "?text=" + encodeURIComponent(message);
 }
+
+/**
+ * Manual handoff for the short-term WhatsApp sales operation.
+ * This never requests payment or creates a database order.
+ * The customer must explicitly consent in the UI before the URL is generated.
+ */
+export type ManualOrderDelivery = {
+  name: string;
+  phone: string;
+  postal_code: string;
+  street: string;
+  number: string;
+  complement: string;
+  district: string;
+  city: string;
+  state: string;
+};
+
+export type ManualPaymentPreference = "pix" | "card_link" | "discuss";
+
+export type ManualOrderRequest = {
+  delivery: ManualOrderDelivery;
+  payment: ManualPaymentPreference;
+  coupon?: string;
+  isGift?: boolean;
+  note?: string;
+};
+
+const normalizeField = (value: string, limit = 120) =>
+  value.replace(/[\\r\\n\\t]+/g, " ").replace(/\\s+/g, " ").trim().slice(0, limit);
+
+export function manualDeliveryIsComplete(delivery: ManualOrderDelivery): boolean {
+  return delivery.name.trim().length >= 2 &&
+    /^\\d{10,11}$/.test(delivery.phone.replace(/\\D/g, "")) &&
+    /^\\d{8}$/.test(delivery.postal_code.replace(/\\D/g, "")) &&
+    ["street", "number", "district", "city"].every(key =>
+      normalizeField(delivery[key as keyof ManualOrderDelivery]).length > 0) &&
+    /^[A-Z]{2}$/.test(delivery.state.trim().toUpperCase());
+}
+
+export function buildManualOrderWhatsAppLink(
+  phone: string,
+  items: ReadonlyArray<Pick<CartItem, "name" | "quantity" | "variantDetails">>,
+  request: ManualOrderRequest,
+): string | null {
+  const base = buildManualInquiryLink(phone, items);
+  if (!base || !manualDeliveryIsComplete(request.delivery)) return null;
+
+  const digits = phone.replace(/\\D/g, "");
+  const selection = new URL(base).searchParams.get("text")?.split("\\n") ?? [];
+  const lines = selection.filter(line => line.startsWith("- "));
+  if (!lines.length) return null;
+  const data = request.delivery;
+  const clean = (value: string) => normalizeField(value, 140);
+  const paymentNames: Record<ManualPaymentPreference, string> = {
+    pix: "Pix — aguardarei os dados/QR Code após conferência",
+    card_link: "Cartão — solicitarei um link seguro de pagamento, se disponível",
+    discuss: "A combinar com o atendimento",
+  };
+  const payment = paymentNames[request.payment];
+  if (!payment) return null;
+
+  const message = [
+    "Olá, Hiraeth! Quero SOLICITAR um pedido assistido da loja:",
+    "",
+    "VELAS SELECIONADAS",
+    ...lines,
+    "",
+    "DADOS PARA CONFERÊNCIA DA ENTREGA",
+    "Nome: " + clean(data.name),
+    "Telefone com DDD: " + clean(data.phone),
+    "CEP: " + data.postal_code.replace(/\\D/g, ""),
+    "Endereço: " + clean(data.street) + ", " + clean(data.number),
+    data.complement.trim() ? "Complemento: " + clean(data.complement) : "",
+    "Bairro: " + clean(data.district),
+    "Cidade/UF: " + clean(data.city) + "/" + data.state.trim().toUpperCase(),
+    request.isGift ? "É para presente: sim" : "",
+    request.note?.trim() ? "Observação: " + clean(request.note).slice(0, 280) : "",
+    request.coupon?.trim() ? "Cupom para verificar: " + clean(request.coupon, 30) : "",
+    "",
+    "PREFERÊNCIA DE PAGAMENTO",
+    payment,
+    "",
+    "Entendo que esta mensagem NÃO confirma pedido, NÃO reserva estoque e NÃO efetua pagamento.",
+    "Aguardarei confirmação humana de disponibilidade, preço final, frete e prazo antes de pagar.",
+    "Não enviarei dados de cartão por WhatsApp.",
+  ].filter(Boolean).join("\\n");
+
+  return "https://wa.me/" + digits + "?text=" + encodeURIComponent(message);
+}
