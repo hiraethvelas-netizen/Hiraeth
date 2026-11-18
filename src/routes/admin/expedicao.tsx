@@ -34,7 +34,7 @@ type Invoice = {
 };
 type ShippingDetails = {
   shipment: Shipment; invoice: Invoice; fiscalSandbox:boolean; shippingSandbox:boolean;
-  canIssueInvoice:boolean;
+  canIssueInvoice:boolean; trackingSupported?: boolean;
 };
 type TrackingRead = {
   tracking: {found:boolean;status:string|null;trackingCode:string|null};
@@ -215,7 +215,7 @@ function OrderExpedition({order}:{order:Order}) {
           {details.shippingSandbox?" · Melhor Envio Sandbox":""}
         </p>
         {details.shipment.tracking_code&&<p className="mt-2 text-xs text-foreground">Rastreio salvo: {details.shipment.tracking_code}</p>}
-        {details.shipment.provider_label_id&&<button type="button"
+        {details.trackingSupported===true&&details.shipment.provider_label_id&&<button type="button"
           disabled={!!operation||loading} onClick={()=>void perform("refresh_tracking")}
           className="mt-3 inline-flex items-center gap-2 rounded-lg border border-primary/40 px-3 py-2 text-xs font-semibold text-primary disabled:opacity-40">
           <RefreshCw size={14} aria-hidden="true" /> {operation==="refresh_tracking"?"Consultando...":"Atualizar rastreio"}
