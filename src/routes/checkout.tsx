@@ -7,7 +7,7 @@ import { useCart } from "@/lib/cart";
 import { buildManualInquiryLink } from "@/lib/manual-checkout";
 import { brl } from "@/lib/format";
 import { supabase } from "@/integrations/supabase/client";
-import { requireAuthenticatedUser } from "@/lib/require-auth";
+import { requireAdminForCheckout } from "@/lib/require-auth";
 import { checkoutRecipientFromMetadata, checkoutMetadataFromRecipient, emptyCheckoutRecipient } from "@/lib/checkout-recipient";
 import { commerceFailureMessage, isResolvedCheckoutStatus } from "@/lib/commerce-errors";
 import { isValidBrazilianDocument, isValidBrazilianPhone } from "../../supabase/functions/_shared/commerce-document";
@@ -15,7 +15,7 @@ import { saveCheckoutReference, readCheckoutReference, clearCheckoutReference, r
 
 export const Route = createFileRoute("/checkout")({
   ssr: false,
-  beforeLoad: requireAuthenticatedUser,
+  beforeLoad: requireAdminForCheckout,
   head: () => ({ meta: [{ title: "Finalizar compra — Hiraeth" }] }),
   component: CheckoutHiraeth,
 });
