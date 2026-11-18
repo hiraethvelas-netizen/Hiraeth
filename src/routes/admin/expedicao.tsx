@@ -34,7 +34,13 @@ type Invoice = {
 };
 type ShippingDetails = {
   shipment: Shipment; invoice: Invoice; fiscalSandbox:boolean; shippingSandbox:boolean;
-  canIssueInvoice:boolean;
+  canIssueInvoice:boolean; trackingSupported?: boolean;
+};
+type TrackingRead = {
+  tracking: {found:boolean;status:string|null;trackingCode:string|null};
+  checkedAt: string;
+  shippingSandbox: boolean;
+  note: string;
 };
 type PaymentReview = {
   id:string;status:string;total:number;paid_at:string|null;last_error:string|null;email:string;promotion_summary?:unknown;
@@ -76,9 +82,11 @@ function OrderExpedition({order}:{order:Order}) {
   const [details,setDetails]=useState<ShippingDetails|null>(null);
   const [loading,setLoading]=useState(false);
   const [operation,setOperation]=useState("");
+  const [carrierTracking,setCarrierTracking]=useState<TrackingRead|null>(null);
   async function refresh() {
     setLoading(true);
     try{setDetails((await freightAction(order.id,"status")) as ShippingDetails);}
+
     catch(cause){toast.error(cause instanceof Error?cause.message:"Integração indisponível.");}
     finally{setLoading(false);}
   }
@@ -94,6 +102,11 @@ function OrderExpedition({order}:{order:Order}) {
     try{
       const response=await freightAction(order.id,action,
         action==="buy_label"?{confirmPurchase:true}:undefined);
+      if(action==="refresh_tracking"){
+        setCarrierTracking(response as TrackingRead);
+        toast.info("Consulta ao Melhor Envio concluída. O pedido não foi alterado.");
+        return;
+      }
       toast.success(action==="buy_label"?"Compra da etiqueta solicitada.":
         action==="issue_invoice"?"Emissão fiscal solicitada.":
         action==="generate_label"?"Etiqueta gerada.": "Etapa atualizada.");
@@ -201,7 +214,20 @@ function OrderExpedition({order}:{order:Order}) {
           {details.shipment.carrier_name} · {details.shipment.service_name}
           {details.shippingSandbox?" · Melhor Envio Sandbox":""}
         </p>
-        {details.shipment.tracking_code&&<p className="mt-2 text-xs text-foreground">Rastreio: {details.shipment.tracking_code}</p>}
+        {details.shipment.tracking_code&&<p className="mt-2 text-xs text-foreground">Rastreio salvo: {details.shipment.tracking_code}</p>}
+        {details.trackingSupported===true&&details.shipment.provider_label_id&&<button type="button"
+          disabled={!!operation||loading} onClick={()=>void perform("refresh_tracking")}
+          className="mt-3 inline-flex items-center gap-2 rounded-lg border border-primary/40 px-3 py-2 text-xs font-semibold text-primary disabled:opacity-40">
+          <RefreshCw size={14} aria-hidden="true" /> {operation==="refresh_tracking"?"Consultando...":"Atualizar rastreio"}
+        </button>}
+        {carrierTracking&&<div role="status" className="mt-2 space-y-1 rounded-lg border border-primary/20 p-3 text-xs text-foreground">
+          <p className="font-semibold">Consulta ao Melhor Envio · {carrierTracking.shippingSandbox?"Sandbox":"Produção"}</p>
+          {carrierTracking.tracking.found
+            ? <p>Situação informada: <strong>{carrierTracking.tracking.status??"Não informada"}</strong></p>
+            : <p>A transportadora ainda não retornou informação vinculada à etiqueta deste pedido.</p>}
+          {carrierTracking.tracking.trackingCode&&<p>Código informado: {carrierTracking.tracking.trackingCode}</p>}
+          <p className="text-muted-foreground">Consultado em {new Date(carrierTracking.checkedAt).toLocaleString("pt-BR")}. A consulta não altera o pedido; atualizações do provedor podem levar algum tempo.</p>
+        </div>}
         {details.shipment.last_error&&<p role="alert" className="mt-2 text-xs text-destructive">{details.shipment.last_error}</p>}
         <div className="mt-4 flex flex-wrap gap-2">
           {!details.shipment.provider_label_id&&<button type="button"
@@ -386,7 +412,7 @@ function CorreioDaFenix() {
         {!health.fiscalSecretsPresent&&<p className="rounded-lg border border-primary/30 p-3 text-foreground">
           <strong>Nota fiscal:</strong> solicite à contabilidade os dados do emitente e as regras tributárias por produto para configurar a Focus NFe em homologação. Não habilite emissão real antes da validação fiscal.
         </p>}
-        <p><strong>Embalagem pesada:</strong> {health.packageWeightMeasured?"Peso de embalagem configurado":"Falta confirmar peso físico da caixa e proteções"}</p>
+        <p><strong>Tara da embalagem:</strong> {health.packageWeightMeasured?"Valor cadastrado no servidor. Ainda precisa conferir a pesagem física da caixa pronta.":"Sem tara de embalagem configurada. Pese a caixa com todas as proteções."}</p>
         <p><strong>Documentação fiscal:</strong> {health.fiscalSecretsPresent?"Configurações fiscais presentes (não homologadas)":"Configurações fiscais incompletas"}</p>
         <p className="text-xs text-muted-foreground">
           Uma credencial aceita não comprova que pertence ao ambiente Teste nem que Pix,

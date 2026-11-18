@@ -5,6 +5,7 @@ import {
 import { isVerifiedFullRefund } from "../_shared/commerce-refund-check.ts";
 import { shippingProductsFromCheckoutItems } from "../_shared/commerce-label-products.ts";
 import { isSandboxCheckout } from "../_shared/commerce-sandbox.ts";
+import { summarizeCarrierTracking } from "../_shared/commerce-tracking.ts";
 
 async function melhorEnvio(path: string, payload: Record<string, unknown>) {
   const response=await fetch(betterShippingUrl()+path,{
@@ -142,12 +143,29 @@ Deno.serve(async (req:Request) => {
 
     if(body.action==="status"){
       return json({
-        shipment,invoice,
+        shipment,invoice,trackingSupported:true,
         canIssueInvoice:Boolean(Deno.env.get("FOCUSNFE_TOKEN") &&
           Deno.env.get("FOCUSNFE_TEMPLATE_JSON") &&
           Deno.env.get("FOCUSNFE_ITEM_RULES_JSON")),
         fiscalSandbox:fiscalBaseUrl().includes("homologacao"),
         shippingSandbox:betterShippingUrl().includes("sandbox"),
+      });
+    }
+
+    if(body.action==="refresh_tracking"){
+      // An explicit admin-only, provider-read operation. Do not write shipment,
+      // order or delivery status from a single provider response.
+      if (!shipment.provider_label_id)
+        return json({error:"Prepare uma etiqueta antes de consultar o rastreio."},409);
+      const providerResult=await melhorEnvio("/api/v2/me/shipment/tracking",{
+        orders:[String(shipment.provider_label_id)],
+      });
+      const tracking=summarizeCarrierTracking(providerResult,String(shipment.provider_label_id));
+      return json({
+        tracking,
+        checkedAt:new Date().toISOString(),
+        shippingSandbox:betterShippingUrl().includes("sandbox"),
+        note:"Consulta de leitura ao Melhor Envio; o pedido não foi alterado. O provedor pode manter o resultado em cache.",
       });
     }
 
