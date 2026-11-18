@@ -39,7 +39,7 @@ import { ManualOrderCheckout } from "@/components/ManualOrderCheckout";
 afterEach(cleanup);
 
 describe("Checkout assistido da Hiraeth", () => {
-  it("apresenta a mensagem curta, os campos do pedido e somente o botão WhatsApp", () => {
+  it("apresenta a mensagem curta, os campos do pedido e somente o botão WhatsApp", async () => {
     render(<ManualOrderCheckout />);
     expect(screen.getByText("A área de checkout ainda está em desenvolvimento. Preencha seus dados e prossiga pelo WhatsApp.")).toBeInTheDocument();
     expect(screen.getByText("Surpresa de Natal", { exact: false })).toBeInTheDocument();
@@ -48,7 +48,7 @@ describe("Checkout assistido da Hiraeth", () => {
     expect(screen.getByText(/Recado para a Guardiã da Chama/)).toBeInTheDocument();
     expect(screen.getByText(/Cupom para conferência/)).toBeInTheDocument();
     expect(screen.getByText(/Como prefere pagar/)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Seguir pelo WhatsApp" })).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: "Seguir pelo WhatsApp" })).toBeInTheDocument();
     expect(screen.queryByText(/Ambiente de testes: você pode simular frete/)).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /Conferir e escolher o pagamento/ })).not.toBeInTheDocument();
   });
