@@ -146,9 +146,13 @@ function CheckoutHiraeth() {
   const inputClass="mt-1 w-full min-w-0 rounded border border-primary/35 bg-card px-3 py-2.5 text-foreground placeholder:text-muted-foreground";
   useEffect(()=>{
     let active=true;
-    void supabase.from("site_profile").select("whatsapp_number").eq("id",true).maybeSingle()
-      .then(({data,error})=>{if(active&&!error)setSupportPhone(data?.whatsapp_number??"");})
-      .catch(()=>{/* O atendimento não impede o checkout. */});
+    void (async()=>{
+      try {
+        const {data,error}=await supabase.from("site_profile")
+          .select("whatsapp_number").eq("id",true).maybeSingle();
+        if(active&&!error)setSupportPhone(data?.whatsapp_number??"");
+      } catch { /* Contato externo é opcional e não bloqueia o checkout. */ }
+    })();
     return ()=>{active=false;};
   },[]);
   useEffect(()=>{
