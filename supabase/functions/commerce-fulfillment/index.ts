@@ -143,7 +143,7 @@ Deno.serve(async (req:Request) => {
 
     if(body.action==="status"){
       return json({
-        shipment,invoice,
+        shipment,invoice,trackingSupported:true,
         canIssueInvoice:Boolean(Deno.env.get("FOCUSNFE_TOKEN") &&
           Deno.env.get("FOCUSNFE_TEMPLATE_JSON") &&
           Deno.env.get("FOCUSNFE_ITEM_RULES_JSON")),
