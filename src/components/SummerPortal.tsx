@@ -41,6 +41,13 @@ function SummerStar({ light = false }: { light?: boolean }) {
 }
 
 const recipeIcons = ["🍰", "🍋", "🥕", "🍐"];
+// Fotografias editoriais de referência; podem ser substituídas no painel admin.
+const recipePhotoFallbacks = [
+  "https://imagem.band.com.br/18/f_272518.jpg",
+  "https://estranho.com/inventos/img/caipirinha.webp",
+  "https://suckhoedoisong.qltns.mediacdn.vn/324455921873985536/2025/6/10/avatar-17495238021021703714519-389-0-1639-2000-crop-1749523817276880260977.png",
+  "https://kitchenaid.com.au/cdn/shop/articles/15bc6c058e38453750f01a44d603e9b6_1200x1200.jpg?v=1565774799",
+] as const;
 const recipeTeasers = ["Uma pausa geladinha entre flores e sol.", "O frescor do nosso fim de tarde.", "Um copo cheio das cores do verão.", "Uma manhã leve, delicada e sem pressa."];
 
 const GOLDEN_HOUR_STORAGE_KEY = "hiraeth-portal-verao-golden-hour";
@@ -68,8 +75,13 @@ export function SummerPortal({ portal }: { portal: Portal }) {
       <div className="summer-water" aria-hidden="true" />
       <div className="summer-sunset-glow" aria-hidden="true" />
       <div className="summer-hero-stripe" aria-hidden="true" />
-      <span className="summer-hero-hibiscus" aria-hidden="true">✿</span>
-      <span className="summer-hero-lemon" aria-hidden="true">◒</span>
+      <div className="summer-hero-hibiscus summer-hero-photo" aria-hidden="true">
+        <img src="https://images.unsplash.com/photo-1554569258-670a25302596?w=640&q=76" alt="" loading="lazy" />
+      </div>
+      <div className="summer-hero-parasol summer-hero-photo" aria-hidden="true">
+        <img src="https://static.wixstatic.com/media/a98afb_48b907925d2a4b0287373ddd0eaefb67~mv2.jpg/v1/fill/w_1000%2Ch_800%2Cal_c%2Cq_85%2Cusm_0.66_1.00_0.01/a98afb_48b907925d2a4b0287373ddd0eaefb67~mv2.jpg" alt="" loading="lazy" />
+      </div>
+      <span className="summer-hero-lemon" aria-hidden="true">✳</span>
       <div className="summer-hero-inner">
         <img src={hiraethWordmark} alt="Hiraeth" className="summer-brand" />
         <div className="summer-top-ornament"><SummerStar light /></div>
@@ -80,7 +92,7 @@ export function SummerPortal({ portal }: { portal: Portal }) {
           aria-pressed={goldenHour} aria-label={goldenHour ? "Desligar o modo Golden Hour e voltar ao verão azul" : "Ativar Golden Hour: pôr do sol dourado"}>
           <span className="summer-golden-toggle__sun" aria-hidden="true"><Sun size={22} strokeWidth={1.65} /></span>
           <span className="summer-golden-toggle__label">Golden Hour</span>
-          <span className="summer-golden-toggle__state">{goldenHour ? "Desligar" : "Acender o pôr do sol"}</span>
+ 
         </button>
         <div className="summer-hero-scroll"><span>Descubra o que há neste portal</span><ArrowRight size={17} aria-hidden="true" /></div>
       </div>
@@ -117,13 +129,16 @@ export function SummerPortal({ portal }: { portal: Portal }) {
         <div className="summer-drinks-grid">
           {recipes.map((item, i) => {
             const published = item.visible === true && Boolean(item.title?.trim());
-            const img = published ? safeImage(item.image_url) : null;
+            const img = published ? safeImage(item.image_url) ?? recipePhotoFallbacks[i] : null;
+            const ingredients = item.ingredients?.split(";").map(value => value.trim()).filter(Boolean) ?? [];
+            const steps = item.method?.split(/(?<=[.!?])\s+(?=[A-ZÁÉÍÓÚÂÊÔÃÕÇ])/).map(value => value.trim()).filter(Boolean) ?? [];
             const [recipeTitle] = published
               ? (item.title ?? "").split(/\s+[—–]\s+/, 2)
               : ["Uma receita a descobrir", ""];
             return <article className="summer-drink-card" key={i}>
               <div className={"summer-drink-photo summer-drink-photo--" + (i + 1)}>
-                {img ? <img src={img} alt="" loading="lazy" /> : <span className="summer-drink-symbol" aria-hidden="true">{recipeIcons[i]}</span>}
+                <span className="summer-drink-symbol" aria-hidden="true">{recipeIcons[i]}</span>
+                {img && <img src={img} alt={`Fotografia ilustrativa de ${recipeTitle}`} loading="lazy" onError={event => {event.currentTarget.style.display = "none";}} />}
                 <span className="summer-drink-number">0{i + 1}</span>
               </div>
               <div className="summer-drink-info">
@@ -131,8 +146,14 @@ export function SummerPortal({ portal }: { portal: Portal }) {
                 {published ? <>
                   <p className="summer-recipe-teaser">{recipeTeasers[i]}</p>
                   <details className="summer-recipe-details"><summary>Ver receita</summary>
-                    {item.ingredients && <p><strong>Ingredientes:</strong> {item.ingredients}</p>}
-                    {item.method && <p><strong>Modo de preparo:</strong> {item.method}</p>}
+                    {ingredients.length > 0 && <div className="summer-recipe-section">
+                      <h4>Ingredientes</h4>
+                      <ul>{ingredients.map((part, index) => <li key={index}>{part.replace(/^Para \d+ (taça|copo|torradas?|pedaços?):\s*/i, "")}</li>)}</ul>
+                    </div>}
+                    {steps.length > 0 && <div className="summer-recipe-section">
+                      <h4>Passo a passo</h4>
+                      <ol>{steps.map((step, index) => <li key={index}>{step}</li>)}</ol>
+                    </div>}
                   </details>
                 </> : <p className="summer-muted">Em preparação</p>}
               </div>
