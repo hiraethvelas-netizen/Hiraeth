@@ -1,15 +1,16 @@
 import { useEffect, useState } from "react";
 import { ArrowLeft, ArrowUpRight, BookOpen, Check, Clapperboard, Tv2 } from "lucide-react";
 import { isSafePortalUrl } from "@/lib/portal-experience";
+import { SummerOrnament } from "@/components/SummerEditorialIcons";
 import { summerRecommendationsFromTheme, summerCoverFallbacks, summerCoverBackups, type SummerRecommendationKind } from "@/lib/summer-recommendations";
 import "./SummerRecommendations.css";
 
 const STORAGE_KEY = "hiraeth-verao-checklist-v1";
 type Progress = Record<string, { done: boolean; rating: number }>;
 const categories = [
-  { key: "livro", label: "Livros", action: "Descubra uma leitura de verão", hint: "Páginas para ler ao sol", Icon: BookOpen },
-  { key: "serie", label: "Séries", action: "Descubra uma série de verão", hint: "Uma temporada para maratonar", Icon: Tv2 },
-  { key: "filme", label: "Filmes", action: "Descubra um filme de verão", hint: "Cinema com gosto de férias", Icon: Clapperboard },
+  { key: "livro", label: "Livros", Icon: BookOpen },
+  { key: "serie", label: "Séries", Icon: Tv2 },
+  { key: "filme", label: "Filmes", Icon: Clapperboard },
 ] as const;
 
 function loadProgress(): Progress {
@@ -35,12 +36,10 @@ export function SummerRecommendations({ theme }: { theme: unknown }) {
   const recommendations = summerRecommendationsFromTheme(source).filter(item => item.visible && item.title.trim());
   const [selected, setSelected] = useState<SummerRecommendationKind | null>(null);
   const [progress, setProgress] = useState<Progress>({});
-  const [ready, setReady] = useState(false);
   const [imageAttempts, setImageAttempts] = useState<Record<string, number>>({});
 
   useEffect(() => {
     setProgress(loadProgress());
-    setReady(true);
   }, []);
 
   function update(id: string, patch: Partial<{ done: boolean; rating: number }>) {
@@ -51,35 +50,31 @@ export function SummerRecommendations({ theme }: { theme: unknown }) {
 
   const visible = selected ? recommendations.filter(item => item.kind === selected) : [];
   const selectedInfo = categories.find(item => item.key === selected);
-  const completed = recommendations.filter(item => progress[item.id]?.done).length;
 
   return <section className="summer-discovery summer-content-section" id="indicacoes-de-verao" aria-labelledby="summer-discovery-title">
     <div className="summer-section-intro">
-      <span className="summer-star" aria-hidden="true">✳</span>
-      <p className="summer-eyebrow">Uma temporada para recordar</p>
+      <SummerOrnament kind="hibiscus" />
       <h2 id="summer-discovery-title">Indicações <em>de Verão</em></h2>
-      <p>Um livro na bolsa, uma série para maratonar ou aquele filme que sempre dá vontade de rever.</p>
     </div>
 
     {!selected ? <>
       <div className="summer-discovery-categories" aria-label="Escolha sua indicação">
-        {categories.map(({ key, action, hint, Icon }) => {
+        {categories.map(({ key, label, Icon }) => {
           const amount = recommendations.filter(item => item.kind === key).length;
           return <button type="button" className={`summer-discovery-category summer-discovery-category--${key}`}
             key={key} onClick={() => setSelected(key)} disabled={amount === 0}
-            aria-label={action}>
+            aria-label={`Explorar ${label.toLowerCase()} de verão`}>
             <span className="summer-discovery-category__disc"><Icon size={36} strokeWidth={1.25} aria-hidden="true" /></span>
-            <strong>{action}</strong><small>{hint}</small>
-            {amount > 0 && <span className="summer-discovery-category__count">{amount} sugestões</span>}
+            <strong>{label}</strong>
           </button>;
         })}
       </div>
-      {ready && <p className="summer-discovery-progress">{completed} de {recommendations.length} histórias marcadas na sua lista</p>}
+
     </> : <div className="summer-discovery-list" aria-live="polite">
       <button type="button" className="summer-discovery-back" onClick={() => setSelected(null)}>
         <ArrowLeft size={18} aria-hidden="true" /> Voltar às indicações
       </button>
-      <h3 className="summer-discovery-list__title">{selectedInfo?.label} para este verão</h3>
+      <h3 className="summer-discovery-list__title">{selectedInfo?.label}</h3>
       {visible.length ? <div className="summer-discovery-grid">
         {visible.map((item, index) => {
           const done = progress[item.id]?.done ?? false;
