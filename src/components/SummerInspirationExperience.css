@@ -201,3 +201,125 @@
   .summer-sensation-overlay,.summer-sensation-dialog,.summer-sensation-dialog__panel {animation:none;}
   .summer-sensation-circle__emoji,.summer-sensation-dialog__actions button {transition:none;}
 }
+
+
+/* Summer editorial moodboard: visually rich, still sparse in copy and fully scoped. */
+.portal-world--summer-inspirations {
+  background:
+    radial-gradient(ellipse 75% 28% at 5% 6%,rgba(185,227,225,.47),transparent 92%),
+    radial-gradient(ellipse 68% 36% at 95% 74%,rgba(248,195,177,.5),transparent 87%),
+    linear-gradient(180deg,#fff9ef,#fff3e8 64%,#fbf0e4);
+}
+.portal-world--summer-inspirations .portal-inspired-header {
+  isolation:isolate;
+  padding-bottom:2px;
+}
+.portal-world--summer-inspirations .portal-inspired-header::before {
+  content:"";
+  position:absolute;
+  inset:-50% -5% auto -5%;
+  height:360px;
+  pointer-events:none;
+  z-index:-1;
+  opacity:.32;
+  filter:blur(2px);
+  background:
+    radial-gradient(circle at 29% 27%,#fff8ea 0 17%,transparent 44%),
+    url("https://images.unsplash.com/photo-1713991767449-6d3f6df573b7?w=1200&q=68") center 40% / cover;
+  -webkit-mask-image:linear-gradient(to bottom,#000,transparent);
+  mask-image:linear-gradient(to bottom,#000,transparent);
+}
+.portal-world--summer-inspirations .portal-inspired-header::after {
+  content:"";
+  position:absolute;
+  width:148px;height:148px;
+  top:-70px;right:-50px;
+  pointer-events:none;
+  border:8px solid #fff6e7;
+  transform:rotate(25deg);
+  background:repeating-linear-gradient(90deg,#eee9cd 0 21px,#247d99 21px 42px);
+  box-shadow:0 12px 25px #27444b18;
+  border-radius:6px;
+  z-index:0;
+}
+.portal-world--summer-inspirations .portal-inspired-header > * {position:relative;z-index:1;}
+.portal-world--summer-inspirations .portal-inspired-header h1 {
+  font-family:"Cormorant Garamond",Georgia,serif;
+  font-size:clamp(37px,7vw,62px);
+  letter-spacing:-.035em;
+  color:#265568;
+}
+.portal-world--summer-inspirations .portal-inspired-main {
+  padding-bottom:32px;
+}
+.portal-world--summer-inspirations .portal-inspired-main .summer-sensations {
+  position:relative;
+  isolation:isolate;
+}
+.portal-world--summer-inspirations .portal-inspired-main .summer-sensations::before {
+  content:"";
+  position:absolute;
+  top:15%;left:-9%;
+  width:115px;height:115px;
+  border:1px solid rgba(232,151,116,.55);
+  border-radius:50%;
+  box-shadow:0 0 0 17px rgba(249,213,187,.25),0 0 0 39px rgba(233,201,178,.12);
+  z-index:-1;
+  pointer-events:none;
+}
+.portal-world--summer-inspirations .portal-inspired-main .summer-sensations::after {
+  content:"";
+  position:absolute;
+  right:-9%;top:34%;
+  width:110px;height:110px;
+  border:1px solid rgba(64,151,169,.37);
+  border-radius:50%;
+  box-shadow:0 0 0 19px rgba(133,197,202,.1);
+  z-index:-1;pointer-events:none;
+}
+.summer-sensations__postcards {
+  position:relative;
+  width:min(100%,650px);
+  margin:54px auto 5px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:clamp(1px,1.7vw,16px);
+}
+.summer-sensations__postcard {
+  position:relative;
+  width:32%;
+  aspect-ratio:1.18;
+  flex:0 0 auto;
+  overflow:hidden;
+  border:6px solid #fffaf0;
+  border-bottom-width:17px;
+  border-radius:5px;
+  box-shadow:0 14px 25px rgba(92,79,79,.18);
+  background:linear-gradient(140deg,#f7d5c4,#d9ebed);
+}
+.summer-sensations__postcard img {display:block;width:100%;height:100%;object-fit:cover;}
+.summer-sensations__postcard--hibiscus {transform:rotate(-8deg) translate(8px,4px);}
+.summer-sensations__postcard--hibiscus img {object-position:45% 55%;}
+.summer-sensations__postcard--pool {transform:translateY(-14px) rotate(2deg);z-index:2;}
+.summer-sensations__postcard--beach {transform:rotate(8deg) translate(-8px,4px);}
+.summer-sensations__postcard-sparkle {
+  position:absolute;
+  bottom:-22px;
+  left:50%;
+  z-index:3;
+  transform:translateX(-50%);
+  font-size:43px;
+  color:#dba46d;
+  text-shadow:0 2px #fff1de;
+}
+.summer-sensations__grid {max-width:650px;}
+@media(max-width:600px) {
+  .portal-world--summer-inspirations .portal-inspired-header {padding-top:18px;padding-bottom:0;}
+  .portal-world--summer-inspirations .portal-inspired-header::after {width:103px;height:103px;top:-46px;right:-55px;border-width:5px;}
+  .portal-world--summer-inspirations .portal-inspired-header h1 {font-size:clamp(34px,8vw,49px);}
+  .portal-world--summer-inspirations .portal-inspired-main {padding-bottom:13px;}
+  .summer-sensations__postcards {margin:40px auto 12px;}
+  .summer-sensations__postcard {border-width:4px;border-bottom-width:11px;}
+  .summer-sensations__postcard-sparkle {font-size:29px;bottom:-16px;}
+}
