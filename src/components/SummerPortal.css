@@ -85,3 +85,10 @@
 @media (max-width:850px) { .summer-drinks-grid,.summer-picks-grid {grid-template-columns:repeat(2,minmax(0,1fr));}.summer-memoir {padding:60px 25px;}.summer-stamp-set {flex-basis:195px;}.summer-stamp-set span {font-size:28px;} }
 @media (max-width:560px) { .summer-hero {min-height:690px;}.summer-hero-inner {padding:130px 22px 90px;}.summer-hero-stripe {width:220px;height:165px;left:-125px;top:-55px;}.summer-hero-hibiscus {left:-12px;bottom:20px;font-size:118px;}.summer-hero-lemon {right:-30px;top:12%;font-size:110px;}.summer-hero h1 {font-size:clamp(65px,18vw,102px);}.summer-round-grid {gap:8px;}.summer-round-icon {border-width:4px;width:clamp(76px,23vw,115px);height:clamp(76px,23vw,115px);}.summer-shortcuts {padding:40px 15px 70px;}.summer-memoir {display:block;text-align:center;}.summer-stamp-set {margin:32px auto 0;max-width:260px;transform:rotate(0);}.summer-content-section {padding:65px 15px;}.summer-drinks-grid,.summer-picks-grid {gap:10px;}.summer-drink-photo {height:145px;}.summer-drink-info,.summer-pick-info {padding:16px 13px 20px;}.summer-drink-symbol {font-size:55px;}.summer-pick-illustration {height:130px;}.summer-pick-info h3,.summer-drink-info h3 {font-size:24px;}.summer-section-intro {margin-bottom:28px;} }
 @media (prefers-reduced-motion:reduce) { .summer-water {animation:none;}.summer-round-link {transition:none;} }
+
+/* Summer stories page shares the existing fragments editor and return flow. */
+.portal-world--summer-inspirations {background:#fff8ec;color:#153e50;}
+.portal-world--summer-inspirations .portal-inspired-header {background:radial-gradient(ellipse at 14% 18%,#a0e5e1 0,transparent 48%),linear-gradient(135deg,#dbf3e8,#f6e9cf);color:#153e50;}
+.portal-world--summer-inspirations .portal-inspired-header::after {content:"";position:absolute;right:0;bottom:0;width:55%;height:25px;background:repeating-linear-gradient(90deg,#fffaf0 0 24px,#347fa3 24px 48px);opacity:.65;}
+.portal-world--summer-inspirations .portal-inspired-main {background:#fff8ec;color:#153e50;}
+.portal-world--summer-inspirations .portal-inspiration-card {background:#fffef8;border:1px solid #b5d5cd;color:#153e50;box-shadow:0 10px 25px #165c6c10;}
