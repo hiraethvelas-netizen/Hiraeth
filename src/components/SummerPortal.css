@@ -1,0 +1,87 @@
+/* Summer collection portal. Entirely scoped to avoid altering existing portals. */
+.summer-portal { --summer-navy:#153e50; --summer-teal:#087d98; --summer-cream:#fff8ec; --summer-sand:#e8d4b4; color:var(--summer-navy); background:var(--summer-cream); font-family:"DM Sans",Georgia,sans-serif; overflow:hidden; }
+.summer-portal * { box-sizing:border-box; }
+.summer-portal h1,.summer-portal h2,.summer-portal h3 { font-family:"Cormorant Garamond","Italiana",Georgia,serif; font-weight:500; }
+.summer-portal em { font-weight:400; }
+.summer-portal a:focus-visible,.summer-portal summary:focus-visible { outline:3px solid #efab3d; outline-offset:5px; }
+.summer-hero { min-height:min(790px,92svh); position:relative; display:grid; place-items:center; background:linear-gradient(143deg,#006b82 5%,#0e9eb2 50%,#0d657f 98%); color:#fff8eb; isolation:isolate; overflow:hidden; }
+.summer-water { position:absolute; inset:-16%; pointer-events:none; z-index:-1; opacity:.8; background:radial-gradient(ellipse 16% 12% at 8% 42%,rgba(255,255,255,.55),transparent 93%),radial-gradient(ellipse 19% 12% at 84% 64%,rgba(255,255,255,.48),transparent 97%),radial-gradient(ellipse 23% 22% at 51% 12%,rgba(226,255,255,.21),transparent 92%),repeating-radial-gradient(ellipse 34% 25% at 27% 57%,transparent 0px,transparent 55px,rgba(222,255,250,.17) 57px,rgba(221,252,255,.22) 60px,transparent 67px,transparent 98px),linear-gradient(60deg,transparent,rgba(5,67,97,.3),transparent); filter:blur(2.5px); animation:summer-reflections 22s ease-in-out infinite alternate; }
+.summer-water::after { content:""; position:absolute; inset:0; background:repeating-radial-gradient(ellipse 29% 13% at 75% 30%,transparent 0 24px,rgba(255,255,255,.16) 28px,transparent 34px,transparent 68px); transform:rotate(-7deg); }
+@keyframes summer-reflections { 0% {transform:translate(-1%,1%) rotate(-3deg) scale(1.04);} 50% {transform:translate(2%,-1%) rotate(2deg) scale(1.08);} 100% {transform:translate(-2%,-2%) rotate(-1deg) scale(1.02);} }
+.summer-hero-stripe { position:absolute; width:340px; height:250px; top:-75px; left:-155px; transform:rotate(-33deg); box-shadow:0 17px 22px #08394730; background:repeating-linear-gradient(90deg,#fff6e3 0 28px,#226d9a 28px 55px); border:8px solid #faf0da; border-radius:10px; }
+.summer-hero-hibiscus { position:absolute; left:clamp(-30px,3vw,60px); bottom:clamp(12px,6vw,60px); color:#ff7069; text-shadow:0 15px 8px #0f3a4655; font-size:clamp(95px,18vw,240px); line-height:1; transform:rotate(-19deg); opacity:.96; }
+.summer-hero-lemon { position:absolute; top:11%; right:clamp(-30px,3%,40px); font-size:clamp(85px,15vw,180px); color:#f8d65e; text-shadow:0 12px 10px #07586d55; transform:rotate(28deg); opacity:.9; }
+.summer-hero-inner { z-index:1; position:relative; width:min(100%,780px); padding:120px 25px 130px; text-align:center; text-shadow:0 2px 18px #063f6073; }
+.summer-brand { display:block; width:138px; height:auto; max-height:58px; object-fit:contain; margin:0 auto 18px; filter:brightness(0) invert(1); }
+.summer-top-ornament { margin:12px auto 10px; }
+.summer-star { display:block; text-align:center; color:#dc9f55; line-height:1; font-size:34px; }
+.summer-star--light { color:#fff2d1; }
+.summer-kicker,.summer-eyebrow { letter-spacing:.23em; text-transform:uppercase; font-size:11px; font-weight:700; }
+.summer-kicker { margin:18px 0 4px; }
+.summer-hero h1 { font-size:clamp(76px,13vw,145px); letter-spacing:-.055em; line-height:.84; margin:20px auto 30px; max-width:680px; }
+.summer-hero h1 em { display:block; font-style:italic; font-weight:400; }
+.summer-hero-copy { font-family:"Cormorant Garamond",Georgia,serif; font-style:italic; font-size:clamp(22px,3vw,29px); line-height:1.25; max-width:510px; margin:0 auto; }
+.summer-hero-scroll { display:inline-flex; align-items:center; gap:10px; margin-top:56px; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.13em; }
+.summer-hero-scroll svg { transform:rotate(90deg); }
+.summer-hero-edge { position:absolute; left:0; right:0; bottom:-1px; height:42px; background:var(--summer-cream); clip-path:polygon(0 64%,8% 50%,18% 58%,29% 37%,39% 57%,52% 43%,63% 58%,74% 41%,84% 51%,95% 35%,100% 45%,100% 100%,0 100%); }
+.summer-shortcuts { padding:35px 20px 92px; background:var(--summer-cream); }
+.summer-section-intro { max-width:730px; margin:0 auto 42px; text-align:center; }
+.summer-section-intro .summer-star { margin-bottom:8px; }
+.summer-eyebrow { color:#a56c43; margin:10px 0 12px; }
+.summer-section-intro h2,.summer-memoir h2,.summer-catalog h2 { font-size:clamp(45px,7vw,72px); line-height:1; letter-spacing:-.035em; }
+.summer-section-intro h2 em,.summer-memoir h2 em,.summer-catalog h2 em { color:#04869c; }
+.summer-section-intro>p:last-child { margin:17px auto 0; max-width:550px; font-size:15px; line-height:1.75; opacity:.8; }
+.summer-round-grid { max-width:665px; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:clamp(8px,3vw,34px); margin:auto; }
+.summer-round-link { display:flex; flex-direction:column; align-items:center; text-decoration:none; text-align:center; color:var(--summer-navy); gap:7px; transition:transform .2s; }
+.summer-round-link:not(.summer-round-link--disabled):hover { transform:translateY(-5px); }
+.summer-round-link--disabled { opacity:.68; }
+.summer-round-icon { display:grid; place-items:center; width:clamp(77px,15vw,145px); height:clamp(77px,15vw,145px); border-radius:50%; border:6px solid #fffdf4; box-shadow:0 0 0 1.5px #cab98b,0 6px 15px #0d3f4a1b; }
+.summer-round-icon--music {background:repeating-linear-gradient(90deg,#fff4d9 0 20px,#3d7f9b 20px 40px); color:#113c56;}
+.summer-round-icon--story {background:radial-gradient(circle at 30% 20%,#fbe5a5,#d9a866);color:#5a4934;}
+.summer-round-icon--app {background:radial-gradient(circle at 22% 20%,#bde5cf,#279b90);color:#153b49;}
+.summer-round-link strong {font-family:"Cormorant Garamond",Georgia,serif; font-size:clamp(20px,3vw,26px);font-weight:600;}
+.summer-round-link small {font-size:11px;opacity:.7;line-height:1.35;}
+.summer-memoir { position:relative; display:flex; gap:25px; align-items:center; justify-content:space-between; padding:80px max(24px,calc((100vw - 1040px)/2)); background:linear-gradient(125deg,#e4f4ee 0%,#f4e8ca 100%); }
+.summer-memoir-copy {max-width:590px; flex:1;}
+.summer-memoir-copy p:not(.summer-eyebrow) {margin-top:15px; font-size:15px; max-width:530px; line-height:1.85;}
+.summer-stamp-set { flex:0 0 245px; display:grid; grid-template-columns:repeat(3,1fr); gap:13px; transform:rotate(6deg);}
+.summer-stamp-set span { display:grid; place-items:center; aspect-ratio:1; border:2px solid #ffffffbb; background:#ffffff80; border-radius:50%; font-size:37px; box-shadow:0 2px 10px #0d4a4933;}
+.summer-content-section { padding:80px 24px 95px; }
+.summer-drinks {background:#fff9ef; }
+.summer-drinks-grid,.summer-picks-grid { max-width:1120px; margin:0 auto; display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:16px; }
+.summer-drink-card {background:white;border:1px solid #dbdbc4;box-shadow:0 14px 26px #0c4c5c0b;overflow:hidden;border-radius:3px;}
+.summer-drink-photo {height:205px;display:grid;place-items:center;position:relative;overflow:hidden;}
+.summer-drink-photo--1 {background:linear-gradient(140deg,#d8edb3,#81b7a6);}
+.summer-drink-photo--2 {background:linear-gradient(140deg,#fff2ba,#f8bd7c);}
+.summer-drink-photo--3 {background:linear-gradient(140deg,#d0ebee,#7fc5c9);}
+.summer-drink-photo--4 {background:linear-gradient(140deg,#f4deb9,#c9b2a0);}
+.summer-drink-photo img,.summer-pick-illustration img {width:100%;height:100%;object-fit:cover;position:absolute;inset:0;}
+.summer-drink-symbol {font-size:70px;filter:drop-shadow(2px 7px 8px #0f454627);}
+.summer-drink-number {position:absolute;top:15px;left:17px;font-family:Georgia,serif;font-size:20px;opacity:.65;}
+.summer-drink-info {padding:22px 19px 24px;}
+.summer-drink-info h3,.summer-pick-info h3 {font-size:clamp(23px,2.3vw,30px);line-height:1.12;}
+.summer-drink-info p,.summer-drink-info details {font-size:13px;line-height:1.7;margin-top:12px;overflow-wrap:anywhere;}
+.summer-drink-info summary {color:#006b82;font-weight:700;cursor:pointer;}
+.summer-muted {color:#657c7d;}
+.summer-picks { background:linear-gradient(180deg,#e3f1ed,#f3f6e8); }
+.summer-pick-card {background:var(--summer-cream);border-radius:5px;overflow:hidden;border:1px solid #cad3c2;box-shadow:0 10px 25px #0c485013;}
+.summer-pick-illustration {position:relative;height:175px;display:grid;place-items:center;color:#fff7e7;}
+.summer-pick-illustration--1 {background:linear-gradient(130deg,#3879a0,#a4cccf);}
+.summer-pick-illustration--2 {background:linear-gradient(130deg,#e8af70,#f3d7a2);}
+.summer-pick-illustration--3 {background:linear-gradient(130deg,#ba6f72,#e7b6ae);}
+.summer-pick-illustration--4 {background:linear-gradient(130deg,#5b9f83,#b9d5ae);}
+.summer-pick-info {padding:22px 18px 26px;}
+.summer-pick-type {font-size:10px;text-transform:uppercase;letter-spacing:.18em;color:#99724b;font-weight:700;}
+.summer-pick-info h3 {margin-top:8px;}
+.summer-pick-info p {font-size:13px;line-height:1.6;margin-top:8px;opacity:.75;}
+.summer-pick-link {display:inline-flex;align-items:center;gap:6px;margin-top:18px;font-size:12px;font-weight:700;color:#006b82;}
+.summer-catalog {text-align:center;background:#fdf3df;}
+.summer-catalog>svg {margin:0 auto;color:#3b8e9f;}
+.summer-catalog h2 {margin:15px auto 28px;}
+.summer-catalog-link {display:inline-flex;align-items:center;gap:10px;background:#0c7285;color:#fffaed;padding:14px 28px;border-radius:3px;font-size:14px;font-weight:600;text-decoration:none;}
+.summer-footer {text-align:center;padding:40px 20px 50px;background:#103e53;color:#fff7e5;}
+.summer-footer p {margin-top:10px;font-family:"Cormorant Garamond",Georgia,serif;font-style:italic;font-size:21px;}
+.summer-footer p:last-child {font-size:16px;opacity:.8;}
+@media (max-width:850px) { .summer-drinks-grid,.summer-picks-grid {grid-template-columns:repeat(2,minmax(0,1fr));}.summer-memoir {padding:60px 25px;}.summer-stamp-set {flex-basis:195px;}.summer-stamp-set span {font-size:28px;} }
+@media (max-width:560px) { .summer-hero {min-height:690px;}.summer-hero-inner {padding:130px 22px 90px;}.summer-hero-stripe {width:220px;height:165px;left:-125px;top:-55px;}.summer-hero-hibiscus {left:-12px;bottom:20px;font-size:118px;}.summer-hero-lemon {right:-30px;top:12%;font-size:110px;}.summer-hero h1 {font-size:clamp(65px,18vw,102px);}.summer-round-grid {gap:8px;}.summer-round-icon {border-width:4px;width:clamp(76px,23vw,115px);height:clamp(76px,23vw,115px);}.summer-shortcuts {padding:40px 15px 70px;}.summer-memoir {display:block;text-align:center;}.summer-stamp-set {margin:32px auto 0;max-width:260px;transform:rotate(0);}.summer-content-section {padding:65px 15px;}.summer-drinks-grid,.summer-picks-grid {gap:10px;}.summer-drink-photo {height:145px;}.summer-drink-info,.summer-pick-info {padding:16px 13px 20px;}.summer-drink-symbol {font-size:55px;}.summer-pick-illustration {height:130px;}.summer-pick-info h3,.summer-drink-info h3 {font-size:24px;}.summer-section-intro {margin-bottom:28px;} }
+@media (prefers-reduced-motion:reduce) { .summer-water {animation:none;}.summer-round-link {transition:none;} }
