@@ -1,0 +1,101 @@
+/* Hiraeth — sensações do Portal de Verão, sem afetar outros portais. */
+.summer-sensations {
+  position:relative;
+  isolation:isolate;
+  overflow:hidden;
+  max-width:1060px;
+  margin:0 auto;
+  padding:32px 20px 65px;
+  color:#1a4a59;
+  text-align:center;
+}
+.summer-sensations::before {
+  content:"";position:absolute;inset:7% 0 auto auto;width:190px;height:190px;border-radius:50%;
+  background:radial-gradient(circle,#f9c7a5aa,transparent 70%);filter:blur(13px);z-index:-1;pointer-events:none;
+}
+.summer-sensations__decoration {font-size:34px;color:#dd9564;margin-bottom:14px;}
+.summer-sensations__eyebrow {font-size:11px;font-weight:700;letter-spacing:.21em;text-transform:uppercase;color:#bb725c;}
+.summer-sensations h2 {
+  font-family:"Cormorant Garamond",Georgia,serif;font-weight:500;
+  font-size:clamp(47px,7vw,75px);letter-spacing:-.03em;line-height:1.02;margin:14px auto;
+}
+.summer-sensations h2 em {color:#c6757f;font-weight:400;}
+.summer-sensations__intro {max-width:560px;margin:12px auto;font-size:15px;line-height:1.7;}
+.summer-sensations__hint {max-width:570px;margin:25px auto 22px;font-size:12px;font-weight:700;letter-spacing:.055em;color:#93664c;}
+.summer-sensations__grid {
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:25px;
+  width:min(100%,615px);margin:25px auto 32px;
+}
+.summer-sensation-circle {
+  border:0;background:transparent;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:7px;min-width:0;
+  color:#234857;cursor:pointer;transition:transform .25s ease;
+}
+.summer-sensation-circle::before {display:none;}
+.summer-sensation-circle__emoji {
+  position:relative;display:grid;place-items:center;width:clamp(82px,14vw,150px);height:clamp(82px,14vw,150px);
+  border-radius:50%;font-size:clamp(35px,6vw,66px);border:5px solid #fffaf0;
+  outline:1px solid #dfb9a1;box-shadow:0 8px 25px #a46c5d22;
+  transition:transform .25s ease,box-shadow .25s ease;
+}
+.summer-sensation-circle:hover .summer-sensation-circle__emoji,
+.summer-sensation-circle.is-selected .summer-sensation-circle__emoji {
+  transform:translateY(-4px) rotate(-3deg);box-shadow:0 13px 31px #a65d692e,0 0 0 4px #e59c8870;
+}
+.summer-sensation-circle:focus-visible {outline:3px solid #087d98;outline-offset:6px;border-radius:8px;}
+.summer-sensation-circle--0 .summer-sensation-circle__emoji {background:linear-gradient(140deg,#fff3dd,#ffc7c4);}
+.summer-sensation-circle--1 .summer-sensation-circle__emoji {background:linear-gradient(140deg,#ffe9a6,#f9bb86);}
+.summer-sensation-circle--2 .summer-sensation-circle__emoji {background:linear-gradient(140deg,#faefab,#d9edb0);}
+.summer-sensation-circle--3 .summer-sensation-circle__emoji {background:linear-gradient(140deg,#d1eee0,#aad4c3);}
+.summer-sensation-circle--4 .summer-sensation-circle__emoji {background:linear-gradient(140deg,#d5eef4,#b5ded8);}
+.summer-sensation-circle--5 .summer-sensation-circle__emoji {background:linear-gradient(140deg,#d4e2ef,#c0e8ed);}
+.summer-sensation-circle__number {font-size:10px;color:#946b65;letter-spacing:.15em;font-weight:700;}
+.summer-sensation-circle__name {font-family:"Cormorant Garamond",Georgia,serif;font-style:italic;font-size:19px;line-height:1;}
+.summer-sensation-detail {max-width:780px;margin:34px auto 0;padding:32px clamp(19px,5vw,60px) 38px;border-radius:12px;
+  background:linear-gradient(150deg,#fffdf8,#fff3e4);
+  border:1px solid #e4c4a8;box-shadow:0 13px 40px #8c60591a;text-align:center;animation:summer-sensation-appear .32s ease both;}
+@keyframes summer-sensation-appear {from{opacity:0;transform:translateY(9px);}to{opacity:1;transform:translateY(0);}}
+.summer-sensation-detail__symbol {font-size:46px;display:block;line-height:1.2;}
+.summer-sensation-detail__eyebrow {font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#ad725c;margin:12px auto;}
+.summer-sensation-detail h3 {font-family:"Cormorant Garamond",Georgia,serif;font-weight:600;font-size:clamp(35px,5vw,57px);line-height:1.05;}
+.summer-sensation-detail__teaser {max-width:550px;margin:12px auto 23px;font-family:"Cormorant Garamond",Georgia,serif;
+  font-size:clamp(20px,3vw,26px);font-style:italic;line-height:1.25;color:#a25f71;}
+.summer-sensation-detail__actions {display:flex;justify-content:center;gap:9px;flex-wrap:wrap;}
+.summer-sensation-detail__actions button {
+  display:inline-flex;align-items:center;justify-content:center;gap:9px;border:1px solid #e1b799;
+  border-radius:999px;background:#fff9f0;color:#86475b;padding:12px 17px;min-height:46px;
+  cursor:pointer;font-size:12px;font-weight:700;transition:background .2s ease,transform .2s ease;
+}
+.summer-sensation-detail__actions button:hover {transform:translateY(-2px);background:#ffebda;}
+.summer-sensation-detail__actions button.is-active {background:#a95f73;color:#fffaf0;border-color:#a95f73;}
+.summer-sensation-detail__actions button:focus-visible {outline:3px solid #087d98;outline-offset:3px;}
+.summer-sensation-detail__actions button.is-active svg:last-child {transform:rotate(180deg);}
+.summer-sensation-detail__panel {margin:25px auto 0;border-top:1px solid #e4c8b1;padding-top:23px;animation:summer-sensation-appear .24s ease both;}
+.summer-sensation-detail__story {max-width:590px;margin:auto;font-size:15px;line-height:1.85;text-align:left;white-space:pre-wrap;}
+.summer-pyramid {max-width:510px;margin:0 auto;display:grid;gap:11px;}
+.summer-pyramid__row {display:grid;grid-template-columns:105px 1fr;text-align:left;gap:12px;align-items:start;
+  padding:14px 16px;background:#fff8ef;border:1px solid #ead8c4;border-radius:8px;}
+.summer-pyramid__row strong {font-family:"Cormorant Garamond",Georgia,serif;font-size:24px;color:#93596a;font-weight:600;}
+.summer-pyramid__row span {font-size:13px;line-height:1.6;align-self:center;}
+.summer-pyramid__secret {max-width:380px;margin:0 auto;color:#784e5c;}
+.summer-pyramid__secret>span {font-size:31px;color:#dda76b;}
+.summer-pyramid__secret p {font-family:"Cormorant Garamond",Georgia,serif;font-size:26px;margin:9px auto;}
+.summer-pyramid__secret small {font-size:12px;line-height:1.6;}
+.summer-sensations__closing {font-family:"Cormorant Garamond",Georgia,serif;font-style:italic;
+  font-size:23px;margin-top:41px;color:#aa6c6d;}
+.summer-sensations__empty {margin:22px auto;font-size:14px;}
+@media (max-width:560px) {
+ .summer-sensations {padding:25px 4px 55px;}
+ .summer-sensations__grid {gap:12px 5px;}
+ .summer-sensation-circle__emoji {height:clamp(75px,24vw,112px);width:clamp(75px,24vw,112px);font-size:45px;border-width:4px;}
+ .summer-sensation-circle__name {font-size:17px;}
+ .summer-sensation-detail {margin:26px auto 0;padding:25px 16px 28px;}
+ .summer-sensation-detail__actions {flex-direction:column;align-items:stretch;}
+ .summer-sensation-detail__actions button {justify-content:center;}
+ .summer-sensation-detail__story {font-size:14px;line-height:1.8;}
+ .summer-pyramid__row {grid-template-columns:80px 1fr;padding:12px;gap:7px;}
+}
+@media(prefers-reduced-motion:reduce) {
+ .summer-sensation-circle,.summer-sensation-circle__emoji,.summer-sensation-detail__actions button {transition:none;}
+ .summer-sensation-detail,.summer-sensation-detail__panel {animation:none;}
+}
