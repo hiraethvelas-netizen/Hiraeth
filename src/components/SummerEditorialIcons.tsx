@@ -61,7 +61,7 @@ export function SummerSymbol({ kind }: { kind: SummerSymbolKind }) {
     <path d="M36 109C59 95 67 63 71 19" stroke="#3F7856" strokeWidth="4" strokeLinecap="round"/>
     {[
       [46,75,4,-18],[65,52,15,-18],[45,50,4,-28],[72,26,15,-27],[33,92,5,-30],[83,78,25,-18]
-    ].map(([x,y,rx,ry],i)=><g key={i} transform={`translate(${x} ${y}) rotate(${i%2===0?-35:33})`}>
+    ].map(([x,y],i)=><g key={i} transform={`translate(${x} ${y}) rotate(${i%2===0?-35:33})`}>
       <path d="M0 0C-23-8-28-29-17-41C-7-35 5-18 0 0Z" fill={`url(#${leaf})`} stroke="#2E7258" strokeWidth="1.4"/>
       <path d="M0 0L-16-33" stroke="#D0E6B3" strokeWidth="1.5" opacity=".8"/>
       </g>)}
