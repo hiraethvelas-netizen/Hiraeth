@@ -51,9 +51,9 @@
 .summer-drinks-grid,.summer-picks-grid { max-width:1120px; margin:0 auto; display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:16px; }
 .summer-drink-card {background:white;border:1px solid #dbdbc4;box-shadow:0 14px 26px #0c4c5c0b;overflow:hidden;border-radius:3px;}
 .summer-drink-photo {height:205px;display:grid;place-items:center;position:relative;overflow:hidden;}
-.summer-drink-photo--1 {background:linear-gradient(140deg,#d8edb3,#81b7a6);}
-.summer-drink-photo--2 {background:linear-gradient(140deg,#fff2ba,#f8bd7c);}
-.summer-drink-photo--3 {background:linear-gradient(140deg,#d0ebee,#7fc5c9);}
+.summer-drink-photo--1 {background:linear-gradient(140deg,#dff4db,#86c5c5);}
+.summer-drink-photo--2 {background:linear-gradient(140deg,#e0efb7,#aed39a);}
+.summer-drink-photo--3 {background:linear-gradient(140deg,#ffd49a,#e7a0a6);}
 .summer-drink-photo--4 {background:linear-gradient(140deg,#f4deb9,#c9b2a0);}
 .summer-drink-photo img,.summer-pick-illustration img {width:100%;height:100%;object-fit:cover;position:absolute;inset:0;}
 .summer-drink-symbol {font-size:70px;filter:drop-shadow(2px 7px 8px #0f454627);}
