@@ -14,6 +14,7 @@ import { PortalInspiracoesAdmin } from "@/routes/admin/portal-inspiracoes";
 import { PortalGalleryEditor } from "@/components/admin/PortalGalleryEditor";
 import { PortalFeaturedProductsEditor } from "@/components/admin/PortalFeaturedProductsEditor";
 import { PortalShortcutImagesEditor } from "@/components/admin/PortalShortcutImagesEditor";
+import { SummerPortalEditor } from "@/components/admin/SummerPortalEditor";
 import { galleryDraftFromTheme, isMagicWorld, isSafePortalUrl, spotifyPlaylistUrl } from "@/lib/portal-experience";
 import type { Tables } from "@/integrations/supabase/types";
 
@@ -101,7 +102,7 @@ function AdminPortais() {
       intro_subtitle: p.intro_subtitle ?? "",
       intro_video_url: p.intro_video_url ?? "",
       intro_cta_text: p.intro_cta_text ?? "Atravesse o Portal",
-      store_category_url: p.store_category_url ?? "/loja",
+      store_category_url: p.store_category_url ?? (p.slug === "verao" ? "" : "/loja"),
       intro_enabled: p.intro_enabled,
       intro_duration_ms: p.intro_duration_ms,
       spotify_playlist_url: p.spotify_playlist_url ?? "",
@@ -137,7 +138,7 @@ function AdminPortais() {
       intro_subtitle: form.intro_subtitle || null,
       intro_video_url: form.intro_video_url || null,
       intro_cta_text: form.intro_cta_text.trim() || "Atravesse o Portal",
-      store_category_url: form.store_category_url.trim() || "/loja",
+      store_category_url: form.store_category_url.trim() || (editing?.slug === "verao" ? null : "/loja"),
       intro_enabled: editing && isMagicWorld(editing.slug) ? true : form.intro_enabled,
       intro_duration_ms: Number(form.intro_duration_ms) || 3000,
       spotify_playlist_url: form.spotify_playlist_url || null,
@@ -383,6 +384,8 @@ function AdminPortais() {
           {editing && isMagicWorld(editing.slug) && <PortalShortcutImagesEditor themeJson={form.theme_json}
             onChange={theme_json => setForm(previous => ({ ...previous, theme_json }))} />}
           {editing && isMagicWorld(editing.slug) && <PortalFeaturedProductsEditor themeJson={form.theme_json}
+            onChange={theme_json => setForm(previous => ({ ...previous, theme_json }))} />}
+          {editing?.slug === "verao" && <SummerPortalEditor themeJson={form.theme_json}
             onChange={theme_json => setForm(previous => ({ ...previous, theme_json }))} />}
           <PortalGalleryEditor themeJson={form.theme_json}
             onChange={theme_json=>setForm(previous=>({...previous,theme_json}))}/>
