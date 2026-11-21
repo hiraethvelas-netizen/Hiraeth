@@ -39,7 +39,8 @@ function SummerStar({ light = false }: { light?: boolean }) {
   return <span className={light ? "summer-star summer-star--light" : "summer-star"} aria-hidden="true">✳</span>;
 }
 
-const recipeIcons = ["🥥", "🍋", "🥕", "🍐"];
+const recipeIcons = ["🍰", "🍋", "🥕", "🍐"];
+const recipeTeasers = ["Uma pausa geladinha entre flores e sol.", "O frescor do nosso fim de tarde.", "Um copo cheio das cores do verão.", "Uma manhã leve, delicada e sem pressa."];
 
 export function SummerPortal({ portal }: { portal: Portal }) {
   const settings = summerSettings(portal.theme);
@@ -109,7 +110,7 @@ export function SummerPortal({ portal }: { portal: Portal }) {
           {recipes.map((item, i) => {
             const published = item.visible === true && Boolean(item.title?.trim());
             const img = published ? safeImage(item.image_url) : null;
-            const [recipeTitle, candleName] = published
+            const [recipeTitle] = published
               ? (item.title ?? "").split(/\s+[—–]\s+/, 2)
               : ["Uma receita a descobrir", ""];
             return <article className="summer-drink-card" key={i}>
@@ -119,10 +120,12 @@ export function SummerPortal({ portal }: { portal: Portal }) {
               </div>
               <div className="summer-drink-info">
                 <h3>{recipeTitle}</h3>
-                {candleName && <p className="summer-recipe-inspiration">Inspirada na vela {candleName}</p>}
                 {published ? <>
-                  {item.ingredients && <p><strong>Ingredientes:</strong> {item.ingredients}</p>}
-                  {item.method && <details><summary>Como preparar</summary><p>{item.method}</p></details>}
+                  <p className="summer-recipe-teaser">{recipeTeasers[i]}</p>
+                  <details className="summer-recipe-details"><summary>Ver receita</summary>
+                    {item.ingredients && <p><strong>Ingredientes:</strong> {item.ingredients}</p>}
+                    {item.method && <p><strong>Modo de preparo:</strong> {item.method}</p>}
+                  </details>
                 </> : <p className="summer-muted">Em preparação</p>}
               </div>
             </article>;
