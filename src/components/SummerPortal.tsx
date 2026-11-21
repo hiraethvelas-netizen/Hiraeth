@@ -52,12 +52,10 @@ export function SummerPortal({ portal }: { portal: Portal }) {
     catch { /* Keep default daylight mode when browser storage is unavailable. */ }
   }, []);
   function toggleGoldenHour() {
-    setGoldenHour(previous => {
-      const next = !previous;
-      try { window.localStorage.setItem(GOLDEN_HOUR_STORAGE_KEY, next ? "on" : "off"); }
-      catch { /* The toggle still works in private browsing. */ }
-      return next;
-    });
+    const next = !goldenHour;
+    setGoldenHour(next);
+    try { window.localStorage.setItem(GOLDEN_HOUR_STORAGE_KEY, next ? "on" : "off"); }
+    catch { /* The toggle still works in private browsing. */ }
   }
   const settings = summerSettings(portal.theme);
   const spotifyUrl = portal.spotify_visible ? spotifyPlaylistUrl(portal.spotify_playlist_url) : null;
