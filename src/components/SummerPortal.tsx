@@ -1,4 +1,5 @@
-import { ArrowRight, BookOpenText, Headphones, Smartphone } from "lucide-react";
+import { ArrowRight, BookOpenText, Headphones, Smartphone, Sun } from "lucide-react";
+import { useEffect, useState } from "react";
 import type { Tables } from "@/integrations/supabase/types";
 import { spotifyPlaylistUrl } from "@/lib/portal-experience";
 import { summerRecipesFromTheme } from "@/lib/summer-recipes";
@@ -42,16 +43,32 @@ function SummerStar({ light = false }: { light?: boolean }) {
 const recipeIcons = ["🍰", "🍋", "🥕", "🍐"];
 const recipeTeasers = ["Uma pausa geladinha entre flores e sol.", "O frescor do nosso fim de tarde.", "Um copo cheio das cores do verão.", "Uma manhã leve, delicada e sem pressa."];
 
+const GOLDEN_HOUR_STORAGE_KEY = "hiraeth-portal-verao-golden-hour";
+
 export function SummerPortal({ portal }: { portal: Portal }) {
+  const [goldenHour, setGoldenHour] = useState(false);
+  useEffect(() => {
+    try { setGoldenHour(window.localStorage.getItem(GOLDEN_HOUR_STORAGE_KEY) === "on"); }
+    catch { /* Keep default daylight mode when browser storage is unavailable. */ }
+  }, []);
+  function toggleGoldenHour() {
+    setGoldenHour(previous => {
+      const next = !previous;
+      try { window.localStorage.setItem(GOLDEN_HOUR_STORAGE_KEY, next ? "on" : "off"); }
+      catch { /* The toggle still works in private browsing. */ }
+      return next;
+    });
+  }
   const settings = summerSettings(portal.theme);
   const spotifyUrl = portal.spotify_visible ? spotifyPlaylistUrl(portal.spotify_playlist_url) : null;
   const recipes: Recipe[] = Array.from({ length: 4 }, (_, i) => settings.recipes?.[i] ?? {});
   const catalog = portal.store_category_url && /^\/loja\?categoria=[a-z0-9-]+(?:&|$)/.test(portal.store_category_url)
     ? portal.store_category_url : null;
 
-  return <div className="summer-portal">
+  return <div className={goldenHour ? "summer-portal summer-portal--golden" : "summer-portal"} data-summer-mode={goldenHour ? "golden-hour" : "daylight"}>
     <section className="summer-hero" aria-labelledby="summer-title">
       <div className="summer-water" aria-hidden="true" />
+      <div className="summer-sunset-glow" aria-hidden="true" />
       <div className="summer-hero-stripe" aria-hidden="true" />
       <span className="summer-hero-hibiscus" aria-hidden="true">✿</span>
       <span className="summer-hero-lemon" aria-hidden="true">◒</span>
@@ -61,6 +78,12 @@ export function SummerPortal({ portal }: { portal: Portal }) {
         <p className="summer-kicker">Sol, memórias e novas histórias</p>
         <h1 id="summer-title">Portal <em>de Verão</em></h1>
         <p className="summer-hero-copy">Algumas histórias têm cheiro de férias. Entre, escolha seu caminho e deixe o verão acontecer.</p>
+        <button type="button" className="summer-golden-toggle" onClick={toggleGoldenHour}
+          aria-pressed={goldenHour} aria-label={goldenHour ? "Desligar o modo Golden Hour e voltar ao verão azul" : "Ativar Golden Hour: pôr do sol dourado"}>
+          <span className="summer-golden-toggle__sun" aria-hidden="true"><Sun size={22} strokeWidth={1.65} /></span>
+          <span className="summer-golden-toggle__label">Golden Hour</span>
+          <span className="summer-golden-toggle__state">{goldenHour ? "Desligar" : "Acender o pôr do sol"}</span>
+        </button>
         <div className="summer-hero-scroll"><span>Descubra o que há neste portal</span><ArrowRight size={17} aria-hidden="true" /></div>
       </div>
       <div className="summer-hero-edge" aria-hidden="true" />
