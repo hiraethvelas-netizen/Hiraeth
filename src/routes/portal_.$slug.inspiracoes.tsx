@@ -32,6 +32,7 @@ function PortalInspirationPage() {
   const [error, setError] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
   const magicWorld = isMagicWorld(slug);
+  const summerWorld = slug === "verao";
   const mainUrl = portalHomeReturnUrl(slug);
 
   useEffect(() => {
@@ -64,12 +65,12 @@ function PortalInspirationPage() {
     return () => { active = false; };
   }, [slug, reloadKey]);
 
-  return <div className={magicWorld ? "portal-world portal-inspiration-page min-h-screen" : "portal-world min-h-screen"} style={{
-    ["--portal-bg" as string]: "#111d19",
-    ["--portal-surface" as string]: "#203128",
-    ["--portal-text" as string]: "#f7efda",
-    ["--portal-accent" as string]: "#d3b575",
-    ["--portal-button-text" as string]: "#17251d",
+  return <div className={magicWorld ? "portal-world portal-inspiration-page min-h-screen" : summerWorld ? "portal-world portal-world--summer-inspirations min-h-screen" : "portal-world min-h-screen"} style={{
+    ["--portal-bg" as string]: summerWorld ? "#fff8ec" : "#111d19",
+    ["--portal-surface" as string]: summerWorld ? "#edf6ee" : "#203128",
+    ["--portal-text" as string]: summerWorld ? "#143c50" : "#f7efda",
+    ["--portal-accent" as string]: summerWorld ? "#087d98" : "#d3b575",
+    ["--portal-button-text" as string]: summerWorld ? "#fffaf0" : "#17251d",
   }}>
     <header className="portal-inspired-header relative isolate mx-auto max-w-5xl overflow-hidden px-5 pb-10 pt-10 sm:px-8 sm:pt-14">
       {magicWorld && <PortalFestiveAccents variant="inspiracoes" />}
@@ -82,11 +83,11 @@ function PortalInspirationPage() {
           <p className="mt-5 text-xs uppercase tracking-[.28em] text-[var(--portal-accent)]">Hiraeth · Por trás das chamas</p>
         </>}
         <div className="mt-4 flex flex-wrap items-center justify-center gap-x-3 gap-y-3">
-          <h1 className={magicWorld ? "portal-script-title text-[var(--portal-text)]" : "font-display text-4xl leading-tight text-[var(--portal-text)] sm:text-6xl"}>Conheça as inspirações</h1>
+          <h1 className={magicWorld ? "portal-script-title text-[var(--portal-text)]" : "font-display text-4xl leading-tight text-[var(--portal-text)] sm:text-6xl"}>{summerWorld ? "Inspirações de Verão" : "Conheça as inspirações"}</h1>
           {magicWorld && <PortalReadingMusicNote />}
         </div>
         {!magicWorld && <p className="mx-auto mt-5 max-w-xl text-base leading-7 text-[var(--portal-text)]/85">
-          Os detalhes dos livros, dos filmes e das lembranças que transformei em aromas para nos sentirmos mais perto das histórias.
+          {summerWorld ? "O verão também é feito de histórias, cheiros, viagens e momentos que merecem ser guardados. Conheça as inspirações por trás desta coleção." : "Os detalhes dos livros, dos filmes e das lembranças que transformei em aromas para nos sentirmos mais perto das histórias."}
         </p>}
       </div>
     </header>
