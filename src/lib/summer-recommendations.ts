@@ -22,7 +22,7 @@ export const summerCoverFallbacks: Record<string, string> = {
   "livro-amor-gelato": "https://down-br.img.susercontent.com/file/br-11134207-81z1k-mibml4llp2wy23",
   "livro-aconteceu-naquele-verao": "https://livrariascuritiba.vteximg.com.br/arquivos/ids/2122943-1000-1000/lv487114_1.jpg?v=638194872812630000",
   "livro-leitura-de-verao": "https://americanas.vtexassets.com/arquivos/ids/30537964/4937073794_1_xlarge.jpg?v=638794233205000000",
-  "serie-verao-que-mudou-minha-vida": "https://image.tmdb.org/t/p/w780/uSJVPxVzLX3Ia4vURaPTfULgDtk.jpg",
+  "serie-verao-que-mudou-minha-vida": "https://www.brit.co/media-library/the-summer-i-turned-pretty-cast-ages.jpg?height=1192&id=52512851&width=1200",
   "serie-outer-banks": "https://www.whats-on-netflix.com/wp-content/uploads/covers-2024/outerbanks.jpeg",
   "filme-esposa-de-mentirinha": "https://image.tmdb.org/t/p/w780/v8ct2LskBXLcPHrW3uvtpyTcwfl.jpg",
   "filme-gente-grande": "https://image.tmdb.org/t/p/w780/3NqLgW0xqp6mpj1OUTNdvxHZ71g.jpg",
