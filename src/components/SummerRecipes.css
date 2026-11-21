@@ -118,19 +118,15 @@
   font-style:italic;
   color:#ad7c6f;
 }
-.summer-recipe-close {
-  position:fixed;
-  /* Overridden below: positioned relative to the modal rather than the viewport. */
-}
 .summer-recipe-dialog .summer-recipe-close {
-  position:sticky;
+  position:absolute;
   top:14px;
-  margin:14px 14px -52px auto;
-  grid-column:1 / -1;
-  order:-1;
+  right:14px;
   z-index:3;
-  width:43px;height:43px;
-  display:grid;place-items:center;
+  width:43px;
+  height:43px;
+  display:grid;
+  place-items:center;
   border:1px solid #e4c8b8;
   border-radius:50%;
   background:#fff8eef2;
@@ -139,19 +135,17 @@
   box-shadow:0 4px 12px #212f3425;
 }
 .summer-recipe-dialog .summer-recipe-close:focus-visible {outline:3px solid #b46974;outline-offset:3px;}
-.summer-recipe-dialog > .summer-recipe-photo {grid-column:1;grid-row:2;}
-.summer-recipe-dialog > .summer-recipe-dialog__body {grid-column:2;grid-row:2;}
+.summer-recipe-dialog > .summer-recipe-photo {grid-column:1;grid-row:1;}
+.summer-recipe-dialog > .summer-recipe-dialog__body {grid-column:2;grid-row:1;}
 .summer-portal--golden .summer-recipe-open {color:#aa506b;}
 @keyframes summer-recipe-overlay-in {from{opacity:0;}to{opacity:1;}}
 @keyframes summer-recipe-dialog-in {from{opacity:0;transform:translateY(10px) scale(.98);}to{opacity:1;transform:translateY(0) scale(1);}}
 @media(max-width:720px) {
   .summer-recipe-dialog {display:block;max-width:550px;}
   .summer-recipe-dialog .summer-recipe-close {
-    position:sticky;
-    float:right;
-    top:10px;
-    right:10px;
-    margin:12px 12px -57px 0;
+    position:absolute;
+    top:12px;
+    right:12px;
   }
   .summer-recipe-dialog__photo {position:relative;min-height:0;height:clamp(210px,38vh,320px);}
   .summer-recipe-dialog__body {padding:28px 22px 33px;}
@@ -162,4 +156,9 @@
 }
 @media (prefers-reduced-motion:reduce) {
   .summer-recipe-dialog,.summer-recipe-overlay {animation:none;}
+}
+
+@media(max-width:720px) {
+  .summer-recipe-dialog > .summer-recipe-photo,
+  .summer-recipe-dialog > .summer-recipe-dialog__body {grid-column:auto;grid-row:auto;}
 }
