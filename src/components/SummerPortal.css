@@ -211,3 +211,124 @@
  .summer-drinks,.summer-discovery,.summer-catalog,.summer-footer,.summer-drink-card,
  .summer-discovery-card,.summer-round-icon,.summer-hero-edge,.summer-sunset-glow,.summer-golden-toggle__sun {transition:none;}
 }
+
+
+/* Refinamento editorial 21/11: fotografia natural e detalhes mais discretos. */
+.summer-hero {
+  background:
+    linear-gradient(165deg,rgba(0,65,80,.48),rgba(0,83,98,.24) 43%,rgba(1,54,80,.54)),
+    url("https://images.unsplash.com/photo-1713991767449-6d3f6df573b7?w=1800&q=79") center/cover;
+}
+.summer-water {
+  background:
+    radial-gradient(ellipse 17% 15% at 30% 38%,rgba(251,253,240,.2),transparent 80%),
+    radial-gradient(ellipse 19% 14% at 79% 64%,rgba(240,251,244,.17),transparent 83%);
+  filter:blur(6px);
+  opacity:.65;
+  animation-duration:34s;
+}
+.summer-water::after {opacity:.16;}
+.summer-hero-photo {
+  position:absolute;
+  width:clamp(126px,18vw,232px);
+  height:clamp(152px,19vw,265px);
+  border:7px solid #f6ebce;
+  border-radius:47% 46% 42% 46%;
+  overflow:hidden;
+  box-shadow:0 13px 40px #013f5670;
+  z-index:0;
+  pointer-events:none;
+}
+.summer-hero-photo img {width:100%;height:100%;object-fit:cover;display:block;}
+.summer-hero-hibiscus {
+  top:auto;bottom:3%;left:clamp(-70px,-2vw,-20px);
+  transform:rotate(-14deg);
+}
+.summer-hero-hibiscus img {object-position:43% 50%;}
+.summer-hero-parasol {
+  top:6%;right:clamp(-75px,-3vw,-19px);
+  width:clamp(112px,16vw,190px);
+  height:clamp(116px,17vw,205px);
+  border-radius:50%;
+  transform:rotate(13deg);
+  border-color:#f8edcd;
+}
+.summer-hero-parasol img {object-position:50% 60%;}
+.summer-hero-lemon {
+  top:auto;bottom:14%;right:9%;font-size:clamp(21px,4vw,50px);
+  text-shadow:0 3px 15px #e3dc9e99;color:#fff3cc;opacity:.82;
+}
+.summer-hero-inner {position:relative;z-index:2;}
+.summer-hero-inner .summer-golden-toggle {
+  position:absolute;
+  top:clamp(36px,5vw,72px);
+  right:clamp(3px,3vw,48px);
+  display:inline-flex;
+  gap:7px;
+  margin:0;
+  padding:5px 14px 5px 6px;
+  min-height:36px;
+  background:rgba(9,72,81,.44);
+  border-color:rgba(255,240,205,.62);
+  box-shadow:0 4px 14px #01394b30;
+  opacity:.91;
+  font-size:13px;
+  backdrop-filter:blur(8px);
+}
+.summer-golden-toggle__label {font-size:18px;}
+.summer-golden-toggle__sun {width:29px;height:29px;box-shadow:none;}
+.summer-golden-toggle__sun svg {width:17px;height:17px;}
+.summer-hero-inner .summer-golden-toggle:hover,
+.summer-hero-inner .summer-golden-toggle:focus-visible {opacity:1;}
+.summer-portal--golden .summer-hero {
+  background:
+    radial-gradient(ellipse 70% 65% at 79% 13%,rgba(255,231,140,.79),transparent 85%),
+    linear-gradient(157deg,rgba(135,63,102,.85),rgba(239,138,126,.47) 42%,rgba(206,101,79,.56)),
+    url("https://images.unsplash.com/photo-1713991767449-6d3f6df573b7?w=1800&q=79") center/cover;
+  background-blend-mode:screen,normal,normal;
+}
+.summer-portal--golden .summer-hero-photo {border-color:#ffefc9;box-shadow:0 13px 28px #66334240;}
+.summer-portal--golden .summer-water {opacity:.32;}
+.summer-portal--golden .summer-hero-inner .summer-golden-toggle {
+  background:rgba(147,61,104,.52);box-shadow:0 0 18px #ffcb9855;
+}
+.summer-recipe-section {margin-top:19px;}
+.summer-recipe-section h4 {
+  font-family:"Cormorant Garamond",Georgia,serif;
+  font-size:25px;
+  line-height:1.05;
+  margin-bottom:12px;
+  font-weight:600;
+}
+.summer-recipe-section ul,.summer-recipe-section ol {
+  padding-left:19px;
+  margin:0;
+  font-size:13px;
+  line-height:1.65;
+}
+.summer-recipe-section ul {list-style-type:disc;}
+.summer-recipe-section ol {list-style-type:decimal;}
+.summer-recipe-section li {padding:0 0 9px 4px;}
+.summer-recipe-section li::marker {color:#aa6f52;font-weight:700;}
+.summer-recipe-details {border-top:1px solid #d7d5c6;padding-top:13px;}
+.summer-recipe-details summary {list-style:none;display:flex;align-items:center;gap:8px;}
+.summer-recipe-details summary::after {content:"+";font-size:20px;line-height:1;}
+.summer-recipe-details[open] summary::after {content:"−";}
+.summer-portal--golden .summer-recipe-section li::marker {color:#b24e6c;}
+@media(max-width:600px) {
+  .summer-hero-photo {width:105px;height:135px;border-width:5px;}
+  .summer-hero-hibiscus {left:-47px;bottom:5%;}
+  .summer-hero-parasol {right:-55px;top:5%;width:108px;height:118px;}
+  .summer-hero-lemon {right:10%;bottom:10%;font-size:26px;}
+  .summer-hero-inner .summer-golden-toggle {
+    top:45px;right:10px;gap:5px;
+    padding:5px 10px 5px 5px;min-height:32px;
+  }
+  .summer-golden-toggle__label {font-size:16px;}
+  .summer-golden-toggle__sun {width:27px;height:27px;}
+  .summer-hero-inner {padding-top:145px;}
+}
+@media(prefers-reduced-motion:reduce) {
+  .summer-water {animation:none;}
+  .summer-hero-photo,.summer-hero-inner .summer-golden-toggle {transition:none;}
+}
