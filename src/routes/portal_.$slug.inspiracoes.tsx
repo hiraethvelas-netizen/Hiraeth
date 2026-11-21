@@ -3,6 +3,7 @@ import { ArrowLeft, BookOpenText } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { PortalInspirationChapters } from "@/components/PortalInspirationChapters";
+import { SummerInspirationExperience } from "@/components/SummerInspirationExperience";
 import { PortalFestiveAccents } from "@/components/PortalFestiveAccents";
 import { PortalInspirationFloatingCandles } from "@/components/PortalInspirationFloatingCandles";
 import { PortalReadingMusicNote } from "@/components/PortalReadingMusicNote";
@@ -48,6 +49,7 @@ function PortalInspirationPage() {
         if (pError) throw pError;
         if (!p) throw new Error("Portal não encontrado.");
         if (!active) return;
+        if (summerWorld) { setPortal(p); setFragments([]); return; }
         const { data: items, error: fError } = await supabase.from("portal_fragments")
           .select("*").eq("portal_id", p.id).eq("visible", true).order("position");
         if (fError) throw fError;
@@ -63,7 +65,7 @@ function PortalInspirationPage() {
     }
     void load();
     return () => { active = false; };
-  }, [slug, reloadKey]);
+  }, [slug, reloadKey, summerWorld]);
 
   return <div className={magicWorld ? "portal-world portal-inspiration-page min-h-screen" : summerWorld ? "portal-world portal-world--summer-inspirations min-h-screen" : "portal-world min-h-screen"} style={{
     ["--portal-bg" as string]: summerWorld ? "#fff8ec" : "#111d19",
@@ -87,7 +89,7 @@ function PortalInspirationPage() {
           {magicWorld && <PortalReadingMusicNote />}
         </div>
         {!magicWorld && <p className="mx-auto mt-5 max-w-xl text-base leading-7 text-[var(--portal-text)]/85">
-          {summerWorld ? "O verão também é feito de histórias, cheiros, viagens e momentos que merecem ser guardados. Conheça as inspirações por trás desta coleção." : "Os detalhes dos livros, dos filmes e das lembranças que transformei em aromas para nos sentirmos mais perto das histórias."}
+          {summerWorld ? "Uma coleção para sentir antes de descobrir. Cada símbolo guarda uma memória de verão." : "Os detalhes dos livros, dos filmes e das lembranças que transformei em aromas para nos sentirmos mais perto das histórias."}
         </p>}
       </div>
     </header>
@@ -102,7 +104,7 @@ function PortalInspirationPage() {
           className="mt-5 rounded-full border border-[var(--portal-accent)] px-5 py-3 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2">
           Tentar novamente
         </button>
-      </div> : fragments.length ? <PortalInspirationChapters fragments={fragments} magicWorld={magicWorld} /> :
+      </div> : summerWorld ? <SummerInspirationExperience theme={portal.theme} /> : fragments.length ? <PortalInspirationChapters fragments={fragments} magicWorld={magicWorld} /> :
       <div className="portal-inspiration-card mx-auto max-w-xl p-8 text-center">
         <h2 className="portal-story-title text-2xl">As histórias serão reveladas aqui.</h2>
         <p className="mt-3 text-sm opacity-80">Em breve, este espaço reunirá as inspirações da coleção.</p>
