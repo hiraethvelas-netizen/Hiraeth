@@ -1,4 +1,4 @@
-import { ArrowRight, ArrowUpRight, BookOpenText, BookOpen, Clapperboard, Headphones, Smartphone, Waves, GlassWater } from "lucide-react";
+import { ArrowRight, ArrowUpRight, BookOpenText, BookOpen, Clapperboard, Headphones, Smartphone, Waves } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 import { spotifyPlaylistUrl } from "@/lib/portal-experience";
 import hiraethWordmark from "@/assets/hiraeth-wordmark.svg";
@@ -15,12 +15,14 @@ function record(value: unknown): value is ThemeRecord {
 }
 
 export function summerSettings(theme: unknown): SummerSettings {
-  if (!record(theme) || !record(theme.summer)) return {};
-  const raw = theme.summer;
+  if (!record(theme)) return {};
+  const source = theme["summer"];
+  if (!record(source)) return {};
+  const raw = source;
   return {
-    show_catalog: raw.show_catalog === true,
-    recipes: Array.isArray(raw.recipes) ? raw.recipes.filter(record) as Recipe[] : [],
-    recommendations: Array.isArray(raw.recommendations) ? raw.recommendations.filter(record) as Recommendation[] : [],
+    show_catalog: raw["show_catalog"] === true,
+    recipes: Array.isArray(raw["recipes"]) ? raw["recipes"].filter(record) as Recipe[] : [],
+    recommendations: Array.isArray(raw["recommendations"]) ? raw["recommendations"].filter(record) as Recommendation[] : [],
   };
 }
 
