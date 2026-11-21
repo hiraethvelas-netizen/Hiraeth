@@ -129,7 +129,7 @@ export function summerInspirationsFromTheme(theme: unknown): SummerInspiration[]
       image_rotation: numberWithin(entry["image_rotation"], def?.image_rotation ?? 0, -180, 180),
       image_x: numberWithin(entry["image_x"], def?.image_x ?? 0, -100, 100),
       image_y: numberWithin(entry["image_y"], def?.image_y ?? 0, -100, 100),
-      image_fit: entry["image_fit"] === "cover" ? "cover" : "contain",
+      image_fit: entry["image_fit"] === "cover" || entry["image_fit"] === "contain" ? entry["image_fit"] : (def?.image_fit ?? "contain"),
       title: stringOr(entry["title"], def?.title ?? ""),
       teaser: stringOr(entry["teaser"], def?.teaser ?? ""),
       sensation: stringOr(entry["sensation"], def?.sensation ?? ""),
