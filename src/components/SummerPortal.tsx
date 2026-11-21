@@ -1,7 +1,8 @@
-import { ArrowRight, ArrowUpRight, BookOpenText, BookOpen, Clapperboard, Headphones, Smartphone, Waves } from "lucide-react";
+import { ArrowRight, ArrowUpRight, BookOpenText, BookOpen, Clapperboard, Headphones, Smartphone } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 import { spotifyPlaylistUrl } from "@/lib/portal-experience";
 import hiraethWordmark from "@/assets/hiraeth-wordmark.svg";
+import { SummerPortalCatalog } from "@/components/SummerPortalCatalog";
 import "./SummerPortal.css";
 
 type Portal = Tables<"portals">;
@@ -153,11 +154,7 @@ export function SummerPortal({ portal }: { portal: Portal }) {
         </div>
       </section>
 
-      {settings.show_catalog && catalog && <section className="summer-catalog summer-content-section" aria-labelledby="summer-catalog-title">
-        <Waves aria-hidden="true" size={32}/><p className="summer-eyebrow">Coleção Hiraeth</p>
-        <h2 id="summer-catalog-title">Conheça as <em>chamas do verão</em></h2>
-        <a href={catalog} className="summer-catalog-link">Explorar o acervo de verão <ArrowUpRight size={18}/></a>
-      </section>}
+      {settings.show_catalog && <SummerPortalCatalog portalId={portal.id} catalogUrl={catalog} />}
     </main>
     <footer className="summer-footer"><SummerStar/><p>Hiraeth — Onde a Chama Acesa te Espera.</p><p>Uma estação. Infinitas memórias.</p></footer>
   </div>;
