@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { ArrowUpRight, BookOpenText, X } from "lucide-react";
+import { ArrowUpRight, X } from "lucide-react";
+import { SummerOrnament } from "@/components/SummerEditorialIcons";
 import type { SummerRecipe } from "@/lib/summer-recipes";
 import "./SummerRecipes.css";
 
@@ -12,8 +13,9 @@ const photoFallbacks = [
     secondary: "https://images.unsplash.com/photo-1488477181946-6428a0291777?w=900&q=82",
   },
   {
-    primary: "https://images.unsplash.com/photo-1512144981474-0003a89c0165?auto=format&fit=crop&w=900&q=82",
-    secondary: "https://images.unsplash.com/photo-1544145945-f90425340c7e?w=900&q=82",
+    // Foto CC0: rawpixel.com via Wikimedia Commons, "Caipirinha with lime".
+    primary: "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/01/Caipirinha_with_lime.jpg/960px-Caipirinha_with_lime.jpg",
+    secondary: "https://cdn.pixabay.com/photo/2018/06/18/21/50/caipirinha-3483439_1280.jpg",
   },
   {
     primary: "https://www.elimparcial.com/resizer/v2/SGGACD2YYFDIPJIDYB6ZWO4TFQ.png?auth=e01bab99afcb8fc587e419205572706351d48566aaefce8d3491414fae7f2cc5&height=800&quality=70&smart=true&width=1200",
@@ -135,7 +137,7 @@ export function SummerRecipes({ recipes }: { recipes: Recipe[] }) {
 
   return <section className="summer-drinks summer-content-section" id="receitas-de-verao" aria-labelledby="summer-drinks-title">
     <div className="summer-section-intro">
-      <span className="summer-star" aria-hidden="true">✳</span>
+      <SummerOrnament kind="sun" />
       <p className="summer-eyebrow">Pequenos rituais</p>
       <h2 id="summer-drinks-title">Receitas <em>de Verão</em></h2>
       <p>Quatro convites para preparar algo gostoso e aproveitar o momento.</p>
