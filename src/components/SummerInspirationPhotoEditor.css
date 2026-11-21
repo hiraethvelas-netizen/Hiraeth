@@ -1,0 +1,78 @@
+.summer-image-editor__backdrop {
+  position:fixed;inset:0;z-index:11000;
+  display:flex;align-items:center;justify-content:center;
+  padding:calc(12px + env(safe-area-inset-top)) 12px calc(12px + env(safe-area-inset-bottom));
+  background:rgba(17,39,45,.72);
+  backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);
+}
+.summer-image-editor {
+  width:min(100%,820px);max-height:100%;overflow-y:auto;
+  background:#fff9f0;color:#204953;border-radius:18px;
+  box-shadow:0 22px 65px rgba(8,32,42,.38);
+  font-family:inherit;
+}
+.summer-image-editor__header {
+  display:flex;align-items:flex-start;justify-content:space-between;gap:16px;
+  padding:23px clamp(16px,4vw,34px) 12px;
+  border-bottom:1px solid #ead9c7;
+}
+.summer-image-editor__eyebrow {font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#a66a68;font-weight:700;}
+.summer-image-editor__header h3 {font-family:"Cormorant Garamond",Georgia,serif;font-weight:600;font-size:clamp(26px,4vw,38px);line-height:1.15;}
+.summer-image-editor__close {flex:none;width:38px;height:38px;display:grid;place-items:center;cursor:pointer;background:#f4e6dd;color:#68434b;border:1px solid #dfcab6;border-radius:999px;}
+.summer-image-editor__body {display:grid;grid-template-columns:minmax(230px,1fr) minmax(260px,1.1fr);gap:clamp(16px,3vw,32px);padding:24px clamp(16px,4vw,34px) 31px;}
+.summer-image-editor__preview {min-width:0;display:flex;align-items:center;flex-direction:column;gap:10px;align-self:start;position:sticky;top:18px;}
+.summer-image-editor__stage {
+  position:relative;
+  width:min(100%,295px);
+  aspect-ratio:1;
+  border-radius:50%;
+  display:grid;place-items:center;
+  background:linear-gradient(140deg,#fef0df,#c7e3dc);
+  border:6px solid #fffdf5;
+  outline:1px solid #d6bba6;
+  box-shadow:0 16px 35px rgba(64,68,66,.2);
+  cursor:grab;touch-action:none;user-select:none;
+}
+.summer-image-editor__stage:active {cursor:grabbing;}
+.summer-image-editor__stage .summer-image-editor__artwork {
+  display:grid;place-items:center;
+  width:100%;height:100%;
+  border-radius:50%;
+}
+.summer-image-editor__stage .summer-image-editor__artwork .summer-sensation-art {
+  width:86%;height:86%;
+}
+.summer-image-editor__preview>span {font-size:13px;font-weight:700;color:#996777;}
+.summer-image-editor__preview>p {font-size:12px;line-height:1.5;color:#5f7574;text-align:center;max-width:250px;}
+.summer-image-editor__controls {min-width:0;display:flex;flex-direction:column;gap:15px;}
+.summer-image-editor__upload {
+  position:relative;display:flex;align-items:center;justify-content:center;gap:8px;min-height:47px;
+  padding:12px;border-radius:9px;border:1px solid #a87074;
+  background:#a66872;color:#fff9f4;font-size:13px;font-weight:700;cursor:pointer;text-align:center;
+}
+.summer-image-editor__upload:focus-within {outline:3px solid #e4b061;outline-offset:3px;}
+.summer-image-editor__upload input {position:absolute;inset:0;width:100%;opacity:0;cursor:pointer;}
+.summer-image-editor__upload input:disabled {cursor:wait;}
+.summer-image-editor__controls small {font-size:11px;color:#697978;line-height:1.6;}
+.summer-image-editor__control {display:grid;gap:7px;font-size:12px;font-weight:650;}
+.summer-image-editor__control>span {display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.summer-image-editor__control input[type="range"] {display:block;width:100%;accent-color:#ac6873;cursor:pointer;}
+.summer-image-editor__control select {width:100%;min-height:39px;background:#fff;border:1px solid #cbb8a7;border-radius:8px;color:#1d4d58;padding:6px 10px;}
+.summer-image-editor__buttons {display:flex;flex-wrap:wrap;gap:7px;}
+.summer-image-editor__buttons button {
+  display:inline-flex;align-items:center;justify-content:center;gap:4px;border:1px solid #d1adac;
+  background:#fff8f4;color:#835061;border-radius:999px;min-height:36px;
+  padding:7px 11px;font-size:11px;font-weight:650;cursor:pointer;
+}
+.summer-image-editor__footer {display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-wrap:wrap;padding-top:14px;border-top:1px solid #e2d6c9;}
+.summer-image-editor__footer button {font-size:12px;font-weight:700;border-radius:8px;padding:12px 15px;cursor:pointer;}
+.summer-image-editor__remove {border:1px solid #c79d9f;color:#9c4d52;background:transparent;}
+.summer-image-editor__done {border:1px solid #206477;color:#fff;background:#206477;}
+.summer-image-editor__reminder {text-align:right;}
+.summer-image-editor button:focus-visible,.summer-image-editor select:focus-visible,.summer-image-editor input:focus-visible {outline:3px solid #d9a956;outline-offset:3px;}
+@media(max-width:650px) {
+  .summer-image-editor__body {grid-template-columns:1fr;gap:20px;}
+  .summer-image-editor__preview {position:static;}
+  .summer-image-editor__stage {width:min(100%,240px);}
+  .summer-image-editor__controls {gap:13px;}
+}
