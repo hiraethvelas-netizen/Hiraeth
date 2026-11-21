@@ -28,6 +28,8 @@ export const defaultSummerInspirations: SummerInspiration[] = [
   {
     id: "flores-de-janeiro",
     ...defaultImage(),
+    image_url: "/images/portal-verao/flores-de-janeiro.webp",
+    image_fit: "cover",
     emoji: "🌺",
     title: "Flores de Janeiro",
     teaser: "Um janeiro leve, dourado e delicado.",
@@ -38,6 +40,8 @@ export const defaultSummerInspirations: SummerInspiration[] = [
   {
     id: "sol-na-pele",
     ...defaultImage(),
+    image_url: "/images/portal-verao/sol-na-pele.webp",
+    image_fit: "cover",
     emoji: "🍍",
     title: "Sol na Pele",
     teaser: "O calor gostoso de um dia que você queria repetir.",
@@ -48,6 +52,8 @@ export const defaultSummerInspirations: SummerInspiration[] = [
   {
     id: "caipirinha",
     ...defaultImage(),
+    image_url: "/images/portal-verao/caipirinha.webp",
+    image_fit: "cover",
     emoji: "🍋",
     title: "Caipirinha",
     teaser: "Um fim de tarde cítrico, leve e cheio de vida.",
@@ -58,6 +64,8 @@ export const defaultSummerInspirations: SummerInspiration[] = [
   {
     id: "sombra-fresca",
     ...defaultImage(),
+    image_url: "/images/portal-verao/sombra-fresca.webp",
+    image_fit: "cover",
     emoji: "🌿",
     title: "Sombra Fresca",
     teaser: "Um respiro verde no meio do calor.",
@@ -68,6 +76,8 @@ export const defaultSummerInspirations: SummerInspiration[] = [
   {
     id: "aguas-de-cristal",
     ...defaultImage(),
+    image_url: "/images/portal-verao/aguas-de-cristal.webp",
+    image_fit: "cover",
     emoji: "🍐",
     title: "Águas de Cristal",
     teaser: "Leveza, transparência e serenidade.",
