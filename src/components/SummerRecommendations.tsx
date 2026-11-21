@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { ArrowLeft, ArrowUpRight, BookOpen, Check, Clapperboard, Tv2 } from "lucide-react";
 import { isSafePortalUrl } from "@/lib/portal-experience";
-import { summerRecommendationsFromTheme, type SummerRecommendationKind } from "@/lib/summer-recommendations";
+import { summerRecommendationsFromTheme, summerCoverFallbacks, type SummerRecommendationKind } from "@/lib/summer-recommendations";
 import "./SummerRecommendations.css";
 
 const STORAGE_KEY = "hiraeth-verao-checklist-v1";
@@ -84,7 +84,8 @@ export function SummerRecommendations({ theme }: { theme: unknown }) {
         {visible.map((item, index) => {
           const done = progress[item.id]?.done ?? false;
           const rating = progress[item.id]?.rating ?? 0;
-          const image = isSafePortalUrl(item.image_url) && !brokenImages.has(item.id) ? item.image_url : null;
+          const coverSrc = isSafePortalUrl(item.image_url) ? item.image_url : summerCoverFallbacks[item.id];
+          const image = coverSrc && isSafePortalUrl(coverSrc) && !brokenImages.has(item.id) ? coverSrc : null;
           const link = isSafePortalUrl(item.url) ? item.url : null;
           const markLabel = item.kind === "livro" ? "Já li" : "Já assisti";
           return <article className={`summer-discovery-card summer-discovery-card--${index % 4}`} key={item.id}>
