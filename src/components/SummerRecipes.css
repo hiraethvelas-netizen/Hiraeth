@@ -1,0 +1,165 @@
+/* Real recipe photographs and a true overlay, not an accordion below the card. */
+.summer-recipe-photo {
+  position:relative;
+  display:grid;
+  place-items:center;
+  width:100%;
+  height:100%;
+  background:linear-gradient(135deg,#e8e4c9,#a9cfc3);
+  overflow:hidden;
+}
+.summer-drink-photo > .summer-recipe-photo {position:absolute;inset:0;}
+.summer-recipe-photo img {
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
+.summer-recipe-photo__placeholder {
+  font-size:67px;
+  line-height:1;
+  opacity:.8;
+}
+.summer-recipe-open {
+  border:0;
+  border-bottom:1px solid currentColor;
+  background:transparent;
+  color:#0b7284;
+  padding:7px 0;
+  font-weight:700;
+  font-size:13px;
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  margin-top:17px;
+  cursor:pointer;
+}
+.summer-recipe-open:hover {color:#aa5b70;}
+.summer-recipe-open:focus-visible {outline:3px solid #e9b657;outline-offset:4px;}
+.summer-recipe-overlay {
+  position:fixed;
+  inset:0;
+  z-index:10000;
+  display:grid;
+  place-items:center;
+  overflow:hidden;
+  padding:calc(14px + env(safe-area-inset-top)) 14px calc(14px + env(safe-area-inset-bottom));
+  background:rgba(9,34,43,.72);
+  -webkit-backdrop-filter:blur(8px);
+  backdrop-filter:blur(8px);
+  animation:summer-recipe-overlay-in .2s ease both;
+}
+.summer-recipe-dialog {
+  position:relative;
+  display:grid;
+  grid-template-columns:minmax(190px,.8fr) minmax(250px,1.3fr);
+  width:min(100%,960px);
+  max-height:100%;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  border-radius:18px;
+  background:#fff9ef;
+  color:#18475a;
+  box-shadow:0 25px 85px #001d32a8;
+  animation:summer-recipe-dialog-in .25s ease both;
+}
+.summer-recipe-dialog__photo {
+  position:sticky;
+  top:0;
+  min-height:520px;
+  height:100%;
+}
+.summer-recipe-dialog__photo img {object-fit:cover;}
+.summer-recipe-dialog__body {padding:clamp(30px,5vw,58px);min-width:0;}
+.summer-recipe-dialog__eyebrow {
+  font-size:10px;
+  text-transform:uppercase;
+  letter-spacing:.21em;
+  color:#a96d5c;
+  margin:0 45px 10px 0;
+}
+.summer-recipe-dialog__body h3 {
+  font-family:"Cormorant Garamond",Georgia,serif;
+  font-size:clamp(36px,4.4vw,62px);
+  line-height:.98;
+  color:#17485a;
+  font-weight:600;
+}
+.summer-recipe-dialog__teaser {
+  margin:15px 0 27px;
+  font-family:"Cormorant Garamond",Georgia,serif;
+  font-style:italic;
+  color:#b46e77;
+  font-size:23px;
+  line-height:1.2;
+}
+.summer-recipe-dialog__columns {display:grid;gap:25px;}
+.summer-recipe-dialog__columns h4 {
+  font-family:"Cormorant Garamond",Georgia,serif;
+  font-size:29px;
+  color:#945264;
+  margin-bottom:13px;
+  font-weight:600;
+}
+.summer-recipe-dialog__columns ul,.summer-recipe-dialog__columns ol {
+  margin:0;
+  padding-left:21px;
+  font-size:14px;
+  line-height:1.72;
+}
+.summer-recipe-dialog__columns li {padding:0 0 8px 3px;}
+.summer-recipe-dialog__columns li::marker {font-weight:700;color:#ba7161;}
+.summer-recipe-dialog__signature {
+  margin:25px 0 0;
+  font-family:"Cormorant Garamond",Georgia,serif;
+  font-size:21px;
+  font-style:italic;
+  color:#ad7c6f;
+}
+.summer-recipe-close {
+  position:fixed;
+  /* Overridden below: positioned relative to the modal rather than the viewport. */
+}
+.summer-recipe-dialog .summer-recipe-close {
+  position:sticky;
+  top:14px;
+  margin:14px 14px -52px auto;
+  grid-column:1 / -1;
+  order:-1;
+  z-index:3;
+  width:43px;height:43px;
+  display:grid;place-items:center;
+  border:1px solid #e4c8b8;
+  border-radius:50%;
+  background:#fff8eef2;
+  color:#98586e;
+  cursor:pointer;
+  box-shadow:0 4px 12px #212f3425;
+}
+.summer-recipe-dialog .summer-recipe-close:focus-visible {outline:3px solid #b46974;outline-offset:3px;}
+.summer-recipe-dialog > .summer-recipe-photo {grid-column:1;grid-row:2;}
+.summer-recipe-dialog > .summer-recipe-dialog__body {grid-column:2;grid-row:2;}
+.summer-portal--golden .summer-recipe-open {color:#aa506b;}
+@keyframes summer-recipe-overlay-in {from{opacity:0;}to{opacity:1;}}
+@keyframes summer-recipe-dialog-in {from{opacity:0;transform:translateY(10px) scale(.98);}to{opacity:1;transform:translateY(0) scale(1);}}
+@media(max-width:720px) {
+  .summer-recipe-dialog {display:block;max-width:550px;}
+  .summer-recipe-dialog .summer-recipe-close {
+    position:sticky;
+    float:right;
+    top:10px;
+    right:10px;
+    margin:12px 12px -57px 0;
+  }
+  .summer-recipe-dialog__photo {position:relative;min-height:0;height:clamp(210px,38vh,320px);}
+  .summer-recipe-dialog__body {padding:28px 22px 33px;}
+  .summer-recipe-dialog__body h3 {font-size:clamp(38px,9vw,54px);}
+  .summer-recipe-dialog__teaser {font-size:22px;margin-bottom:20px;}
+  .summer-recipe-dialog__columns {gap:20px;}
+  .summer-recipe-dialog__columns ul,.summer-recipe-dialog__columns ol {font-size:13px;}
+}
+@media (prefers-reduced-motion:reduce) {
+  .summer-recipe-dialog,.summer-recipe-overlay {animation:none;}
+}
