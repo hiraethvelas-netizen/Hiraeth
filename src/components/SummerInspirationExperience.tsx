@@ -109,6 +109,18 @@ export function SummerInspirationExperience({ theme }: { theme: unknown }) {
       </div>
 
       {entries.length === 0 && <p className="summer-sensations__empty">Novas inspirações chegarão em breve.</p>}
+      <div className="summer-sensations__postcards" aria-hidden="true">
+        <div className="summer-sensations__postcard summer-sensations__postcard--hibiscus">
+          <img src="https://images.unsplash.com/photo-1554569258-670a25302596?w=580&q=77" alt="" loading="lazy" />
+        </div>
+        <div className="summer-sensations__postcard summer-sensations__postcard--pool">
+          <img src="https://images.unsplash.com/photo-1713991767449-6d3f6df573b7?w=580&q=77" alt="" loading="lazy" />
+        </div>
+        <div className="summer-sensations__postcard summer-sensations__postcard--beach">
+          <img src="https://static.wixstatic.com/media/a98afb_48b907925d2a4b0287373ddd0eaefb67~mv2.jpg/v1/fill/w_1000%2Ch_800%2Cal_c%2Cq_85%2Cusm_0.66_1.00_0.01/a98afb_48b907925d2a4b0287373ddd0eaefb67~mv2.jpg" alt="" loading="lazy" />
+        </div>
+        <span className="summer-sensations__postcard-sparkle">✺</span>
+      </div>
     </section>
 
     {selected && typeof document !== "undefined" && createPortal(
