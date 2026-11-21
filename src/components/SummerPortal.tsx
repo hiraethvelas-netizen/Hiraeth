@@ -109,19 +109,6 @@ export function SummerPortal({ portal }: { portal: Portal }) {
         </div>
       </section>
 
-      <section className="summer-memoir" aria-labelledby="summer-memoir-title">
-        <div className="summer-memoir-copy">
-          <p className="summer-eyebrow">Um verão para guardar</p>
-          <h2 id="summer-memoir-title">Colecione <em>sensações.</em></h2>
-          <p>O sol no rosto, o som das ondas, uma bebida gelada e aquele livro que parece ter sido escrito para as férias.</p>
-          <p>Na Hiraeth, cada aroma guarda um lugar ao qual a memória sempre quer voltar.</p>
-        </div>
-        <div className="summer-stamp-set" aria-label="Elementos da coleção de verão">
-          <span title="Flores de Janeiro">🌺</span><span title="Sol na Pele">🍍</span><span title="Caipirinha">🍋</span>
-          <span title="Sombra Fresca">🌿</span><span title="Águas de Cristal">🍐</span><span title="Brisa do Mar">🐚</span>
-        </div>
-      </section>
-
       <section className="summer-drinks summer-content-section" id="receitas-de-verao" aria-labelledby="summer-drinks-title">
         <div className="summer-section-intro"><SummerStar /><p className="summer-eyebrow">Pequenos rituais</p>
           <h2 id="summer-drinks-title">Receitas <em>de Verão</em></h2>
