@@ -58,3 +58,52 @@
 @media (prefers-reduced-motion:reduce) {
  .summer-discovery-category,.summer-discovery-card__fire { transition:none; }
 }
+
+
+/* Capas de livros e pôsteres padronizados; sem cortes de títulos nem distorções. */
+.summer-discovery-grid {
+  max-width:1040px;
+  margin-inline:auto;
+  align-items:stretch;
+  gap:clamp(12px,2vw,24px);
+}
+.summer-discovery-card {
+  display:flex;
+  flex-direction:column;
+  min-width:0;
+}
+.summer-discovery-card__cover {
+  width:100%;
+  height:auto;
+  aspect-ratio:2 / 3;
+  background:linear-gradient(145deg,#f4eee3,#dbe9e8);
+  padding:0;
+}
+.summer-discovery-card__cover img {
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  padding:0;
+  object-fit:contain;
+  object-position:center;
+  background:transparent;
+}
+.summer-discovery-card[data-kind="filme"] .summer-discovery-card__cover,
+.summer-discovery-card[data-kind="serie"] .summer-discovery-card__cover {
+  background:linear-gradient(155deg,#c0d9da,#f0d5cd);
+}
+.summer-discovery-card__cover-fallback {min-width:0;}
+.summer-discovery-card__cover-title {overflow-wrap:anywhere;}
+.summer-discovery-card__info {
+  flex:1;
+  display:flex;
+  flex-direction:column;
+}
+.summer-discovery-card__check {margin-top:auto;padding-top:16px;}
+@media(max-width:560px) {
+  .summer-discovery-card__cover {height:auto;aspect-ratio:2 / 3;}
+  .summer-discovery-grid {gap:10px;}
+  .summer-discovery-card__info {padding:13px 10px 15px;}
+  .summer-discovery-card__info h4 {font-size:24px;}
+}
