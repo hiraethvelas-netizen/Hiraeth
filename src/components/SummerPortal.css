@@ -92,3 +92,19 @@
 .portal-world--summer-inspirations .portal-inspired-header::after {content:"";position:absolute;right:0;bottom:0;width:55%;height:25px;background:repeating-linear-gradient(90deg,#fffaf0 0 24px,#347fa3 24px 48px);opacity:.65;}
 .portal-world--summer-inspirations .portal-inspired-main {background:#fff8ec;color:#153e50;}
 .portal-world--summer-inspirations .portal-inspiration-card {background:#fffef8;border:1px solid #b5d5cd;color:#153e50;box-shadow:0 10px 25px #165c6c10;}
+
+
+/* Acervo sazonal: só renderiza depois da ativação explícita no painel. */
+.summer-catalog-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:clamp(12px,2vw,28px); max-width:1050px; margin:34px auto 0; }
+.summer-catalog-card { display:flex; min-width:0; flex-direction:column; align-items:center; text-align:center; gap:10px; color:var(--summer-navy); text-decoration:none; }
+.summer-catalog-photo { width:100%; aspect-ratio:4/5; display:grid; place-items:center; position:relative; overflow:hidden; border-radius:120px 120px 8px 8px; background:radial-gradient(ellipse at 40% 25%,#e8f5ee,#c0dce0); border:1px solid #98bebe; font-size:13px; font-style:italic; }
+.summer-catalog-photo img { display:block; width:100%; height:100%; object-fit:contain; padding:12px; transition:transform .3s ease; }
+.summer-catalog-card:hover .summer-catalog-photo img { transform:scale(1.045); }
+.summer-catalog-card strong { font-family:"Cormorant Garamond",Georgia,serif; font-weight:600; font-size:clamp(21px,2.5vw,29px); line-height:1.1; }
+.summer-catalog-more { display:inline-flex; align-items:center; justify-content:center; gap:5px; color:#0b738a; font-size:12px; font-weight:700; }
+.summer-catalog-status { max-width:600px; margin:26px auto 12px; color:#35535c; line-height:1.7; }
+.summer-catalog-retry { display:inline-flex; margin-top:12px; border:1px solid #267b8d; padding:10px 22px; border-radius:999px; color:#17536b; font-weight:700; cursor:pointer; }
+.summer-catalog .summer-catalog-link { margin-top:30px; }
+@media (max-width:850px) { .summer-catalog-grid { grid-template-columns:repeat(2,minmax(0,1fr)); max-width:620px; } }
+@media (max-width:560px) { .summer-catalog-grid { gap:12px; } .summer-catalog-photo img { padding:8px; } }
+@media (prefers-reduced-motion:reduce) { .summer-catalog-photo img { transition:none; } }
