@@ -11,6 +11,7 @@ import { PortalFeaturedProducts } from "@/components/PortalFeaturedProducts";
 import { PortalLumosAmbient } from "@/components/PortalLumosAmbient";
 import { PortalGuardianLetter } from "@/components/PortalGuardianLetter";
 import { PortalShortcutButtons } from "@/components/PortalShortcutButtons";
+import { SummerPortal } from "@/components/SummerPortal";
 import { portalShortTeaser } from "@/lib/portal-story-preview";
 import { clearPortalReturn, hasPortalReturnQuery, hasRecentPortalReturn, isReturningToPortal } from "@/lib/portal-navigation";
 import { carouselFromTheme, isMagicWorld, magicWorldTitle, portalCatalogDestination, spotifyPlaylistUrl } from "@/lib/portal-experience";
@@ -74,7 +75,7 @@ function PortalPage() {
         if (!active) return;
         if (error) throw error;
         setPortal(data);
-        setIntro(!skipIntro && (isMagicWorld(slug) || Boolean(data?.intro_enabled)));
+        setIntro(!skipIntro && (isMagicWorld(slug) || (Boolean(data?.intro_enabled) && (slug !== "verao" || Boolean(data?.intro_video_url)))));
       } catch {
         if (active) setLoadError(true);
       } finally {
@@ -148,6 +149,26 @@ function PortalPage() {
     </button>
   </div>;
   if (!portal) throw notFound();
+
+  // The summer collection has its own visual identity. The existing World of
+  // Magic portal and its routes remain unchanged.
+  if (slug === "verao") {
+    return <div className="min-h-screen">
+      {intro && portal.intro_enabled && portal.intro_video_url && <PortalIntro
+        key={portal.id}
+        title={portal.intro_title || "Portal de Verão"}
+        subtitle={portal.intro_subtitle}
+        videoUrl={portal.intro_video_url}
+        posterUrl={portal.cover_url}
+        ctaText={portal.intro_cta_text}
+        onEnter={() => setIntro(false)}
+      />}
+      <div inert={intro} aria-hidden={intro}>
+        <SummerPortal portal={portal} />
+        <SiteFooter />
+      </div>
+    </div>;
+  }
 
   const spotifyUrl = spotifyPlaylistUrl(portal.spotify_playlist_url);
   const embed = spotifyUrl ? spotifyUrl.replace("/playlist/","/embed/playlist/") : null;
