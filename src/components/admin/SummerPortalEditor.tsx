@@ -55,7 +55,7 @@ export function SummerPortalEditor({ themeJson, onChange }: { themeJson: string;
     </div>
     <label className="flex items-center gap-3 rounded-lg border border-teal-700/25 bg-white/60 p-3 text-sm dark:bg-black/20">
       <input type="checkbox" checked={summer.show_catalog} onChange={(e) => update({ ...summer, show_catalog: e.target.checked })}/>
-      <span><strong>Mostrar acervo do Verão</strong><small className="mt-1 block opacity-75">Deixe desligado até as velas de verão estarem cadastradas e vinculadas à categoria correta.</small></span>
+      <span><strong>Mostrar acervo do Verão</strong><small className="mt-1 block opacity-75">Deixe desligado até as velas estarem publicadas. No cadastro de cada vela, vincule o produto ao Portal de Verão; somente essas velas aparecerão aqui.</small></span>
     </label>
 
     <div className="space-y-2">
