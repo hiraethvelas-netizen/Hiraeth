@@ -1,0 +1,60 @@
+/* Exclusively scoped to summer editorial recommendations. */
+.summer-discovery { background:linear-gradient(180deg,#e5f5ef 0%,#eff3df 57%,#fdf4e4 100%); color:#164253; }
+.summer-discovery-categories { max-width:980px; margin:0 auto; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:clamp(12px,3vw,36px); }
+.summer-discovery-category { display:flex; flex-direction:column; justify-content:flex-start; align-items:center; gap:8px; color:#174557; text-align:center; cursor:pointer; border:none; background:transparent; padding:5px 8px 20px; transition:transform .2s ease; }
+.summer-discovery-category:hover { transform:translateY(-5px); }
+.summer-discovery-category:focus-visible,.summer-discovery-back:focus-visible,.summer-discovery-card__fire:focus-visible { outline:3px solid #eea94b; outline-offset:5px; }
+.summer-discovery-category__disc { display:grid; place-items:center; width:clamp(108px,15vw,170px); aspect-ratio:1; border-radius:100%; border:6px solid #fff9eb; box-shadow:0 0 0 1px #baaf97,0 16px 25px #084c4c1e; }
+.summer-discovery-category--livro .summer-discovery-category__disc { background:radial-gradient(circle at 22% 15%,#ffeeb1,#e8aa65); color:#774928; }
+.summer-discovery-category--serie .summer-discovery-category__disc { background:radial-gradient(circle at 28% 15%,#aadfe0,#4bb6bb); color:#064967; }
+.summer-discovery-category--filme .summer-discovery-category__disc { background:radial-gradient(circle at 28% 15%,#ffbec5,#ea7b7d); color:#793a4f; }
+.summer-discovery-category strong { font-family:"Cormorant Garamond",Georgia,serif; font-size:clamp(22px,3vw,31px); line-height:1; font-weight:600; max-width:250px; }
+.summer-discovery-category small { font-size:12px; opacity:.75; line-height:1.5; }
+.summer-discovery-category__count { font-size:10px; letter-spacing:.15em; text-transform:uppercase; color:#876345; margin-top:4px; }
+.summer-discovery-progress { margin:28px auto 0; text-align:center; font-size:12px; color:#46656a; }
+.summer-discovery-list { max-width:1120px; margin:0 auto; }
+.summer-discovery-back { display:inline-flex; align-items:center; gap:8px; padding:10px 0; font-size:13px; font-weight:700; background:transparent; border:none; cursor:pointer; color:#0a7186; }
+.summer-discovery-list__title { margin:24px auto 30px; text-align:center; font-family:"Cormorant Garamond",Georgia,serif; font-size:clamp(40px,6vw,64px); font-weight:500; line-height:1; }
+.summer-discovery-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:24px; }
+.summer-discovery-card { min-width:0; background:#fffcf5; border:1px solid #dfd1b9; box-shadow:0 12px 25px #16435016; border-radius:8px; overflow:hidden; }
+.summer-discovery-card__cover { height:260px; position:relative; overflow:hidden; background:#b9d7d5; display:grid; place-items:center; }
+.summer-discovery-card__cover img { width:100%; height:100%; display:block; object-fit:contain; padding:10px; background:linear-gradient(140deg,#f4e7d4,#c1e3df); }
+.summer-discovery-card--1 .summer-discovery-card__cover { background:#f0d2a7; }
+.summer-discovery-card--2 .summer-discovery-card__cover { background:#b2a9d4; }
+.summer-discovery-card--3 .summer-discovery-card__cover { background:#e89c9c; }
+.summer-discovery-card__cover-fallback { width:100%; height:100%; display:flex; align-items:center; flex-direction:column; justify-content:space-between; padding:28px 18px 20px; text-align:center; background:radial-gradient(circle at 20% 20%,#ffefcb66,transparent 40%); }
+.summer-discovery-card__cover-kicker { font-size:10px; text-transform:uppercase; letter-spacing:.23em; font-weight:700; color:#174657; }
+.summer-discovery-card__cover-title { font-family:"Cormorant Garamond",Georgia,serif; font-size:clamp(30px,3vw,45px); line-height:.95; font-weight:600; color:#144555; }
+.summer-discovery-card__cover-sparkle { font-size:45px; color:#fff9ec; }
+.summer-discovery-card__read { position:absolute; top:12px; right:12px; background:#fff9ee; color:#046e63; border-radius:100%; width:32px; height:32px; display:grid; place-items:center; box-shadow:0 4px 8px #123a4533; }
+.summer-discovery-card__info { padding:24px 20px 23px; }
+.summer-discovery-card__eyebrow { font-size:10px; text-transform:uppercase; letter-spacing:.15em; color:#b17653; font-weight:700; }
+.summer-discovery-card__info h4 { font-family:"Cormorant Garamond",Georgia,serif; font-size:clamp(28px,3vw,36px); font-weight:600; line-height:1.03; margin-top:8px; }
+.summer-discovery-card__credit { font-size:12px; margin-top:7px; color:#54747b; }
+.summer-discovery-card__description { font-size:13px; line-height:1.6; margin-top:12px; min-height:42px; }
+.summer-discovery-card__platform { font-size:12px; margin-top:12px; color:#3b5c60; }
+.summer-discovery-card__link { display:inline-flex; align-items:center; gap:5px; color:#0c768a; text-decoration:none; font-size:12px; font-weight:700; margin-top:12px; }
+.summer-discovery-card__check { display:flex; align-items:center; gap:9px; cursor:pointer; margin-top:19px; border-top:1px solid #e5d6be; padding-top:16px; font-size:13px; font-weight:700; }
+.summer-discovery-card__check input { width:18px; height:18px; accent-color:#087d98; cursor:pointer; }
+.summer-discovery-card__rating { display:flex; flex-direction:column; gap:5px; margin-top:12px; }
+.summer-discovery-card__rating>span { color:#50737b; font-size:11px; }
+.summer-discovery-card__fires { display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+.summer-discovery-card__fire { padding:3px 1px; cursor:pointer; border:none; background:none; opacity:.28; filter:grayscale(.9); font-size:23px; transition:filter .2s,transform .2s,opacity .2s; }
+.summer-discovery-card__fire:hover { opacity:.75; filter:grayscale(0); transform:scale(1.08); }
+.summer-discovery-card__fire.is-lit { opacity:1; filter:none; }
+.summer-discovery-storage-note { max-width:400px; margin:30px auto 0; text-align:center; font-size:11px; color:#5e7778; }
+@media (max-width:850px) { .summer-discovery-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:15px; } }
+@media (max-width:560px) {
+ .summer-discovery-categories { gap:4px; } .summer-discovery-category { padding:5px 3px 15px; }
+ .summer-discovery-category__disc { width:clamp(78px,25vw,115px); border-width:4px; } .summer-discovery-category__disc svg { width:29px; height:29px; }
+ .summer-discovery-category strong { font-size:22px; } .summer-discovery-category small { font-size:10px; }
+ .summer-discovery-grid { gap:10px; } .summer-discovery-card__cover { height:175px; }
+ .summer-discovery-card__cover-title { font-size:27px; } .summer-discovery-card__cover-kicker { font-size:8px; } .summer-discovery-card__cover-fallback { padding:22px 10px 12px; }
+ .summer-discovery-card__info { padding:15px 12px 16px; }
+ .summer-discovery-card__info h4 { font-size:26px; }
+ .summer-discovery-card__description { font-size:12px; min-height:0; }
+ .summer-discovery-card__fires { gap:2px; } .summer-discovery-card__fire { font-size:21px; }
+}
+@media (prefers-reduced-motion:reduce) {
+ .summer-discovery-category,.summer-discovery-card__fire { transition:none; }
+}
