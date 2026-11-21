@@ -3,6 +3,8 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { summerRecipesFromTheme, type SummerRecipe } from "@/lib/summer-recipes";
 import { summerInspirationsFromTheme, type SummerInspiration } from "@/lib/summer-inspirations";
+import { SummerInspirationArtwork } from "@/components/SummerInspirationArtwork";
+import { SummerInspirationPhotoEditor } from "@/components/SummerInspirationPhotoEditor";
 import {
   summerRecommendationsFromTheme,
   type SummerRecommendation,
@@ -38,6 +40,7 @@ function readSummer(theme: Record<string, unknown>): Summer {
 export function SummerPortalEditor({ themeJson, onChange }: { themeJson: string; onChange: (json: string) => void }) {
   const summer = useMemo(() => readSummer(readTheme(themeJson)), [themeJson]);
   const [uploading, setUploading] = useState<string | null>(null);
+  const [editingInspirationId, setEditingInspirationId] = useState<string | null>(null);
   const input = "mt-1 w-full min-w-0 rounded-md border border-[#b0b8a5] bg-white px-3 py-2 text-sm text-[#153f4b] placeholder:text-[#697a79] dark:border-[#82908b] dark:bg-[#203c39] dark:text-[#f6f1dd]";
   function update(next: Summer) {
     const theme = readTheme(themeJson);
@@ -100,6 +103,36 @@ export function SummerPortalEditor({ themeJson, onChange }: { themeJson: string;
     } finally { setUploading(null); }
   }
 
+  async function uploadInspirationPicture(file: File, id: string) {
+    const acceptedTypes = ["image/jpeg", "image/png", "image/webp"];
+    if (!acceptedTypes.includes(file.type) || file.size > 12 * 1024 * 1024 || file.size === 0) {
+      toast.error("Escolha JPG, PNG ou WebP de até 12 MB.");
+      return;
+    }
+    const key = `inspirations-${id}`;
+    setUploading(key);
+    try {
+      // Preserve the original file bytes: cropping/rotation is handled by CSS, not image recompression.
+      const ext = file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : "jpg";
+      const storagePath = `portal-verao/inspiracoes/${id}/${crypto.randomUUID()}.${ext}`;
+      const bucket = supabase.storage.from("product-images");
+      const { error } = await bucket.upload(storagePath, file, { upsert: false, contentType: file.type });
+      if (error) throw error;
+      const { data } = bucket.getPublicUrl(storagePath);
+      if (!data.publicUrl) throw new Error("Não foi possível obter o link público da foto.");
+      updateInspiration(id, {
+        image_url: data.publicUrl,
+        image_fit: file.type === "image/png" ? "contain" : "cover",
+        image_zoom: 1, image_rotation: 0, image_x: 0, image_y: 0,
+      });
+      toast.success("Foto original enviada. Ajuste o enquadramento e clique em Salvar alterações.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Erro ao enviar fotografia.");
+    } finally {
+      setUploading(null);
+    }
+  }
+
   return <section className="space-y-6 rounded-xl border border-teal-700/30 bg-[#f1fbf6] p-4 text-[#153f4b] dark:bg-[#13322f] dark:text-[#f6f1dd]" aria-labelledby="summer-editor-heading">
     <div>
       <h3 id="summer-editor-heading" className="font-display text-2xl">Conteúdos do Portal de Verão</h3>
@@ -156,16 +189,25 @@ export function SummerPortalEditor({ themeJson, onChange }: { themeJson: string;
           {item.emoji} {item.title} {item.visible ? "· Visível" : "· Oculta"}
         </summary>
         <div className="mt-3 grid gap-3">
-          <div className="grid grid-cols-[95px_1fr] gap-3">
-            <label className="text-xs">Emoji
-              <input className={input} value={item.emoji}
-                onChange={e => updateInspiration(item.id,{emoji:e.target.value})}/>
-            </label>
-            <label className="text-xs">Nome da inspiração
-              <input className={input} value={item.title}
-                onChange={e => updateInspiration(item.id,{title:e.target.value})}/>
-            </label>
+          <div className="grid gap-3 rounded-lg border border-amber-700/20 bg-[#fffaf2] p-3 sm:grid-cols-[108px_1fr] sm:items-center dark:bg-black/15">
+            <SummerInspirationArtwork item={item} className="summer-sensation-circle__emoji" />
+            <div className="grid gap-2">
+              <p className="text-sm font-semibold">Foto de {item.title}</p>
+              <p className="text-xs opacity-75">A foto original não é comprimida. O recorte, o zoom e a rotação mudam apenas como ela aparece na bolinha.</p>
+              <button type="button"
+                className="w-fit rounded-full border border-rose-700/40 bg-[#f9eae7] px-4 py-2 text-xs font-semibold text-[#793e4d]"
+                onClick={() => setEditingInspirationId(item.id)}>Editar foto · zoom · girar · recortar</button>
+              <input aria-label={`Endereço da foto de ${item.title}`} type="url"
+                placeholder="Ou cole um link HTTPS da fotografia original" className={input}
+                value={item.image_url}
+                onChange={e => updateInspiration(item.id, { image_url: e.target.value })}/>
+              {uploading === `inspirations-${item.id}` && <small role="status">Enviando foto original…</small>}
+            </div>
           </div>
+          <label className="text-xs">Nome da inspiração
+            <input className={input} value={item.title}
+              onChange={e => updateInspiration(item.id,{title:e.target.value})}/>
+          </label>
           <label className="text-xs">Frase curta de apresentação
             <input className={input} value={item.teaser}
               onChange={e => updateInspiration(item.id,{teaser:e.target.value})}/>
@@ -250,5 +292,15 @@ export function SummerPortalEditor({ themeJson, onChange }: { themeJson: string;
         </div>
       </details>)}
     </div>
+    {editingInspirationId && (() => {
+      const current = summer.inspirations.find(entry => entry.id === editingInspirationId);
+      return current ? <SummerInspirationPhotoEditor
+        item={current}
+        uploading={uploading === `inspirations-${editingInspirationId}`}
+        onClose={() => setEditingInspirationId(null)}
+        onUpload={file => uploadInspirationPicture(file, current.id)}
+        onChange={patch => updateInspiration(current.id, patch)}
+      /> : null;
+    })()}
   </section>;
 }
