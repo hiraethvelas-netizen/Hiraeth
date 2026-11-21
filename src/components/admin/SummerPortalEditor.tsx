@@ -189,3 +189,4 @@ export function SummerPortalEditor({ themeJson, onChange }: { themeJson: string;
       </details>)}
     </div>
   </section>;
+}
