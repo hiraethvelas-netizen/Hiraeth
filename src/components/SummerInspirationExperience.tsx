@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { ChevronDown, Sparkles, Wind, X } from "lucide-react";
 import { summerInspirationsFromTheme } from "@/lib/summer-inspirations";
-import { SummerSymbol, type SummerSymbolKind } from "@/components/SummerEditorialIcons";
+import { SummerInspirationArtwork } from "@/components/SummerInspirationArtwork";
 import "./SummerInspirationExperience.css";
 
 type Reveal = "sensacao" | "piramide" | null;
@@ -105,7 +105,7 @@ export function SummerInspirationExperience({ theme }: { theme: unknown }) {
           aria-haspopup="dialog"
           aria-label={`Conhecer a inspiração de ${item.title}`}
           onClick={event => choose(item.id, event.currentTarget)}>
-            <span className="summer-sensation-circle__emoji" aria-hidden="true"><SummerSymbol kind={(paletteById[item.id] ?? "flores") as SummerSymbolKind} /></span>
+            <SummerInspirationArtwork item={item} className="summer-sensation-circle__emoji" />
           </button>)}
       </div>
 
@@ -135,7 +135,7 @@ export function SummerInspirationExperience({ theme }: { theme: unknown }) {
           tabIndex={-1}>
           <button ref={closeRef} type="button" className="summer-sensation-dialog__close"
             onClick={close} aria-label="Fechar inspiração"><X size={21} aria-hidden="true" /></button>
-          <span className="summer-sensation-dialog__symbol" aria-hidden="true"><SummerSymbol kind={(paletteById[selected.id] ?? "flores") as SummerSymbolKind} /></span>
+          <SummerInspirationArtwork item={selected} className="summer-sensation-dialog__symbol" />
           <h3 id="summer-sensation-dialog-title">{selected.title}</h3>
           <p id="summer-sensation-dialog-teaser" className="summer-sensation-dialog__teaser">{selected.teaser}</p>
           <div className="summer-sensation-dialog__actions">
