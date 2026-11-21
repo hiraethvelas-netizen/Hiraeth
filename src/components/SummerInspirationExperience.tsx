@@ -112,7 +112,7 @@ export function SummerInspirationExperience({ theme }: { theme: unknown }) {
     </section>
 
     {selected && typeof document !== "undefined" && createPortal(
-      <div className="summer-sensation-overlay summer-sensation-overlay--open" onMouseDown={event => {
+      <div className="summer-sensation-overlay summer-sensation-overlay--open" onClick={event => {
         if (event.target === event.currentTarget) close();
       }}>
         <div ref={dialogRef} role="dialog" aria-modal="true"
