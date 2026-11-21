@@ -8,6 +8,7 @@ import { SummerPortalCatalog } from "@/components/SummerPortalCatalog";
 import { SummerRecommendations } from "@/components/SummerRecommendations";
 import { SummerRecipes } from "@/components/SummerRecipes";
 import { SummerHibiscusCutout, SummerParasolCutout } from "@/components/SummerDecorations";
+import { SummerOrnament } from "@/components/SummerEditorialIcons";
 import "./SummerPortal.css";
 
 type Portal = Tables<"portals">;
@@ -29,8 +30,8 @@ export function summerSettings(theme: unknown): SummerSettings {
   };
 }
 
-function SummerStar({ light = false }: { light?: boolean }) {
-  return <span className={light ? "summer-star summer-star--light" : "summer-star"} aria-hidden="true">✳</span>;
+function SummerStar({ light = false, kind = "sun" }: { light?: boolean; kind?: "sun" | "hibiscus" | "waves" }) {
+  return <SummerOrnament kind={kind} light={light} />;
 }
 
 const GOLDEN_HOUR_STORAGE_KEY = "hiraeth-portal-verao-golden-hour";
@@ -62,7 +63,7 @@ export function SummerPortal({ portal }: { portal: Portal }) {
       <div className="summer-hero-stripe" aria-hidden="true" />
       <div className="summer-hero-hibiscus summer-hero-cutout" aria-hidden="true"><SummerHibiscusCutout /></div>
       <div className="summer-hero-parasol summer-hero-cutout" aria-hidden="true"><SummerParasolCutout /></div>
-      <span className="summer-hero-lemon" aria-hidden="true">✳</span>
+      <span className="summer-hero-lemon" aria-hidden="true"><SummerOrnament kind="sun" light /></span>
       <div className="summer-hero-inner">
         <img src={hiraethWordmark} alt="Hiraeth" className="summer-brand" />
         <div className="summer-top-ornament"><SummerStar light /></div>
@@ -83,7 +84,7 @@ export function SummerPortal({ portal }: { portal: Portal }) {
     <main>
       <section className="summer-shortcuts" aria-label="Portas para o universo de verão">
         <div className="summer-section-intro">
-          <SummerStar />
+          <SummerStar kind="waves" />
           <p className="summer-eyebrow">Portas para este universo</p>
           <h2>Para onde vamos <em>hoje?</em></h2>
         </div>
