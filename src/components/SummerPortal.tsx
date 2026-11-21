@@ -44,8 +44,8 @@ const recommendationKinds = ["livro", "serie", "livro", "serie"] as const;
 export function SummerPortal({ portal }: { portal: Portal }) {
   const settings = summerSettings(portal.theme);
   const spotifyUrl = portal.spotify_visible ? spotifyPlaylistUrl(portal.spotify_playlist_url) : null;
-  const recipes = Array.from({ length: 4 }, (_, i) => settings.recipes?.[i] ?? {});
-  const recommendations = Array.from({ length: 4 }, (_, i) => settings.recommendations?.[i] ?? {});
+  const recipes: Recipe[] = Array.from({ length: 4 }, (_, i) => settings.recipes?.[i] ?? {});
+  const recommendations: Recommendation[] = Array.from({ length: 4 }, (_, i) => settings.recommendations?.[i] ?? {});
   const catalog = portal.store_category_url && /^\/loja\?categoria=[a-z0-9-]+(?:&|$)/.test(portal.store_category_url)
     ? portal.store_category_url : null;
 
