@@ -15,6 +15,19 @@ export type SummerRecommendation = {
   visible: boolean;
 };
 
+/** Capas editoriais selecionadas a partir das edições brasileiras e pôsteres oficiais.
+ * Se houver uma foto definida pela administração, ela tem prioridade.
+ */
+export const summerCoverFallbacks: Record<string, string> = {
+  "livro-amor-gelato": "https://covers.openlibrary.org/b/isbn/9788551002346-L.jpg?default=false",
+  "livro-aconteceu-naquele-verao": "https://livrariascuritiba.vteximg.com.br/arquivos/ids/2122943-1000-1000/lv487114_1.jpg?v=638194872812630000",
+  "livro-leitura-de-verao": "https://down-br.img.susercontent.com/file/sg-11134201-7rfha-m9thhixy4djjf6",
+  "serie-verao-que-mudou-minha-vida": "https://p2.trrsf.com/image/fget/cf/940/0/images.terra.com/2023/06/30/1178379778-fz0dd0fwwaexr6t.jpg",
+  "serie-outer-banks": "https://dnm.nflximg.net/api/v6/mAcAr9TxZIVbINe88xb3Teg5_OA/AAAABRQ5SBBL9B_V7vWDk82TvzX3ll04bHUrcveM1itv0DZEQXpEiZ_SPpcH17iwD5ZAIURI_hFFytbI2UlKsUoCMW2Cf5ojUb3kuevlNiqkz4Bzaq9eoIsO50xW-LD1B_JslpCWUg.jpg?r=ab5",
+  "filme-esposa-de-mentirinha": "https://www.querofilme.com.br/images/b/109-esposa-de-mentirinha.jpg",
+  "filme-gente-grande": "https://image.tmdb.org/t/p/w500/jJ15tYBtxeLxfMecbnQvgV0uoI5.jpg",
+};
+
 export const defaultSummerRecommendations: SummerRecommendation[] = [
   {
     id: "livro-amor-gelato",
@@ -23,7 +36,7 @@ export const defaultSummerRecommendations: SummerRecommendation[] = [
     description: "Uma viagem à Itália, gelatos e descobertas que mudam tudo.",
     creator: "Jenna Evans Welch",
     platform: "",
-    image_url: "https://covers.openlibrary.org/b/isbn/9788551002346-L.jpg?default=false",
+    image_url: summerCoverFallbacks["livro-amor-gelato"],
     url: "",
     visible: true,
   },
@@ -34,7 +47,7 @@ export const defaultSummerRecommendations: SummerRecommendation[] = [
     description: "Um romance divertido, uma cidade à beira-mar e surpresas pelo caminho.",
     creator: "Tessa Bailey",
     platform: "",
-    image_url: "https://covers.openlibrary.org/b/isbn/9786555604849-L.jpg?default=false",
+    image_url: summerCoverFallbacks["livro-aconteceu-naquele-verao"],
     url: "",
     visible: true,
   },
@@ -45,7 +58,7 @@ export const defaultSummerRecommendations: SummerRecommendation[] = [
     description: "Dois escritores, bloqueios criativos e um verão para recomeçar.",
     creator: "Emily Henry",
     platform: "",
-    image_url: "https://covers.openlibrary.org/b/isbn/9786559240630-L.jpg?default=false",
+    image_url: summerCoverFallbacks["livro-leitura-de-verao"],
     url: "",
     visible: true,
   },
@@ -56,7 +69,7 @@ export const defaultSummerRecommendations: SummerRecommendation[] = [
     description: "Amizades, primeiros amores e um verão impossível de esquecer.",
     creator: "",
     platform: "Prime Video",
-    image_url: "",
+    image_url: summerCoverFallbacks["serie-verao-que-mudou-minha-vida"],
     url: "https://www.primevideo.com/-/pt/detail/0KAW4T6OOSAPQJVCFDCOXNLGJU",
     visible: true,
   },
@@ -66,8 +79,8 @@ export const defaultSummerRecommendations: SummerRecommendation[] = [
     title: "Outer Banks",
     description: "Mar, aventuras, amizades e mistérios com cara de férias.",
     creator: "",
-    platform: "",
-    image_url: "",
+    platform: "Netflix",
+    image_url: summerCoverFallbacks["serie-outer-banks"],
     url: "",
     visible: true,
   },
@@ -78,7 +91,7 @@ export const defaultSummerRecommendations: SummerRecommendation[] = [
     description: "Uma comédia romântica tropical para rir sem compromisso.",
     creator: "",
     platform: "",
-    image_url: "",
+    image_url: summerCoverFallbacks["filme-esposa-de-mentirinha"],
     url: "",
     visible: true,
   },
@@ -89,7 +102,7 @@ export const defaultSummerRecommendations: SummerRecommendation[] = [
     description: "Diversão, amizade e boas risadas em clima de férias.",
     creator: "",
     platform: "",
-    image_url: "",
+    image_url: summerCoverFallbacks["filme-gente-grande"],
     url: "",
     visible: true,
   },
