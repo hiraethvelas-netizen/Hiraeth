@@ -6,6 +6,14 @@
 export type SummerInspiration = {
   id: string;
   emoji: string;
+  /** Original uploaded image URL: never downsampled by the app. */
+  image_url: string;
+  /** Non-destructive circular framing controls, saved independently of the original photo. */
+  image_zoom: number;
+  image_rotation: number;
+  image_x: number;
+  image_y: number;
+  image_fit: "cover" | "contain";
   title: string;
   teaser: string;
   sensation: string;
@@ -14,10 +22,12 @@ export type SummerInspiration = {
 };
 
 const emptyPyramid = () => ({ saida: "", corpo: "", fundo: "" });
+const defaultImage = () => ({ image_url: "", image_zoom: 1, image_rotation: 0, image_x: 0, image_y: 0, image_fit: "contain" as const });
 
 export const defaultSummerInspirations: SummerInspiration[] = [
   {
     id: "flores-de-janeiro",
+    ...defaultImage(),
     emoji: "🌺",
     title: "Flores de Janeiro",
     teaser: "Um janeiro leve, dourado e delicado.",
@@ -27,6 +37,7 @@ export const defaultSummerInspirations: SummerInspiration[] = [
   },
   {
     id: "sol-na-pele",
+    ...defaultImage(),
     emoji: "🍍",
     title: "Sol na Pele",
     teaser: "O calor gostoso de um dia que você queria repetir.",
@@ -36,6 +47,7 @@ export const defaultSummerInspirations: SummerInspiration[] = [
   },
   {
     id: "caipirinha",
+    ...defaultImage(),
     emoji: "🍋",
     title: "Caipirinha",
     teaser: "Um fim de tarde cítrico, leve e cheio de vida.",
@@ -45,6 +57,7 @@ export const defaultSummerInspirations: SummerInspiration[] = [
   },
   {
     id: "sombra-fresca",
+    ...defaultImage(),
     emoji: "🌿",
     title: "Sombra Fresca",
     teaser: "Um respiro verde no meio do calor.",
@@ -54,6 +67,7 @@ export const defaultSummerInspirations: SummerInspiration[] = [
   },
   {
     id: "aguas-de-cristal",
+    ...defaultImage(),
     emoji: "🍐",
     title: "Águas de Cristal",
     teaser: "Leveza, transparência e serenidade.",
@@ -63,6 +77,7 @@ export const defaultSummerInspirations: SummerInspiration[] = [
   },
   {
     id: "brisa-do-mar",
+    ...defaultImage(),
     emoji: "🐚",
     title: "Brisa do Mar",
     teaser: "A paz de ficar mais um pouco à beira-mar.",
@@ -78,6 +93,12 @@ function object(value: unknown): value is Record<string, unknown> {
 function stringOr(value: unknown, fallback: string): string {
   return typeof value === "string" ? value : fallback;
 }
+function numberWithin(value: unknown, defaultValue: number, min: number, max: number): number {
+  return typeof value === "number" && Number.isFinite(value)
+    ? Math.max(min, Math.min(max, value))
+    : defaultValue;
+}
+
 
 export function summerInspirationsFromTheme(theme: unknown): SummerInspiration[] {
   if (!object(theme)) return defaultSummerInspirations;
@@ -93,6 +114,12 @@ export function summerInspirationsFromTheme(theme: unknown): SummerInspiration[]
     return {
       id: stringOr(entry["id"], def?.id ?? `inspiracao-${index}`),
       emoji: stringOr(entry["emoji"], def?.emoji ?? "🌞"),
+      image_url: stringOr(entry["image_url"], def?.image_url ?? ""),
+      image_zoom: numberWithin(entry["image_zoom"], def?.image_zoom ?? 1, 0.8, 3.5),
+      image_rotation: numberWithin(entry["image_rotation"], def?.image_rotation ?? 0, -180, 180),
+      image_x: numberWithin(entry["image_x"], def?.image_x ?? 0, -100, 100),
+      image_y: numberWithin(entry["image_y"], def?.image_y ?? 0, -100, 100),
+      image_fit: entry["image_fit"] === "cover" ? "cover" : "contain",
       title: stringOr(entry["title"], def?.title ?? ""),
       teaser: stringOr(entry["teaser"], def?.teaser ?? ""),
       sensation: stringOr(entry["sensation"], def?.sensation ?? ""),
