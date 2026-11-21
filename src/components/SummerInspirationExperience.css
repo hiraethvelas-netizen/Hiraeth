@@ -351,3 +351,47 @@
   .summer-sensation-circle__emoji .summer-sensation-art {width:84%;height:84%;}
   .summer-sensation-dialog__symbol .summer-sensation-art {width:95px;height:95px;}
 }
+
+
+/* Fotos das velas sem perda de resolução: o crop é somente visual, com máscara circular. */
+.summer-inspiration-artwork {
+  position:relative;
+  display:grid;
+  place-items:center;
+  overflow:hidden;
+  isolation:isolate;
+  flex:none;
+}
+.summer-inspiration-artwork__photo {
+  position:absolute;
+  inset:0;
+  display:block;
+  width:100%;
+  height:100%;
+  max-width:none;
+  max-height:none;
+  object-position:center;
+  transform-origin:center center;
+  transition:transform .2s ease;
+  will-change:transform;
+}
+.summer-sensation-circle .summer-inspiration-artwork {
+  border-radius:50%;
+}
+.summer-sensation-dialog .summer-inspiration-artwork {
+  margin:0 auto 12px;
+  width:clamp(106px,18vw,145px);
+  height:clamp(106px,18vw,145px);
+  border:3px solid rgba(255,255,255,.8);
+  border-radius:50%;
+  box-shadow:0 7px 18px rgba(76,64,60,.15);
+  background:rgba(255,255,255,.42);
+}
+.summer-sensation-dialog .summer-inspiration-artwork .summer-sensation-art {
+  width:85%;
+  height:85%;
+}
+.summer-image-editor__stage .summer-inspiration-artwork__photo {transition:none;}
+@media(prefers-reduced-motion:reduce) {
+  .summer-inspiration-artwork__photo {transition:none;}
+}
