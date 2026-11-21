@@ -1,6 +1,7 @@
 import { ArrowRight, ArrowUpRight, BookOpenText, BookOpen, Clapperboard, Headphones, Smartphone } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 import { spotifyPlaylistUrl } from "@/lib/portal-experience";
+import { summerRecipesFromTheme } from "@/lib/summer-recipes";
 import hiraethWordmark from "@/assets/hiraeth-wordmark.svg";
 import { SummerPortalCatalog } from "@/components/SummerPortalCatalog";
 import "./SummerPortal.css";
@@ -22,7 +23,7 @@ export function summerSettings(theme: unknown): SummerSettings {
   const raw = source;
   return {
     show_catalog: raw["show_catalog"] === true,
-    recipes: Array.isArray(raw["recipes"]) ? raw["recipes"].filter(record) as Recipe[] : [],
+    recipes: summerRecipesFromTheme(raw),
     recommendations: Array.isArray(raw["recommendations"]) ? raw["recommendations"].filter(record) as Recommendation[] : [],
   };
 }
