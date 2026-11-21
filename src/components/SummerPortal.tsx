@@ -40,7 +40,7 @@ function SummerStar({ light = false }: { light?: boolean }) {
   return <span className={light ? "summer-star summer-star--light" : "summer-star"} aria-hidden="true">✳</span>;
 }
 
-const recipeIcons = ["🍋", "🍍", "🥥", "🍐"];
+const recipeIcons = ["🥥", "🍋", "🥕", "🍐"];
 const recommendationKinds = ["livro", "serie", "livro", "serie"] as const;
 
 export function SummerPortal({ portal }: { portal: Portal }) {
