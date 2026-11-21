@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { summerRecipesFromTheme, type SummerRecipe } from "@/lib/summer-recipes";
+import { summerInspirationsFromTheme, type SummerInspiration } from "@/lib/summer-inspirations";
 import {
   summerRecommendationsFromTheme,
   type SummerRecommendation,
@@ -12,6 +13,7 @@ type Summer = {
   show_catalog: boolean;
   recipes: SummerRecipe[];
   recommendations: SummerRecommendation[];
+  inspirations: SummerInspiration[];
 };
 
 function record(value: unknown): value is Record<string, unknown> {
@@ -29,6 +31,7 @@ function readSummer(theme: Record<string, unknown>): Summer {
       title: "", ingredients: "", method: "", image_url: "", visible: false,
     }),
     recommendations: summerRecommendationsFromTheme(source),
+    inspirations: summerInspirationsFromTheme(theme),
   };
 }
 
@@ -46,6 +49,7 @@ export function SummerPortalEditor({ themeJson, onChange }: { themeJson: string;
         ...next,
         recipes_configured: true,
         recommendations_configured: true,
+        inspirations_configured: true,
       },
     }, null, 2));
   }
@@ -54,6 +58,13 @@ export function SummerPortalEditor({ themeJson, onChange }: { themeJson: string;
   }
   function updateRecommendation(i: number, patch: Partial<SummerRecommendation>) {
     update({ ...summer, recommendations: summer.recommendations.map((x, n) => i === n ? { ...x, ...patch } : x) });
+  }
+  function updateInspiration(id: string, patch: Partial<SummerInspiration>) {
+    update({ ...summer, inspirations: summer.inspirations.map(item => item.id === id ? { ...item, ...patch } : item) });
+  }
+  function updatePyramid(id: string, field: keyof SummerInspiration["pyramid"], value: string) {
+    update({ ...summer, inspirations: summer.inspirations.map(item => item.id === id
+      ? { ...item, pyramid: { ...item.pyramid, [field]: value } } : item) });
   }
   function addRecommendation(kind: SummerRecommendationKind) {
     update({ ...summer, recommendations: [
@@ -127,6 +138,57 @@ export function SummerPortalEditor({ themeJson, onChange }: { themeJson: string;
           </div>
           <label className="flex items-center gap-2 text-xs"><input type="checkbox" checked={recipe.visible}
             onChange={e => updateRecipe(i,{visible:e.target.checked})}/> Exibir receita no portal</label>
+        </div>
+      </details>)}
+    </div>
+
+    <div className="space-y-3">
+      <div>
+        <h4 className="font-display text-xl">Colecione sensações — inspirações de verão</h4>
+        <p className="text-xs opacity-75">
+          As seis bolinhas aparecem somente na página de Inspirações do Verão.
+          Preencha as pirâmides olfativas quando estiverem definidas; até lá, o botão mostra que as notas serão reveladas em breve.
+        </p>
+      </div>
+      {summer.inspirations.map(item => <details key={item.id}
+        className="rounded-lg border border-teal-700/20 bg-white/70 p-3 dark:bg-black/15">
+        <summary className="cursor-pointer text-sm font-semibold">
+          {item.emoji} {item.title} {item.visible ? "· Visível" : "· Oculta"}
+        </summary>
+        <div className="mt-3 grid gap-3">
+          <div className="grid grid-cols-[95px_1fr] gap-3">
+            <label className="text-xs">Emoji
+              <input className={input} value={item.emoji}
+                onChange={e => updateInspiration(item.id,{emoji:e.target.value})}/>
+            </label>
+            <label className="text-xs">Nome da inspiração
+              <input className={input} value={item.title}
+                onChange={e => updateInspiration(item.id,{title:e.target.value})}/>
+            </label>
+          </div>
+          <label className="text-xs">Frase curta de apresentação
+            <input className={input} value={item.teaser}
+              onChange={e => updateInspiration(item.id,{teaser:e.target.value})}/>
+          </label>
+          <label className="text-xs">Texto de “Descubra a sensação”
+            <textarea className={input} rows={5} value={item.sensation}
+              onChange={e => updateInspiration(item.id,{sensation:e.target.value})}/>
+          </label>
+          <div className="rounded-lg border border-amber-700/20 bg-[#fff8ec] p-3 text-[#153f4b] dark:bg-[#3d3b30] dark:text-[#f9eedd]">
+            <p className="mb-3 text-sm font-semibold">Descubra a pirâmide olfativa</p>
+            <p className="mb-3 text-xs opacity-75">Pode deixar os três campos vazios por enquanto.</p>
+            {([["saida","Saída"],["corpo","Corpo"],["fundo","Fundo"]] as const).map(([key,label]) =>
+              <label key={key} className="mb-3 block text-xs">{label}
+                <textarea className={input} rows={2} value={item.pyramid[key]}
+                  placeholder={`Notas de ${label.toLowerCase()} (preencher depois)`}
+                  onChange={e => updatePyramid(item.id,key,e.target.value)}/>
+              </label>)}
+          </div>
+          <label className="flex items-center gap-2 text-xs">
+            <input type="checkbox" checked={item.visible}
+              onChange={e => updateInspiration(item.id,{visible:e.target.checked})}/>
+            Mostrar esta bolinha na página de inspirações
+          </label>
         </div>
       </details>)}
     </div>
