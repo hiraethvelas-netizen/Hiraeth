@@ -113,7 +113,7 @@ export function SummerPortal({ portal }: { portal: Portal }) {
             const published = item.visible === true && Boolean(item.title?.trim());
             const img = published ? safeImage(item.image_url) : null;
             const [recipeTitle, candleName] = published
-              ? (item.title ?? "").split(/\\s+[—–]\\s+/, 2)
+              ? (item.title ?? "").split(/\s+[—–]\s+/, 2)
               : ["Uma receita a descobrir", ""];
             return <article className="summer-drink-card" key={i}>
               <div className={"summer-drink-photo summer-drink-photo--" + (i + 1)}>
