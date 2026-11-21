@@ -323,3 +323,31 @@
   .summer-sensations__postcard {border-width:4px;border-bottom-width:11px;}
   .summer-sensations__postcard-sparkle {font-size:29px;bottom:-16px;}
 }
+
+
+/* Desenhos botânicos em vez de emojis, com moldura elevada e tons da vela. */
+.summer-sensation-circle__emoji {
+  background-clip:padding-box;
+  box-shadow:0 0 0 1px rgba(171,126,103,.45),0 8px 0 rgba(143,103,91,.09),0 15px 25px rgba(87,63,66,.15);
+}
+.summer-sensation-circle__emoji .summer-sensation-art {
+  width:82%;
+  height:82%;
+  overflow:visible;
+  filter:drop-shadow(0 5px 5px rgba(69,59,56,.17));
+}
+.summer-sensation-dialog__symbol {
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  line-height:1;
+  margin:0 auto 12px;
+}
+.summer-sensation-dialog__symbol .summer-sensation-art {
+  width:116px;height:116px;
+  filter:drop-shadow(0 8px 8px rgba(87,67,65,.16));
+}
+@media(max-width:560px) {
+  .summer-sensation-circle__emoji .summer-sensation-art {width:84%;height:84%;}
+  .summer-sensation-dialog__symbol .summer-sensation-art {width:95px;height:95px;}
+}
