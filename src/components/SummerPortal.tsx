@@ -6,6 +6,7 @@ import { summerRecipesFromTheme } from "@/lib/summer-recipes";
 import hiraethWordmark from "@/assets/hiraeth-wordmark.svg";
 import { SummerPortalCatalog } from "@/components/SummerPortalCatalog";
 import { SummerRecommendations } from "@/components/SummerRecommendations";
+import { SummerHibiscusCutout, SummerParasolCutout } from "@/components/SummerDecorations";
 import "./SummerPortal.css";
 
 type Portal = Tables<"portals">;
@@ -75,12 +76,8 @@ export function SummerPortal({ portal }: { portal: Portal }) {
       <div className="summer-water" aria-hidden="true" />
       <div className="summer-sunset-glow" aria-hidden="true" />
       <div className="summer-hero-stripe" aria-hidden="true" />
-      <div className="summer-hero-hibiscus summer-hero-photo" aria-hidden="true">
-        <img src="https://images.unsplash.com/photo-1554569258-670a25302596?w=640&q=76" alt="" loading="lazy" />
-      </div>
-      <div className="summer-hero-parasol summer-hero-photo" aria-hidden="true">
-        <img src="https://static.wixstatic.com/media/a98afb_48b907925d2a4b0287373ddd0eaefb67~mv2.jpg/v1/fill/w_1000%2Ch_800%2Cal_c%2Cq_85%2Cusm_0.66_1.00_0.01/a98afb_48b907925d2a4b0287373ddd0eaefb67~mv2.jpg" alt="" loading="lazy" />
-      </div>
+      <div className="summer-hero-hibiscus summer-hero-cutout" aria-hidden="true"><SummerHibiscusCutout /></div>
+      <div className="summer-hero-parasol summer-hero-cutout" aria-hidden="true"><SummerParasolCutout /></div>
       <span className="summer-hero-lemon" aria-hidden="true">✳</span>
       <div className="summer-hero-inner">
         <img src={hiraethWordmark} alt="Hiraeth" className="summer-brand" />
