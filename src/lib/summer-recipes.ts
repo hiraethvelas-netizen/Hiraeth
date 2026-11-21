@@ -12,9 +12,9 @@ export type SummerRecipe = {
 
 export const defaultSummerRecipes: SummerRecipe[] = [
   {
-    title: "Piña Colada — Sol na Pele",
-    ingredients: "Para 1 taça: 120 ml de suco natural de abacaxi gelado; 60 ml de leite de coco; 50 ml de rum branco (opcional); 1 xícara de gelo; açúcar ou mel a gosto, se necessário.",
-    method: "Bata o suco de abacaxi, o leite de coco e o gelo no liquidificador até ficar cremoso. Se quiser a versão alcoólica, acrescente o rum e bata rapidamente. Prove antes de adoçar. Sirva imediatamente e decore com um triângulo de abacaxi. Para uma Piña Colada sem álcool, simplesmente não use o rum.",
+    title: "Bolo Gelado de Coco e Laranja — Flores de Janeiro",
+    ingredients: "Para cerca de 12 pedaços: 3 ovos; 1 xícara de açúcar; 1/2 xícara de óleo; 1 xícara de suco de laranja; 2 xícaras de farinha de trigo; 1 colher (sopa) de fermento químico. Para a calda: 200 ml de leite de coco, 100 ml de leite e 1/2 xícara de coco ralado.",
+    method: "Preaqueça o forno a 180 °C. Bata os ovos, o açúcar e o óleo. Adicione o suco e a farinha aos poucos e misture até ficar liso. Incorpore o fermento delicadamente. Asse em forma média untada por cerca de 35 a 40 minutos, até o palito sair limpo. Misture o leite de coco com o leite. Com o bolo já morno, corte em quadrados, regue com a calda e cubra com coco ralado. Leve à geladeira por pelo menos 3 horas e sirva gelado.",
     image_url: "",
     visible: true,
   },
@@ -26,16 +26,16 @@ export const defaultSummerRecipes: SummerRecipe[] = [
     visible: true,
   },
   {
-    title: "Suco Dourado — Flores de Janeiro",
-    ingredients: "Para 1 copo grande: suco de 2 laranjas; 1 cenoura pequena descascada e picada; 1/4 de beterraba pequena crua e picada; 100 ml de água gelada; gelo a gosto; algumas gotas de limão (opcional).",
-    method: "Bata a cenoura, a beterraba, o suco de laranja e a água até ficar homogêneo. Se desejar, coe; sem coar, você preserva mais fibras. Acrescente gelo e finalize com gotinhas de limão. É um suco colorido com carotenoides; não garante bronzeado e não substitui o protetor solar.",
+    title: "Suco Solar — Sol na Pele",
+    ingredients: "Para 1 copo grande: 1/2 cenoura pequena picada; 1/4 de beterraba pequena crua; suco de 1 laranja; 1 fatia grossa de abacaxi; 120 ml de água de coco gelada; gelo a gosto.",
+    method: "Higienize e pique os ingredientes. Bata a cenoura, a beterraba, a laranja, o abacaxi e a água de coco no liquidificador até ficar homogêneo. Sirva com gelo. Se preferir, coe; sem coar você aproveita mais fibras. A bebida fornece nutrientes como carotenoides, mas não garante bronzeado e não substitui o protetor solar.",
     image_url: "",
     visible: true,
   },
   {
     title: "Torradas de Pera, Ricota e Mel — Águas de Cristal",
     ingredients: "Para 2 torradas: 2 fatias de pão rústico; 1/2 pera madura e firme; 4 colheres (sopa) de ricota; 1 colher (chá) de mel; 1 fio de azeite; algumas folhas de alecrim fresco; uma pitada de sal.",
-    method: "Toste o pão em uma frigideira ou forno até dourar. Amasse a ricota com o azeite e o sal até obter um creme. Espalhe nas torradas, acrescente a pera em fatias finas e finalize com mel e uma quantidade pequena de alecrim. Sirva na hora. A pera lembra Águas de Cristal, enquanto o alecrim faz uma referência à vela Sombra Fresca.",
+    method: "Toste o pão em uma frigideira ou forno até dourar. Amasse a ricota com o azeite e o sal até obter um creme. Espalhe nas torradas, acrescente a pera em fatias finas e finalize com mel e uma quantidade pequena de alecrim. Sirva na hora.",
     image_url: "",
     visible: true,
   },
