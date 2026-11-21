@@ -17,12 +17,12 @@ function readTheme(raw: string): Record<string, unknown> {
 }
 
 function readSummer(theme: Record<string, unknown>): Summer {
-  const source = theme.summer && typeof theme.summer === "object" && !Array.isArray(theme.summer)
-    ? theme.summer as Record<string, unknown> : {};
-  const recipes = Array.isArray(source.recipes) ? source.recipes as Partial<Recipe>[] : [];
-  const recommendations = Array.isArray(source.recommendations) ? source.recommendations as Partial<Recommendation>[] : [];
+  const source = theme["summer"] && typeof theme["summer"] === "object" && !Array.isArray(theme["summer"])
+    ? theme["summer"] as Record<string, unknown> : {};
+  const recipes = Array.isArray(source["recipes"]) ? source["recipes"] as Partial<Recipe>[] : [];
+  const recommendations = Array.isArray(source["recommendations"]) ? source["recommendations"] as Partial<Recommendation>[] : [];
   return {
-    show_catalog: source.show_catalog === true,
+    show_catalog: source["show_catalog"] === true,
     recipes: Array.from({ length: 4 }, (_, i) => ({ ...blankRecipe(), ...recipes[i] })),
     recommendations: Array.from({ length: 4 }, (_, i) => ({ ...blankRecommendation(i), ...recommendations[i] })),
   };
@@ -35,8 +35,8 @@ export function SummerPortalEditor({ themeJson, onChange }: { themeJson: string;
 
   const update = (next: Summer) => {
     const theme = readTheme(themeJson);
-    const original = theme.summer && typeof theme.summer === "object" && !Array.isArray(theme.summer)
-      ? theme.summer as Record<string, unknown> : {};
+    const original = theme["summer"] && typeof theme["summer"] === "object" && !Array.isArray(theme["summer"])
+      ? theme["summer"] as Record<string, unknown> : {};
     onChange(JSON.stringify({ ...theme, summer: { ...original, ...next } }, null, 2));
   };
   const updateRecipe = (i: number, patch: Partial<Recipe>) => {
