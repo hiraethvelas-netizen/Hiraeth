@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { summerRecipesFromTheme } from "@/lib/summer-recipes";
 
 type Recipe = { title: string; ingredients: string; method: string; image_url: string; visible: boolean };
 type Recommendation = { kind: "livro" | "serie"; title: string; description: string; image_url: string; url: string; visible: boolean };
@@ -19,7 +20,7 @@ function readTheme(raw: string): Record<string, unknown> {
 function readSummer(theme: Record<string, unknown>): Summer {
   const source = theme["summer"] && typeof theme["summer"] === "object" && !Array.isArray(theme["summer"])
     ? theme["summer"] as Record<string, unknown> : {};
-  const recipes = Array.isArray(source["recipes"]) ? source["recipes"] as Partial<Recipe>[] : [];
+  const recipes = summerRecipesFromTheme(source);
   const recommendations = Array.isArray(source["recommendations"]) ? source["recommendations"] as Partial<Recommendation>[] : [];
   return {
     show_catalog: source["show_catalog"] === true,
@@ -37,7 +38,7 @@ export function SummerPortalEditor({ themeJson, onChange }: { themeJson: string;
     const theme = readTheme(themeJson);
     const original = theme["summer"] && typeof theme["summer"] === "object" && !Array.isArray(theme["summer"])
       ? theme["summer"] as Record<string, unknown> : {};
-    onChange(JSON.stringify({ ...theme, summer: { ...original, ...next } }, null, 2));
+    onChange(JSON.stringify({ ...theme, summer: { ...original, ...next, recipes_configured: true } }, null, 2));
   };
   const updateRecipe = (i: number, patch: Partial<Recipe>) => {
     const recipes = summer.recipes.map((recipe, index) => index === i ? { ...recipe, ...patch } : recipe);
