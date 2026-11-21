@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type PointerEvent } from "react";
 import { createPortal } from "react-dom";
 import { ImagePlus, RotateCcw, RotateCw, X, ZoomIn } from "lucide-react";
 import { SummerInspirationArtwork } from "@/components/SummerInspirationArtwork";
@@ -27,6 +27,8 @@ export function SummerInspirationPhotoEditor({
   const closeRef = useRef<HTMLButtonElement>(null);
   const pointerRef = useRef<{ id: number; x: number; y: number; originalX: number; originalY: number } | null>(null);
   const previousFocus = useRef<HTMLElement | null>(null);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
 
   useEffect(() => {
     previousFocus.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
@@ -35,7 +37,7 @@ export function SummerInspirationPhotoEditor({
     closeRef.current?.focus();
 
     function handleKeys(event: KeyboardEvent) {
-      if (event.key === "Escape") { event.preventDefault(); onClose(); return; }
+      if (event.key === "Escape") { event.preventDefault(); onCloseRef.current(); return; }
       if (event.key !== "Tab" || !dialogRef.current) return;
       const controls = Array.from(dialogRef.current.querySelectorAll<HTMLElement>(
         'button:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
@@ -51,9 +53,9 @@ export function SummerInspirationPhotoEditor({
       document.removeEventListener("keydown", handleKeys);
       previousFocus.current?.focus();
     };
-  }, [onClose]);
+  }, []);
 
-  function startDrag(event: React.PointerEvent<HTMLDivElement>) {
+  function startDrag(event: PointerEvent<HTMLDivElement>) {
     if (event.pointerType === "mouse" && event.button !== 0) return;
     if (!item.image_url) return;
     pointerRef.current = {
