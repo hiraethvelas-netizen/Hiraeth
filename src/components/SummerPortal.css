@@ -109,3 +109,105 @@
 @media (max-width:850px) { .summer-catalog-grid { grid-template-columns:repeat(2,minmax(0,1fr)); max-width:620px; } }
 @media (max-width:560px) { .summer-catalog-grid { gap:12px; } .summer-catalog-photo img { padding:8px; } }
 @media (prefers-reduced-motion:reduce) { .summer-catalog-photo img { transition:none; } }
+
+
+/* Golden Hour — a second, reader-controlled visual theme for the Summer Portal.
+   This is intentionally scoped: the global app theme and the Magic World portal never change. */
+.summer-portal { transition:background-color .75s ease,color .75s ease; }
+.summer-hero,.summer-shortcuts,.summer-memoir,.summer-drinks,.summer-discovery,.summer-catalog,.summer-footer,
+.summer-drink-card,.summer-discovery-card,.summer-round-icon,.summer-hero-edge {
+  transition:background .8s ease,background-color .8s ease,color .7s ease,border-color .7s ease,box-shadow .7s ease;
+}
+.summer-sunset-glow { position:absolute;z-index:-1;inset:0;pointer-events:none;opacity:0;
+  background:radial-gradient(ellipse 32% 40% at 84% 20%,rgba(255,245,172,.86),transparent 80%),
+    radial-gradient(ellipse 47% 40% at 49% 55%,rgba(255,158,108,.38),transparent 92%);
+  transition:opacity 1.25s ease;
+}
+.summer-golden-toggle { display:inline-flex;align-items:center;gap:12px;position:relative;z-index:2;
+  margin:32px auto 0;padding:9px 20px 9px 10px;border-radius:999px;
+  border:1px solid rgba(255,242,197,.78);background:rgba(12,75,86,.46);
+  box-shadow:0 8px 32px rgba(2,55,70,.23);color:#fff8ed;text-shadow:none;
+  cursor:pointer;backdrop-filter:blur(14px);transition:background .35s ease,transform .25s ease,box-shadow .35s ease;
+}
+.summer-golden-toggle:hover { transform:translateY(-2px);background:rgba(22,85,89,.72); }
+.summer-golden-toggle:focus-visible { outline:3px solid #fff4a8;outline-offset:5px; }
+.summer-golden-toggle__sun { display:grid;place-items:center;width:42px;height:42px;border-radius:50%;
+  color:#fff1ad;background:rgba(255,217,121,.23);border:1px solid rgba(255,229,153,.58);
+  transition:transform .9s ease,background .6s ease,color .6s ease;
+}
+.summer-golden-toggle__label {font-family:"Cormorant Garamond",Georgia,serif;font-weight:600;
+  font-size:24px;line-height:1;letter-spacing:.015em;}
+.summer-golden-toggle__state {font-size:10px;text-transform:uppercase;letter-spacing:.13em;opacity:.83;font-weight:700;}
+.summer-portal--golden { --summer-navy:#643a48;--summer-teal:#c36460;--summer-cream:#fff0dd;
+  --summer-sand:#f7d0a2;color:var(--summer-navy); }
+.summer-portal--golden .summer-hero {
+  background:radial-gradient(ellipse 48% 62% at 79% 13%,#ffdb8e 0%,#ffb17b 36%,transparent 84%),
+    linear-gradient(150deg,#a75881 1%,#e4838b 30%,#f6a16f 58%,#e7a861 78%,#b35d79 100%);
+}
+.summer-portal--golden .summer-sunset-glow { opacity:1; }
+.summer-portal--golden .summer-water { opacity:.95;filter:blur(3px) sepia(.35) saturate(1.45);
+  background:radial-gradient(ellipse 20% 13% at 8% 42%,rgba(255,255,213,.64),transparent 93%),
+    radial-gradient(ellipse 19% 12% at 84% 64%,rgba(255,227,172,.55),transparent 97%),
+    repeating-radial-gradient(ellipse 34% 25% at 27% 57%,transparent 0 55px,rgba(255,219,159,.3) 57px,rgba(255,234,190,.43) 60px,transparent 67px,transparent 98px),
+    linear-gradient(80deg,rgba(130,52,104,.4),rgba(255,195,117,.33),rgba(145,60,104,.26));
+}
+.summer-portal--golden .summer-water::after {
+  background:repeating-radial-gradient(ellipse 29% 13% at 75% 30%,transparent 0 24px,rgba(255,245,190,.3) 28px,transparent 34px,transparent 68px);
+}
+.summer-portal--golden .summer-hero-hibiscus {color:#f75870;text-shadow:0 12px 22px #a73a6630;}
+.summer-portal--golden .summer-hero-lemon {color:#ffe08a;text-shadow:0 12px 22px #a45c4538;}
+.summer-portal--golden .summer-hero-stripe {background:repeating-linear-gradient(90deg,#fff0d7 0 28px,#ce7b8c 28px 55px);
+  box-shadow:0 17px 22px #71334825;}
+.summer-portal--golden .summer-hero-inner {text-shadow:0 3px 28px #75405170;}
+.summer-portal--golden .summer-golden-toggle {background:rgba(123,47,82,.62);border-color:#ffe19a;color:#fff9e8;
+  box-shadow:0 0 0 1px rgba(255,233,174,.25),0 0 40px rgba(255,198,118,.36);}
+.summer-portal--golden .summer-golden-toggle__sun {color:#8d3c60;background:#ffe2a0;
+  box-shadow:0 0 0 7px rgba(255,233,172,.16),0 0 26px rgba(255,238,176,.68);
+  transform:rotate(75deg);}
+.summer-portal--golden .summer-shortcuts {background:#fff0dd;}
+.summer-portal--golden .summer-eyebrow {color:#a95e62;}
+.summer-portal--golden .summer-star {color:#e2a15d;}
+.summer-portal--golden .summer-star--light {color:#fff2be;}
+.summer-portal--golden .summer-section-intro h2 em,
+.summer-portal--golden .summer-memoir h2 em,
+.summer-portal--golden .summer-catalog h2 em {color:#c16a70;}
+.summer-portal--golden .summer-round-link {color:#6d3948;}
+.summer-portal--golden .summer-round-icon {border-color:#fff6df;box-shadow:0 0 0 2px #dda987,0 8px 25px #95476323;}
+.summer-portal--golden .summer-round-icon--music {color:#7e3c4d;background:repeating-linear-gradient(90deg,#ffe3ba 0 20px,#d7899a 20px 40px);}
+.summer-portal--golden .summer-round-icon--story {color:#804355;background:radial-gradient(circle at 30% 18%,#ffe4a0,#f6ab8b);}
+.summer-portal--golden .summer-round-icon--app {color:#7c375d;background:radial-gradient(circle at 28% 20%,#fce1c2,#f4a3a0);}
+.summer-portal--golden .summer-memoir {background:linear-gradient(125deg,#fbe2ce,#fbc3b1 54%,#f7d49d);}
+.summer-portal--golden .summer-stamp-set span {background:#fff3d8bf;box-shadow:0 4px 14px #a6546826;}
+.summer-portal--golden .summer-drinks {background:linear-gradient(180deg,#fff2df,#ffead9);}
+.summer-portal--golden .summer-drink-card {background:#fffbf5;border-color:#f1c8ab;box-shadow:0 14px 27px #a7587016;}
+.summer-portal--golden .summer-drink-photo--1 {background:linear-gradient(145deg,#ffe7ae,#f9b5a2);}
+.summer-portal--golden .summer-drink-photo--2 {background:linear-gradient(145deg,#ffe8ad,#bcd69e);}
+.summer-portal--golden .summer-drink-photo--3 {background:linear-gradient(145deg,#ffd094,#ee98a4);}
+.summer-portal--golden .summer-drink-photo--4 {background:linear-gradient(145deg,#fbe3bd,#f4acc0);}
+.summer-portal--golden .summer-drink-info summary {color:#a74e65;}
+.summer-portal--golden .summer-discovery {background:linear-gradient(180deg,#f8c5b9,#fde2cb 45%,#fff2df);color:#643a48;}
+.summer-portal--golden .summer-discovery-category {color:#743c4c;}
+.summer-portal--golden .summer-discovery-category--livro .summer-discovery-category__disc {background:radial-gradient(circle at 30% 15%,#ffecb3,#e9ad83);}
+.summer-portal--golden .summer-discovery-category--serie .summer-discovery-category__disc {background:radial-gradient(circle at 30% 15%,#ffe1b4,#ea9aa8);}
+.summer-portal--golden .summer-discovery-category--filme .summer-discovery-category__disc {background:radial-gradient(circle at 30% 15%,#ffd2c7,#d27f94);}
+.summer-portal--golden .summer-discovery-card {background:#fff7ed;border-color:#efc2a6;box-shadow:0 12px 28px #9d5d711d;}
+.summer-portal--golden .summer-discovery-card__info {color:#633d4b;}
+.summer-portal--golden .summer-discovery-back,.summer-portal--golden .summer-discovery-card__link {color:#a64c68;}
+.summer-portal--golden .summer-discovery-card__check input {accent-color:#b24b6c;}
+.summer-portal--golden .summer-discovery-card__cover {background:#edb0ad;}
+.summer-portal--golden .summer-discovery-card__cover img {background:linear-gradient(140deg,#ffe2b9,#efb7b9);}
+.summer-portal--golden .summer-discovery-card__cover-fallback {background:radial-gradient(circle at 20% 20%,#ffe5a899,transparent 55%);}
+.summer-portal--golden .summer-discovery-card__cover-title,.summer-portal--golden .summer-discovery-card__cover-kicker {color:#693c4c;}
+.summer-portal--golden .summer-catalog {background:#ffecd5;}
+.summer-portal--golden .summer-catalog-photo {background:radial-gradient(ellipse at 40% 20%,#ffe3c5,#f5b4b2);border-color:#e2a08c;}
+.summer-portal--golden .summer-catalog-card {color:#643a48;}
+.summer-portal--golden .summer-catalog-more {color:#a64c68;}
+.summer-portal--golden .summer-catalog-link {background:#a64c68;color:#fff9ef;}
+.summer-portal--golden .summer-footer {background:linear-gradient(140deg,#8a4569,#b56579 60%,#ab6b63);color:#fff8eb;}
+@media (max-width:560px) { .summer-golden-toggle {gap:8px;margin-top:24px;padding:7px 15px 7px 7px;}
+ .summer-golden-toggle__sun {width:36px;height:36px;} .summer-golden-toggle__label {font-size:22px;}
+ .summer-golden-toggle__state {font-size:9px;} }
+@media (prefers-reduced-motion:reduce) { .summer-portal,.summer-hero,.summer-shortcuts,.summer-memoir,
+ .summer-drinks,.summer-discovery,.summer-catalog,.summer-footer,.summer-drink-card,
+ .summer-discovery-card,.summer-round-icon,.summer-hero-edge,.summer-sunset-glow,.summer-golden-toggle__sun {transition:none;}
+}
