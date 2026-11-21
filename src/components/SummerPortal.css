@@ -61,6 +61,7 @@
 .summer-drink-info {padding:22px 19px 24px;}
 .summer-drink-info h3,.summer-pick-info h3 {font-size:clamp(23px,2.3vw,30px);line-height:1.12;}
 .summer-drink-info p,.summer-drink-info details {font-size:13px;line-height:1.7;margin-top:12px;overflow-wrap:anywhere;}
+.summer-drink-info .summer-recipe-inspiration {font-size:10px;line-height:1.5;letter-spacing:.1em;text-transform:uppercase;font-weight:700;color:#b17052;margin-top:8px;}
 .summer-drink-info summary {color:#006b82;font-weight:700;cursor:pointer;}
 .summer-muted {color:#657c7d;}
 .summer-picks { background:linear-gradient(180deg,#e3f1ed,#f3f6e8); }
