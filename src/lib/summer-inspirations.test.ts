@@ -54,7 +54,20 @@ describe("Portal de Verão: Colecione sensações", () => {
       summer: { inspirations_configured: true, inspirations: [oldEntry] },
     });
     expect(read[0]).toMatchObject({
-      image_url: "", image_zoom: 1, image_rotation: 0, image_x: 0, image_y: 0, image_fit: "contain",
+      image_url: "/images/portal-verao/flores-de-janeiro.webp",
+      image_zoom: 1, image_rotation: 0, image_x: 0, image_y: 0, image_fit: "cover",
     });
   });
+  it("usa as cinco fotografias correspondentes, preservando a sexta sem revelação", () => {
+    const images = summerInspirationsFromTheme({}).map(item => item.image_url);
+    expect(images).toEqual([
+      "/images/portal-verao/flores-de-janeiro.webp",
+      "/images/portal-verao/sol-na-pele.webp",
+      "/images/portal-verao/caipirinha.webp",
+      "/images/portal-verao/sombra-fresca.webp",
+      "/images/portal-verao/aguas-de-cristal.webp",
+      "",
+    ]);
+  });
+
 });
