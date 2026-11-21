@@ -112,13 +112,17 @@ export function SummerPortal({ portal }: { portal: Portal }) {
           {recipes.map((item, i) => {
             const published = item.visible === true && Boolean(item.title?.trim());
             const img = published ? safeImage(item.image_url) : null;
+            const [recipeTitle, candleName] = published
+              ? (item.title ?? "").split(/\\s+[—–]\\s+/, 2)
+              : ["Uma receita a descobrir", ""];
             return <article className="summer-drink-card" key={i}>
               <div className={"summer-drink-photo summer-drink-photo--" + (i + 1)}>
                 {img ? <img src={img} alt="" loading="lazy" /> : <span className="summer-drink-symbol" aria-hidden="true">{recipeIcons[i]}</span>}
                 <span className="summer-drink-number">0{i + 1}</span>
               </div>
               <div className="summer-drink-info">
-                <h3>{published ? item.title : "Uma receita a descobrir"}</h3>
+                <h3>{recipeTitle}</h3>
+                {candleName && <p className="summer-recipe-inspiration">Inspirada na vela {candleName}</p>}
                 {published ? <>
                   {item.ingredients && <p><strong>Ingredientes:</strong> {item.ingredients}</p>}
                   {item.method && <details><summary>Como preparar</summary><p>{item.method}</p></details>}
