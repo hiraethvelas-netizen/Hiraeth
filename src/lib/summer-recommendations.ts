@@ -19,7 +19,7 @@ export type SummerRecommendation = {
  * Se houver uma foto definida pela administração, ela tem prioridade.
  */
 export const summerCoverFallbacks: Record<string, string> = {
-  "livro-amor-gelato": "https://down-br.img.susercontent.com/file/br-11134207-81z1k-mibml4llp2wy23",
+  "livro-amor-gelato": "https://down-br.img.susercontent.com/file/bfd19d127ebef28f7cd7fd3bad6d56dc",
   "livro-aconteceu-naquele-verao": "https://livrariascuritiba.vteximg.com.br/arquivos/ids/2122943-1000-1000/lv487114_1.jpg?v=638194872812630000",
   "livro-leitura-de-verao": "https://americanas.vtexassets.com/arquivos/ids/30537964/4937073794_1_xlarge.jpg?v=638794233205000000",
   "serie-verao-que-mudou-minha-vida": "https://www.brit.co/media-library/the-summer-i-turned-pretty-cast-ages.jpg?height=1192&id=52512851&width=1200",
